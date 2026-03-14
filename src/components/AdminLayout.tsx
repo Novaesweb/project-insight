@@ -38,7 +38,7 @@ const menuSections = [
   {
     label: "Sistema",
     items: [
-      { label: "Configurações", icon: Settings, path: "/configuracoes" },
+      { label: "Configurações", icon: Settings, path: "/admin/configuracoes" },
     ],
   },
 ];

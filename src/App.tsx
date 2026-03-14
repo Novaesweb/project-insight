@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/AdminLayout";
 import ClienteLayout from "@/components/ClienteLayout";
+import Site from "./pages/Site";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
 import Projetos from "./pages/Projetos";
@@ -19,6 +20,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
+import NichePage from "./pages/NichePage";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
 import ClienteProjetos from "./pages/cliente/ClienteProjetos";
@@ -39,7 +41,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Public */}
+          {/* Public Site */}
+          <Route path="/" element={<Site />} />
+          <Route path="/site" element={<Site />} />
+          <Route path="/nicho/:slug" element={<NichePage />} />
           <Route path="/agendar" element={<AgendarPublico />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/cliente" element={<ClienteLogin />} />
@@ -61,7 +66,7 @@ const App = () => (
           } />
 
           {/* Admin */}
-          <Route path="*" element={
+          <Route path="/admin/*" element={
             <AdminLayout>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -80,6 +85,8 @@ const App = () => (
               </Routes>
             </AdminLayout>
           } />
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
