@@ -86,11 +86,15 @@ function SidebarContent({ currentPath, onNavigate, leadCount }: { currentPath: s
                   >
                     <item.icon className="w-[18px] h-[18px] shrink-0" />
                     <span>{item.label}</span>
-                    {item.badge && (
+                    {(item as any).badgeKey === "leads" && leadCount ? (
+                      <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
+                        {leadCount}
+                      </span>
+                    ) : item.badge ? (
                       <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
                         {item.badge}
                       </span>
-                    )}
+                    ) : null}
                   </Link>
                 );
               })}
