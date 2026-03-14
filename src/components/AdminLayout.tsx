@@ -5,7 +5,7 @@ import {
   BarChart3, DollarSign, Headphones, UserCog, Settings,
   Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck
 } from "lucide-react";
-import { reunioes } from "@/lib/mock-data";
+// reunioes now from DB
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
