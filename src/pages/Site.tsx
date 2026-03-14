@@ -143,9 +143,14 @@ export default function Site() {
 
       {/* Footer */}
       <footer className="gradient-primary py-4 px-4">
-        <p className="text-center text-white text-sm font-medium tracking-wide">
-          NovaesWeb © 2025 — Todos os direitos reservados
-        </p>
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <p className="text-white text-sm font-medium tracking-wide">
+            NovaesWeb © 2025 — Todos os direitos reservados
+          </p>
+          <Link to="/admin" className="text-white/60 hover:text-white text-xs transition-colors">
+            Painel ADM
+          </Link>
+        </div>
       </footer>
     </div>
   );
