@@ -1,32 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, AlertTriangle, DollarSign, RefreshCw, Package, Clock } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { financeiro, evolucaoFinanceira, extrasClientes, clientes } from "@/lib/mock-data";
+import { TrendingUp, AlertTriangle, DollarSign } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const totalRecebido = financeiro.filter(f => f.tipo === "entrada" && f.status === "pago").reduce((s, f) => s + f.valor, 0);
-const totalPendente = financeiro.filter(f => f.status === "pendente").reduce((s, f) => s + f.valor, 0);
-const totalAtraso = financeiro.filter(f => f.status === "em_atraso").reduce((s, f) => s + f.valor, 0);
-
-// Extras financeiro
-const mensaisAtivos = extrasClientes.filter(e => e.status === "ativo" && e.precoMensal > 0);
-const totalMensalRecorrente = mensaisAtivos.reduce((s, e) => s + e.precoMensal, 0);
-const totalAtivacoesMes = extrasClientes.filter(e => e.dataAtivacao.startsWith("2026-03")).reduce((s, e) => s + e.precoAtivacao, 0);
-
 export default function Financeiro() {
+  const [financeiro, setFinanceiro] = useState<any[]>([]);
   const [filtro, setFiltro] = useState("todos");
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("financeiro").select("*, clientes(nome)").order("created_at", { ascending: false });
+      setFinanceiro(data || []);
+    };
+    load();
+  }, []);
+
+  const totalRecebido = financeiro.filter(f => f.tipo === "entrada" && f.status === "pago").reduce((s, f) => s + Number(f.valor), 0);
+  const totalPendente = financeiro.filter(f => f.status === "pendente").reduce((s, f) => s + Number(f.valor), 0);
+  const totalAtraso = financeiro.filter(f => f.status === "em_atraso").reduce((s, f) => s + Number(f.valor), 0);
   const filtrados = filtro === "todos" ? financeiro : financeiro.filter(f => f.status === filtro);
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
-      {/* Summary */}
       <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-4" variants={fadeUp}>
         <Card className="glass-card border-[0.5px]">
           <CardContent className="p-5 flex items-center gap-4">
@@ -57,84 +58,6 @@ export default function Financeiro() {
         </Card>
       </motion.div>
 
-      {/* Area chart */}
-      <motion.div variants={fadeUp}>
-        <Card className="glass-card border-[0.5px]">
-          <CardHeader><CardTitle className="text-sm font-semibold text-white">Evolução Financeira</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={evolucaoFinanceira}>
-                <defs>
-                  <linearGradient id="colorRecebido" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#e8334a" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#e8334a" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} />
-                <YAxis tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip contentStyle={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#fff", fontSize: 12 }} formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR")}`} />
-                <Area type="monotone" dataKey="recebido" stroke="#e8334a" fill="url(#colorRecebido)" strokeWidth={2} />
-                <Area type="monotone" dataKey="pendente" stroke="#f59e0b" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" />
-                <Area type="monotone" dataKey="atrasado" stroke="#ef4444" fill="transparent" strokeWidth={1.5} strokeDasharray="2 2" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Receita de Extras */}
-      <motion.div variants={fadeUp}>
-        <Card className="glass-card border-[0.5px]">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
-              <Package className="w-4 h-4" /> Receita de Extras
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)]">
-                <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="w-4 h-4 text-emerald-400" />
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Ativações no mês</p>
-                </div>
-                <p className="text-lg font-bold text-emerald-400">R$ {totalAtivacoesMes.toFixed(2).replace(".", ",")}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)]">
-                <div className="flex items-center gap-2 mb-1">
-                  <RefreshCw className="w-4 h-4 text-blue-400" />
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">Renda Recorrente (mensais ativos)</p>
-                </div>
-                <p className="text-lg font-bold text-blue-400">R$ {totalMensalRecorrente.toFixed(2).replace(".", ",")}/mês</p>
-              </div>
-            </div>
-
-            {/* Mensais ativos por cliente */}
-            <div className="space-y-2">
-              <p className="text-xs text-[hsl(var(--muted-foreground))] font-semibold uppercase tracking-wider">Mensais ativos por cliente</p>
-              {mensaisAtivos.map(e => (
-                <div key={e.id} className="flex items-center justify-between p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center">
-                      <span className="text-white text-[8px] font-bold">{clientes.find(c => c.id === e.clienteId)?.avatar || "?"}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-white">{e.extraNome}</p>
-                      <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{e.cliente}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-blue-400">R$ {e.precoMensal.toFixed(2).replace(".", ",")}/mês</p>
-                    <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Desde {new Date(e.dataAtivacao).toLocaleDateString("pt-BR")}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Transactions */}
       <motion.div variants={fadeUp}>
         <Card className="glass-card border-[0.5px]">
           <CardHeader>
@@ -161,7 +84,9 @@ export default function Financeiro() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtrados.map((f) => (
+                {filtrados.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</TableCell></TableRow>
+                ) : filtrados.map((f) => (
                   <TableRow key={f.id} className="border-[rgba(255,255,255,0.04)]">
                     <TableCell className="text-sm text-white">{f.descricao}</TableCell>
                     <TableCell>
@@ -170,10 +95,10 @@ export default function Financeiro() {
                       </span>
                     </TableCell>
                     <TableCell className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
-                      {f.tipo === "saida" ? "- " : ""}R$ {f.valor.toLocaleString("pt-BR")}
+                      {f.tipo === "saida" ? "- " : ""}R$ {Number(f.valor).toLocaleString("pt-BR")}
                     </TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{new Date(f.vencimento).toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.cliente || "—"}</TableCell>
+                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}</TableCell>
+                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.clientes?.nome || "—"}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
                   </TableRow>
                 ))}
