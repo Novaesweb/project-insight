@@ -213,6 +213,58 @@ export const evolucaoFinanceira = [
   { mes: "Mar", recebido: 48500, pendente: 23750, atrasado: 16000 },
 ];
 
+export type StatusReuniao = "agendada" | "confirmada" | "realizada" | "cancelada" | "aguardando";
+export type TipoReuniao = "apresentacao" | "alinhamento" | "suporte" | "fechamento";
+
+export interface Reuniao {
+  id: string;
+  clienteId: string;
+  cliente: string;
+  tipo: TipoReuniao;
+  data: string;
+  horaInicio: string;
+  horaFim: string;
+  link?: string;
+  observacoes?: string;
+  status: StatusReuniao;
+}
+
+export const reunioes: Reuniao[] = [
+  { id: "r1", clienteId: "1", cliente: "Tech Solutions Ltda", tipo: "alinhamento", data: "2026-03-14", horaInicio: "09:00", horaFim: "10:00", link: "https://meet.google.com/abc-defg-hij", observacoes: "Revisão do sprint 3", status: "confirmada" },
+  { id: "r2", clienteId: "2", cliente: "Design Lab ME", tipo: "apresentacao", data: "2026-03-14", horaInicio: "11:00", horaFim: "12:00", link: "https://zoom.us/j/123456", status: "agendada" },
+  { id: "r3", clienteId: "4", cliente: "Startup Hub S.A.", tipo: "fechamento", data: "2026-03-14", horaInicio: "14:00", horaFim: "15:00", link: "https://meet.google.com/xyz-uvwx", observacoes: "Proposta comercial final", status: "aguardando" },
+  { id: "r4", clienteId: "5", cliente: "Marina Costa", tipo: "suporte", data: "2026-03-15", horaInicio: "10:00", horaFim: "10:30", status: "agendada" },
+  { id: "r5", clienteId: "6", cliente: "Loja Bella Moda", tipo: "apresentacao", data: "2026-03-15", horaInicio: "14:00", horaFim: "15:30", link: "https://meet.google.com/lmn-opqr", observacoes: "Apresentação do layout do e-commerce", status: "confirmada" },
+  { id: "r6", clienteId: "7", cliente: "Dr. Paulo Freitas", tipo: "alinhamento", data: "2026-03-16", horaInicio: "09:00", horaFim: "09:30", status: "agendada" },
+  { id: "r7", clienteId: "1", cliente: "Tech Solutions Ltda", tipo: "suporte", data: "2026-03-17", horaInicio: "11:00", horaFim: "12:00", link: "https://zoom.us/j/789012", status: "agendada" },
+  { id: "r8", clienteId: "2", cliente: "Design Lab ME", tipo: "fechamento", data: "2026-03-18", horaInicio: "15:00", horaFim: "16:00", status: "agendada" },
+  { id: "r9", clienteId: "4", cliente: "Startup Hub S.A.", tipo: "alinhamento", data: "2026-03-10", horaInicio: "10:00", horaFim: "11:00", status: "realizada" },
+  { id: "r10", clienteId: "5", cliente: "Marina Costa", tipo: "apresentacao", data: "2026-03-08", horaInicio: "14:00", horaFim: "15:00", status: "cancelada" },
+];
+
+export const tipoReuniaoLabels: Record<TipoReuniao, string> = {
+  apresentacao: "Apresentação",
+  alinhamento: "Alinhamento",
+  suporte: "Suporte",
+  fechamento: "Fechamento",
+};
+
+export const statusReuniaoLabels: Record<StatusReuniao, string> = {
+  agendada: "Agendada",
+  confirmada: "Confirmada",
+  realizada: "Realizada",
+  cancelada: "Cancelada",
+  aguardando: "Aguardando",
+};
+
+export const statusReuniaoColors: Record<StatusReuniao, string> = {
+  agendada: "#60a5fa",
+  confirmada: "#4ade80",
+  realizada: "#9ca3af",
+  cancelada: "#ef4444",
+  aguardando: "#facc15",
+};
+
 export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/": { titulo: "Dashboard", subtitulo: "Visão geral do seu negócio" },
   "/clientes": { titulo: "Clientes", subtitulo: "Gerencie sua base de clientes" },
@@ -224,4 +276,5 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/suporte": { titulo: "Suporte", subtitulo: "Gestão de tickets de suporte" },
   "/usuarios": { titulo: "Usuários", subtitulo: "Equipe interna do sistema" },
   "/configuracoes": { titulo: "Configurações", subtitulo: "Configurações do sistema" },
+  "/agenda": { titulo: "Agenda", subtitulo: "Gerencie suas reuniões e agendamentos" },
 };

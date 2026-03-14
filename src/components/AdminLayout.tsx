@@ -3,8 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  Menu, X, LogOut, Bell, Search, Download
+  Menu, X, LogOut, Bell, Search, Download, CalendarDays
 } from "lucide-react";
+import { reunioes } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const menuSections = [
   {
     label: "Gestão",
     items: [
+      { label: "Agenda", icon: CalendarDays, path: "/agenda", badge: reunioes.filter(r => r.data === new Date().toISOString().split("T")[0]).length || undefined },
       { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
       { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
       { label: "Suporte", icon: Headphones, path: "/suporte", badge: 3 },
