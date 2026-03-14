@@ -134,6 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const currentPath = location.pathname;
   const info = pageInfo[currentPath] || { titulo: "Página", subtitulo: "" };
   const [mobileOpen, setMobileOpen] = useState(false);
+  const leadCount = useLeadCount();
 
   return (
     <div className="flex h-screen overflow-hidden">
