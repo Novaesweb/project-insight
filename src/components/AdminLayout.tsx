@@ -43,7 +43,7 @@ const menuSections = [
   },
 ];
 
-function SidebarContent({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
+function SidebarContent({ currentPath, onNavigate, leadCount }: { currentPath: string; onNavigate?: () => void; leadCount?: number }) {
   return (
     <div className="flex flex-col h-full bg-[hsl(var(--sidebar-background))]">
       {/* Logo */}
