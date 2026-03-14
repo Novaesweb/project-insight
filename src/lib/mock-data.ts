@@ -33,13 +33,125 @@ export const pedidos = [
   { id: "PED-008", clienteId: "2", cliente: "Design Lab ME", projetoId: "2", projeto: "App Mobile Delivery", tipo: "Testes QA", valor: 6500, data: "2026-03-13", status: "pendente" as const },
 ];
 
-export const extras = [
-  { id: "1", descricao: "Página adicional de FAQ", projetoId: "1", projeto: "Redesign E-commerce", valor: 3500, data: "2026-03-05", status: "aprovado" as const },
-  { id: "2", descricao: "Integração com gateway extra", projetoId: "2", projeto: "App Mobile Delivery", valor: 7000, data: "2026-03-08", status: "aguardando" as const },
-  { id: "3", descricao: "Relatório customizado", projetoId: "4", projeto: "Sistema CRM Interno", valor: 4500, data: "2026-03-10", status: "aprovado" as const },
-  { id: "4", descricao: "Animações premium", projetoId: "3", projeto: "Landing Page Evento", valor: 2000, data: "2025-12-01", status: "aprovado" as const },
-  { id: "5", descricao: "Chat em tempo real", projetoId: "5", projeto: "Portal do Cliente", valor: 9000, data: "2026-03-12", status: "recusado" as const },
-  { id: "6", descricao: "Módulo de cupons", projetoId: "6", projeto: "E-commerce Bella Moda", valor: 5500, data: "2026-03-14", status: "aguardando" as const },
+export type CategoriaExtra = "fixo" | "intermediario" | "mensal";
+
+export interface ExtraCatalogo {
+  id: string;
+  nome: string;
+  descricao?: string;
+  categoria: CategoriaExtra;
+  precoAtivacao: number;
+  precoMensal: number;
+  status: "ativo" | "inativo";
+}
+
+export interface ExtraCliente {
+  id: string;
+  clienteId: string;
+  cliente: string;
+  extraId: string;
+  extraNome: string;
+  categoria: CategoriaExtra;
+  precoAtivacao: number;
+  precoMensal: number;
+  dataAtivacao: string;
+  dataCancelamento?: string;
+  observacao?: string;
+  status: "ativo" | "pausado" | "cancelado";
+}
+
+export const extrasCatalogo: ExtraCatalogo[] = [
+  // FIXOS
+  { id: "f1", nome: "Botão WhatsApp", categoria: "fixo", precoAtivacao: 14.90, precoMensal: 0, status: "ativo" },
+  { id: "f2", nome: "Página nova", categoria: "fixo", precoAtivacao: 39.00, precoMensal: 0, status: "ativo" },
+  { id: "f3", nome: "Galeria fotos", categoria: "fixo", precoAtivacao: 34.90, precoMensal: 0, status: "ativo" },
+  { id: "f4", nome: "Produtos destaque", categoria: "fixo", precoAtivacao: 24.90, precoMensal: 0, status: "ativo" },
+  { id: "f5", nome: "Pedido mínimo", categoria: "fixo", precoAtivacao: 12.90, precoMensal: 0, status: "ativo" },
+  { id: "f6", nome: "Combos produtos", categoria: "fixo", precoAtivacao: 24.90, precoMensal: 0, status: "ativo" },
+  { id: "f7", nome: "Taxa entrega bairro", categoria: "fixo", precoAtivacao: 59.00, precoMensal: 0, status: "ativo" },
+  { id: "f8", nome: "Landing promoção", categoria: "fixo", precoAtivacao: 49.90, precoMensal: 0, status: "ativo" },
+  { id: "f9", nome: "Status aberto/fechado", categoria: "fixo", precoAtivacao: 19.90, precoMensal: 0, status: "ativo" },
+  { id: "f10", nome: "Proteção login", categoria: "fixo", precoAtivacao: 59.00, precoMensal: 0, status: "ativo" },
+  { id: "f11", nome: "Exportar Excel", categoria: "fixo", precoAtivacao: 14.90, precoMensal: 0, status: "ativo" },
+  { id: "f12", nome: "Dashboard gráfico vendas", categoria: "fixo", precoAtivacao: 69.00, precoMensal: 0, status: "ativo" },
+  { id: "f13", nome: "Animação abertura", categoria: "fixo", precoAtivacao: 19.90, precoMensal: 0, status: "ativo" },
+  { id: "f14", nome: "Popup promoção", categoria: "fixo", precoAtivacao: 14.90, precoMensal: 0, status: "ativo" },
+  { id: "f15", nome: "Página depoimentos", categoria: "fixo", precoAtivacao: 39.00, precoMensal: 0, status: "ativo" },
+  { id: "f16", nome: "Mapa localização", categoria: "fixo", precoAtivacao: 9.90, precoMensal: 0, status: "ativo" },
+  { id: "f17", nome: "Botão ligação", categoria: "fixo", precoAtivacao: 12.90, precoMensal: 0, status: "ativo" },
+  { id: "f18", nome: "Galeria cardápio", categoria: "fixo", precoAtivacao: 19.90, precoMensal: 0, status: "ativo" },
+  { id: "f19", nome: "Histórico pedidos", categoria: "fixo", precoAtivacao: 14.90, precoMensal: 0, status: "ativo" },
+  { id: "f20", nome: "Promoção do dia", categoria: "fixo", precoAtivacao: 12.00, precoMensal: 0, status: "ativo" },
+  { id: "f21", nome: "Cadastro funcionário", categoria: "fixo", precoAtivacao: 59.00, precoMensal: 0, status: "ativo" },
+  { id: "f22", nome: "Cardápio digital PDF", categoria: "fixo", precoAtivacao: 19.90, precoMensal: 0, status: "ativo" },
+  { id: "f23", nome: "Botão Telegram", categoria: "fixo", precoAtivacao: 12.90, precoMensal: 0, status: "ativo" },
+  { id: "f24", nome: "Página FAQ", categoria: "fixo", precoAtivacao: 29.90, precoMensal: 0, status: "ativo" },
+  { id: "f25", nome: "Contador de visitas", categoria: "fixo", precoAtivacao: 14.90, precoMensal: 0, status: "ativo" },
+  { id: "f26", nome: "Botão voltar ao topo", categoria: "fixo", precoAtivacao: 9.90, precoMensal: 0, status: "ativo" },
+  { id: "f27", nome: "Integração Pixel Facebook", categoria: "fixo", precoAtivacao: 39.00, precoMensal: 0, status: "ativo" },
+  { id: "f28", nome: "Integração Google Analytics", categoria: "fixo", precoAtivacao: 34.90, precoMensal: 0, status: "ativo" },
+  { id: "f29", nome: "Página de links (Linktree)", categoria: "fixo", precoAtivacao: 29.90, precoMensal: 0, status: "ativo" },
+  { id: "f30", nome: "Formulário de orçamento", categoria: "fixo", precoAtivacao: 34.90, precoMensal: 0, status: "ativo" },
+  { id: "f31", nome: "Chat ao vivo (widget)", categoria: "fixo", precoAtivacao: 49.00, precoMensal: 0, status: "ativo" },
+  // INTERMEDIÁRIOS
+  { id: "i1", nome: "Banner promoções", categoria: "intermediario", precoAtivacao: 39, precoMensal: 7, status: "ativo" },
+  { id: "i2", nome: "Cupom desconto", categoria: "intermediario", precoAtivacao: 49, precoMensal: 9, status: "ativo" },
+  { id: "i3", nome: "Área VIP", categoria: "intermediario", precoAtivacao: 59, precoMensal: 10, status: "ativo" },
+  { id: "i4", nome: "Avaliação clientes", categoria: "intermediario", precoAtivacao: 49, precoMensal: 7, status: "ativo" },
+  { id: "i5", nome: "Promoção automática", categoria: "intermediario", precoAtivacao: 24, precoMensal: 12, status: "ativo" },
+  { id: "i6", nome: "Contador promoção", categoria: "intermediario", precoAtivacao: 12, precoMensal: 7, status: "ativo" },
+  { id: "i7", nome: "Mensagem aniversário", categoria: "intermediario", precoAtivacao: 12, precoMensal: 7, status: "ativo" },
+  { id: "i8", nome: "Ranking vendidos", categoria: "intermediario", precoAtivacao: 14, precoMensal: 0, status: "ativo" },
+  { id: "i9", nome: "Relatório PDF", categoria: "intermediario", precoAtivacao: 12, precoMensal: 0, status: "ativo" },
+  { id: "i10", nome: "Agendamento pedidos", categoria: "intermediario", precoAtivacao: 59, precoMensal: 0, status: "ativo" },
+  { id: "i11", nome: "Sugestão produtos", categoria: "intermediario", precoAtivacao: 14.90, precoMensal: 0, status: "ativo" },
+  { id: "i12", nome: "Cashback", categoria: "intermediario", precoAtivacao: 79, precoMensal: 15, status: "ativo" },
+  { id: "i13", nome: "Fidelidade pontos", categoria: "intermediario", precoAtivacao: 99, precoMensal: 19, status: "ativo" },
+  { id: "i14", nome: "Reserva atendimento", categoria: "intermediario", precoAtivacao: 69, precoMensal: 12, status: "ativo" },
+  { id: "i15", nome: "Instagram Feed", categoria: "intermediario", precoAtivacao: 59, precoMensal: 7, status: "ativo" },
+  { id: "i16", nome: "Ranking clientes", categoria: "intermediario", precoAtivacao: 24, precoMensal: 7, status: "ativo" },
+  { id: "i17", nome: "Avaliação pedidos", categoria: "intermediario", precoAtivacao: 19, precoMensal: 7, status: "ativo" },
+  { id: "i18", nome: "Pedido pronto automático", categoria: "intermediario", precoAtivacao: 49, precoMensal: 0, status: "ativo" },
+  { id: "i19", nome: "Notificação push", categoria: "intermediario", precoAtivacao: 49, precoMensal: 12, status: "ativo" },
+  { id: "i20", nome: "Newsletter automática", categoria: "intermediario", precoAtivacao: 59, precoMensal: 15, status: "ativo" },
+  { id: "i21", nome: "Integração iFood", categoria: "intermediario", precoAtivacao: 79, precoMensal: 19, status: "ativo" },
+  { id: "i22", nome: "Vitrine rotativa", categoria: "intermediario", precoAtivacao: 34, precoMensal: 9, status: "ativo" },
+  { id: "i23", nome: "Programa indicação", categoria: "intermediario", precoAtivacao: 89, precoMensal: 19, status: "ativo" },
+  { id: "i24", nome: "WhatsApp multiagente", categoria: "intermediario", precoAtivacao: 99, precoMensal: 25, status: "ativo" },
+  { id: "i25", nome: "Relatório mensal acessos", categoria: "intermediario", precoAtivacao: 29, precoMensal: 12, status: "ativo" },
+  { id: "i26", nome: "QR code cardápio", categoria: "intermediario", precoAtivacao: 24, precoMensal: 7, status: "ativo" },
+  // MENSAIS
+  { id: "m1", nome: "Manutenção", categoria: "mensal", precoAtivacao: 0, precoMensal: 59, status: "ativo" },
+  { id: "m2", nome: "Rastreamento pedidos", categoria: "mensal", precoAtivacao: 69, precoMensal: 7, status: "ativo" },
+  { id: "m3", nome: "Controle financeiro", categoria: "mensal", precoAtivacao: 89, precoMensal: 19, status: "ativo" },
+  { id: "m4", nome: "Atualização sistema", categoria: "mensal", precoAtivacao: 0, precoMensal: 49, status: "ativo" },
+  { id: "m5", nome: "Correção prioritária", categoria: "mensal", precoAtivacao: 0, precoMensal: 12, status: "ativo" },
+  { id: "m6", nome: "Atualização banners", categoria: "mensal", precoAtivacao: 0, precoMensal: 12, status: "ativo" },
+  { id: "m7", nome: "Domínio profissional", categoria: "mensal", precoAtivacao: 0, precoMensal: 59, status: "ativo" },
+  { id: "m8", nome: "Backup semanal automático", categoria: "mensal", precoAtivacao: 0, precoMensal: 19, status: "ativo" },
+  { id: "m9", nome: "Monitoramento uptime", categoria: "mensal", precoAtivacao: 0, precoMensal: 29, status: "ativo" },
+  { id: "m10", nome: "SEO mensal básico", categoria: "mensal", precoAtivacao: 0, precoMensal: 79, status: "ativo" },
+  { id: "m11", nome: "Gestão redes sociais", categoria: "mensal", precoAtivacao: 0, precoMensal: 149, status: "ativo" },
+];
+
+export const extrasClientes: ExtraCliente[] = [
+  { id: "ec1", clienteId: "1", cliente: "Tech Solutions Ltda", extraId: "f1", extraNome: "Botão WhatsApp", categoria: "fixo", precoAtivacao: 14.90, precoMensal: 0, dataAtivacao: "2025-09-10", status: "ativo" },
+  { id: "ec2", clienteId: "1", cliente: "Tech Solutions Ltda", extraId: "i2", extraNome: "Cupom desconto", categoria: "intermediario", precoAtivacao: 49, precoMensal: 9, dataAtivacao: "2025-10-01", status: "ativo" },
+  { id: "ec3", clienteId: "1", cliente: "Tech Solutions Ltda", extraId: "m1", extraNome: "Manutenção", categoria: "mensal", precoAtivacao: 0, precoMensal: 59, dataAtivacao: "2025-08-20", status: "ativo" },
+  { id: "ec4", clienteId: "2", cliente: "Design Lab ME", extraId: "f3", extraNome: "Galeria fotos", categoria: "fixo", precoAtivacao: 34.90, precoMensal: 0, dataAtivacao: "2025-10-15", status: "ativo" },
+  { id: "ec5", clienteId: "2", cliente: "Design Lab ME", extraId: "i15", extraNome: "Instagram Feed", categoria: "intermediario", precoAtivacao: 59, precoMensal: 7, dataAtivacao: "2025-11-01", status: "ativo" },
+  { id: "ec6", clienteId: "2", cliente: "Design Lab ME", extraId: "m7", extraNome: "Domínio profissional", categoria: "mensal", precoAtivacao: 0, precoMensal: 59, dataAtivacao: "2025-09-22", status: "ativo" },
+  { id: "ec7", clienteId: "4", cliente: "Startup Hub S.A.", extraId: "f12", extraNome: "Dashboard gráfico vendas", categoria: "fixo", precoAtivacao: 69, precoMensal: 0, dataAtivacao: "2025-12-01", status: "ativo" },
+  { id: "ec8", clienteId: "4", cliente: "Startup Hub S.A.", extraId: "i12", extraNome: "Cashback", categoria: "intermediario", precoAtivacao: 79, precoMensal: 15, dataAtivacao: "2026-01-10", status: "ativo" },
+  { id: "ec9", clienteId: "5", cliente: "Marina Costa", extraId: "m10", extraNome: "SEO mensal básico", categoria: "mensal", precoAtivacao: 0, precoMensal: 79, dataAtivacao: "2026-01-15", status: "ativo" },
+  { id: "ec10", clienteId: "5", cliente: "Marina Costa", extraId: "f27", extraNome: "Integração Pixel Facebook", categoria: "fixo", precoAtivacao: 39, precoMensal: 0, dataAtivacao: "2026-02-01", status: "ativo" },
+  { id: "ec11", clienteId: "6", cliente: "Loja Bella Moda", extraId: "i1", extraNome: "Banner promoções", categoria: "intermediario", precoAtivacao: 39, precoMensal: 7, dataAtivacao: "2026-02-01", status: "ativo" },
+  { id: "ec12", clienteId: "6", cliente: "Loja Bella Moda", extraId: "m1", extraNome: "Manutenção", categoria: "mensal", precoAtivacao: 0, precoMensal: 59, dataAtivacao: "2026-01-15", status: "ativo" },
+  { id: "ec13", clienteId: "6", cliente: "Loja Bella Moda", extraId: "f4", extraNome: "Produtos destaque", categoria: "fixo", precoAtivacao: 24.90, precoMensal: 0, dataAtivacao: "2026-02-10", status: "ativo" },
+  { id: "ec14", clienteId: "7", cliente: "Dr. Paulo Freitas", extraId: "f16", extraNome: "Mapa localização", categoria: "fixo", precoAtivacao: 9.90, precoMensal: 0, dataAtivacao: "2026-02-20", status: "ativo" },
+  { id: "ec15", clienteId: "7", cliente: "Dr. Paulo Freitas", extraId: "m4", extraNome: "Atualização sistema", categoria: "mensal", precoAtivacao: 0, precoMensal: 49, dataAtivacao: "2026-02-14", status: "ativo" },
+  { id: "ec16", clienteId: "1", cliente: "Tech Solutions Ltda", extraId: "i13", extraNome: "Fidelidade pontos", categoria: "intermediario", precoAtivacao: 99, precoMensal: 19, dataAtivacao: "2026-01-05", dataCancelamento: "2026-03-01", status: "cancelado" },
+  { id: "ec17", clienteId: "4", cliente: "Startup Hub S.A.", extraId: "m1", extraNome: "Manutenção", categoria: "mensal", precoAtivacao: 0, precoMensal: 59, dataAtivacao: "2025-10-10", status: "pausado" },
 ];
 
 export const tickets = [
@@ -106,7 +218,7 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/clientes": { titulo: "Clientes", subtitulo: "Gerencie sua base de clientes" },
   "/projetos": { titulo: "Projetos", subtitulo: "Gerenciamento de projetos" },
   "/pedidos": { titulo: "Pedidos", subtitulo: "Controle de pedidos e solicitações" },
-  "/extras": { titulo: "Extras", subtitulo: "Serviços e cobranças adicionais" },
+  "/extras": { titulo: "Extras & Serviços", subtitulo: "Catálogo de extras e serviços adicionais" },
   "/relatorios": { titulo: "Relatórios", subtitulo: "Gere e exporte relatórios" },
   "/financeiro": { titulo: "Financeiro", subtitulo: "Visão financeira do negócio" },
   "/suporte": { titulo: "Suporte", subtitulo: "Gestão de tickets de suporte" },
