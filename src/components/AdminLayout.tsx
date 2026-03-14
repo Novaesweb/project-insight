@@ -26,6 +26,7 @@ const menuSections = [
   {
     label: "Gestão",
     items: [
+      { label: "Agenda", icon: CalendarDays, path: "/agenda", badge: reunioes.filter(r => r.data === new Date().toISOString().split("T")[0]).length || undefined },
       { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
       { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
       { label: "Suporte", icon: Headphones, path: "/suporte", badge: 3 },
