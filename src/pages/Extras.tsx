@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Search, Plus, Pencil, Package, Zap, RefreshCw, UserPlus } from "lucide-react";
-import { extrasCatalogo, type CategoriaExtra } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+type CategoriaExtra = "fixo" | "intermediario" | "mensal";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.06 } } };
@@ -19,19 +22,38 @@ const catConfig: Record<CategoriaExtra, { label: string; color: string; bgColor:
 };
 
 export default function Extras() {
+  const { toast } = useToast();
+  const [extras, setExtras] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todos");
   const [categoria, setCategoria] = useState<CategoriaExtra>("fixo");
+  const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState({ nome: "", descricao: "", preco_ativacao: "", preco_mensal: "", status: "ativo" });
 
-  const filtrados = extrasCatalogo.filter((e) => {
+  const fetch = async () => {
+    const { data } = await supabase.from("extras_catalogo").select("*").order("created_at", { ascending: false });
+    setExtras(data || []);
+  };
+
+  useEffect(() => { fetch(); }, []);
+
+  const handleSave = async () => {
+    const { error } = await supabase.from("extras_catalogo").insert({
+      nome: form.nome, descricao: form.descricao, categoria,
+      preco_ativacao: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, status: form.status,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra criado!" });
+    setShowNew(false);
+    setForm({ nome: "", descricao: "", preco_ativacao: "", preco_mensal: "", status: "ativo" });
+    fetch();
+  };
+
+  const filtrados = extras.filter((e) => {
     const matchBusca = e.nome.toLowerCase().includes(busca.toLowerCase());
     const matchCat = filtroCategoria === "todos" || e.categoria === filtroCategoria;
     return matchBusca && matchCat;
   });
-
-  const totalFixos = extrasCatalogo.filter(e => e.categoria === "fixo").length;
-  const totalInter = extrasCatalogo.filter(e => e.categoria === "intermediario").length;
-  const totalMensais = extrasCatalogo.filter(e => e.categoria === "mensal").length;
 
   const groupedExtras = {
     fixo: filtrados.filter(e => e.categoria === "fixo"),
@@ -41,25 +63,23 @@ export default function Extras() {
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={stagger}>
-      {/* Summary Cards */}
       <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-4" variants={fadeUp}>
         <Card className="glass-card border-[0.5px]">
           <CardContent className="p-4 text-center">
             <p className="text-xs text-[hsl(var(--muted-foreground))]">Total de Extras</p>
-            <p className="text-2xl font-bold text-white mt-1">{extrasCatalogo.length}</p>
+            <p className="text-2xl font-bold text-white mt-1">{extras.length}</p>
           </CardContent>
         </Card>
-        {([["fixo", totalFixos, "emerald"], ["intermediario", totalInter, "amber"], ["mensal", totalMensais, "blue"]] as const).map(([cat, count, color]) => (
+        {(["fixo", "intermediario", "mensal"] as const).map((cat) => (
           <Card key={cat} className="glass-card border-[0.5px]">
             <CardContent className="p-4 text-center">
               <p className="text-xs text-[hsl(var(--muted-foreground))]">{catConfig[cat].label}</p>
-              <p className={`text-2xl font-bold mt-1 text-${color}-400`}>{count}</p>
+              <p className={`text-2xl font-bold mt-1 ${catConfig[cat].color}`}>{extras.filter(e => e.categoria === cat).length}</p>
             </CardContent>
           </Card>
         ))}
       </motion.div>
 
-      {/* Search & Filters */}
       <motion.div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between" variants={fadeUp}>
         <div className="flex flex-col sm:flex-row gap-3 flex-1">
           <div className="relative flex-1 max-w-sm">
@@ -70,68 +90,47 @@ export default function Extras() {
             {[{ key: "todos", label: "Todos" }, { key: "fixo", label: "Fixos" }, { key: "intermediario", label: "Intermediários" }, { key: "mensal", label: "Mensais" }].map((f) => (
               <Button key={f.key} size="sm"
                 className={filtroCategoria === f.key ? "gradient-primary border-0 text-white text-xs" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white text-xs"}
-                onClick={() => setFiltroCategoria(f.key)}>
-                {f.label}
-              </Button>
+                onClick={() => setFiltroCategoria(f.key)}>{f.label}</Button>
             ))}
           </div>
         </div>
-
-        <Dialog>
+        <Dialog open={showNew} onOpenChange={setShowNew}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary border-0 text-white rounded-lg">
-              <Plus className="w-4 h-4 mr-2" /> Cadastrar novo extra
-            </Button>
+            <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Cadastrar novo extra</Button>
           </DialogTrigger>
           <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
             <DialogHeader><DialogTitle className="text-white">Novo Extra</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
               <div className="space-y-1.5">
-                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome do extra</Label>
-                <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição curta</Label>
-                <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" />
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome</Label>
+                <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-[hsl(var(--muted-foreground))]">Categoria</Label>
-                <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent"
-                  value={categoria} onChange={(e) => setCategoria(e.target.value as CategoriaExtra)}>
-                  <option value="fixo">Fixo (paga uma vez)</option>
-                  <option value="intermediario">Intermediário (ativação + mensal)</option>
-                  <option value="mensal">Mensal (recorrente)</option>
+                <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent" value={categoria} onChange={(e) => setCategoria(e.target.value as CategoriaExtra)}>
+                  <option value="fixo">Fixo</option>
+                  <option value="intermediario">Intermediário</option>
+                  <option value="mensal">Mensal</option>
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço de ativação (R$)</Label>
-                <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" />
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço ativação (R$)</Label>
+                <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.preco_ativacao} onChange={(e) => setForm({ ...form, preco_ativacao: e.target.value })} />
               </div>
-              {(categoria === "intermediario" || categoria === "mensal") && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço mensal (R$)</Label>
-                  <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" />
-                </div>
-              )}
               <div className="space-y-1.5">
-                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Status</Label>
-                <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent">
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
-                </select>
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço mensal (R$)</Label>
+                <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.preco_mensal} onChange={(e) => setForm({ ...form, preco_mensal: e.target.value })} />
               </div>
             </div>
-            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg">Salvar Extra</Button>
+            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave}>Salvar Extra</Button>
           </DialogContent>
         </Dialog>
       </motion.div>
 
-      {/* Grouped Sections */}
       {(["fixo", "intermediario", "mensal"] as const).map((cat) => {
         const items = groupedExtras[cat];
         if (items.length === 0) return null;
         const config = catConfig[cat];
-
         return (
           <motion.div key={cat} className="space-y-3" variants={fadeUp}>
             <div className={`flex items-center gap-2 border-l-2 pl-3 ${config.borderColor}`}>
@@ -141,43 +140,21 @@ export default function Extras() {
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full glass-card text-[hsl(var(--muted-foreground))]">{items.length}</span>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {items.map((extra) => (
-                <Card key={extra.id} className={`glass-card border-[0.5px] hover:${config.borderColor} transition-all group`}>
+              {items.map((extra: any) => (
+                <Card key={extra.id} className="glass-card border-[0.5px] transition-all group">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="text-sm font-medium text-white leading-tight">{extra.nome}</h4>
-                      <Badge variant="outline" className={`text-[9px] ${config.color} ${config.borderColor} shrink-0 ml-2`}>
-                        {config.label}
-                      </Badge>
+                      <Badge variant="outline" className={`text-[9px] ${config.color} ${config.borderColor} shrink-0 ml-2`}>{config.label}</Badge>
                     </div>
-
                     <div className="space-y-1 mb-3">
-                      {extra.precoAtivacao > 0 && (
-                        <p className="text-sm">
-                          <span className="text-[hsl(var(--muted-foreground))] text-xs">Ativação: </span>
-                          <span className="text-white font-semibold">R$ {extra.precoAtivacao.toFixed(2).replace(".", ",")}</span>
-                        </p>
+                      {Number(extra.preco_ativacao) > 0 && (
+                        <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))] text-xs">Ativação: </span><span className="text-white font-semibold">R$ {Number(extra.preco_ativacao).toFixed(2).replace(".", ",")}</span></p>
                       )}
-                      {extra.precoMensal > 0 && (
-                        <p className="text-sm">
-                          <span className="text-[hsl(var(--muted-foreground))] text-xs">Mensal: </span>
-                          <span className={`font-semibold ${config.color}`}>R$ {extra.precoMensal.toFixed(2).replace(".", ",")}/mês</span>
-                        </p>
+                      {Number(extra.preco_mensal) > 0 && (
+                        <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))] text-xs">Mensal: </span><span className={`font-semibold ${config.color}`}>R$ {Number(extra.preco_mensal).toFixed(2).replace(".", ",")}/mês</span></p>
                       )}
-                      {extra.precoAtivacao === 0 && extra.precoMensal === 0 && (
-                        <p className="text-xs text-[hsl(var(--muted-foreground))]">Consultar valor</p>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1 glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white text-[10px] h-7">
-                        <Pencil className="w-3 h-3 mr-1" /> Editar
-                      </Button>
-                      <Button size="sm" className="flex-1 gradient-primary border-0 text-white text-[10px] h-7">
-                        <UserPlus className="w-3 h-3 mr-1" /> Adicionar
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -186,6 +163,10 @@ export default function Extras() {
           </motion.div>
         );
       })}
+
+      {filtrados.length === 0 && (
+        <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-12">Nenhum extra cadastrado ainda</p>
+      )}
     </motion.div>
   );
 }

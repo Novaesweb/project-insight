@@ -14,6 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
+      clientes: {
+        Row: {
+          avatar: string | null
+          cidade: string | null
+          created_at: string
+          documento: string | null
+          email: string
+          endereco: string | null
+          estado: string | null
+          id: string
+          nome: string
+          status: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          cidade?: string | null
+          created_at?: string
+          documento?: string | null
+          email: string
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          cidade?: string | null
+          created_at?: string
+          documento?: string | null
+          email?: string
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contratos: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_assinatura: string | null
+          data_envio: string
+          descricao: string | null
+          id: string
+          status: string
+          titulo: string
+          valor: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_assinatura?: string | null
+          data_envio?: string
+          descricao?: string | null
+          id?: string
+          status?: string
+          titulo: string
+          valor?: number
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_assinatura?: string | null
+          data_envio?: string
+          descricao?: string | null
+          id?: string
+          status?: string
+          titulo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      extras_catalogo: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          preco_ativacao: number
+          preco_mensal: number
+          status: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          preco_ativacao?: number
+          preco_mensal?: number
+          status?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          preco_ativacao?: number
+          preco_mensal?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      extras_clientes: {
+        Row: {
+          categoria: string
+          cliente_id: string
+          created_at: string
+          data_ativacao: string
+          data_cancelamento: string | null
+          extra_id: string
+          id: string
+          observacao: string | null
+          preco_ativacao: number
+          preco_mensal: number
+          status: string
+        }
+        Insert: {
+          categoria?: string
+          cliente_id: string
+          created_at?: string
+          data_ativacao?: string
+          data_cancelamento?: string | null
+          extra_id: string
+          id?: string
+          observacao?: string | null
+          preco_ativacao?: number
+          preco_mensal?: number
+          status?: string
+        }
+        Update: {
+          categoria?: string
+          cliente_id?: string
+          created_at?: string
+          data_ativacao?: string
+          data_cancelamento?: string | null
+          extra_id?: string
+          id?: string
+          observacao?: string | null
+          preco_ativacao?: number
+          preco_mensal?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extras_clientes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extras_clientes_extra_id_fkey"
+            columns: ["extra_id"]
+            isOneToOne: false
+            referencedRelation: "extras_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faturas: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_emissao: string
+          descricao: string
+          id: string
+          status: string
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_emissao?: string
+          descricao: string
+          id?: string
+          status?: string
+          valor?: number
+          vencimento: string
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_emissao?: string
+          descricao?: string
+          id?: string
+          status?: string
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financeiro: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          status: string
+          tipo: string
+          valor: number
+          vencimento: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data?: string
+          descricao: string
+          id?: string
+          status?: string
+          tipo?: string
+          valor?: number
+          vencimento?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          status?: string
+          tipo?: string
+          valor?: number
+          vencimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financeiro_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           cidade: string | null
@@ -74,6 +338,339 @@ export type Database = {
           updated_at?: string
           visualizado?: boolean
           whatsapp?: string
+        }
+        Relationships: []
+      }
+      notificacoes: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          lida: boolean
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lida?: boolean
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lida?: boolean
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedidos: {
+        Row: {
+          cliente_id: string | null
+          codigo: string
+          created_at: string
+          data: string
+          id: string
+          projeto_id: string | null
+          status: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          codigo: string
+          created_at?: string
+          data?: string
+          id?: string
+          projeto_id?: string | null
+          status?: string
+          tipo: string
+          valor?: number
+        }
+        Update: {
+          cliente_id?: string | null
+          codigo?: string
+          created_at?: string
+          data?: string
+          id?: string
+          projeto_id?: string | null
+          status?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projeto_atualizacoes: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          projeto_id: string
+          visivel_cliente: boolean
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          projeto_id: string
+          visivel_cliente?: boolean
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          projeto_id?: string
+          visivel_cliente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_atualizacoes_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projetos: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          inicio: string | null
+          prazo: string | null
+          progresso: number
+          responsavel: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          inicio?: string | null
+          prazo?: string | null
+          progresso?: number
+          responsavel?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          inicio?: string | null
+          prazo?: string | null
+          progresso?: number
+          responsavel?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projetos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reunioes: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          link: string | null
+          observacoes: string | null
+          status: string
+          tipo: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+          link?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          link?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reunioes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_mensagens: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          remetente: string
+          texto: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          remetente?: string
+          texto: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          remetente?: string
+          texto?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_mensagens_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          cliente_id: string | null
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          prioridade: string
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          prioridade?: string
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string | null
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          prioridade?: string
+          status?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          acesso: string
+          avatar: string | null
+          cargo: string | null
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          status: string
+        }
+        Insert: {
+          acesso?: string
+          avatar?: string | null
+          cargo?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          status?: string
+        }
+        Update: {
+          acesso?: string
+          avatar?: string | null
+          cargo?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          status?: string
         }
         Relationships: []
       }
