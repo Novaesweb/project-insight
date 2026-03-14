@@ -265,6 +265,128 @@ export const statusReuniaoColors: Record<StatusReuniao, string> = {
   aguardando: "#facc15",
 };
 
+// Contratos
+export interface Contrato {
+  id: string;
+  clienteId: string;
+  cliente: string;
+  titulo: string;
+  descricao: string;
+  valor: number;
+  dataEnvio: string;
+  dataAssinatura?: string;
+  status: "aguardando" | "assinado" | "cancelado";
+}
+
+export const contratos: Contrato[] = [
+  { id: "c1", clienteId: "1", cliente: "Tech Solutions Ltda", titulo: "Contrato Redesign E-commerce", descricao: "Desenvolvimento completo do novo e-commerce", valor: 45000, dataEnvio: "2026-01-10", dataAssinatura: "2026-01-14", status: "assinado" },
+  { id: "c2", clienteId: "1", cliente: "Tech Solutions Ltda", titulo: "Contrato CRM Interno", descricao: "Sistema CRM personalizado", valor: 95000, dataEnvio: "2026-02-25", dataAssinatura: "2026-02-28", status: "assinado" },
+  { id: "c3", clienteId: "2", cliente: "Design Lab ME", titulo: "Contrato App Delivery", descricao: "Aplicativo mobile de delivery", valor: 78000, dataEnvio: "2026-01-28", dataAssinatura: "2026-02-01", status: "assinado" },
+  { id: "c4", clienteId: "5", cliente: "Marina Costa", titulo: "Contrato Portal do Cliente", descricao: "Área do cliente com dashboard", valor: 32000, dataEnvio: "2026-01-05", status: "aguardando" },
+  { id: "c5", clienteId: "6", cliente: "Loja Bella Moda", titulo: "Contrato E-commerce Bella Moda", descricao: "Loja virtual completa", valor: 55000, dataEnvio: "2026-02-18", dataAssinatura: "2026-02-20", status: "assinado" },
+  { id: "c6", clienteId: "7", cliente: "Dr. Paulo Freitas", titulo: "Contrato Site Clínica", descricao: "Site institucional com agendamento", valor: 28000, dataEnvio: "2025-11-28", dataAssinatura: "2025-12-01", status: "assinado" },
+];
+
+// Faturas
+export interface Fatura {
+  id: string;
+  clienteId: string;
+  cliente: string;
+  descricao: string;
+  valor: number;
+  dataEmissao: string;
+  vencimento: string;
+  status: "paga" | "pendente" | "atrasada";
+}
+
+export const faturas: Fatura[] = [
+  { id: "fat-001", clienteId: "1", cliente: "Tech Solutions Ltda", descricao: "Redesign E-commerce - Parcela 1/3", valor: 15000, dataEmissao: "2026-01-15", vencimento: "2026-02-15", status: "paga" },
+  { id: "fat-002", clienteId: "1", cliente: "Tech Solutions Ltda", descricao: "Redesign E-commerce - Parcela 2/3", valor: 15000, dataEmissao: "2026-02-15", vencimento: "2026-03-15", status: "pendente" },
+  { id: "fat-003", clienteId: "1", cliente: "Tech Solutions Ltda", descricao: "CRM Interno - Parcela 1/4", valor: 23750, dataEmissao: "2026-03-01", vencimento: "2026-03-15", status: "pendente" },
+  { id: "fat-004", clienteId: "2", cliente: "Design Lab ME", descricao: "App Delivery - Parcela 2/4", valor: 19500, dataEmissao: "2026-02-28", vencimento: "2026-03-10", status: "paga" },
+  { id: "fat-005", clienteId: "5", cliente: "Marina Costa", descricao: "Portal do Cliente - Pagamento Final", valor: 16000, dataEmissao: "2026-02-28", vencimento: "2026-03-10", status: "atrasada" },
+  { id: "fat-006", clienteId: "6", cliente: "Loja Bella Moda", descricao: "E-commerce - Parcela 1/3", valor: 18333, dataEmissao: "2026-02-20", vencimento: "2026-03-20", status: "pendente" },
+  { id: "fat-007", clienteId: "7", cliente: "Dr. Paulo Freitas", descricao: "Site Clínica - Pagamento Final", valor: 14000, dataEmissao: "2026-02-28", vencimento: "2026-03-05", status: "paga" },
+];
+
+// Notificações do portal do cliente
+export interface Notificacao {
+  id: string;
+  clienteId: string;
+  titulo: string;
+  descricao: string;
+  tipo: "projeto" | "fatura" | "reuniao" | "suporte" | "contrato" | "extra";
+  lida: boolean;
+  data: string;
+}
+
+export const notificacoes: Notificacao[] = [
+  { id: "n1", clienteId: "1", titulo: "Projeto atualizado", descricao: "Redesign E-commerce avançou para fase de desenvolvimento", tipo: "projeto", lida: false, data: "2026-03-14 09:00" },
+  { id: "n2", clienteId: "1", titulo: "Nova fatura gerada", descricao: "Fatura CRM Interno - Parcela 1/4 disponível", tipo: "fatura", lida: false, data: "2026-03-13 14:00" },
+  { id: "n3", clienteId: "1", titulo: "Reunião confirmada", descricao: "Alinhamento em 14/03 às 09:00 confirmado", tipo: "reuniao", lida: true, data: "2026-03-12 16:00" },
+  { id: "n4", clienteId: "2", titulo: "Resposta no suporte", descricao: "Sua solicitação sobre cores do header foi respondida", tipo: "suporte", lida: false, data: "2026-03-13 15:00" },
+  { id: "n5", clienteId: "5", titulo: "Fatura em atraso", descricao: "Portal do Cliente - Pagamento Final venceu em 10/03", tipo: "fatura", lida: false, data: "2026-03-11 08:00" },
+  { id: "n6", clienteId: "6", titulo: "Contrato assinado", descricao: "Contrato E-commerce Bella Moda assinado com sucesso", tipo: "contrato", lida: true, data: "2026-02-20 10:00" },
+];
+
+// Progresso de projetos e atualizações
+export interface ProjetoAtualizacao {
+  id: string;
+  projetoId: string;
+  descricao: string;
+  data: string;
+  visivelCliente: boolean;
+}
+
+export const projetoAtualizacoes: ProjetoAtualizacao[] = [
+  { id: "pa1", projetoId: "1", descricao: "Layout da home page aprovado pelo cliente", data: "2026-02-10", visivelCliente: true },
+  { id: "pa2", projetoId: "1", descricao: "Iniciado desenvolvimento frontend com React", data: "2026-02-20", visivelCliente: true },
+  { id: "pa3", projetoId: "1", descricao: "Revisão interna de código - ajustes de performance", data: "2026-03-05", visivelCliente: false },
+  { id: "pa4", projetoId: "1", descricao: "Integração com gateway de pagamento concluída", data: "2026-03-12", visivelCliente: true },
+  { id: "pa5", projetoId: "2", descricao: "Wireframes aprovados e design iniciado", data: "2026-02-15", visivelCliente: true },
+  { id: "pa6", projetoId: "2", descricao: "App disponível em versão beta para testes", data: "2026-03-08", visivelCliente: true },
+  { id: "pa7", projetoId: "5", descricao: "Dashboard do cliente entregue para revisão", data: "2026-03-01", visivelCliente: true },
+  { id: "pa8", projetoId: "6", descricao: "Catálogo de produtos importado com sucesso", data: "2026-03-10", visivelCliente: true },
+];
+
+export const projetoProgresso: Record<string, number> = {
+  "1": 65,
+  "2": 45,
+  "3": 100,
+  "4": 15,
+  "5": 85,
+  "6": 25,
+  "7": 100,
+  "8": 30,
+};
+
+// Acesso portal dos clientes
+export const clientePortalAccess: Record<string, { ativo: boolean; ultimoAcesso?: string; senha?: string }> = {
+  "1": { ativo: true, ultimoAcesso: "2026-03-14 08:45" },
+  "2": { ativo: true, ultimoAcesso: "2026-03-13 16:20" },
+  "5": { ativo: true, ultimoAcesso: "2026-03-12 10:00" },
+  "6": { ativo: true, ultimoAcesso: "2026-03-10 14:30" },
+  "7": { ativo: false },
+};
+
+// Chat messages for support
+export interface MensagemChat {
+  id: string;
+  ticketId: string;
+  remetente: "cliente" | "admin";
+  nome: string;
+  texto: string;
+  data: string;
+}
+
+export const mensagensChat: MensagemChat[] = [
+  { id: "msg1", ticketId: "TK-001", remetente: "cliente", nome: "Tech Solutions", texto: "O botão de finalizar compra não responde quando clico. Já tentei em diferentes navegadores.", data: "2026-03-14 09:30" },
+  { id: "msg2", ticketId: "TK-001", remetente: "admin", nome: "Suporte NovaesWeb", texto: "Recebemos seu ticket. Estamos analisando o problema e retornamos em breve.", data: "2026-03-14 10:15" },
+  { id: "msg3", ticketId: "TK-001", remetente: "admin", nome: "Suporte NovaesWeb", texto: "Identificamos o problema. Era um conflito de JavaScript no checkout. Já foi corrigido!", data: "2026-03-14 11:00" },
+  { id: "msg4", ticketId: "TK-002", remetente: "cliente", nome: "Design Lab", texto: "As cores do header estão diferentes do que aprovamos no Figma.", data: "2026-03-13 14:00" },
+  { id: "msg5", ticketId: "TK-002", remetente: "admin", nome: "Suporte NovaesWeb", texto: "Vamos verificar e ajustar conforme o mockup aprovado. Obrigado por avisar!", data: "2026-03-13 15:30" },
+];
+
 export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/": { titulo: "Dashboard", subtitulo: "Visão geral do seu negócio" },
   "/clientes": { titulo: "Clientes", subtitulo: "Gerencie sua base de clientes" },
