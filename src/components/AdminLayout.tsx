@@ -3,9 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  Menu, X, LogOut, Bell, Search, Download, CalendarDays
+  Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck
 } from "lucide-react";
 import { reunioes } from "@/lib/mock-data";
+import { useLeadCount } from "@/hooks/useLeadCount";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const menuSections = [
     items: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/" },
       { label: "Clientes", icon: Users, path: "/clientes" },
+      { label: "Leads", icon: UserCheck, path: "/leads", badgeKey: "leads" as const },
       { label: "Projetos", icon: FolderKanban, path: "/projetos" },
       { label: "Pedidos", icon: ShoppingCart, path: "/pedidos", badge: 4 },
       { label: "Extras", icon: Plus, path: "/extras" },
@@ -41,7 +43,7 @@ const menuSections = [
   },
 ];
 
-function SidebarContent({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
+function SidebarContent({ currentPath, onNavigate, leadCount }: { currentPath: string; onNavigate?: () => void; leadCount?: number }) {
   return (
     <div className="flex flex-col h-full bg-[hsl(var(--sidebar-background))]">
       {/* Logo */}
@@ -84,11 +86,15 @@ function SidebarContent({ currentPath, onNavigate }: { currentPath: string; onNa
                   >
                     <item.icon className="w-[18px] h-[18px] shrink-0" />
                     <span>{item.label}</span>
-                    {item.badge && (
+                    {(item as any).badgeKey === "leads" && leadCount ? (
+                      <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
+                        {leadCount}
+                      </span>
+                    ) : item.badge ? (
                       <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
                         {item.badge}
                       </span>
-                    )}
+                    ) : null}
                   </Link>
                 );
               })}
@@ -128,12 +134,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const currentPath = location.pathname;
   const info = pageInfo[currentPath] || { titulo: "Página", subtitulo: "" };
   const [mobileOpen, setMobileOpen] = useState(false);
+  const leadCount = useLeadCount();
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-[220px] shrink-0 flex-col">
-        <SidebarContent currentPath={currentPath} />
+        <SidebarContent currentPath={currentPath} leadCount={leadCount} />
       </aside>
 
       {/* Main area */}
@@ -148,7 +155,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[260px] border-0">
-              <SidebarContent currentPath={currentPath} onNavigate={() => setMobileOpen(false)} />
+              <SidebarContent currentPath={currentPath} onNavigate={() => setMobileOpen(false)} leadCount={leadCount} />
             </SheetContent>
           </Sheet>
 

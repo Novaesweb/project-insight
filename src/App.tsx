@@ -14,9 +14,11 @@ import Relatorios from "./pages/Relatorios";
 import Financeiro from "./pages/Financeiro";
 import Suporte from "./pages/Suporte";
 import Usuarios from "./pages/Usuarios";
+import Leads from "./pages/Leads";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
+import Cadastro from "./pages/Cadastro";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
 import ClienteProjetos from "./pages/cliente/ClienteProjetos";
@@ -39,6 +41,7 @@ const App = () => (
         <Routes>
           {/* Public */}
           <Route path="/agendar" element={<AgendarPublico />} />
+          <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/cliente" element={<ClienteLogin />} />
 
           {/* Client Portal */}
@@ -63,6 +66,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/clientes" element={<Clientes />} />
+                <Route path="/leads" element={<Leads />} />
                 <Route path="/projetos" element={<Projetos />} />
                 <Route path="/pedidos" element={<Pedidos />} />
                 <Route path="/extras" element={<Extras />} />
