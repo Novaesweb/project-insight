@@ -1,111 +1,130 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, AlertTriangle, DollarSign } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { financeiro, receitaMensal } from "@/lib/mock-data";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { financeiro, evolucaoFinanceira } from "@/lib/mock-data";
 import StatusBadge from "@/components/StatusBadge";
 
-const totalEntradas = financeiro.filter(f => f.tipo === "entrada").reduce((s, f) => s + f.valor, 0);
-const totalSaidas = financeiro.filter(f => f.tipo === "saida").reduce((s, f) => s + f.valor, 0);
-const emAtraso = financeiro.filter(f => f.status === "em_atraso").reduce((s, f) => s + f.valor, 0);
+const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+
+const totalRecebido = financeiro.filter(f => f.tipo === "entrada" && f.status === "pago").reduce((s, f) => s + f.valor, 0);
+const totalPendente = financeiro.filter(f => f.status === "pendente").reduce((s, f) => s + f.valor, 0);
+const totalAtraso = financeiro.filter(f => f.status === "em_atraso").reduce((s, f) => s + f.valor, 0);
 
 export default function Financeiro() {
+  const [filtro, setFiltro] = useState("todos");
+  const filtrados = filtro === "todos" ? financeiro : financeiro.filter(f => f.status === filtro);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
-        <p className="text-muted-foreground mt-1">Visão financeira do negócio</p>
-      </div>
+    <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
+      {/* Summary */}
+      <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-4" variants={fadeUp}>
+        <Card className="glass-card border-[0.5px]">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-emerald-500/10"><TrendingUp className="w-5 h-5 text-emerald-400" /></div>
+            <div>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">Total Recebido</p>
+              <p className="text-xl font-bold text-white">R$ {totalRecebido.toLocaleString("pt-BR")}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="glass-card border-[0.5px]">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-amber-500/10"><DollarSign className="w-5 h-5 text-amber-400" /></div>
+            <div>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">Total Pendente</p>
+              <p className="text-xl font-bold text-white">R$ {totalPendente.toLocaleString("pt-BR")}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="glass-card border-[0.5px]">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-red-500/10"><AlertTriangle className="w-5 h-5 text-red-400" /></div>
+            <div>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">Em Atraso</p>
+              <p className="text-xl font-bold text-white">R$ {totalAtraso.toLocaleString("pt-BR")}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-emerald-500/10"><TrendingUp className="w-5 h-5 text-emerald-600" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Entradas</p>
-              <p className="text-xl font-bold">R$ {totalEntradas.toLocaleString("pt-BR")}</p>
-            </div>
+      {/* Area chart */}
+      <motion.div variants={fadeUp}>
+        <Card className="glass-card border-[0.5px]">
+          <CardHeader><CardTitle className="text-sm font-semibold text-white">Evolução Financeira</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={evolucaoFinanceira}>
+                <defs>
+                  <linearGradient id="colorRecebido" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#e8334a" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#e8334a" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} />
+                <YAxis tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} tickFormatter={(v) => `${v / 1000}k`} />
+                <Tooltip contentStyle={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#fff", fontSize: 12 }} formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR")}`} />
+                <Area type="monotone" dataKey="recebido" stroke="#e8334a" fill="url(#colorRecebido)" strokeWidth={2} />
+                <Area type="monotone" dataKey="pendente" stroke="#f59e0b" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" />
+                <Area type="monotone" dataKey="atrasado" stroke="#ef4444" fill="transparent" strokeWidth={1.5} strokeDasharray="2 2" />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-red-500/10"><TrendingDown className="w-5 h-5 text-red-600" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Saídas</p>
-              <p className="text-xl font-bold">R$ {totalSaidas.toLocaleString("pt-BR")}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-blue-500/10"><DollarSign className="w-5 h-5 text-blue-600" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Saldo</p>
-              <p className="text-xl font-bold">R$ {(totalEntradas - totalSaidas).toLocaleString("pt-BR")}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-amber-500/10"><AlertTriangle className="w-5 h-5 text-amber-600" /></div>
-            <div>
-              <p className="text-sm text-muted-foreground">Em Atraso</p>
-              <p className="text-xl font-bold">R$ {emAtraso.toLocaleString("pt-BR")}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      </motion.div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Receita por Mês</CardTitle></CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={receitaMensal}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" />
-              <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${v / 1000}k`} />
-              <Tooltip formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR")}`} />
-              <Bar dataKey="valor" fill="hsl(243, 75%, 59%)" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Movimentações</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {financeiro.map((f) => (
-                <TableRow key={f.id}>
-                  <TableCell className="font-medium">{f.descricao}</TableCell>
-                  <TableCell>
-                    <span className={f.tipo === "entrada" ? "text-emerald-600 font-medium" : "text-red-600 font-medium"}>
-                      {f.tipo === "entrada" ? "Entrada" : "Saída"}
-                    </span>
-                  </TableCell>
-                  <TableCell className={f.tipo === "entrada" ? "text-emerald-600" : "text-red-600"}>
-                    {f.tipo === "saida" ? "- " : ""}R$ {f.valor.toLocaleString("pt-BR")}
-                  </TableCell>
-                  <TableCell>{new Date(f.data).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell>{f.cliente || "—"}</TableCell>
-                  <TableCell><StatusBadge status={f.status} /></TableCell>
+      {/* Transactions */}
+      <motion.div variants={fadeUp}>
+        <Card className="glass-card border-[0.5px]">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <CardTitle className="text-sm font-semibold text-white">Lançamentos</CardTitle>
+              <div className="flex gap-2">
+                {["todos", "pago", "pendente", "em_atraso"].map((s) => (
+                  <Button key={s} size="sm"
+                    className={filtro === s ? "gradient-primary border-0 text-white text-xs" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white text-xs"}
+                    onClick={() => setFiltro(s)}>
+                    {s === "todos" ? "Todos" : s === "em_atraso" ? "Atrasado" : s.charAt(0).toUpperCase() + s.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-[rgba(255,255,255,0.06)]">
+                  {["Descrição", "Tipo", "Valor", "Vencimento", "Cliente", "Status"].map((h) => (
+                    <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+              </TableHeader>
+              <TableBody>
+                {filtrados.map((f) => (
+                  <TableRow key={f.id} className="border-[rgba(255,255,255,0.04)]">
+                    <TableCell className="text-sm text-white">{f.descricao}</TableCell>
+                    <TableCell>
+                      <span className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
+                        {f.tipo === "entrada" ? "↑ Entrada" : "↓ Saída"}
+                      </span>
+                    </TableCell>
+                    <TableCell className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
+                      {f.tipo === "saida" ? "- " : ""}R$ {f.valor.toLocaleString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{new Date(f.vencimento).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.cliente || "—"}</TableCell>
+                    <TableCell><StatusBadge status={f.status} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }
