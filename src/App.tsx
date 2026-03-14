@@ -17,6 +17,7 @@ import Usuarios from "./pages/Usuarios";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
+import Cadastro from "./pages/Cadastro";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
 import ClienteProjetos from "./pages/cliente/ClienteProjetos";
