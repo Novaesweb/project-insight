@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/AdminLayout";
+import ClienteLayout from "@/components/ClienteLayout";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
 import Projetos from "./pages/Projetos";
@@ -16,6 +17,15 @@ import Usuarios from "./pages/Usuarios";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
+import ClienteLogin from "./pages/cliente/ClienteLogin";
+import ClienteDashboard from "./pages/cliente/ClienteDashboard";
+import ClienteProjetos from "./pages/cliente/ClienteProjetos";
+import ClienteExtras from "./pages/cliente/ClienteExtras";
+import ClienteContratos from "./pages/cliente/ClienteContratos";
+import ClienteFaturas from "./pages/cliente/ClienteFaturas";
+import ClienteReunioes from "./pages/cliente/ClienteReunioes";
+import ClienteSuporte from "./pages/cliente/ClienteSuporte";
+import ClienteDados from "./pages/cliente/ClienteDados";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +37,27 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Public */}
           <Route path="/agendar" element={<AgendarPublico />} />
+          <Route path="/cliente" element={<ClienteLogin />} />
+
+          {/* Client Portal */}
+          <Route path="/cliente/*" element={
+            <ClienteLayout>
+              <Routes>
+                <Route path="dashboard" element={<ClienteDashboard />} />
+                <Route path="projetos" element={<ClienteProjetos />} />
+                <Route path="extras" element={<ClienteExtras />} />
+                <Route path="contratos" element={<ClienteContratos />} />
+                <Route path="faturas" element={<ClienteFaturas />} />
+                <Route path="reunioes" element={<ClienteReunioes />} />
+                <Route path="suporte" element={<ClienteSuporte />} />
+                <Route path="dados" element={<ClienteDados />} />
+              </Routes>
+            </ClienteLayout>
+          } />
+
+          {/* Admin */}
           <Route path="*" element={
             <AdminLayout>
               <Routes>
