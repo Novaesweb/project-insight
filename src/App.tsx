@@ -14,6 +14,7 @@ import Relatorios from "./pages/Relatorios";
 import Financeiro from "./pages/Financeiro";
 import Suporte from "./pages/Suporte";
 import Usuarios from "./pages/Usuarios";
+import Leads from "./pages/Leads";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
