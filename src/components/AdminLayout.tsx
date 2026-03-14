@@ -140,7 +140,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-[220px] shrink-0 flex-col">
-        <SidebarContent currentPath={currentPath} />
+        <SidebarContent currentPath={currentPath} leadCount={leadCount} />
       </aside>
 
       {/* Main area */}
