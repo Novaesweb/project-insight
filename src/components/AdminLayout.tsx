@@ -19,6 +19,7 @@ const menuSections = [
     items: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/" },
       { label: "Clientes", icon: Users, path: "/clientes" },
+      { label: "Leads", icon: UserCheck, path: "/leads", badgeKey: "leads" as const },
       { label: "Projetos", icon: FolderKanban, path: "/projetos" },
       { label: "Pedidos", icon: ShoppingCart, path: "/pedidos", badge: 4 },
       { label: "Extras", icon: Plus, path: "/extras" },
