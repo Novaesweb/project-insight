@@ -17,28 +17,28 @@ const menuSections = [
   {
     label: "Principal",
     items: [
-      { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-      { label: "Clientes", icon: Users, path: "/clientes" },
-      { label: "Leads", icon: UserCheck, path: "/leads", badgeKey: "leads" as const },
-      { label: "Projetos", icon: FolderKanban, path: "/projetos" },
-      { label: "Pedidos", icon: ShoppingCart, path: "/pedidos", badge: 4 },
-      { label: "Extras", icon: Plus, path: "/extras" },
+      { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+      { label: "Clientes", icon: Users, path: "/admin/clientes" },
+      { label: "Leads", icon: UserCheck, path: "/admin/leads", badgeKey: "leads" as const },
+      { label: "Projetos", icon: FolderKanban, path: "/admin/projetos" },
+      { label: "Pedidos", icon: ShoppingCart, path: "/admin/pedidos", badge: 4 },
+      { label: "Extras", icon: Plus, path: "/admin/extras" },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { label: "Agenda", icon: CalendarDays, path: "/agenda", badge: reunioes.filter(r => r.data === new Date().toISOString().split("T")[0]).length || undefined },
-      { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
-      { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
-      { label: "Suporte", icon: Headphones, path: "/suporte", badge: 3 },
-      { label: "Usuários", icon: UserCog, path: "/usuarios" },
+      { label: "Agenda", icon: CalendarDays, path: "/admin/agenda", badge: reunioes.filter(r => r.data === new Date().toISOString().split("T")[0]).length || undefined },
+      { label: "Relatórios", icon: BarChart3, path: "/admin/relatorios" },
+      { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro" },
+      { label: "Suporte", icon: Headphones, path: "/admin/suporte", badge: 3 },
+      { label: "Usuários", icon: UserCog, path: "/admin/usuarios" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { label: "Configurações", icon: Settings, path: "/configuracoes" },
+      { label: "Configurações", icon: Settings, path: "/admin/configuracoes" },
     ],
   },
 ];

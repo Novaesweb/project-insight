@@ -388,16 +388,16 @@ export const mensagensChat: MensagemChat[] = [
 ];
 
 export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
-  "/": { titulo: "Dashboard", subtitulo: "Visão geral do seu negócio" },
-  "/clientes": { titulo: "Clientes", subtitulo: "Gerencie sua base de clientes" },
-  "/projetos": { titulo: "Projetos", subtitulo: "Gerenciamento de projetos" },
-  "/pedidos": { titulo: "Pedidos", subtitulo: "Controle de pedidos e solicitações" },
-  "/extras": { titulo: "Extras & Serviços", subtitulo: "Catálogo de extras e serviços adicionais" },
-  "/relatorios": { titulo: "Relatórios", subtitulo: "Gere e exporte relatórios" },
-  "/financeiro": { titulo: "Financeiro", subtitulo: "Visão financeira do negócio" },
-  "/suporte": { titulo: "Suporte", subtitulo: "Gestão de tickets de suporte" },
-  "/usuarios": { titulo: "Usuários", subtitulo: "Equipe interna do sistema" },
-  "/configuracoes": { titulo: "Configurações", subtitulo: "Configurações do sistema" },
-  "/agenda": { titulo: "Agenda", subtitulo: "Gerencie suas reuniões e agendamentos" },
-  "/leads": { titulo: "Leads", subtitulo: "Acompanhe os leads do site" },
+  "/admin": { titulo: "Dashboard", subtitulo: "Visão geral do seu negócio" },
+  "/admin/clientes": { titulo: "Clientes", subtitulo: "Gerencie sua base de clientes" },
+  "/admin/projetos": { titulo: "Projetos", subtitulo: "Gerenciamento de projetos" },
+  "/admin/pedidos": { titulo: "Pedidos", subtitulo: "Controle de pedidos e solicitações" },
+  "/admin/extras": { titulo: "Extras & Serviços", subtitulo: "Catálogo de extras e serviços adicionais" },
+  "/admin/relatorios": { titulo: "Relatórios", subtitulo: "Gere e exporte relatórios" },
+  "/admin/financeiro": { titulo: "Financeiro", subtitulo: "Visão financeira do negócio" },
+  "/admin/suporte": { titulo: "Suporte", subtitulo: "Gestão de tickets de suporte" },
+  "/admin/usuarios": { titulo: "Usuários", subtitulo: "Equipe interna do sistema" },
+  "/admin/configuracoes": { titulo: "Configurações", subtitulo: "Configurações do sistema" },
+  "/admin/agenda": { titulo: "Agenda", subtitulo: "Gerencie suas reuniões e agendamentos" },
+  "/admin/leads": { titulo: "Leads", subtitulo: "Acompanhe os leads do site" },
 };
