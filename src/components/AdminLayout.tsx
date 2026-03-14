@@ -28,11 +28,11 @@ const menuSections = [
   {
     label: "Gestão",
     items: [
-      { label: "Agenda", icon: CalendarDays, path: "/agenda", badge: reunioes.filter(r => r.data === new Date().toISOString().split("T")[0]).length || undefined },
-      { label: "Relatórios", icon: BarChart3, path: "/relatorios" },
-      { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
-      { label: "Suporte", icon: Headphones, path: "/suporte", badge: 3 },
-      { label: "Usuários", icon: UserCog, path: "/usuarios" },
+      { label: "Agenda", icon: CalendarDays, path: "/admin/agenda", badge: reunioes.filter(r => r.data === new Date().toISOString().split("T")[0]).length || undefined },
+      { label: "Relatórios", icon: BarChart3, path: "/admin/relatorios" },
+      { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro" },
+      { label: "Suporte", icon: Headphones, path: "/admin/suporte", badge: 3 },
+      { label: "Usuários", icon: UserCog, path: "/admin/usuarios" },
     ],
   },
   {
