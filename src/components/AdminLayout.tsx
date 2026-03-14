@@ -8,7 +8,6 @@ import {
 import { reunioes } from "@/lib/mock-data";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { pageInfo } from "@/lib/mock-data";
