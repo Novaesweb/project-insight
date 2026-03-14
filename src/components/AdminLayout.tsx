@@ -155,7 +155,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[260px] border-0">
-              <SidebarContent currentPath={currentPath} onNavigate={() => setMobileOpen(false)} />
+              <SidebarContent currentPath={currentPath} onNavigate={() => setMobileOpen(false)} leadCount={leadCount} />
             </SheetContent>
           </Sheet>
 
