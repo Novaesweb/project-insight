@@ -40,6 +40,7 @@ const App = () => (
         <Routes>
           {/* Public */}
           <Route path="/agendar" element={<AgendarPublico />} />
+          <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/cliente" element={<ClienteLogin />} />
 
           {/* Client Portal */}
