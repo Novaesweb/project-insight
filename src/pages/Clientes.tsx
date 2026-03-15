@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw } from "lucide-react";
+import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw, Link as LinkIcon, Copy, UserPlus } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
