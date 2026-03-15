@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck
+  Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck,
+  Sun, Moon
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -36,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const leadCount = useLeadCount();
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] ambient-glow">
@@ -99,6 +102,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-4">
             <Input type="search" placeholder="Pesquisar..." className="max-w-xs glass-input border-0" />
+            <Button variant="ghost" size="icon" onClick={toggle} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
+              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
             <Button variant="ghost" size="icon"><Bell className="w-5 h-5" /></Button>
             <Button variant="ghost" size="icon"><Settings className="w-5 h-5" /></Button>
           </div>

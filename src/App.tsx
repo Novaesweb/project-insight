@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminLogin from "@/pages/AdminLogin";
 import ClienteLayout from "@/components/ClienteLayout";
 import SplashScreen from "@/components/SplashScreen";
+import { ThemeProvider } from "@/hooks/useTheme";
 import Site from "./pages/Site";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
@@ -46,23 +47,25 @@ function AdminWithSplash() {
   }
 
   return (
-    <AdminLayout>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/clientes" element={<Clientes />} />
-        <Route path="/leads" element={<Leads />} />
-        <Route path="/projetos" element={<Projetos />} />
-        <Route path="/pedidos" element={<Pedidos />} />
-        <Route path="/extras" element={<Extras />} />
-        <Route path="/relatorios" element={<Relatorios />} />
-        <Route path="/financeiro" element={<Financeiro />} />
-        <Route path="/suporte" element={<Suporte />} />
-        <Route path="/usuarios" element={<Usuarios />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
-        <Route path="/agenda" element={<Agenda />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AdminLayout>
+    <ThemeProvider>
+      <AdminLayout>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/clientes" element={<Clientes />} />
+          <Route path="/leads" element={<Leads />} />
+          <Route path="/projetos" element={<Projetos />} />
+          <Route path="/pedidos" element={<Pedidos />} />
+          <Route path="/extras" element={<Extras />} />
+          <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/financeiro" element={<Financeiro />} />
+          <Route path="/suporte" element={<Suporte />} />
+          <Route path="/usuarios" element={<Usuarios />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/agenda" element={<Agenda />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AdminLayout>
+    </ThemeProvider>
   );
 }
 
