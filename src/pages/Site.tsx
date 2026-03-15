@@ -113,16 +113,6 @@ export default function Site() {
                     <ChevronRight className="w-4 h-4 opacity-40" />
                   </button>
                 ))}
-                <Link to="/cliente" onClick={() => setMenuOpen(false)} className="mt-2">
-                  <Button variant="outline" className="text-sm h-10 rounded-xl w-full font-medium border-[hsl(var(--border))]">
-                    Área do Cliente
-                  </Button>
-                </Link>
-                <Link to="/admin/login" onClick={() => setMenuOpen(false)} className="mt-1">
-                  <Button variant="outline" className="text-sm h-10 rounded-xl w-full font-medium border-[hsl(var(--border))]">
-                    Painel Admin
-                  </Button>
-                </Link>
                 <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="mt-1">
                   <Button className="gradient-primary border-0 text-white text-sm h-10 rounded-xl w-full font-semibold">
                     Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
