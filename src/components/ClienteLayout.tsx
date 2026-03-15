@@ -5,7 +5,7 @@ import {
   CalendarDays, Headphones, User, LogOut, Bell, Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { notificacoes } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const menuItems = [
@@ -85,11 +85,14 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "null");
-  const clienteNotifs = cliente ? notificacoes.filter(n => n.clienteId === cliente.id && !n.lida) : [];
 
   useEffect(() => {
-    if (!cliente) navigate("/cliente");
+    if (!cliente) { navigate("/cliente"); return; }
+    supabase.from("notificacoes").select("id", { count: "exact", head: true })
+      .eq("cliente_id", cliente.id).eq("lida", false)
+      .then(({ count }) => setNotifCount(count || 0));
   }, [cliente, navigate]);
 
   if (!cliente) return null;
@@ -120,9 +123,9 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
           <button className="relative text-white/50 hover:text-white transition-colors">
             <Bell className="w-5 h-5" />
-            {clienteNotifs.length > 0 && (
+            {notifCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold">
-                {clienteNotifs.length}
+                {notifCount}
               </span>
             )}
           </button>
