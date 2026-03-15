@@ -18,7 +18,6 @@ const diferenciais = [
   "Suporte humanizado incluso",
   "100% responsivo para celular",
   "Painel de gestão exclusivo",
-  "SEO otimizado para Google",
   "Hospedagem e domínio inclusos",
 ];
 
