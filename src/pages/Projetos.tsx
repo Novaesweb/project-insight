@@ -56,10 +56,15 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     toast({ title: "Status atualizado!" });
   };
 
-  const updateProgresso = async (value: number[]) => {
+  const handleProgressChange = (value: number[]) => {
+    setProjeto((prev: any) => ({ ...prev, progresso: value[0] }));
+  };
+
+  const saveProgresso = async (value: number[]) => {
     const progresso = value[0];
     const { error } = await supabase.from("projetos").update({ progresso }).eq("id", projetoId);
-    if (!error) setProjeto((prev: any) => ({ ...prev, progresso }));
+    if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+    else toast({ title: `Progresso atualizado para ${progresso}%` });
   };
 
   const enviarAtualizacao = async () => {
