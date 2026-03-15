@@ -14,7 +14,8 @@ self.addEventListener('push', function(event) {
     body: data.body,
     icon: data.icon || '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200, 100, 200],
+    sound: '/notification-sound.mp3',
     data: {
       url: data.url || '/',
       dateOfArrival: Date.now(),
@@ -22,10 +23,23 @@ self.addEventListener('push', function(event) {
     actions: data.actions || [],
     tag: data.tag || 'novaesweb-notification',
     renotify: true,
+    requireInteraction: false,
+    silent: false,
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title, options).then(function() {
+      // Play sound via clients (for browsers that don't support sound in notifications)
+      return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+        for (const client of clientList) {
+          client.postMessage({
+            type: 'PUSH_NOTIFICATION_RECEIVED',
+            title: data.title,
+            body: data.body,
+          });
+        }
+      });
+    })
   );
 });
 
