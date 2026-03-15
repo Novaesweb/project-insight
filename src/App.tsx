@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/AdminLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminLogin from "@/pages/AdminLogin";
 import ClienteLayout from "@/components/ClienteLayout";
 import Site from "./pages/Site";
 import Index from "./pages/Index";
