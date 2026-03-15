@@ -27,6 +27,12 @@ interface NotificationCenterProps {
 export default function NotificationCenter({ userType, userId }: NotificationCenterProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio("/notification-sound.mp3");
+    audioRef.current.volume = 0.5;
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
