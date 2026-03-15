@@ -17,6 +17,7 @@ const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 export default function Site() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [showAllSolucoes, setShowAllSolucoes] = useState(false);
 
   const navLinks = [
     { href: "#servicos", label: "Serviços" },
