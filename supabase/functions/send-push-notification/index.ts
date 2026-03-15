@@ -30,7 +30,9 @@ serve(async (req) => {
     } else {
       // Raw base64url private key - build JWK
       // Decode public key to get x and y coordinates
-      const pubKeyBytes = Uint8Array.from(atob(vapidPublicKey.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+      const pubBase64 = vapidPublicKey.replace(/-/g, "+").replace(/_/g, "/");
+      const pubPadded = pubBase64 + "=".repeat((4 - (pubBase64.length % 4)) % 4);
+      const pubKeyBytes = Uint8Array.from(atob(pubPadded), c => c.charCodeAt(0));
       // Skip first byte (0x04 uncompressed point indicator)
       const xBytes = pubKeyBytes.slice(1, 33);
       const yBytes = pubKeyBytes.slice(33, 65);
