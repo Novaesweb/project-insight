@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, Palette, Shield, Link as LinkIcon, Bell, Check, X } from "lucide-react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+
+const defaultEmpresa = {
+  nome: "NovaesWeb",
+  cnpj: "",
+  email: "contato@novaesweb.com.br",
+  telefone: "",
+  endereco: "",
+  logo: "",
+};
 
 const permissoes = [
   { modulo: "Dashboard", admin: true, editor: true, visualizador: true },
@@ -31,6 +41,19 @@ const integracoes = [
 ];
 
 export default function Configuracoes() {
+  const { toast } = useToast();
+  const [empresa, setEmpresa] = useState(defaultEmpresa);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("config_empresa");
+    if (saved) setEmpresa(JSON.parse(saved));
+  }, []);
+
+  const handleSaveEmpresa = () => {
+    localStorage.setItem("config_empresa", JSON.stringify(empresa));
+    toast({ title: "Dados salvos!", description: "Informações da empresa foram atualizadas." });
+  };
+
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <motion.div variants={fadeUp}>
@@ -58,20 +81,24 @@ export default function Configuracoes() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
-                    { label: "Nome da Empresa", value: "NovaesWeb" },
-                    { label: "CNPJ", value: "12.345.678/0001-90" },
-                    { label: "E-mail", value: "contato@novaesweb.com.br" },
-                    { label: "Telefone", value: "(51) 9 9999-9999" },
-                    { label: "Endereço", value: "Alvorada, RS" },
-                    { label: "Logo", value: "" },
+                    { key: "nome", label: "Nome da Empresa" },
+                    { key: "cnpj", label: "CNPJ" },
+                    { key: "email", label: "E-mail" },
+                    { key: "telefone", label: "Telefone" },
+                    { key: "endereco", label: "Endereço" },
+                    { key: "logo", label: "URL do Logo" },
                   ].map((f) => (
-                    <div key={f.label} className="space-y-1.5">
+                    <div key={f.key} className="space-y-1.5">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">{f.label}</Label>
-                      <Input defaultValue={f.value} className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" />
+                      <Input
+                        value={(empresa as any)[f.key]}
+                        onChange={e => setEmpresa({ ...empresa, [f.key]: e.target.value })}
+                        className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                      />
                     </div>
                   ))}
                 </div>
-                <Button className="gradient-primary border-0 text-white mt-6 rounded-lg">Salvar</Button>
+                <Button className="gradient-primary border-0 text-white mt-6 rounded-lg" onClick={handleSaveEmpresa}>Salvar</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -130,7 +157,7 @@ export default function Configuracoes() {
                     ))}
                   </TableBody>
                 </Table>
-                <Button className="gradient-primary border-0 text-white mt-6 rounded-lg">Salvar Permissões</Button>
+                <Button className="gradient-primary border-0 text-white mt-6 rounded-lg" onClick={() => toast({ title: "Permissões salvas!" })}>Salvar Permissões</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -187,7 +214,7 @@ export default function Configuracoes() {
                     </div>
                   </div>
                 ))}
-                <Button className="gradient-primary border-0 text-white mt-4 rounded-lg">Salvar Preferências</Button>
+                <Button className="gradient-primary border-0 text-white mt-4 rounded-lg" onClick={() => toast({ title: "Preferências salvas!" })}>Salvar Preferências</Button>
               </CardContent>
             </Card>
           </TabsContent>
