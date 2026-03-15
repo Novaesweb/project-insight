@@ -676,47 +676,86 @@ export default function Site() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="border-t border-[hsl(var(--border))] py-10 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid sm:grid-cols-3 gap-8 mb-8">
-            <div>
+      <footer className="border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]">
+        <div className="max-w-7xl mx-auto px-6 pt-16 pb-8">
+          {/* Top grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+            {/* Brand */}
+            <div className="sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-                  <span className="text-white font-bold text-[10px]">NW</span>
+                <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-md shadow-[hsl(var(--primary))]/15">
+                  <span className="text-white font-bold text-xs">NW</span>
                 </div>
-                <span className="text-sm font-semibold">
+                <span className="text-base font-bold">
                   <span className="gradient-text">Novaes</span>
                   <span className="text-[hsl(var(--foreground))]">Web</span>
                 </span>
               </div>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Desenvolvimento de sites, sistemas web e soluções digitais para empresas que buscam organização e resultados.
+              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed max-w-xs">
+                Soluções digitais para empresas que querem crescer na internet. Sites, sistemas e aplicativos sob medida com tecnologia moderna.
               </p>
             </div>
+
+            {/* Links Rápidos */}
             <div>
-              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Links Rápidos</h4>
-              <div className="flex flex-col gap-2">
-                {["Serviços", "Soluções", "Processo", "Resultados", "Contato"].map((l, i) => (
-                  <button key={i} onClick={() => scrollTo(`#${l.toLowerCase()}`)} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors text-left">
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-4">Navegação</h4>
+              <div className="flex flex-col gap-2.5">
+                {["Serviços", "Soluções", "Processo", "Planos", "Resultados", "Contato"].map((l, i) => (
+                  <button key={i} onClick={() => scrollTo(`#${l.toLowerCase()}`)} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">
                     {l}
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* Acesso */}
             <div>
-              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Acesso</h4>
-              <div className="flex flex-col gap-2">
-                <Link to="/cadastro" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Solicitar Orçamento</Link>
-                <Link to="/agendar" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Agendar Reunião</Link>
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-4">Acesso</h4>
+              <div className="flex flex-col gap-2.5">
+                <Link to="/cadastro" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">Solicitar Orçamento</Link>
+                <Link to="/agendar" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">Agendar Reunião</Link>
+                <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
+                  Falar pelo WhatsApp
+                </a>
+              </div>
+            </div>
+
+            {/* Informações Legais */}
+            <div>
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-4">Informações Legais</h4>
+              <div className="flex flex-col gap-2.5">
+                <button onClick={() => setModalOpen("privacidade")} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">Política de Privacidade</button>
+                <button onClick={() => setModalOpen("termos")} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">Termos de Uso</button>
+                <button onClick={() => setModalOpen("cookies")} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">Política de Cookies</button>
               </div>
             </div>
           </div>
+
+          {/* Aviso */}
+          <div className="glass-card rounded-xl p-5 mb-10">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
+              <div className="space-y-1.5">
+                <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                  Alguns serviços podem ter custos adicionais, como registro de <strong className="text-[hsl(var(--foreground))]">domínio personalizado</strong> ou integrações com plataformas externas.
+                </p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                  A <strong className="text-[hsl(var(--foreground))]">NovaesWeb possui sua própria infraestrutura de hospedagem</strong>, garantindo mais controle, desempenho e segurança para os projetos.
+                </p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                  Os projetos podem ser ampliados com novas funcionalidades conforme a necessidade do cliente.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
           <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">
-              © 2025 NovaesWeb — Todos os direitos reservados
+            <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
+              © {new Date().getFullYear()} NovaesWeb — Todos os direitos reservados
             </p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">
-              Feito com ❤️ por NovaesWeb
+            <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
+              Desenvolvido por <span className="font-semibold gradient-text">NovaesWeb</span> — Soluções digitais para empresas que querem crescer na internet.
             </p>
           </div>
         </div>
