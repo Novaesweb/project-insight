@@ -71,6 +71,7 @@ export default function ClienteSuporte() {
     });
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
+      sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");
       setShowNovoTicket(false);
       setNovoTitulo("");
       setNovoDescricao("");

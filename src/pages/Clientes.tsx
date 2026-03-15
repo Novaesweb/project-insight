@@ -361,6 +361,7 @@ export default function Clientes() {
     }
 
     toast({ title: "Cliente criado!" });
+    sendPushToAdmins("👤 Novo Cliente", `${form.nome} foi cadastrado no sistema.`, "/admin/clientes");
     setShowNew(false);
     setForm({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo" });
     setSenhaCliente("");

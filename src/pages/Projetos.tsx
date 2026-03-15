@@ -260,6 +260,7 @@ export default function Projetos() {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Projeto criado!" });
+      if (form.cliente_id) sendPushToClient(form.cliente_id, "📋 Novo Projeto", `O projeto "${form.titulo}" foi criado.`, "/cliente/projetos");
       setForm({ titulo: "", descricao: "", cliente_id: "", responsavel: "", valor: "", prazo: "", inicio: "" });
       setDialogOpen(false);
       load();
