@@ -210,6 +210,74 @@ export default function Site() {
         </div>
       </motion.section>
 
+      {/* Como Funciona */}
+      <motion.section id="como-funciona" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeUp} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Passo a passo</span>
+            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Como Funciona</h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-2">O processo de desenvolvimento na NovaesWeb é simples e direto.</p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { num: "1", titulo: "Entendimento do projeto", desc: "Primeiro entendemos o que a empresa precisa e qual solução faz mais sentido." },
+              { num: "2", titulo: "Desenvolvimento", desc: "Criamos a plataforma com design moderno e funcionalidades necessárias." },
+              { num: "3", titulo: "Entrega e ajustes", desc: "Após o desenvolvimento, o cliente pode testar e solicitar ajustes." },
+              { num: "4", titulo: "Evolução do sistema", desc: "Novas funcionalidades podem ser adicionadas com o tempo. O sistema cresce junto com a empresa." },
+            ].map((step) => (
+              <motion.div key={step.num} variants={fadeUp} className="glass-card rounded-2xl p-6 text-center">
+                <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
+                  <span className="text-white font-bold text-lg">{step.num}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{step.titulo}</h3>
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{step.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Avaliações */}
+      <motion.section className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-4xl mx-auto">
+          <motion.div variants={fadeUp} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Avaliações</span>
+            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">O que dizem sobre nós</h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-2">Ainda em fase de crescimento, mas já com soluções para cerca de 6 empresas.</p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento.",
+              "Site rápido e fácil de usar, ficou muito bom para nosso negócio.",
+            ].map((depo, i) => (
+              <motion.div key={i} variants={fadeUp} className="glass-card rounded-2xl p-6">
+                <MessageCircle className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
+                <p className="text-sm text-[hsl(var(--foreground))] italic leading-relaxed">"{depo}"</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Nosso Compromisso */}
+      <motion.section className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div variants={fadeUp}>
+            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Compromisso</span>
+            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-4">Nosso Compromisso</h2>
+            <p className="text-[hsl(var(--muted-foreground))] mb-8">Buscamos sempre entregar soluções que realmente ajudem empresas no dia a dia.</p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+            {["Simples de usar", "Funcionais para o negócio", "Adaptáveis conforme a necessidade", "Em constante evolução"].map((item) => (
+              <motion.div key={item} variants={fadeUp} className="flex items-center gap-3 glass-card rounded-xl p-4">
+                <CheckCircle className="w-5 h-5 text-[hsl(var(--primary))] shrink-0" />
+                <span className="text-sm text-[hsl(var(--foreground))]">{item}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
       {/* Diferenciais */}
       <motion.section className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
         <div className="max-w-6xl mx-auto">
