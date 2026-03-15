@@ -481,7 +481,7 @@ export default function Site() {
         </div>
       </motion.section>
 
-      {/* ─── CTA FINAL ─── */}
+      {/* ─── CTA FINAL / CONTATO ─── */}
       <section id="contato" className="py-24 px-6">
         <motion.div
           className="max-w-4xl mx-auto rounded-3xl gradient-primary p-12 sm:p-16 text-center shadow-2xl shadow-[hsl(var(--primary))]/20"
@@ -494,31 +494,73 @@ export default function Site() {
             Pronto para transformar seu negócio?
           </h2>
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
-            Preencha o cadastro e nossa equipe entra em contato em até 2 horas para entender seu projeto.
+            Preencha o cadastro e nossa equipe entra em contato em até 2 horas para entender seu projeto. Sem compromisso — é só conversar.
           </p>
-          <Link to="/cadastro">
-            <Button className="bg-white text-[hsl(var(--primary))] hover:bg-white/90 h-12 px-10 rounded-xl text-base font-semibold shadow-lg">
-              Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link to="/cadastro">
+              <Button className="bg-white text-[hsl(var(--primary))] hover:bg-white/90 h-12 px-10 rounded-xl text-base font-semibold shadow-lg">
+                Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+              <Button className="bg-white/20 text-white hover:bg-white/30 border border-white/30 h-12 px-10 rounded-xl text-base font-semibold">
+                <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp
+              </Button>
+            </a>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-white/60 text-xs">
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Resposta em até 2h</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Orçamento sem compromisso</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Suporte humanizado</span>
+          </div>
         </motion.div>
       </section>
 
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-[hsl(var(--border))] py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">NW</span>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
+                  <span className="text-white font-bold text-[10px]">NW</span>
+                </div>
+                <span className="text-sm font-semibold">
+                  <span className="gradient-text">Novaes</span>
+                  <span className="text-[hsl(var(--foreground))]">Web</span>
+                </span>
+              </div>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Desenvolvimento de sites, sistemas web e soluções digitais para empresas que buscam organização e resultados.
+              </p>
             </div>
-            <span className="text-sm font-semibold">
-              <span className="gradient-text">Novaes</span>
-              <span className="text-[hsl(var(--foreground))]">Web</span>
-            </span>
+            <div>
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Links Rápidos</h4>
+              <div className="flex flex-col gap-2">
+                {["Serviços", "Soluções", "Processo", "Resultados", "Contato"].map((l, i) => (
+                  <button key={i} onClick={() => scrollTo(`#${l.toLowerCase()}`)} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors text-left">
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Acesso</h4>
+              <div className="flex flex-col gap-2">
+                <Link to="/cadastro" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Solicitar Orçamento</Link>
+                <Link to="/cliente" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Portal do Cliente</Link>
+                <Link to="/admin/login" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Painel Admin</Link>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
-            © 2025 NovaesWeb — Todos os direitos reservados
-          </p>
+          <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              © 2025 NovaesWeb — Todos os direitos reservados
+            </p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Feito com ❤️ por NovaesWeb
+            </p>
+          </div>
         </div>
       </footer>
     </div>
