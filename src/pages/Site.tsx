@@ -227,8 +227,8 @@ export default function Site() {
             </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
+          {(() => {
+            const solucoes = [
               { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle completo de contratos, pagamentos, vencimentos, multas e histórico de clientes." },
               { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio. Pipeline de vendas visual, histórico de interações, follow-ups automáticos e relatórios de conversão." },
               { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital interativo, pedidos online com personalização, integração com delivery, controle de mesa e cozinha, e relatórios de vendas por período." },
@@ -238,22 +238,41 @@ export default function Site() {
               { icon: Target, titulo: "Gestão Financeira", desc: "Controle de contas a pagar e receber, fluxo de caixa, emissão de boletos, relatórios financeiros detalhados e dashboards com indicadores em tempo real." },
               { icon: Users, titulo: "Portal do Cliente", desc: "Área exclusiva onde seus clientes acompanham projetos, faturas, contratos, reuniões e abrem chamados de suporte. Tudo organizado em um painel moderno." },
               { icon: Rocket, titulo: "Painel Administrativo", desc: "Dashboard completo para gerenciar toda sua operação: clientes, pedidos, financeiro, equipe, relatórios e KPIs do negócio em um só lugar." },
-            ].map((p, i) => (
-              <motion.div
-                key={i}
-                variants={fade}
-                className="glass-card rounded-2xl p-6 flex gap-4 items-start hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
-              >
-                <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
-                  <p.icon className="w-5 h-5 text-white" />
+            ];
+            const visibleSolucoes = showAllSolucoes ? solucoes : solucoes.slice(0, 2);
+            return (
+              <>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {visibleSolucoes.map((p, i) => (
+                    <motion.div
+                      key={i}
+                      variants={fade}
+                      className="glass-card rounded-2xl p-6 flex gap-4 items-start hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
+                    >
+                      <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
+                        <p.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-1">{p.titulo}</h3>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{p.desc}</p>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-                <div>
-                  <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-1">{p.titulo}</h3>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{p.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                {!showAllSolucoes && (
+                  <div className="text-center mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAllSolucoes(true)}
+                      className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl px-8 h-11 hover:bg-[hsl(var(--muted))]"
+                    >
+                      Ver todas as soluções ({solucoes.length - 2} mais) <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </motion.section>
 
