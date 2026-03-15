@@ -53,6 +53,53 @@
 
     --gradient-primary: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
   }
+
+  .light {
+    --background: 0 0% 97%;
+    --foreground: 240 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+
+    --primary: 346 78% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 92%;
+    --secondary-foreground: 240 10% 20%;
+
+    --muted: 240 5% 94%;
+    --muted-foreground: 240 5% 45%;
+
+    --accent: 280 60% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 240 6% 88%;
+    --input: 240 6% 88%;
+    --ring: 346 78% 50%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5% 40%;
+    --sidebar-primary: 346 78% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 94%;
+    --sidebar-accent-foreground: 240 10% 15%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 346 78% 50%;
+
+    --gradient-primary: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
+  }
 }
 
 @layer base {
