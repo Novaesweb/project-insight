@@ -1,119 +1,106 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck, Menu, X } from "lucide-react";
+import {
+  ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle,
+  Target, Eye, Heart, Users, Rocket, Car, UserCheck, UtensilsCrossed,
+  Wrench, ShoppingBag, CalendarCheck, Menu, X, ChevronRight, Star,
+  Globe, Layers
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
 
-const fadeUp = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
-const stagger = { show: { transition: { staggerChildren: 0.12 } } };
-
-const servicos = [
-  { titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para atrair clientes todos os dias.", icon: Zap },
-  { titulo: "Lojas Virtuais", desc: "Venda seus produtos online com catálogo, carrinho e pagamento integrado.", icon: Shield },
-  { titulo: "Aplicativos", desc: "Apps sob medida para seu negócio com foco em usabilidade e performance.", icon: Smartphone },
-];
-
-const diferenciais = [
-  "Entrega em até 7 dias",
-  "Suporte humanizado incluso",
-  "100% responsivo para celular",
-  "Painel de gestão exclusivo",
-  "Hospedagem e domínio inclusos",
-];
-
-const valores = [
-  { icon: CheckCircle, texto: "Transparência no trabalho" },
-  { icon: Heart, texto: "Compromisso com os projetos" },
-  { icon: Rocket, texto: "Evolução constante" },
-  { icon: Zap, texto: "Soluções simples e funcionais" },
-  { icon: Users, texto: "Crescimento junto com os clientes" },
-];
+const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
+const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 export default function Site() {
-  const desktopLinks = [
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = [
     { href: "#servicos", label: "Serviços" },
-    { href: "#nichos", label: "Segmentos" },
-    { href: "#missao", label: "Missão" },
-    { href: "#como-funciona", label: "Como Funciona" },
-    { href: "#projetos-solucoes", label: "Soluções" },
+    { href: "#solucoes", label: "Soluções" },
+    { href: "#processo", label: "Processo" },
+    { href: "#resultados", label: "Resultados" },
+    { href: "#contato", label: "Contato" },
   ];
 
-  const menuLinks = [
-    { href: "#servicos", label: "Serviços" },
-    { href: "#nichos", label: "Segmentos" },
+  const mobileLinks = [
+    ...navLinks,
     { href: "#sobre", label: "Sobre NovaesWeb" },
-    { href: "#sobre", label: "Quem Somos" },
-    { href: "#missao", label: "Missão" },
-    { href: "#como-funciona", label: "Como Funciona" },
-    { href: "#projetos-solucoes", label: "Soluções" },
+    { href: "#quem-somos", label: "Quem Somos" },
   ];
 
   const scrollTo = (href: string) => {
     setMenuOpen(false);
-    const id = href.replace("#", "");
-    const el = document.getElementById(id);
+    const el = document.getElementById(href.replace("#", ""));
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))]">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-xs">NW</span>
+    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth">
+
+      {/* ─── NAVBAR ─── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/90 backdrop-blur-2xl">
+        <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-[hsl(var(--primary))]/20">
+              <span className="text-white font-bold text-sm">NW</span>
             </div>
-            <span className="text-lg font-bold">
+            <span className="text-xl font-bold tracking-tight">
               <span className="gradient-text">Novaes</span>
               <span className="text-[hsl(var(--foreground))]">Web</span>
             </span>
           </div>
-          <div className="hidden lg:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
-            {desktopLinks.map((link, index) => (
-              <button key={`desktop-${index}`} onClick={() => scrollTo(link.href)} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</button>
+
+          <div className="hidden lg:flex items-center gap-8">
+            {navLinks.map((link, i) => (
+              <button
+                key={i}
+                onClick={() => scrollTo(link.href)}
+                className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors duration-200"
+              >
+                {link.label}
+              </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-3">
             <Link to="/cadastro" className="hidden sm:block">
-              <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg">
-                Começar agora <ArrowRight className="w-4 h-4 ml-1" />
+              <Button className="gradient-primary border-0 text-white text-sm h-10 px-6 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
+                Solicitar orçamento
               </Button>
             </Link>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--foreground))]"
+              className="lg:hidden p-2.5 rounded-xl hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--foreground))]"
             >
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
         <AnimatePresence>
           {menuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 backdrop-blur-xl overflow-hidden"
+              className="lg:hidden border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] overflow-hidden"
             >
-              <div className="px-4 py-4 flex flex-col gap-3">
-                {menuLinks.map((link, index) => (
+              <div className="px-6 py-5 flex flex-col gap-1">
+                {mobileLinks.map((link, i) => (
                   <button
-                    key={`${link.href}-${index}`}
+                    key={i}
                     onClick={() => scrollTo(link.href)}
-                    className="text-left text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
+                    className="text-left text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-3 border-b border-[hsl(var(--border))] last:border-0 flex items-center justify-between"
                   >
                     {link.label}
+                    <ChevronRight className="w-4 h-4 opacity-40" />
                   </button>
                 ))}
-                <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="sm:hidden">
-                  <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg w-full mt-2">
-                    Começar agora <ArrowRight className="w-4 h-4 ml-1" />
+                <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="mt-3">
+                  <Button className="gradient-primary border-0 text-white text-sm h-10 rounded-xl w-full font-semibold">
+                    Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
               </div>
@@ -122,246 +109,335 @@ export default function Site() {
         </AnimatePresence>
       </nav>
 
-      {/* Hero */}
+      {/* ─── HERO ─── */}
       <motion.section
-        className="pt-32 pb-20 px-4"
+        className="pt-36 pb-24 px-6"
         initial="hidden"
         animate="show"
         variants={stagger}
       >
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div variants={fadeUp} className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium">
-            🚀 Já desenvolvemos soluções para cerca de 6 empresas
-          </motion.div>
-          <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[hsl(var(--foreground))] leading-tight">
-            Seu negócio merece um{" "}
-            <span className="gradient-text">site profissional</span>
-          </motion.h1>
-          <motion.p variants={fadeUp} className="text-lg text-[hsl(var(--muted-foreground))] mt-5 max-w-2xl mx-auto">
-            Criamos sites, lojas virtuais e sistemas web para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.
-          </motion.p>
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-            <Link to="/cadastro">
-              <Button className="gradient-primary border-0 text-white h-12 px-8 rounded-xl text-base font-semibold">
-                Começar meu projeto <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] h-12 px-8 rounded-xl text-base hover:bg-[hsl(var(--muted))]">
-                <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
-              </Button>
-            </a>
-          </motion.div>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <motion.div variants={fade} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-6">
+                <Star className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+                Soluções digitais para empresas
+              </motion.div>
+              <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
+                Tecnologia que{" "}
+                <span className="gradient-text">transforma</span>
+                {" "}seu negócio
+              </motion.h1>
+              <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg">
+                Desenvolvemos sites, sistemas e aplicativos sob medida para empresas que buscam organização, presença digital e resultados reais.
+              </motion.p>
+              <motion.div variants={fade} className="flex flex-col sm:flex-row gap-3 mt-8">
+                <Link to="/cadastro">
+                  <Button className="gradient-primary border-0 text-white h-12 px-8 rounded-xl text-sm font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
+                    Começar meu projeto <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+                <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] h-12 px-8 rounded-xl text-sm hover:bg-[hsl(var(--muted))]">
+                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                  </Button>
+                </a>
+              </motion.div>
+            </div>
+            <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
+              {[
+                { num: "6+", label: "Empresas atendidas" },
+                { num: "7", label: "Dias de entrega" },
+                { num: "100%", label: "Responsivo" },
+                { num: "24h", label: "Suporte incluso" },
+              ].map((stat, i) => (
+                <div key={i} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                  <p className="text-2xl font-bold gradient-text">{stat.num}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{stat.label}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </motion.section>
 
-      {/* Serviços */}
-      <motion.section id="servicos" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">O que fazemos</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Soluções digitais completas</h2>
-            <p className="text-[hsl(var(--muted-foreground))] mt-2">Plataformas simples, modernas e funcionais para seu negócio</p>
+      {/* ─── SERVIÇOS ─── */}
+      <motion.section id="servicos" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div variants={fade} className="max-w-2xl mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Serviços</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3 leading-tight">
+              Soluções digitais completas para seu negócio
+            </h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+              Do planejamento à entrega, cuidamos de cada etapa para garantir que sua empresa tenha a melhor presença digital possível.
+            </p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {servicos.map((s) => (
-              <motion.div key={s.titulo} variants={fadeUp} className="glass-card rounded-2xl p-6 hover:border-[hsl(var(--primary))] transition-colors duration-300">
-                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mb-4">
-                  <s.icon className="w-6 h-6 text-white" />
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: Globe, titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para atrair clientes e gerar credibilidade para sua marca." },
+              { icon: ShoppingBag, titulo: "Lojas Virtuais", desc: "Venda online com catálogo de produtos, carrinho de compras e integração de pagamento." },
+              { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas completos para gerenciar clientes, pedidos, agendamentos e tudo que seu negócio precisa." },
+            ].map((s, i) => (
+              <motion.div
+                key={i}
+                variants={fade}
+                className="glass-card rounded-2xl p-8 group hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
+              >
+                <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mb-6 shadow-lg shadow-[hsl(var(--primary))]/20 group-hover:scale-105 transition-transform">
+                  <s.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{s.titulo}</h3>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{s.desc}</p>
+                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">{s.titulo}</h3>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{s.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </motion.section>
 
-      {/* Nichos Carousel */}
-      <section id="nichos">
+      {/* ─── SOLUÇÕES (Projetos) ─── */}
+      <motion.section id="solucoes" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div variants={fade} className="max-w-2xl mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Soluções</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3 leading-tight">
+              Sistemas que podemos desenvolver para você
+            </h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+              Cada negócio tem suas necessidades. Veja exemplos de soluções que já desenvolvemos ou podemos criar sob medida.
+            </p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle de contratos e pagamentos." },
+              { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio em um só lugar." },
+              { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital, pedidos online e integração com pagamentos." },
+              { icon: Wrench, titulo: "Gestão para Oficinas", desc: "Ordens de serviço, agendamentos e controle de estoque simplificados." },
+              { icon: ShoppingBag, titulo: "Catálogo de Produtos", desc: "Vitrine digital organizada e atraente para apresentar seus produtos." },
+              { icon: CalendarCheck, titulo: "Agendamento Online", desc: "Sistema prático para agendar serviços e compromissos automaticamente." },
+            ].map((p, i) => (
+              <motion.div
+                key={i}
+                variants={fade}
+                className="glass-card rounded-2xl p-6 flex gap-4 items-start hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
+              >
+                <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
+                  <p.icon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-1">{p.titulo}</h3>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{p.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ─── SEGMENTOS (Carousel) ─── */}
+      <section id="segmentos" className="py-8">
         <NicheCarousel />
       </section>
 
-      {/* Sobre / Quem Somos (removido da home, mantendo apenas no menu mobile) */}
-
-      {/* Missão, Visão, Valores */}
-      <motion.section id="missao" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Nossos pilares</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Missão, Visão e Valores</h2>
+      {/* ─── PROCESSO ─── */}
+      <motion.section id="processo" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Como funciona</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
+              Do briefing à entrega em 4 etapas
+            </h2>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-            <motion.div variants={fadeUp} className="glass-card rounded-2xl p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <Target className="w-5 h-5 text-white" />
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { num: "01", titulo: "Entendimento", desc: "Analisamos as necessidades do seu negócio e definimos a melhor solução." },
+              { num: "02", titulo: "Desenvolvimento", desc: "Criamos a plataforma com design moderno e funcionalidades sob medida." },
+              { num: "03", titulo: "Entrega e testes", desc: "Você testa, valida e solicita ajustes até ficar 100% satisfeito." },
+              { num: "04", titulo: "Evolução contínua", desc: "Novas funcionalidades podem ser adicionadas conforme sua empresa cresce." },
+            ].map((step, i) => (
+              <motion.div key={i} variants={fade} className="relative">
+                <div className="glass-card rounded-2xl p-8">
+                  <span className="text-4xl font-extrabold gradient-text opacity-30">{step.num}</span>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">{step.titulo}</h3>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{step.desc}</p>
                 </div>
-                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))]">Missão</h3>
-              </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ─── DIFERENCIAIS ─── */}
+      <motion.section className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div variants={fade}>
+              <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Diferenciais</span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3 leading-tight">
+                Por que escolher a NovaesWeb?
+              </h2>
+              <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+                Trabalhamos para criar sistemas que sejam simples, funcionais, adaptáveis e em constante evolução.
+              </p>
+            </motion.div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                "Entrega em até 7 dias",
+                "Suporte humanizado incluso",
+                "100% responsivo",
+                "Painel de gestão exclusivo",
+                "Hospedagem incluída",
+                "Evolução contínua",
+              ].map((d, i) => (
+                <motion.div key={i} variants={fade} className="flex items-center gap-3 glass-card rounded-xl p-4">
+                  <CheckCircle className="w-5 h-5 text-[hsl(var(--primary))] shrink-0" />
+                  <span className="text-sm font-medium text-[hsl(var(--foreground))]">{d}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ─── RESULTADOS / AVALIAÇÕES ─── */}
+      <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Resultados</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
+              O que nossos clientes dizem
+            </h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-4">
+              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento.", autor: "Cliente NovaesWeb" },
+              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio.", autor: "Cliente NovaesWeb" },
+            ].map((depo, i) => (
+              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-8">
+                <div className="flex gap-1 mb-4">
+                  {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
+                </div>
+                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4">"{depo.texto}"</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ─── MISSÃO / VISÃO / VALORES ─── */}
+      <motion.section className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossos pilares</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
+              Missão, Visão e Valores
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
+              <Target className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
+              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Missão</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
                 Criar soluções digitais simples, modernas e acessíveis que ajudem empresas a organizar seus serviços e melhorar sua presença online.
               </p>
             </motion.div>
-            <motion.div variants={fadeUp} className="glass-card rounded-2xl p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))]">Visão</h3>
-              </div>
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
+              <Eye className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
+              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Visão</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Crescer como uma empresa de tecnologia que desenvolve sistemas práticos e eficientes para negócios, sempre evoluindo junto com nossos clientes.
+                Crescer como uma empresa de tecnologia que desenvolve sistemas práticos e eficientes, sempre evoluindo junto com nossos clientes.
+              </p>
+            </motion.div>
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
+              <Heart className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
+              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Valores</h3>
+              <ul className="space-y-2">
+                {["Transparência", "Compromisso", "Evolução constante", "Soluções funcionais", "Crescimento mútuo"].map((v, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))]">
+                    <CheckCircle className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ─── SOBRE (hidden section for mobile menu scroll) ─── */}
+      <motion.section id="sobre" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
+              <Globe className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
+              <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-4">Sobre a NovaesWeb</h3>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-3">
+                A NovaesWeb é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet.
+              </p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Nascemos com a ideia de tornar a tecnologia acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia.
+              </p>
+            </motion.div>
+            <motion.div id="quem-somos" variants={fade} className="glass-card rounded-2xl p-8">
+              <Users className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
+              <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-4">Quem Somos</h3>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-3">
+                Somos um projeto independente que utiliza tecnologia moderna e inteligência artificial para otimizar processos e acelerar o desenvolvimento de soluções.
+              </p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Surgimos da vontade de aprender, evoluir e criar soluções reais. Estamos em constante evolução, buscando entregar projetos cada vez melhores.
               </p>
             </motion.div>
           </div>
-          <motion.div variants={fadeUp} className="glass-card rounded-2xl p-8">
-            <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-6 text-center">Nossos Valores</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {valores.map((v) => (
-                <div key={v.texto} className="flex flex-col items-center text-center gap-2 p-4">
-                  <v.icon className="w-6 h-6 text-[hsl(var(--primary))]" />
-                  <span className="text-sm text-[hsl(var(--foreground))] font-medium">{v.texto}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </motion.section>
 
-      {/* Como Funciona */}
-      <motion.section id="como-funciona" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Passo a passo</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Como Funciona</h2>
-            <p className="text-[hsl(var(--muted-foreground))] mt-2">O processo de desenvolvimento na NovaesWeb é simples e direto.</p>
-          </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { num: "1", titulo: "Entendimento do projeto", desc: "Primeiro entendemos o que a empresa precisa e qual solução faz mais sentido." },
-              { num: "2", titulo: "Desenvolvimento", desc: "Criamos a plataforma com design moderno e funcionalidades necessárias." },
-              { num: "3", titulo: "Entrega e ajustes", desc: "Após o desenvolvimento, o cliente pode testar e solicitar ajustes." },
-              { num: "4", titulo: "Evolução do sistema", desc: "Novas funcionalidades podem ser adicionadas com o tempo. O sistema cresce junto com a empresa." },
-            ].map((step) => (
-              <motion.div key={step.num} variants={fadeUp} className="glass-card rounded-2xl p-6 text-center">
-                <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-lg">{step.num}</span>
-                </div>
-                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{step.titulo}</h3>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{step.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Projetos ou Soluções Criadas */}
-      <motion.section id="projetos-solucoes" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Exemplos</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Projetos e Soluções</h2>
-            <p className="text-[hsl(var(--muted-foreground))] mt-2">Veja alguns exemplos de sistemas que podemos desenvolver para o seu negócio</p>
-          </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie o aluguel de carros, motos ou casas com controle completo de contratos e pagamentos." },
-              { icon: UserCheck, titulo: "Controle de Clientes (CRM)", desc: "Organize e acompanhe seus clientes, leads e oportunidades de negócio." },
-              { icon: UtensilsCrossed, titulo: "Pedidos Online para Restaurantes", desc: "Receba pedidos online com cardápio digital e integração de pagamentos." },
-              { icon: Wrench, titulo: "Controle de Serviços para Oficinas", desc: "Agende serviços, gerencie ordens de serviço e controle de estoque." },
-              { icon: ShoppingBag, titulo: "Catálogo de Produtos para Lojas", desc: "Exponha seus produtos de forma organizada e atraente para seus clientes." },
-              { icon: CalendarCheck, titulo: "Sistema de Agendamentos", desc: "Facilite o agendamento de serviços e compromissos de forma prática." },
-            ].map((projeto) => (
-              <motion.div key={projeto.titulo} variants={fadeUp} className="glass-card rounded-2xl p-6 hover:border-[hsl(var(--primary))] transition-colors duration-300">
-                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mb-4">
-                  <projeto.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{projeto.titulo}</h3>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{projeto.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Avaliações */}
-      <motion.section className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-4xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Avaliações</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">O que dizem sobre nós</h2>
-            <p className="text-[hsl(var(--muted-foreground))] mt-2">Ainda em fase de crescimento, mas já com soluções para cerca de 6 empresas.</p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[
-              "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento.",
-              "Site rápido e fácil de usar, ficou muito bom para nosso negócio.",
-            ].map((depo, i) => (
-              <motion.div key={i} variants={fadeUp} className="glass-card rounded-2xl p-6">
-                <MessageCircle className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-                <p className="text-sm text-[hsl(var(--foreground))] italic leading-relaxed">"{depo}"</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Nosso Compromisso */}
-      <motion.section className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div variants={fadeUp}>
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Compromisso</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-4">Nosso Compromisso</h2>
-            <p className="text-[hsl(var(--muted-foreground))] mb-8">Buscamos sempre entregar soluções que realmente ajudem empresas no dia a dia.</p>
-          </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            {["Simples de usar", "Funcionais para o negócio", "Adaptáveis conforme a necessidade", "Em constante evolução"].map((item) => (
-              <motion.div key={item} variants={fadeUp} className="flex items-center gap-3 glass-card rounded-xl p-4">
-                <CheckCircle className="w-5 h-5 text-[hsl(var(--primary))] shrink-0" />
-                <span className="text-sm text-[hsl(var(--foreground))]">{item}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Diferenciais */}
-      <motion.section className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Por que a NovaesWeb?</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Diferenciais que importam</h2>
-          </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {diferenciais.map((d) => (
-              <motion.div key={d} variants={fadeUp} className="flex items-center gap-3 glass-card rounded-xl p-4">
-                <CheckCircle className="w-5 h-5 text-[hsl(var(--primary))] shrink-0" />
-                <span className="text-sm text-[hsl(var(--foreground))]">{d}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* CTA Final */}
-      <section className="py-20 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-4">Pronto para começar?</h2>
-          <p className="text-[hsl(var(--muted-foreground))] mb-8">Preencha o cadastro e nossa equipe entra em contato em até 2 horas.</p>
+      {/* ─── CTA FINAL ─── */}
+      <section id="contato" className="py-24 px-6">
+        <motion.div
+          className="max-w-4xl mx-auto rounded-3xl gradient-primary p-12 sm:p-16 text-center shadow-2xl shadow-[hsl(var(--primary))]/20"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={fade}
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Pronto para transformar seu negócio?
+          </h2>
+          <p className="text-white/80 mb-8 max-w-xl mx-auto">
+            Preencha o cadastro e nossa equipe entra em contato em até 2 horas para entender seu projeto.
+          </p>
           <Link to="/cadastro">
-            <Button className="gradient-primary border-0 text-white h-12 px-10 rounded-xl text-base font-semibold">
-              Começar agora <ArrowRight className="w-5 h-5 ml-2" />
+            <Button className="bg-white text-[hsl(var(--primary))] hover:bg-white/90 h-12 px-10 rounded-xl text-base font-semibold shadow-lg">
+              Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="gradient-primary py-6 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-white text-sm font-medium tracking-wide">
-            NovaesWeb © 2025 — Todos os direitos reservados
+      {/* ─── FOOTER ─── */}
+      <footer className="border-t border-[hsl(var(--border))] py-10 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
+              <span className="text-white font-bold text-[10px]">NW</span>
+            </div>
+            <span className="text-sm font-semibold">
+              <span className="gradient-text">Novaes</span>
+              <span className="text-[hsl(var(--foreground))]">Web</span>
+            </span>
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            © 2025 NovaesWeb — Todos os direitos reservados
           </p>
         </div>
       </footer>
