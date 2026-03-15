@@ -325,6 +325,7 @@ export default function Site() {
               ))}
             </div>
           </div>
+        </div>
       </motion.section>
 
       {/* ─── RESULTADOS / AVALIAÇÕES ─── */}
