@@ -42,7 +42,7 @@ export default function Site() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth">
+    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow">
 
       {/* ─── NAVBAR ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/90 backdrop-blur-2xl">
