@@ -177,9 +177,12 @@ export default function Site() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: Globe, titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para atrair clientes e gerar credibilidade para sua marca." },
-              { icon: ShoppingBag, titulo: "Lojas Virtuais", desc: "Venda online com catálogo de produtos, carrinho de compras e integração de pagamento." },
-              { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas completos para gerenciar clientes, pedidos, agendamentos e tudo que seu negócio precisa." },
+              { icon: Globe, titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para SEO. Design responsivo que se adapta a qualquer dispositivo. Inclui domínio personalizado, certificado SSL, hospedagem e painel de gestão de conteúdo." },
+              { icon: ShoppingBag, titulo: "Lojas Virtuais", desc: "E-commerce completo com catálogo de produtos, carrinho de compras, checkout seguro e integração com meios de pagamento como Pix, cartão e boleto. Controle de estoque e relatórios de vendas." },
+              { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas sob medida para gerenciar clientes, pedidos, agendamentos, financeiro, relatórios e tudo que seu negócio precisa. Acesso de qualquer lugar, 100% na nuvem." },
+              { icon: Smartphone, titulo: "Landing Pages", desc: "Páginas de alta conversão para campanhas de marketing digital. Design focado em capturar leads e gerar resultados rápidos para seu negócio com formulários inteligentes." },
+              { icon: Shield, titulo: "Manutenção e Suporte", desc: "Suporte técnico contínuo, atualizações de segurança, backups automáticos e monitoramento 24h. Garantimos que seu site esteja sempre no ar e funcionando perfeitamente." },
+              { icon: Zap, titulo: "Automação e Integrações", desc: "Automatize tarefas repetitivas e integre seu site com WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam seus resultados." },
             ].map((s, i) => (
               <motion.div
                 key={i}
@@ -206,18 +209,21 @@ export default function Site() {
               Sistemas que podemos desenvolver para você
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
-              Cada negócio tem suas necessidades. Veja exemplos de soluções que já desenvolvemos ou podemos criar sob medida.
+              Cada negócio tem suas necessidades. Desenvolvemos soluções personalizadas com tecnologia de ponta, sempre focando em usabilidade e resultados reais.
             </p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle de contratos e pagamentos." },
-              { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio em um só lugar." },
-              { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital, pedidos online e integração com pagamentos." },
-              { icon: Wrench, titulo: "Gestão para Oficinas", desc: "Ordens de serviço, agendamentos e controle de estoque simplificados." },
-              { icon: ShoppingBag, titulo: "Catálogo de Produtos", desc: "Vitrine digital organizada e atraente para apresentar seus produtos." },
-              { icon: CalendarCheck, titulo: "Agendamento Online", desc: "Sistema prático para agendar serviços e compromissos automaticamente." },
+              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle completo de contratos, pagamentos, vencimentos, multas e histórico de clientes." },
+              { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio. Pipeline de vendas visual, histórico de interações, follow-ups automáticos e relatórios de conversão." },
+              { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital interativo, pedidos online com personalização, integração com delivery, controle de mesa e cozinha, e relatórios de vendas por período." },
+              { icon: Wrench, titulo: "Gestão para Oficinas", desc: "Ordens de serviço digitais, agendamentos, controle de estoque de peças, histórico de veículos, orçamentos automáticos e notificação para clientes." },
+              { icon: ShoppingBag, titulo: "Catálogo de Produtos", desc: "Vitrine digital organizada com fotos, descrições, preços e categorias. Compartilhável por link ou WhatsApp. Ideal para quem vende pelo Instagram ou redes sociais." },
+              { icon: CalendarCheck, titulo: "Agendamento Online", desc: "Sistema de agenda com horários disponíveis em tempo real, confirmação automática por WhatsApp/e-mail, gestão de profissionais e relatório de atendimentos." },
+              { icon: Target, titulo: "Gestão Financeira", desc: "Controle de contas a pagar e receber, fluxo de caixa, emissão de boletos, relatórios financeiros detalhados e dashboards com indicadores em tempo real." },
+              { icon: Users, titulo: "Portal do Cliente", desc: "Área exclusiva onde seus clientes acompanham projetos, faturas, contratos, reuniões e abrem chamados de suporte. Tudo organizado em um painel moderno." },
+              { icon: Rocket, titulo: "Painel Administrativo", desc: "Dashboard completo para gerenciar toda sua operação: clientes, pedidos, financeiro, equipe, relatórios e KPIs do negócio em um só lugar." },
             ].map((p, i) => (
               <motion.div
                 key={i}
@@ -250,20 +256,26 @@ export default function Site() {
             <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
               Do briefing à entrega em 4 etapas
             </h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+              Nosso processo é transparente e colaborativo. Você participa de cada etapa e acompanha tudo em tempo real pelo portal do cliente.
+            </p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { num: "01", titulo: "Entendimento", desc: "Analisamos as necessidades do seu negócio e definimos a melhor solução." },
-              { num: "02", titulo: "Desenvolvimento", desc: "Criamos a plataforma com design moderno e funcionalidades sob medida." },
-              { num: "03", titulo: "Entrega e testes", desc: "Você testa, valida e solicita ajustes até ficar 100% satisfeito." },
-              { num: "04", titulo: "Evolução contínua", desc: "Novas funcionalidades podem ser adicionadas conforme sua empresa cresce." },
+              { num: "01", titulo: "Entendimento", desc: "Reunião inicial para entender seu negócio, público-alvo, concorrentes e objetivos. Definimos juntos o escopo, funcionalidades e prazo do projeto.", detail: "Duração: 1-2 dias" },
+              { num: "02", titulo: "Desenvolvimento", desc: "Criamos o layout e desenvolvemos todas as funcionalidades com design moderno, responsivo e performance otimizada. Você recebe atualizações diárias.", detail: "Duração: 3-5 dias" },
+              { num: "03", titulo: "Entrega e Testes", desc: "Você testa o projeto completo, valida cada funcionalidade e solicita ajustes ilimitados até ficar 100% satisfeito com o resultado final.", detail: "Duração: 1-2 dias" },
+              { num: "04", titulo: "Evolução Contínua", desc: "Após a entrega, seu projeto continua evoluindo. Novas funcionalidades, melhorias e suporte técnico contínuo conforme sua empresa cresce.", detail: "Suporte incluso" },
             ].map((step, i) => (
               <motion.div key={i} variants={fade} className="relative">
-                <div className="glass-card rounded-2xl p-8">
+                <div className="glass-card rounded-2xl p-8 h-full">
                   <span className="text-4xl font-extrabold gradient-text opacity-30">{step.num}</span>
                   <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">{step.titulo}</h3>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{step.desc}</p>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">{step.desc}</p>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-3 py-1 rounded-full">
+                    <Zap className="w-3 h-3" /> {step.detail}
+                  </span>
                 </div>
               </motion.div>
             ))}
@@ -281,21 +293,34 @@ export default function Site() {
                 Por que escolher a NovaesWeb?
               </h2>
               <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
-                Trabalhamos para criar sistemas que sejam simples, funcionais, adaptáveis e em constante evolução.
+                Trabalhamos para criar sistemas que sejam simples, funcionais, adaptáveis e em constante evolução. Não entregamos apenas um site — entregamos uma solução completa.
               </p>
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                  <strong className="text-[hsl(var(--foreground))]">Tecnologia moderna:</strong> Utilizamos as tecnologias mais recentes do mercado como React, TypeScript e bancos de dados em nuvem para garantir performance e segurança.
+                </p>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                  <strong className="text-[hsl(var(--foreground))]">Preço justo:</strong> Soluções acessíveis para pequenas e médias empresas, sem cobranças escondidas. Planos flexíveis que cabem no seu orçamento.
+                </p>
+              </div>
             </motion.div>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                "Entrega em até 7 dias",
-                "Suporte humanizado incluso",
-                "100% responsivo",
-                "Painel de gestão exclusivo",
-                "Hospedagem incluída",
-                "Evolução contínua",
+                { label: "Entrega em até 7 dias", detail: "Projetos ágeis sem perder qualidade" },
+                { label: "Suporte humanizado incluso", detail: "Atendimento direto, sem robôs" },
+                { label: "100% responsivo", detail: "Funciona em celular, tablet e desktop" },
+                { label: "Painel de gestão exclusivo", detail: "Gerencie tudo pelo navegador" },
+                { label: "Hospedagem incluída", detail: "Sem custos extras com servidor" },
+                { label: "Evolução contínua", detail: "Novas funcionalidades quando precisar" },
+                { label: "SSL e segurança", detail: "Dados protegidos e site seguro" },
+                { label: "SEO otimizado", detail: "Apareça no Google de forma orgânica" },
               ].map((d, i) => (
-                <motion.div key={i} variants={fade} className="flex items-center gap-3 glass-card rounded-xl p-4">
-                  <CheckCircle className="w-5 h-5 text-[hsl(var(--primary))] shrink-0" />
-                  <span className="text-sm font-medium text-[hsl(var(--foreground))]">{d}</span>
+                <motion.div key={i} variants={fade} className="flex items-start gap-3 glass-card rounded-xl p-4">
+                  <CheckCircle className="w-5 h-5 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-sm font-medium text-[hsl(var(--foreground))] block">{d.label}</span>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">{d.detail}</span>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -305,27 +330,46 @@ export default function Site() {
 
       {/* ─── RESULTADOS / AVALIAÇÕES ─── */}
       <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Resultados</span>
             <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
               O que nossos clientes dizem
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade.
+              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Métricas */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {[
-              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento.", autor: "Cliente NovaesWeb" },
-              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio.", autor: "Cliente NovaesWeb" },
+              { num: "6+", label: "Empresas atendidas" },
+              { num: "100%", label: "Satisfação dos clientes" },
+              { num: "7 dias", label: "Prazo médio de entrega" },
+              { num: "24h", label: "Tempo de resposta suporte" },
+            ].map((m, i) => (
+              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+                <p className="text-2xl font-bold gradient-text">{m.num}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{m.label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web" },
+              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional" },
+              { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin" },
             ].map((depo, i) => (
               <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-8">
-                <div className="flex gap-1 mb-4">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{depo.tipo}</span>
                 </div>
-                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4">"{depo.texto}"</p>
+                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{depo.texto}"</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
               </motion.div>
             ))}
@@ -387,10 +431,13 @@ export default function Site() {
                 A NovaesWeb é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.
               </p>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
-                Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento.
+                Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento. Utilizamos tecnologias de ponta como React, TypeScript e bancos de dados em nuvem.
               </p>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
                 Nascemos com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa. Mesmo sendo um projeto recente, já participamos do desenvolvimento de soluções utilizadas por cerca de 6 empresas.
+              </p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
+                Acreditamos que toda empresa, independente do tamanho, merece ter uma presença digital profissional e ferramentas de gestão que simplifiquem sua rotina. Nosso diferencial está no atendimento humanizado, na agilidade de entrega e na evolução contínua dos projetos.
               </p>
             </motion.div>
             <motion.div variants={fade} className="relative">
@@ -401,6 +448,10 @@ export default function Site() {
                 <p className="text-2xl font-bold gradient-text">6+</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">Empresas atendidas</p>
               </div>
+              <div className="absolute -top-4 -right-4 glass-card rounded-xl p-4 shadow-lg">
+                <p className="text-2xl font-bold gradient-text">2025</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">Fundação</p>
+              </div>
             </motion.div>
           </div>
 
@@ -409,28 +460,28 @@ export default function Site() {
               <Users className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Quem Somos</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Somos um projeto independente que trabalha com desenvolvimento web e soluções digitais, utilizando tecnologia moderna e também o apoio de inteligência artificial para otimizar processos e acelerar o desenvolvimento de novos sistemas.
+                Somos um projeto independente de tecnologia focado em criar soluções digitais para empresas reais. Utilizamos tecnologia moderna, inteligência artificial e metodologias ágeis para entregar projetos rápidos, eficientes e de qualidade. Nosso compromisso é com resultado.
               </p>
             </motion.div>
             <motion.div variants={fade} className="glass-card rounded-2xl p-8">
               <Globe className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">De Onde Viemos</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais. Com o tempo, evoluímos para criar sistemas mais completos como painéis administrativos, cadastro e controle de clientes.
+                A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais. Com o tempo, evoluímos para criar sistemas mais completos como painéis administrativos, portais do cliente, CRMs e controle financeiro. Cada projeto nos ensinou algo novo.
               </p>
             </motion.div>
             <motion.div variants={fade} className="glass-card rounded-2xl p-8">
               <Rocket className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Para Onde Vamos</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Seguimos expandindo o projeto, criando novas soluções e aprimorando cada sistema. Surgimos da vontade de aprender, evoluir e criar soluções reais que ajudem empresas a crescer no digital.
+                Seguimos expandindo, criando novas soluções e aprimorando cada sistema. Nosso objetivo é nos tornar referência em desenvolvimento web para PMEs, oferecendo plataformas completas com preço justo e evolução constante ao lado dos nossos clientes.
               </p>
             </motion.div>
           </div>
         </div>
       </motion.section>
 
-      {/* ─── CTA FINAL ─── */}
+      {/* ─── CTA FINAL / CONTATO ─── */}
       <section id="contato" className="py-24 px-6">
         <motion.div
           className="max-w-4xl mx-auto rounded-3xl gradient-primary p-12 sm:p-16 text-center shadow-2xl shadow-[hsl(var(--primary))]/20"
@@ -443,31 +494,73 @@ export default function Site() {
             Pronto para transformar seu negócio?
           </h2>
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
-            Preencha o cadastro e nossa equipe entra em contato em até 2 horas para entender seu projeto.
+            Preencha o cadastro e nossa equipe entra em contato em até 2 horas para entender seu projeto. Sem compromisso — é só conversar.
           </p>
-          <Link to="/cadastro">
-            <Button className="bg-white text-[hsl(var(--primary))] hover:bg-white/90 h-12 px-10 rounded-xl text-base font-semibold shadow-lg">
-              Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link to="/cadastro">
+              <Button className="bg-white text-[hsl(var(--primary))] hover:bg-white/90 h-12 px-10 rounded-xl text-base font-semibold shadow-lg">
+                Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+              <Button className="bg-white/20 text-white hover:bg-white/30 border border-white/30 h-12 px-10 rounded-xl text-base font-semibold">
+                <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp
+              </Button>
+            </a>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-white/60 text-xs">
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Resposta em até 2h</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Orçamento sem compromisso</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Suporte humanizado</span>
+          </div>
         </motion.div>
       </section>
 
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-[hsl(var(--border))] py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">NW</span>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
+                  <span className="text-white font-bold text-[10px]">NW</span>
+                </div>
+                <span className="text-sm font-semibold">
+                  <span className="gradient-text">Novaes</span>
+                  <span className="text-[hsl(var(--foreground))]">Web</span>
+                </span>
+              </div>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Desenvolvimento de sites, sistemas web e soluções digitais para empresas que buscam organização e resultados.
+              </p>
             </div>
-            <span className="text-sm font-semibold">
-              <span className="gradient-text">Novaes</span>
-              <span className="text-[hsl(var(--foreground))]">Web</span>
-            </span>
+            <div>
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Links Rápidos</h4>
+              <div className="flex flex-col gap-2">
+                {["Serviços", "Soluções", "Processo", "Resultados", "Contato"].map((l, i) => (
+                  <button key={i} onClick={() => scrollTo(`#${l.toLowerCase()}`)} className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors text-left">
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Acesso</h4>
+              <div className="flex flex-col gap-2">
+                <Link to="/cadastro" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Solicitar Orçamento</Link>
+                <Link to="/cliente" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Portal do Cliente</Link>
+                <Link to="/admin/login" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Painel Admin</Link>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
-            © 2025 NovaesWeb — Todos os direitos reservados
-          </p>
+          <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              © 2025 NovaesWeb — Todos os direitos reservados
+            </p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Feito com ❤️ por NovaesWeb
+            </p>
+          </div>
         </div>
       </footer>
     </div>
