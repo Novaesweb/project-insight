@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </SheetTrigger>
         <SheetContent side="left" className="w-64 border-r border-[hsl(var(--border))] px-0 pt-4">
           <div className="px-6 pb-4">
-            <Link to="/" className="flex items-center gap-2 font-semibold">
+            <Link to="/admin" className="flex items-center gap-2 font-semibold">
               <img src="/logo.svg" alt="Logotipo" className="w-8 h-8" />
               <span>Painel Admin</span>
             </Link>
