@@ -48,8 +48,28 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+
+    // Realtime subscription for instant updates
+    const channel = supabase
+      .channel(`notifications-${userType}-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        (payload) => {
+          const n = payload.new as Notification;
+          if (n.user_type === userType && (userType === "admin" || n.user_id === userId)) {
+            setNotifications(prev => [n, ...prev].slice(0, 30));
+          }
+        }
+      )
+      .subscribe();
+
+    // Fallback polling every 60s
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [userType, userId]);
 
   const markAsRead = async (id: string) => {
