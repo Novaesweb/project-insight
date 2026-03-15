@@ -66,14 +66,13 @@ export default function ClienteLogin() {
           className="flex flex-col items-center gap-4"
         >
           <img src={logoImg} alt="NovaesWeb" className="w-48 h-auto rounded-xl" />
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <div className="px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
-                <div className="flex items-center gap-1.5">
-                  <User className="w-3 h-3 text-[hsl(var(--primary))]" />
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
-                    Portal do Cliente
-                  </span>
-                </div>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
+              <div className="flex items-center gap-1.5">
+                <User className="w-3 h-3 text-[hsl(var(--primary))]" />
+                <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
+                  Portal do Cliente
+                </span>
               </div>
             </div>
           </div>
