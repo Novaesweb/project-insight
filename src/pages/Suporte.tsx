@@ -58,6 +58,20 @@ export default function Suporte() {
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     if (data) setMensagens(prev => [...prev, data]);
     setTexto("");
+
+    // Notify client via push + in-app notification
+    const clienteId = ticket?.cliente_id;
+    if (clienteId) {
+      sendPushToClient(clienteId, "💬 Nova resposta no suporte", `Ticket ${ticket.codigo}: ${texto.trim().slice(0, 60)}`, "/cliente/suporte");
+      supabase.from("notifications").insert({
+        title: "Nova resposta no suporte",
+        body: `Ticket ${ticket.codigo}: ${texto.trim().slice(0, 80)}`,
+        user_id: clienteId,
+        user_type: "cliente",
+        url: "/cliente/suporte",
+      }).then(() => {});
+    }
+
     // Auto update ticket status to em_atendimento if aberto
     if (ticket?.status === "aberto") {
       await supabase.from("tickets").update({ status: "em_atendimento" }).eq("id", selectedTicket);
