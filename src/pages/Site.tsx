@@ -33,8 +33,10 @@ export default function Site() {
 
   const scrollTo = (href: string) => {
     setMenuOpen(false);
-    const el = document.getElementById(href.replace("#", ""));
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      const el = document.getElementById(href.replace("#", ""));
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 350);
   };
 
   return (
