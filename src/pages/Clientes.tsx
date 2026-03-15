@@ -63,6 +63,17 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     setSavingExtra(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
+
+    // Notify client
+    sendPushToClient(clienteId, "🆕 Novo extra adicionado", `"${extra.nome}" foi ativado no seu plano.`, "/cliente/extras");
+    supabase.from("notifications").insert({
+      title: "Novo extra adicionado",
+      body: `"${extra.nome}" foi ativado no seu plano.`,
+      user_id: clienteId,
+      user_type: "cliente",
+      url: "/cliente/extras",
+    }).then(() => {});
+
     setShowAddExtra(false);
     setExtraSelecionado("");
     setObservacao("");
