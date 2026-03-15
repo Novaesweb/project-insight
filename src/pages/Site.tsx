@@ -16,6 +16,7 @@ const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 export default function Site() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
 
   const navLinks = [
     { href: "#servicos", label: "Serviços" },
@@ -25,10 +26,9 @@ export default function Site() {
     { href: "#contato", label: "Contato" },
   ];
 
-  const mobileLinks = [
-    ...navLinks,
-    { href: "#sobre", label: "Sobre NovaesWeb" },
-    { href: "#quem-somos", label: "Quem Somos" },
+  const modalLinks = [
+    { id: "sobre", label: "Sobre NovaesWeb" },
+    { id: "quem-somos", label: "Quem Somos" },
   ];
 
   const scrollTo = (href: string) => {
