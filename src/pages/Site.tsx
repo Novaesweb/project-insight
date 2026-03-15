@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
 import aboutPhoto from "@/assets/about-novaes.jpg";
+import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -49,9 +50,7 @@ export default function Site() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/90 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-[hsl(var(--primary))]/20">
-              <span className="text-white font-bold text-sm">NW</span>
-            </div>
+            <img src={novaesSymbol} alt="NovaesWeb" className="w-9 h-9 rounded-xl object-cover shadow-lg shadow-[hsl(var(--primary))]/20" />
             <span className="text-xl font-bold tracking-tight">
               <span className="gradient-text">Novaes</span>
               <span className="text-[hsl(var(--foreground))]">Web</span>
