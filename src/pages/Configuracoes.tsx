@@ -81,7 +81,7 @@ export default function Configuracoes() {
         const success = await subscribeToPush("admin", userId);
         if (success) {
           setPushEnabled(true);
-          toast({ title: "Notificações ativadas!", description: "Você receberá alertas mesmo com o site fechado." });
+          toast({ title: "Notificações ativadas!", description: "Dispositivo registrado com sucesso para receber alertas." });
         } else {
           toast({ title: "Não foi possível ativar", description: "Verifique se permitiu notificações no navegador.", variant: "destructive" });
         }
