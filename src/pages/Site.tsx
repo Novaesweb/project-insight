@@ -256,20 +256,26 @@ export default function Site() {
             <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
               Do briefing à entrega em 4 etapas
             </h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+              Nosso processo é transparente e colaborativo. Você participa de cada etapa e acompanha tudo em tempo real pelo portal do cliente.
+            </p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { num: "01", titulo: "Entendimento", desc: "Analisamos as necessidades do seu negócio e definimos a melhor solução." },
-              { num: "02", titulo: "Desenvolvimento", desc: "Criamos a plataforma com design moderno e funcionalidades sob medida." },
-              { num: "03", titulo: "Entrega e testes", desc: "Você testa, valida e solicita ajustes até ficar 100% satisfeito." },
-              { num: "04", titulo: "Evolução contínua", desc: "Novas funcionalidades podem ser adicionadas conforme sua empresa cresce." },
+              { num: "01", titulo: "Entendimento", desc: "Reunião inicial para entender seu negócio, público-alvo, concorrentes e objetivos. Definimos juntos o escopo, funcionalidades e prazo do projeto.", detail: "Duração: 1-2 dias" },
+              { num: "02", titulo: "Desenvolvimento", desc: "Criamos o layout e desenvolvemos todas as funcionalidades com design moderno, responsivo e performance otimizada. Você recebe atualizações diárias.", detail: "Duração: 3-5 dias" },
+              { num: "03", titulo: "Entrega e Testes", desc: "Você testa o projeto completo, valida cada funcionalidade e solicita ajustes ilimitados até ficar 100% satisfeito com o resultado final.", detail: "Duração: 1-2 dias" },
+              { num: "04", titulo: "Evolução Contínua", desc: "Após a entrega, seu projeto continua evoluindo. Novas funcionalidades, melhorias e suporte técnico contínuo conforme sua empresa cresce.", detail: "Suporte incluso" },
             ].map((step, i) => (
               <motion.div key={i} variants={fade} className="relative">
-                <div className="glass-card rounded-2xl p-8">
+                <div className="glass-card rounded-2xl p-8 h-full">
                   <span className="text-4xl font-extrabold gradient-text opacity-30">{step.num}</span>
                   <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">{step.titulo}</h3>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{step.desc}</p>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">{step.desc}</p>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-3 py-1 rounded-full">
+                    <Zap className="w-3 h-3" /> {step.detail}
+                  </span>
                 </div>
               </motion.div>
             ))}
