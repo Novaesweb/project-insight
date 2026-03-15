@@ -50,17 +50,58 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { target, targetId, title, body, url, tag } = await req.json();
+    const bodyData = await req.json();
+    const { target, targetId, title, body, url, tag, directSubscription } = bodyData;
 
-    // Get subscriptions
-    let query = supabaseAdmin.from("push_subscriptions").select("*");
-    if (target === "admin") {
-      query = query.eq("user_type", "admin");
-    } else if (target === "cliente" && targetId) {
-      query = query.eq("user_type", "cliente").eq("user_id", targetId);
+    let subscriptions: Array<{
+      id: string;
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+      user_id: string;
+      user_type: string;
+    }> = [];
+
+    if (
+      directSubscription?.endpoint &&
+      directSubscription?.p256dh &&
+      directSubscription?.auth
+    ) {
+      const directUserId = directSubscription.user_id || targetId || "admin";
+      const directUserType = directSubscription.user_type || target || "admin";
+
+      await supabaseAdmin.from("push_subscriptions").upsert(
+        {
+          endpoint: directSubscription.endpoint,
+          p256dh: directSubscription.p256dh,
+          auth: directSubscription.auth,
+          user_id: directUserId,
+          user_type: directUserType,
+        },
+        { onConflict: "endpoint" },
+      );
+
+      subscriptions = [
+        {
+          id: "direct",
+          endpoint: directSubscription.endpoint,
+          p256dh: directSubscription.p256dh,
+          auth: directSubscription.auth,
+          user_id: directUserId,
+          user_type: directUserType,
+        },
+      ];
+    } else {
+      let query = supabaseAdmin.from("push_subscriptions").select("*");
+      if (target === "admin") {
+        query = query.eq("user_type", "admin");
+      } else if (target === "cliente" && targetId) {
+        query = query.eq("user_type", "cliente").eq("user_id", targetId);
+      }
+
+      const { data } = await query;
+      subscriptions = (data || []) as typeof subscriptions;
     }
-
-    const { data: subscriptions } = await query;
 
     // Save notification history
     const notificationRecords: { title: string; body: string; user_id: string; user_type: string; url?: string }[] = [];
