@@ -206,8 +206,18 @@ export default function Site() {
                 <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mb-6 shadow-lg shadow-[hsl(var(--primary))]/20 group-hover:scale-105 transition-transform">
                   <s.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">{s.titulo}</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xl font-semibold text-[hsl(var(--foreground))]">{s.titulo}</h3>
+                  {'badge' in s && (s as any).badge && (
+                    <span className="text-[0.65rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                      {(s as any).badge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{s.desc}</p>
+                {'badgeMsg' in s && (s as any).badgeMsg && (
+                  <p className="text-xs text-amber-400/80 mt-3 italic">{(s as any).badgeMsg}</p>
+                )}
               </motion.div>
             ))}
           </div>
