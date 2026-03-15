@@ -89,6 +89,9 @@ serve(async (req) => {
 
     const { target, targetId, title, body, url, tag } = await req.json();
 
+    // Save notification to history table
+    const notificationRecords: { title: string; body: string; user_id: string; user_type: string; url?: string }[] = [];
+
     // Get subscriptions based on target
     let query = supabaseAdmin.from("push_subscriptions").select("*");
     if (target === "admin") {
@@ -98,8 +101,31 @@ serve(async (req) => {
     }
 
     const { data: subscriptions } = await query;
+    
+    // Build unique notification records from subscriptions
+    const seenUsers = new Set<string>();
+    if (subscriptions) {
+      for (const sub of subscriptions) {
+        const key = `${sub.user_type}:${sub.user_id}`;
+        if (!seenUsers.has(key)) {
+          seenUsers.add(key);
+          notificationRecords.push({ title, body, user_id: sub.user_id, user_type: sub.user_type, url });
+        }
+      }
+    }
+    
+    // Also save a general record if no subscriptions but target is known
+    if (notificationRecords.length === 0 && target) {
+      notificationRecords.push({ title, body, user_id: targetId || "system", user_type: target, url });
+    }
+
+    // Insert notification history
+    if (notificationRecords.length > 0) {
+      await supabaseAdmin.from("notifications").insert(notificationRecords);
+    }
+
     if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ message: "No subscriptions found", sent: 0 }), {
+      return new Response(JSON.stringify({ message: "No subscriptions found, notification saved to history", sent: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
