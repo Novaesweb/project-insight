@@ -15,9 +15,20 @@ import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
+const heroWords = ["negócio", "futuro", "empresa", "projeto", "resultado"];
+
 export default function Site() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [heroWordIndex, setHeroWordIndex] = useState(0);
+  const heroWord = heroWords[heroWordIndex];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroWordIndex(prev => (prev + 1) % heroWords.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
 
   const navLinks = [
