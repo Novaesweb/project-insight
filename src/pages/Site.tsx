@@ -70,6 +70,16 @@ export default function Site() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link to="/cliente" className="hidden sm:block">
+              <Button variant="ghost" className="text-sm h-10 px-4 rounded-xl font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
+                Área do Cliente
+              </Button>
+            </Link>
+            <Link to="/admin/login" className="hidden sm:block">
+              <Button variant="ghost" className="text-sm h-10 px-4 rounded-xl font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
+                Painel Admin
+              </Button>
+            </Link>
             <Link to="/cadastro" className="hidden sm:block">
               <Button className="gradient-primary border-0 text-white text-sm h-10 px-6 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                 Solicitar orçamento
@@ -113,7 +123,17 @@ export default function Site() {
                     <ChevronRight className="w-4 h-4 opacity-40" />
                   </button>
                 ))}
-                <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="mt-3">
+                <Link to="/cliente" onClick={() => setMenuOpen(false)} className="mt-2">
+                  <Button variant="outline" className="text-sm h-10 rounded-xl w-full font-medium border-[hsl(var(--border))]">
+                    Área do Cliente
+                  </Button>
+                </Link>
+                <Link to="/admin/login" onClick={() => setMenuOpen(false)} className="mt-1">
+                  <Button variant="outline" className="text-sm h-10 rounded-xl w-full font-medium border-[hsl(var(--border))]">
+                    Painel Admin
+                  </Button>
+                </Link>
+                <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="mt-1">
                   <Button className="gradient-primary border-0 text-white text-sm h-10 rounded-xl w-full font-semibold">
                     Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
