@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileText, Plus, Eye, Save, Send, Download, ChevronLeft, Search } from "lucide-react";
+import { FileText, Plus, Eye, Save, Send, Download, ChevronLeft, Search, PenTool } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { contractTemplates, fillTemplate, type ContractTemplate } from "@/lib/contract-templates";
+import SignaturePad from "@/components/SignaturePad";
+import jsPDF from "jspdf";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aguardando: "#facc15", assinado: "#4ade80", cancelado: "#ef4444", rascunho: "#94a3b8" };
@@ -25,6 +27,46 @@ interface Cliente {
   email: string;
   documento: string | null;
   endereco: string | null;
+}
+
+function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, assinaturaCliente?: string) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(titulo, margin, 25);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  const lines = doc.splitTextToSize(corpo, maxWidth);
+  let y = 40;
+  for (const line of lines) {
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.text(line, margin, y);
+    y += 5;
+  }
+
+  if (assinaturaAdmin) {
+    if (y > 230) { doc.addPage(); y = 20; }
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("Assinatura CONTRATADA (NovaesWeb):", margin, y);
+    y += 5;
+    doc.addImage(assinaturaAdmin, "PNG", margin, y, 60, 25);
+    y += 30;
+  }
+
+  if (assinaturaCliente) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Assinatura CONTRATANTE:", margin, y);
+    y += 5;
+    doc.addImage(assinaturaCliente, "PNG", margin, y, 60, 25);
+  }
+
+  doc.save(`${titulo.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
 }
 
 export default function Contratos() {
@@ -40,6 +82,11 @@ export default function Contratos() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewText, setPreviewText] = useState("");
+  const [previewContrato, setPreviewContrato] = useState<any>(null);
+
+  // Signature state
+  const [signOpen, setSignOpen] = useState(false);
+  const [adminSignature, setAdminSignature] = useState<string>("");
 
   const loadContratos = useCallback(() => {
     supabase.from("contratos").select("*, clientes(nome)").order("created_at", { ascending: false })
@@ -54,7 +101,6 @@ export default function Contratos() {
   useEffect(() => { loadContratos(); loadClientes(); }, [loadContratos, loadClientes]);
   useRealtimeSubscription("contratos", loadContratos);
 
-  // Auto-fill client data when selecting
   useEffect(() => {
     if (!selectedClienteId || !selectedTemplate) return;
     const cliente = clientes.find(c => c.id === selectedClienteId);
@@ -67,7 +113,6 @@ export default function Contratos() {
     }));
   }, [selectedClienteId, clientes, selectedTemplate]);
 
-  // Init form values with defaults when template changes
   useEffect(() => {
     if (!selectedTemplate) return;
     const defaults: Record<string, string> = {};
@@ -75,7 +120,6 @@ export default function Contratos() {
       if (v.defaultValue) defaults[v.key] = v.defaultValue;
       if (v.autoFill === "data") defaults[v.key] = new Date().toLocaleDateString("pt-BR");
     });
-    // Load CNPJ from localStorage config
     const config = localStorage.getItem("config_empresa");
     if (config) {
       const parsed = JSON.parse(config);
@@ -90,6 +134,7 @@ export default function Contratos() {
       setSelectedTemplate(tpl);
       setFormValues({});
       setSelectedClienteId("");
+      setAdminSignature("");
       setTab("criar");
     }
   };
@@ -98,6 +143,13 @@ export default function Contratos() {
     if (!selectedTemplate) return;
     const filled = fillTemplate(selectedTemplate.corpo, formValues);
     setPreviewText(filled);
+    setPreviewContrato(null);
+    setPreviewOpen(true);
+  };
+
+  const handleViewContrato = (contrato: any) => {
+    setPreviewText((contrato as any).corpo || contrato.descricao || "Conteúdo não disponível");
+    setPreviewContrato(contrato);
     setPreviewOpen(true);
   };
 
@@ -111,6 +163,10 @@ export default function Contratos() {
       toast({ title: "Selecione um cliente", variant: "destructive" });
       return;
     }
+    if (status === "aguardando" && !adminSignature) {
+      toast({ title: "Assine o contrato antes de enviar", description: "Clique em 'Assinar' para adicionar sua assinatura.", variant: "destructive" });
+      return;
+    }
     const corpo = fillTemplate(selectedTemplate.corpo, formValues);
     const { error } = await supabase.from("contratos").insert({
       cliente_id: selectedClienteId,
@@ -120,6 +176,7 @@ export default function Contratos() {
       status,
       corpo,
       modelo: selectedTemplate.id,
+      assinatura_admin: adminSignature || null,
     } as any);
     if (error) {
       toast({ title: "Erro ao salvar contrato", description: error.message, variant: "destructive" });
@@ -128,8 +185,18 @@ export default function Contratos() {
       setTab("lista");
       setSelectedTemplate(null);
       setFormValues({});
+      setAdminSignature("");
       loadContratos();
     }
+  };
+
+  const handleDownloadPDF = (contrato: any) => {
+    generatePDF(
+      contrato.titulo,
+      (contrato as any).corpo || contrato.descricao || "",
+      (contrato as any).assinatura_admin,
+      (contrato as any).assinatura_cliente
+    );
   };
 
   const filteredContratos = contratos.filter(c =>
@@ -176,7 +243,7 @@ export default function Contratos() {
               <CardContent className="space-y-3">
                 {filteredContratos.map(c => (
                   <div key={c.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.04)" }}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleViewContrato(c)}>
                       <FileText className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                       <div>
                         <p className="text-sm font-medium text-[hsl(var(--foreground))]">{c.titulo}</p>
@@ -185,10 +252,15 @@ export default function Contratos() {
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-[10px] border-0 px-2"
-                      style={{ backgroundColor: (statusColors[c.status] || "#94a3b8") + "22", color: statusColors[c.status] || "#94a3b8" }}>
-                      {statusLabels[c.status] || c.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="ghost" className="text-[hsl(var(--muted-foreground))] text-xs h-7 px-2" onClick={() => handleDownloadPDF(c)}>
+                        <Download className="w-3 h-3" />
+                      </Button>
+                      <Badge variant="outline" className="text-[10px] border-0 px-2"
+                        style={{ backgroundColor: (statusColors[c.status] || "#94a3b8") + "22", color: statusColors[c.status] || "#94a3b8" }}>
+                        {statusLabels[c.status] || c.status}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
                 {filteredContratos.length === 0 && (
@@ -277,6 +349,27 @@ export default function Contratos() {
                       ))}
                     </div>
 
+                    {/* Admin Signature */}
+                    <div className="pt-4 border-t border-[hsl(var(--border))]">
+                      {adminSignature ? (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-emerald-400 flex items-center gap-1">
+                            <PenTool className="w-3 h-3" /> Assinatura da CONTRATADA adicionada
+                          </p>
+                          <div className="bg-white rounded-lg p-2 inline-block">
+                            <img src={adminSignature} alt="Assinatura Admin" className="h-12" />
+                          </div>
+                          <Button size="sm" variant="ghost" className="text-xs text-[hsl(var(--muted-foreground))]" onClick={() => setSignOpen(true)}>
+                            Refazer assinatura
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setSignOpen(true)}>
+                          <PenTool className="w-3 h-3" /> Assinar como CONTRATADA
+                        </Button>
+                      )}
+                    </div>
+
                     {/* Actions */}
                     <div className="flex flex-wrap gap-3 pt-4 border-t border-[hsl(var(--border))]">
                       <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={handlePreview}>
@@ -297,15 +390,52 @@ export default function Contratos() {
         </Tabs>
       </motion.div>
 
+      {/* Admin Signature Dialog */}
+      <Dialog open={signOpen} onOpenChange={setSignOpen}>
+        <DialogContent className="glass-card border-[0.5px] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-[hsl(var(--foreground))] text-sm">Assinatura da CONTRATADA</DialogTitle>
+          </DialogHeader>
+          <SignaturePad
+            label="Assine abaixo como representante da NovaesWeb"
+            onSave={(dataUrl) => { setAdminSignature(dataUrl); setSignOpen(false); toast({ title: "Assinatura adicionada!" }); }}
+            onCancel={() => setSignOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto glass-card border-[0.5px]">
           <DialogHeader>
-            <DialogTitle className="text-[hsl(var(--foreground))] text-sm">Pré-visualização do Contrato</DialogTitle>
+            <DialogTitle className="text-[hsl(var(--foreground))] text-sm flex items-center justify-between">
+              Pré-visualização do Contrato
+              {previewContrato && (
+                <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => handleDownloadPDF(previewContrato)}>
+                  <Download className="w-3 h-3" /> Baixar PDF
+                </Button>
+              )}
+            </DialogTitle>
           </DialogHeader>
           <div className="bg-white text-black p-8 rounded-lg font-serif text-sm leading-relaxed whitespace-pre-wrap">
             {previewText}
           </div>
+          {previewContrato && (
+            <div className="bg-white p-4 rounded-lg space-y-4">
+              {(previewContrato as any).assinatura_admin && (
+                <div>
+                  <p className="text-xs font-bold text-gray-600 mb-1">Assinatura CONTRATADA:</p>
+                  <img src={(previewContrato as any).assinatura_admin} alt="Assinatura Admin" className="h-16" />
+                </div>
+              )}
+              {(previewContrato as any).assinatura_cliente && (
+                <div>
+                  <p className="text-xs font-bold text-gray-600 mb-1">Assinatura CONTRATANTE:</p>
+                  <img src={(previewContrato as any).assinatura_cliente} alt="Assinatura Cliente" className="h-16" />
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </motion.div>

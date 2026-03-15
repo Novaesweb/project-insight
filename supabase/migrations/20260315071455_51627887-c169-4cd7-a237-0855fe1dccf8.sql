@@ -1,0 +1,1 @@
+ALTER TABLE public.contratos ADD COLUMN IF NOT EXISTS assinatura_admin text, ADD COLUMN IF NOT EXISTS assinatura_cliente text;
