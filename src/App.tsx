@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminLayout from "@/components/AdminLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminLogin from "@/pages/AdminLogin";
 import ClienteLayout from "@/components/ClienteLayout";
 import Site from "./pages/Site";
 import Index from "./pages/Index";
@@ -65,25 +67,30 @@ const App = () => (
             </ClienteLayout>
           } />
 
+          {/* Admin Login */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+
           {/* Admin */}
           <Route path="/admin/*" element={
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/clientes" element={<Clientes />} />
-                <Route path="/leads" element={<Leads />} />
-                <Route path="/projetos" element={<Projetos />} />
-                <Route path="/pedidos" element={<Pedidos />} />
-                <Route path="/extras" element={<Extras />} />
-                <Route path="/relatorios" element={<Relatorios />} />
-                <Route path="/financeiro" element={<Financeiro />} />
-                <Route path="/suporte" element={<Suporte />} />
-                <Route path="/usuarios" element={<Usuarios />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
-                <Route path="/agenda" element={<Agenda />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AdminLayout>
+            <ProtectedRoute>
+              <AdminLayout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/clientes" element={<Clientes />} />
+                  <Route path="/leads" element={<Leads />} />
+                  <Route path="/projetos" element={<Projetos />} />
+                  <Route path="/pedidos" element={<Pedidos />} />
+                  <Route path="/extras" element={<Extras />} />
+                  <Route path="/relatorios" element={<Relatorios />} />
+                  <Route path="/financeiro" element={<Financeiro />} />
+                  <Route path="/suporte" element={<Suporte />} />
+                  <Route path="/usuarios" element={<Usuarios />} />
+                  <Route path="/configuracoes" element={<Configuracoes />} />
+                  <Route path="/agenda" element={<Agenda />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AdminLayout>
+            </ProtectedRoute>
           } />
 
           <Route path="*" element={<NotFound />} />
