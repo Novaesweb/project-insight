@@ -18,35 +18,63 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transi
 const catColors: Record<string, string> = { fixo: "text-emerald-400", intermediario: "text-amber-400", mensal: "text-blue-400" };
 const catLabels: Record<string, string> = { fixo: "Fixo", intermediario: "Intermediário", mensal: "Mensal" };
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
+  const { toast } = useToast();
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);
   const [projetos, setProjetos] = useState<any[]>([]);
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [catalogo, setCatalogo] = useState<any[]>([]);
+  const [showAddExtra, setShowAddExtra] = useState(false);
+  const [extraSelecionado, setExtraSelecionado] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [savingExtra, setSavingExtra] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const [c, e, p, ped, cat] = await Promise.all([
-        supabase.from("clientes").select("*").eq("id", clienteId).single(),
-        supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", clienteId),
-        supabase.from("projetos").select("*").eq("cliente_id", clienteId),
-        supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
-        supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
-      ]);
-      setCliente(c.data);
-      setExtras(e.data || []);
-      setProjetos(p.data || []);
-      setPedidos(ped.data || []);
-      setCatalogo(cat.data || []);
-    };
-    load();
-  }, [clienteId]);
+  const loadData = async () => {
+    const [c, e, p, ped, cat] = await Promise.all([
+      supabase.from("clientes").select("*").eq("id", clienteId).single(),
+      supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", clienteId),
+      supabase.from("projetos").select("*").eq("cliente_id", clienteId),
+      supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
+      supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
+    ]);
+    setCliente(c.data);
+    setExtras(e.data || []);
+    setProjetos(p.data || []);
+    setPedidos(ped.data || []);
+    setCatalogo(cat.data || []);
+  };
+
+  useEffect(() => { loadData(); }, [clienteId]);
+
+  const handleAddExtra = async () => {
+    if (!extraSelecionado) return;
+    const extra = catalogo.find(c => c.id === extraSelecionado);
+    if (!extra) return;
+    setSavingExtra(true);
+    const { error } = await supabase.from("extras_clientes").insert({
+      cliente_id: clienteId,
+      extra_id: extra.id,
+      categoria: extra.categoria,
+      preco_ativacao: Number(extra.preco_ativacao) || 0,
+      preco_mensal: Number(extra.preco_mensal) || 0,
+      observacao: observacao || null,
+    });
+    setSavingExtra(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
+    setShowAddExtra(false);
+    setExtraSelecionado("");
+    setObservacao("");
+    loadData();
+  };
 
   if (!cliente) return <p className="text-white">Carregando...</p>;
 
   const avatar = cliente.avatar || cliente.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
   const totalMensal = extras.filter((e: any) => e.status === "ativo" && e.preco_mensal > 0).reduce((s: number, e: any) => s + Number(e.preco_mensal), 0);
   const totalAtivacoes = extras.filter((e: any) => e.preco_ativacao > 0).reduce((s: number, e: any) => s + Number(e.preco_ativacao), 0);
+  // Filter catalog to exclude already-added extras
+  const extrasDisponiveis = catalogo.filter(c => !extras.some(e => e.extra_id === c.id && e.status === "ativo"));
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
@@ -75,7 +103,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
         <Tabs defaultValue="extras" className="space-y-4">
           <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1">
             <TabsTrigger value="extras" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
-              <Package className="w-3.5 h-3.5" /> Extras
+              <Package className="w-3.5 h-3.5" /> Extras ({extras.length})
             </TabsTrigger>
             <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos</TabsTrigger>
             <TabsTrigger value="pedidos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Pedidos</TabsTrigger>
@@ -102,25 +130,38 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                 </CardContent>
               </Card>
             </div>
+
+            <div className="flex justify-end">
+              <Button className="gradient-primary border-0 text-white text-xs" onClick={() => setShowAddExtra(true)}>
+                <Plus className="w-3 h-3 mr-1.5" /> Adicionar Extra
+              </Button>
+            </div>
+
             <Card className="glass-card border-[0.5px]">
               <CardContent className="pt-4">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(255,255,255,0.06)]">
-                      {["Extra", "Categoria", "Ativação", "Mensal", "Status"].map(h => (
+                      {["Extra", "Categoria", "Ativação", "Mensal", "Observação", "Status"].map(h => (
                         <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {extras.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum extra contratado</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum extra contratado</TableCell></TableRow>
                     ) : extras.map((e: any) => (
                       <TableRow key={e.id} className="border-[rgba(255,255,255,0.04)]">
-                        <TableCell className="text-sm text-white font-medium">{e.extras_catalogo?.nome || "—"}</TableCell>
-                        <TableCell className={`text-xs font-medium ${catColors[e.categoria] || ""}`}>{e.categoria}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm text-white font-medium">{e.extras_catalogo?.nome || "—"}</p>
+                            {e.extras_catalogo?.descricao && <p className="text-[10px] text-[hsl(var(--muted-foreground))] line-clamp-1">{e.extras_catalogo.descricao}</p>}
+                          </div>
+                        </TableCell>
+                        <TableCell className={`text-xs font-medium ${catColors[e.categoria] || ""}`}>{catLabels[e.categoria] || e.categoria}</TableCell>
                         <TableCell className="text-sm text-white">{Number(e.preco_ativacao) > 0 ? `R$ ${Number(e.preco_ativacao).toFixed(2).replace(".", ",")}` : "—"}</TableCell>
                         <TableCell className="text-sm text-white">{Number(e.preco_mensal) > 0 ? `R$ ${Number(e.preco_mensal).toFixed(2).replace(".", ",")}/mês` : "—"}</TableCell>
+                        <TableCell className="text-xs text-[hsl(var(--muted-foreground))] max-w-[150px] truncate">{e.observacao || "—"}</TableCell>
                         <TableCell><StatusBadge status={e.status} /></TableCell>
                       </TableRow>
                     ))}
