@@ -67,7 +67,7 @@ export default function Site() {
       >
         <div className="max-w-4xl mx-auto text-center">
           <motion.div variants={fadeUp} className="inline-block mb-4 px-4 py-1.5 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium">
-            🚀 Soluções digitais para cerca de 6 empresas e contando
+            🚀 Já desenvolvemos soluções para cerca de 6 empresas
           </motion.div>
           <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[hsl(var(--foreground))] leading-tight">
             Seu negócio merece um{" "}
