@@ -87,9 +87,9 @@ export default function Site() {
               className="lg:hidden border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 backdrop-blur-xl overflow-hidden"
             >
               <div className="px-4 py-4 flex flex-col gap-3">
-                {menuLinks.map((link) => (
+                {menuLinks.map((link, index) => (
                   <a
-                    key={link.href}
+                    key={`${link.href}-${index}`}
                     href={link.href}
                     onClick={() => setMenuOpen(false)}
                     className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
