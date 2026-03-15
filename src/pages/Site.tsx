@@ -141,7 +141,19 @@ export default function Site() {
               <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
                 Tecnologia que{" "}
                 <span className="gradient-text">transforma</span>
-                {" "}seu negócio
+                {" "}seu{" "}
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={heroWord}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.4 }}
+                    className="inline-block gradient-text"
+                  >
+                    {heroWord}
+                  </motion.span>
+                </AnimatePresence>
               </motion.h1>
               <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg">
                 Desenvolvemos sites, sistemas e aplicativos sob medida para empresas que buscam organização, presença digital e resultados reais.
