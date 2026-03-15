@@ -34,7 +34,8 @@ export default function Site() {
   const menuLinks = [
     { href: "#servicos", label: "Serviços" },
     { href: "#nichos", label: "Segmentos" },
-    { href: "#sobre", label: "Sobre" },
+    { href: "#sobre", label: "Sobre NovaesWeb" },
+    { href: "#sobre", label: "Quem Somos" },
     { href: "#missao", label: "Missão" },
     { href: "#como-funciona", label: "Como Funciona" },
     { href: "#projetos-solucoes", label: "Soluções" },
