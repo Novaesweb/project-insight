@@ -103,23 +103,7 @@ const App = () => (
           {/* Admin */}
           <Route path="/admin/*" element={
             <ProtectedRoute>
-              <AdminLayout>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/clientes" element={<Clientes />} />
-                  <Route path="/leads" element={<Leads />} />
-                  <Route path="/projetos" element={<Projetos />} />
-                  <Route path="/pedidos" element={<Pedidos />} />
-                  <Route path="/extras" element={<Extras />} />
-                  <Route path="/relatorios" element={<Relatorios />} />
-                  <Route path="/financeiro" element={<Financeiro />} />
-                  <Route path="/suporte" element={<Suporte />} />
-                  <Route path="/usuarios" element={<Usuarios />} />
-                  <Route path="/configuracoes" element={<Configuracoes />} />
-                  <Route path="/agenda" element={<Agenda />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AdminLayout>
+              <AdminWithSplash />
             </ProtectedRoute>
           } />
 
