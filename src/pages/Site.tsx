@@ -164,7 +164,7 @@ export default function Site() {
                 { num: "6+", label: "Empresas atendidas" },
                 { num: "7", label: "Dias de entrega" },
                 { num: "100%", label: "Responsivo" },
-                { num: "24h", label: "Suporte incluso" },
+                { num: "24h", label: "Atendimento rápido" },
               ].map((stat, i) => (
                 <div key={i} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
                   <p className="text-2xl font-bold gradient-text">{stat.num}</p>
