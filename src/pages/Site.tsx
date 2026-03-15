@@ -635,6 +635,56 @@ export default function Site() {
                   </div>
                 </div>
               )}
+
+              {modalOpen === "privacidade" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Legal</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Política de Privacidade</h2>
+                  </div>
+                  <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    <p>A NovaesWeb valoriza a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos suas informações pessoais.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Coleta de dados:</strong> Coletamos informações fornecidas voluntariamente por você ao preencher formulários de contato, cadastro ou solicitação de orçamento, como nome, e-mail, telefone e dados do negócio.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Uso das informações:</strong> As informações são utilizadas exclusivamente para entrar em contato, fornecer orçamentos, desenvolver projetos e melhorar nossos serviços.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Compartilhamento:</strong> Não vendemos, alugamos ou compartilhamos seus dados pessoais com terceiros, exceto quando necessário para a prestação do serviço contratado.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Segurança:</strong> Utilizamos medidas de segurança adequadas para proteger suas informações contra acesso não autorizado, alteração ou destruição.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Seus direitos:</strong> Você pode solicitar a exclusão ou atualização dos seus dados a qualquer momento entrando em contato conosco.</p>
+                  </div>
+                </div>
+              )}
+
+              {modalOpen === "termos" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Legal</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Termos de Uso</h2>
+                  </div>
+                  <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    <p>Ao utilizar os serviços da NovaesWeb, você concorda com os termos descritos abaixo.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Serviços:</strong> A NovaesWeb oferece desenvolvimento de sites, sistemas web e soluções digitais personalizadas. Cada projeto é definido em comum acordo entre as partes.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Responsabilidades do cliente:</strong> O cliente é responsável por fornecer informações precisas e conteúdos necessários para o desenvolvimento do projeto dentro dos prazos acordados.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Propriedade intelectual:</strong> Após a quitação total do projeto, o cliente recebe os direitos de uso sobre o produto desenvolvido. O código-fonte e a tecnologia utilizada permanecem como propriedade da NovaesWeb.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Pagamento:</strong> Os valores e condições de pagamento são definidos no orçamento aprovado. Custos adicionais, como domínio e serviços externos, são de responsabilidade do cliente.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Cancelamento:</strong> O cliente pode cancelar o projeto a qualquer momento, porém valores já pagos referentes a etapas concluídas não serão reembolsados.</p>
+                  </div>
+                </div>
+              )}
+
+              {modalOpen === "cookies" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Legal</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Política de Cookies</h2>
+                  </div>
+                  <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    <p>Este site utiliza cookies para melhorar sua experiência de navegação.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">O que são cookies:</strong> Cookies são pequenos arquivos de texto armazenados no seu navegador que nos ajudam a entender como você utiliza nosso site.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Cookies essenciais:</strong> Necessários para o funcionamento básico do site, como manter sua sessão ativa e preferências de tema.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Cookies de análise:</strong> Utilizados para entender como os visitantes interagem com o site, permitindo melhorias contínuas na experiência do usuário.</p>
+                    <p><strong className="text-[hsl(var(--foreground))]">Gerenciamento:</strong> Você pode desativar cookies nas configurações do seu navegador, porém isso pode afetar algumas funcionalidades do site.</p>
+                  </div>
+                </div>
+              )
             </motion.div>
           </motion.div>
         )}
