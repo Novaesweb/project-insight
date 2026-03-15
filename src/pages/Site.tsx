@@ -30,6 +30,7 @@ const valores = [
   { icon: Users, texto: "Crescimento junto com os clientes" },
 ];
 
+export default function Site() {
   const menuLinks = [
     { href: "#servicos", label: "Serviços" },
     { href: "#nichos", label: "Segmentos" },
