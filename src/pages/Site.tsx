@@ -23,6 +23,7 @@ export default function Site() {
     { href: "#servicos", label: "Serviços" },
     { href: "#solucoes", label: "Soluções" },
     { href: "#processo", label: "Processo" },
+    { href: "#planos", label: "Planos" },
     { href: "#resultados", label: "Resultados" },
     { href: "#contato", label: "Contato" },
   ];
@@ -326,6 +327,126 @@ export default function Site() {
         </div>
       </motion.section>
 
+
+      {/* ─── PLANOS ─── */}
+      <motion.section id="planos" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Planos</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
+              Planos flexíveis para cada tipo de negócio
+            </h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+              Escolha o plano ideal para o momento da sua empresa. Cada projeto pode evoluir conforme seu negócio cresce.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Site Express */}
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300 flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Express</span>
+                  <h3 className="text-xl font-bold text-[hsl(var(--foreground))] mt-1">Site Express</h3>
+                </div>
+              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-6">
+                Ideal para empresas que querem um site profissional para apresentar seu negócio e receber contatos online.
+              </p>
+              <ul className="space-y-3 mb-8 flex-1">
+                {["Site moderno e responsivo", "Página de serviços", "Página de contato", "Integração com mapa", "Botão WhatsApp direto", "Otimização para celular"].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-emerald-400/80 italic mb-4">💡 Perfeito para pequenos negócios que querem presença digital.</p>
+              <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Site Express." target="_blank" rel="noopener noreferrer">
+                <Button className="w-full gradient-primary border-0 text-white h-11 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
+                  Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </a>
+            </motion.div>
+
+            {/* Gestão Pro */}
+            <motion.div variants={fade} className="relative glass-card rounded-2xl p-8 border-[hsl(var(--primary))]/40 hover:border-[hsl(var(--primary))]/60 transition-all duration-300 flex flex-col">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-white bg-[hsl(var(--primary))] px-4 py-1 rounded-full shadow-lg shadow-[hsl(var(--primary))]/30">
+                  Mais popular
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mb-4 mt-2">
+                <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary))]/20 flex items-center justify-center">
+                  <Layers className="w-6 h-6 text-[hsl(var(--primary))]" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-0.5 rounded-full">Pro</span>
+                  <h3 className="text-xl font-bold text-[hsl(var(--foreground))] mt-1">Gestão Pro</h3>
+                </div>
+              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-6">
+                Indicado para empresas que precisam organizar clientes, pedidos e informações do negócio.
+              </p>
+              <ul className="space-y-3 mb-8 flex-1">
+                {["Site profissional completo", "Painel administrativo", "Cadastro de clientes", "Recebimento de pedidos", "Sistema de notificações", "Controle financeiro básico", "Histórico de informações"].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
+                    <CheckCircle className="w-4 h-4 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-4">💡 Ideal para empresas que querem mais controle e organização.</p>
+              <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Gestão Pro." target="_blank" rel="noopener noreferrer">
+                <Button className="w-full gradient-primary border-0 text-white h-11 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
+                  Falar com especialista <MessageCircle className="w-4 h-4 ml-2" />
+                </Button>
+              </a>
+            </motion.div>
+
+            {/* Sistema Sob Medida */}
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8 hover:border-purple-500/30 transition-all duration-300 flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                  <Rocket className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Sob Medida</span>
+                  <h3 className="text-xl font-bold text-[hsl(var(--foreground))] mt-1">Sistema Sob Medida</h3>
+                </div>
+              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-6">
+                Para empresas que precisam de um sistema totalmente personalizado, desenvolvido sob demanda.
+              </p>
+              <ul className="space-y-3 mb-8 flex-1">
+                {["Sistemas de gestão", "Plataformas internas", "Portais para clientes", "Sistemas de pedidos", "Dashboards administrativos", "E muito mais..."].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
+                    <CheckCircle className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-purple-400/80 italic mb-4">💡 Cada projeto é planejado conforme a necessidade da empresa.</p>
+              <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Sistema Sob Medida." target="_blank" rel="noopener noreferrer">
+                <Button className="w-full bg-purple-600 hover:bg-purple-700 border-0 text-white h-11 rounded-xl font-semibold shadow-lg shadow-purple-600/20">
+                  Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </a>
+            </motion.div>
+          </div>
+
+          <motion.div variants={fade} className="mt-10 text-center">
+            <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto">
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                <span className="font-semibold text-[hsl(var(--foreground))]">⚠️ Informação importante:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
 
       {/* ─── RESULTADOS / AVALIAÇÕES ─── */}
       <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
