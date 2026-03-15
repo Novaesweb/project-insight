@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // VAPID Public Key - segura para uso no frontend
 const VAPID_PUBLIC_KEY = "BMlJpRsOWX7luyOKwJASaYSiYsaFB8wFAby052uhW-tYhfAK57RzU6Y_aJBjJqhCWoU1OztcKE_5fUUv3ghsubA";
+const PUSH_SW_PATH = "/push-sw.js";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -12,6 +13,21 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+
+  const registered = await registerServiceWorker();
+  if (!registered) return null;
+
+  try {
+    await navigator.serviceWorker.ready;
+  } catch {
+    // noop
+  }
+
+  return (await navigator.serviceWorker.getRegistration("/")) ?? registered;
 }
 
 export async function isPushSupported(): Promise<boolean> {
@@ -25,7 +41,8 @@ export async function getPushPermission(): Promise<NotificationPermission> {
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
   try {
-    const reg = await navigator.serviceWorker.register("/sw.js");
+    const reg = await navigator.serviceWorker.register(PUSH_SW_PATH, { scope: "/" });
+    await reg.update().catch(() => undefined);
     return reg;
   } catch (e) {
     console.error("SW registration failed:", e);
@@ -41,7 +58,7 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return false;
 
-    const reg = await registerServiceWorker();
+    const reg = await getPushRegistration();
     if (!reg) return false;
 
     const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
@@ -61,13 +78,16 @@ export async function subscribeToPush(userType: string, userId: string): Promise
 
     const json = subscription.toJSON();
 
-    await supabase.from("push_subscriptions").upsert({
-      user_type: userType,
-      user_id: userId,
-      endpoint: json.endpoint!,
-      p256dh: json.keys!.p256dh!,
-      auth: json.keys!.auth!,
-    }, { onConflict: "endpoint" });
+    await supabase.from("push_subscriptions").upsert(
+      {
+        user_type: userType,
+        user_id: userId,
+        endpoint: json.endpoint!,
+        p256dh: json.keys!.p256dh!,
+        auth: json.keys!.auth!,
+      },
+      { onConflict: "endpoint" },
+    );
 
     return true;
   } catch (e) {
@@ -78,7 +98,9 @@ export async function subscribeToPush(userType: string, userId: string): Promise
 
 export async function unsubscribeFromPush(): Promise<boolean> {
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await getPushRegistration();
+    if (!reg) return false;
+
     const subscription = await reg.pushManager.getSubscription();
     if (subscription) {
       const endpoint = subscription.endpoint;
@@ -94,8 +116,9 @@ export async function unsubscribeFromPush(): Promise<boolean> {
 
 export async function isSubscribed(): Promise<boolean> {
   try {
-    if (!("serviceWorker" in navigator)) return false;
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await getPushRegistration();
+    if (!reg) return false;
+
     const subscription = await reg.pushManager.getSubscription();
     return !!subscription;
   } catch {
@@ -113,7 +136,16 @@ export type PushTestResult = {
 
 export async function sendTestNotification(): Promise<PushTestResult> {
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await getPushRegistration();
+    if (!reg) {
+      return {
+        ok: false,
+        sent: 0,
+        total: 0,
+        message: "Service Worker de push não disponível neste navegador.",
+      };
+    }
+
     const current = await reg.pushManager.getSubscription();
 
     if (!current) {
