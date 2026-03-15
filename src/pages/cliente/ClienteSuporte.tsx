@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Send, Plus, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aberto: "#60a5fa", em_atendimento: "#facc15", resolvido: "#4ade80" };
@@ -22,26 +23,31 @@ export default function ClienteSuporte() {
   const { toast } = useToast();
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [showNovoTicket, setShowNovoTicket] = useState(false);
+  const [novoTitulo, setNovoTitulo] = useState("");
+  const [novoDescricao, setNovoDescricao] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [tickets, setTickets] = useState<any[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const loadTickets = useCallback(() => {
     if (!cliente.id) return;
     supabase.from("tickets").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setTickets(data || []));
   }, [cliente.id]);
 
-  useEffect(() => {
+  const loadMsgs = useCallback(() => {
     if (!selectedTicket) return;
     supabase.from("ticket_mensagens").select("*").eq("ticket_id", selectedTicket).order("created_at", { ascending: true })
       .then(({ data }) => setMsgs(data || []));
   }, [selectedTicket]);
 
-  useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [msgs.length]);
+  useEffect(() => { loadTickets(); }, [loadTickets]);
+  useEffect(() => { loadMsgs(); }, [loadMsgs]);
+  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs.length]);
+
+  useRealtimeSubscription("tickets", loadTickets);
+  useRealtimeSubscription("ticket_mensagens", loadMsgs);
 
   const ticketAtivo = tickets.find(t => t.id === selectedTicket);
 
@@ -51,6 +57,24 @@ export default function ClienteSuporte() {
     const { data } = await supabase.from("ticket_mensagens").insert(nova).select().single();
     if (data) setMsgs(prev => [...prev, data]);
     setMensagem("");
+  };
+
+  const criarTicket = async () => {
+    if (!novoTitulo.trim()) return;
+    const codigo = `TK-${Date.now().toString().slice(-6)}`;
+    const { error } = await supabase.from("tickets").insert({
+      titulo: novoTitulo,
+      descricao: novoDescricao || null,
+      cliente_id: cliente.id,
+      codigo,
+    });
+    if (!error) {
+      toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
+      setShowNovoTicket(false);
+      setNovoTitulo("");
+      setNovoDescricao("");
+      loadTickets();
+    }
   };
 
   if (selectedTicket && ticketAtivo) {
@@ -127,14 +151,13 @@ export default function ClienteSuporte() {
           <div className="space-y-4">
             <div>
               <Label className="text-xs text-white/50">Título</Label>
-              <Input placeholder="Resumo do problema" className="border-0 text-white placeholder:text-white/30" style={{ background: "rgba(255,255,255,0.06)" }} />
+              <Input value={novoTitulo} onChange={e => setNovoTitulo(e.target.value)} placeholder="Resumo do problema" className="border-0 text-white placeholder:text-white/30" style={{ background: "rgba(255,255,255,0.06)" }} />
             </div>
             <div>
               <Label className="text-xs text-white/50">Descrição</Label>
-              <Textarea placeholder="Descreva detalhadamente..." className="border-0 text-white placeholder:text-white/30 min-h-[100px]" style={{ background: "rgba(255,255,255,0.06)" }} />
+              <Textarea value={novoDescricao} onChange={e => setNovoDescricao(e.target.value)} placeholder="Descreva detalhadamente..." className="border-0 text-white placeholder:text-white/30 min-h-[100px]" style={{ background: "rgba(255,255,255,0.06)" }} />
             </div>
-            <Button className="w-full border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }}
-              onClick={() => { setShowNovoTicket(false); toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." }); }}>
+            <Button className="w-full border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={criarTicket}>
               Abrir ticket
             </Button>
           </div>

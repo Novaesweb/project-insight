@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type StatusReuniao, type TipoReuniao } from "@/lib/mock-data";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -15,7 +16,7 @@ export default function ClienteDashboard() {
   const [proximaReuniao, setProximaReuniao] = useState<any>(null);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!cId) return;
     Promise.all([
       supabase.from("projetos").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "cancelado"),
@@ -31,6 +32,14 @@ export default function ClienteDashboard() {
       .order("created_at", { ascending: false }).limit(5)
       .then(({ data }) => setAtualizacoes(data || []));
   }, [cId]);
+
+  useEffect(() => { load(); }, [load]);
+  useRealtimeSubscription("projetos", load);
+  useRealtimeSubscription("faturas", load);
+  useRealtimeSubscription("tickets", load);
+  useRealtimeSubscription("extras_clientes", load);
+  useRealtimeSubscription("reunioes", load);
+  useRealtimeSubscription("projeto_atualizacoes", load);
 
   const kpis = [
     { label: "Projetos ativos", value: counts.projetos, icon: FolderKanban, color: "text-blue-400" },

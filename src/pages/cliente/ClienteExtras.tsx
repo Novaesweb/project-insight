@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const catColors: Record<string, string> = { fixo: "#4ade80", intermediario: "#facc15", mensal: "#60a5fa" };
@@ -18,7 +19,7 @@ export default function ClienteExtras() {
   const [meusExtras, setMeusExtras] = useState<any[]>([]);
   const [catalogo, setCatalogo] = useState<any[]>([]);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!cliente.id) return;
     supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", cliente.id)
       .then(({ data }) => setMeusExtras(data || []));
@@ -26,13 +27,28 @@ export default function ClienteExtras() {
       .then(({ data }) => setCatalogo(data || []));
   }, [cliente.id]);
 
+  useEffect(() => { load(); }, [load]);
+  useRealtimeSubscription("extras_clientes", load);
+
   const ativos = meusExtras.filter(e => e.status === "ativo");
   const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);
   const totalAtivacao = ativos.reduce((acc, e) => acc + Number(e.preco_ativacao), 0);
 
-  const handleSolicitar = (nome: string) => {
-    toast({ title: "Solicitação enviada!", description: `Extra "${nome}" solicitado. Aguarde aprovação do admin.` });
-    setShowCatalogo(false);
+  const idsJaContratados = meusExtras.filter(e => e.status === "ativo").map(e => e.extra_id);
+  const catalogoDisponivel = catalogo.filter(e => !idsJaContratados.includes(e.id));
+
+  const handleSolicitar = async (extra: any) => {
+    const { error } = await supabase.from("extras_clientes").insert({
+      cliente_id: cliente.id,
+      extra_id: extra.id,
+      categoria: extra.categoria,
+      preco_ativacao: Number(extra.preco_ativacao),
+      preco_mensal: Number(extra.preco_mensal),
+    });
+    if (!error) {
+      toast({ title: "Extra solicitado!", description: `"${extra.nome}" adicionado com sucesso.` });
+      load();
+    }
   };
 
   return (
@@ -85,7 +101,7 @@ export default function ClienteExtras() {
         <DialogContent className="text-white max-w-2xl max-h-[80vh] overflow-y-auto" style={{ background: "#0d0d14", border: "0.5px solid rgba(255,255,255,0.08)" }}>
           <DialogHeader><DialogTitle>Catálogo de Extras</DialogTitle></DialogHeader>
           <div className="space-y-2">
-            {catalogo.map(e => (
+            {catalogoDisponivel.map(e => (
               <div key={e.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
                 <div>
                   <p className="text-sm text-white font-medium">{e.nome}</p>
@@ -98,11 +114,12 @@ export default function ClienteExtras() {
                     </span>
                   </div>
                 </div>
-                <Button size="sm" className="text-[10px] h-7 border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #7b1fa2)" }} onClick={() => handleSolicitar(e.nome)}>
+                <Button size="sm" className="text-[10px] h-7 border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #7b1fa2)" }} onClick={() => handleSolicitar(e)}>
                   Solicitar
                 </Button>
               </div>
             ))}
+            {catalogoDisponivel.length === 0 && <p className="text-sm text-white/40 text-center py-4">Todos os extras já foram contratados</p>}
           </div>
         </DialogContent>
       </Dialog>
