@@ -26,6 +26,7 @@ import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
 import NichePage from "./pages/NichePage";
+import Instalar from "./pages/Instalar";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
 import ClienteProjetos from "./pages/cliente/ClienteProjetos";
