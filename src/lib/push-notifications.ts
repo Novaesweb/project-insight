@@ -45,13 +45,22 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     if (!reg) return false;
 
     const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    // Force refresh subscription to avoid stale browser keys/endpoints
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      const oldEndpoint = existing.endpoint;
+      await existing.unsubscribe();
+      await supabase.from("push_subscriptions").delete().eq("endpoint", oldEndpoint);
+    }
+
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: appServerKey.buffer as ArrayBuffer,
+      applicationServerKey: appServerKey as unknown as BufferSource,
     });
 
     const json = subscription.toJSON();
-    
+
     await supabase.from("push_subscriptions").upsert({
       user_type: userType,
       user_id: userId,
@@ -94,8 +103,16 @@ export async function isSubscribed(): Promise<boolean> {
   }
 }
 
-export async function sendTestNotification(): Promise<boolean> {
-  const { error } = await supabase.functions.invoke("send-push-notification", {
+export type PushTestResult = {
+  ok: boolean;
+  sent: number;
+  total: number;
+  message?: string;
+  errors?: string[];
+};
+
+export async function sendTestNotification(): Promise<PushTestResult> {
+  const { data, error } = await supabase.functions.invoke("send-push-notification", {
     body: {
       target: "admin",
       title: "🔔 Teste de Notificação",
@@ -103,7 +120,22 @@ export async function sendTestNotification(): Promise<boolean> {
       url: "/admin/configuracoes",
     },
   });
-  return !error;
+
+  if (error) {
+    return { ok: false, sent: 0, total: 0, message: error.message };
+  }
+
+  const sent = Number(data?.sent ?? 0);
+  const total = Number(data?.total ?? 0);
+  const errors = Array.isArray(data?.errors) ? data.errors.map(String) : undefined;
+
+  return {
+    ok: sent > 0,
+    sent,
+    total,
+    message: data?.message,
+    errors,
+  };
 }
 
 export async function sendPushToAdmins(title: string, body: string, url?: string): Promise<void> {
