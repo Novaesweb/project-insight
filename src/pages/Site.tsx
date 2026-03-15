@@ -177,9 +177,12 @@ export default function Site() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: Globe, titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para atrair clientes e gerar credibilidade para sua marca." },
-              { icon: ShoppingBag, titulo: "Lojas Virtuais", desc: "Venda online com catálogo de produtos, carrinho de compras e integração de pagamento." },
-              { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas completos para gerenciar clientes, pedidos, agendamentos e tudo que seu negócio precisa." },
+              { icon: Globe, titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para SEO. Design responsivo que se adapta a qualquer dispositivo. Inclui domínio personalizado, certificado SSL, hospedagem e painel de gestão de conteúdo." },
+              { icon: ShoppingBag, titulo: "Lojas Virtuais", desc: "E-commerce completo com catálogo de produtos, carrinho de compras, checkout seguro e integração com meios de pagamento como Pix, cartão e boleto. Controle de estoque e relatórios de vendas." },
+              { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas sob medida para gerenciar clientes, pedidos, agendamentos, financeiro, relatórios e tudo que seu negócio precisa. Acesso de qualquer lugar, 100% na nuvem." },
+              { icon: Smartphone, titulo: "Landing Pages", desc: "Páginas de alta conversão para campanhas de marketing digital. Design focado em capturar leads e gerar resultados rápidos para seu negócio com formulários inteligentes." },
+              { icon: Shield, titulo: "Manutenção e Suporte", desc: "Suporte técnico contínuo, atualizações de segurança, backups automáticos e monitoramento 24h. Garantimos que seu site esteja sempre no ar e funcionando perfeitamente." },
+              { icon: Zap, titulo: "Automação e Integrações", desc: "Automatize tarefas repetitivas e integre seu site com WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam seus resultados." },
             ].map((s, i) => (
               <motion.div
                 key={i}
