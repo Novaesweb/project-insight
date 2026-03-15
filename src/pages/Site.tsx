@@ -444,6 +444,46 @@ export default function Site() {
                   </div>
                 </div>
               )}
+
+              {modalOpen === "diferenciais" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Diferenciais</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Por que escolher a NovaesWeb?</h2>
+                  </div>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
+                    Trabalhamos para criar sistemas que sejam simples, funcionais, adaptáveis e em constante evolução. Não entregamos apenas um site — entregamos uma solução completa.
+                  </p>
+                  <div className="space-y-3 mb-6">
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                      <strong className="text-[hsl(var(--foreground))]">Tecnologia moderna:</strong> Utilizamos React, TypeScript e bancos de dados em nuvem para garantir performance e segurança.
+                    </p>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                      <strong className="text-[hsl(var(--foreground))]">Preço justo:</strong> Soluções acessíveis para pequenas e médias empresas, sem cobranças escondidas.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Entrega em até 7 dias", detail: "Projetos ágeis sem perder qualidade" },
+                      { label: "Suporte humanizado", detail: "Atendimento direto, sem robôs" },
+                      { label: "100% responsivo", detail: "Celular, tablet e desktop" },
+                      { label: "Painel exclusivo", detail: "Gerencie tudo pelo navegador" },
+                      { label: "Hospedagem incluída", detail: "Sem custos extras" },
+                      { label: "Evolução contínua", detail: "Novas funcionalidades quando precisar" },
+                      { label: "SSL e segurança", detail: "Dados protegidos" },
+                      { label: "SEO otimizado", detail: "Apareça no Google" },
+                    ].map((d, i) => (
+                      <div key={i} className="flex items-start gap-2 glass-card rounded-xl p-3">
+                        <CheckCircle className="w-4 h-4 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-xs font-medium text-[hsl(var(--foreground))] block">{d.label}</span>
+                          <span className="text-[10px] text-[hsl(var(--muted-foreground))]">{d.detail}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
