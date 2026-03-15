@@ -31,6 +31,14 @@ const valores = [
 ];
 
 export default function Site() {
+  const desktopLinks = [
+    { href: "#servicos", label: "Serviços" },
+    { href: "#nichos", label: "Segmentos" },
+    { href: "#missao", label: "Missão" },
+    { href: "#como-funciona", label: "Como Funciona" },
+    { href: "#projetos-solucoes", label: "Soluções" },
+  ];
+
   const menuLinks = [
     { href: "#servicos", label: "Serviços" },
     { href: "#nichos", label: "Segmentos" },
