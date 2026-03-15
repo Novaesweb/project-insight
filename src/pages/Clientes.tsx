@@ -392,7 +392,24 @@ export default function Clientes() {
                 </div>
               ))}
             </div>
-            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave}>Salvar Cliente</Button>
+
+            <div className="mt-4 p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] space-y-3">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={criarConta} onChange={e => setCriarConta(e.target.checked)} className="rounded" />
+                <Label className="text-xs text-white cursor-pointer">Criar conta de acesso ao Portal do Cliente</Label>
+              </div>
+              {criarConta && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Senha de acesso (mín. 6 caracteres)</Label>
+                  <Input type="text" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                    value={senhaCliente} onChange={e => setSenhaCliente(e.target.value)} placeholder="Defina a senha do cliente" />
+                </div>
+              )}
+            </div>
+
+            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar Cliente"}
+            </Button>
           </DialogContent>
         </Dialog>
       </motion.div>
