@@ -1,0 +1,1 @@
+ALTER TABLE public.contratos ADD COLUMN IF NOT EXISTS corpo text, ADD COLUMN IF NOT EXISTS modelo text;
