@@ -63,6 +63,7 @@ export default function Cadastro() {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
       setEnviado(true);
+      sendPushToAdmins("🆕 Novo Cadastro no Site", `${form.nome} se cadastrou pelo site.`, "/admin/leads");
     }
   };
 
