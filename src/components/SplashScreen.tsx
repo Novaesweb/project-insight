@@ -45,11 +45,13 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center ambient-glow"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
           style={{ background: "#0d0d14" }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
         >
+          {/* Background glow */}
+          <div className="ambient-glow absolute inset-0 pointer-events-none" />
           {/* Logo */}
           <motion.h1
             className="text-3xl md:text-4xl font-bold gradient-text mb-4"
