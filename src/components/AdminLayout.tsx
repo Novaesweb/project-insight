@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const leadCount = useLeadCount();
   const { theme, toggle } = useTheme();
 
