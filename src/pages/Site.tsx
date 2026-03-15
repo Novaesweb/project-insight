@@ -371,7 +371,6 @@ export default function Site() {
                 </div>
                 <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{depo.texto}"</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
               </motion.div>
             ))}
           </div>
