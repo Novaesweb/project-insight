@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import logoImg from "@/assets/novaesweb-logo-full.jpeg";
 
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
@@ -64,22 +65,14 @@ export default function ClienteLogin() {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="flex flex-col items-center gap-4"
         >
-          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-[hsl(var(--primary))]/30">
-            <span className="text-[hsl(var(--primary-foreground))] font-bold text-2xl">NW</span>
-          </div>
-          <div className="text-center">
-            <span className="text-2xl font-bold">
-              <span className="gradient-text">Novaes</span>
-              <span className="text-[hsl(var(--foreground))]">Web</span>
-            </span>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <div className="px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
-                <div className="flex items-center gap-1.5">
-                  <User className="w-3 h-3 text-[hsl(var(--primary))]" />
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
-                    Portal do Cliente
-                  </span>
-                </div>
+          <img src={logoImg} alt="NovaesWeb" className="w-48 h-auto rounded-xl" />
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
+              <div className="flex items-center gap-1.5">
+                <User className="w-3 h-3 text-[hsl(var(--primary))]" />
+                <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
+                  Portal do Cliente
+                </span>
               </div>
             </div>
           </div>
