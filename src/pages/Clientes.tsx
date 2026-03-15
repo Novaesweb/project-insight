@@ -88,12 +88,26 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center">
                 <span className="text-white text-lg font-bold">{avatar}</span>
               </div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-xl font-bold text-white">{cliente.nome}</h2>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{cliente.email} · {cliente.telefone}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">{cliente.cidade}, {cliente.estado} · {cliente.documento}</p>
               </div>
-              <div className="ml-auto"><StatusBadge status={cliente.status} /></div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-white"
+                  onClick={() => {
+                    const link = `${window.location.origin}/cliente`;
+                    navigator.clipboard.writeText(link);
+                    toast({ title: "Link copiado!", description: "Compartilhe o link do portal com o cliente." });
+                  }}
+                >
+                  <LinkIcon className="w-3 h-3 mr-1" /> Link do Portal
+                </Button>
+                <StatusBadge status={cliente.status} />
+              </div>
             </div>
           </CardContent>
         </Card>
