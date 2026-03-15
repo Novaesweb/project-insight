@@ -1,67 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildPushHTTPRequest } from "npm:@pushforge/builder@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-function base64UrlDecode(str: string): Uint8Array {
-  const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
-  const binary = atob(base64 + padding);
-  return new Uint8Array([...binary].map(c => c.charCodeAt(0)));
-}
-
-function base64UrlEncode(buffer: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-async function createJWT(privateKeyJwk: JsonWebKey, audience: string, subject: string): Promise<string> {
-  const header = { alg: "ES256", typ: "JWT" };
-  const now = Math.floor(Date.now() / 1000);
-  const payload = { aud: audience, exp: now + 86400, sub: subject };
-
-  const headerB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
-  const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(payload)));
-  const signingInput = `${headerB64}.${payloadB64}`;
-
-  const key = await crypto.subtle.importKey(
-    "jwk", privateKeyJwk,
-    { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign(
-    { name: "ECDSA", hash: { name: "SHA-256" } },
-    key, new TextEncoder().encode(signingInput)
-  );
-
-  const sigBytes = new Uint8Array(signature);
-  let r: Uint8Array, s: Uint8Array;
-
-  if (sigBytes.length === 64) {
-    r = sigBytes.slice(0, 32);
-    s = sigBytes.slice(32);
-  } else {
-    let offset = 2;
-    const rLen = sigBytes[offset + 1];
-    offset += 2;
-    const rBytes = sigBytes.slice(offset, offset + rLen);
-    r = rBytes.length > 32 ? rBytes.slice(rBytes.length - 32) : rBytes;
-    offset += rLen;
-    const sLen = sigBytes[offset + 1];
-    offset += 2;
-    const sBytes = sigBytes.slice(offset, offset + sLen);
-    s = sBytes.length > 32 ? sBytes.slice(sBytes.length - 32) : sBytes;
-  }
-
-  const rawSig = new Uint8Array(64);
-  rawSig.set(r.length < 32 ? new Uint8Array([...new Array(32 - r.length).fill(0), ...r]) : r, 0);
-  rawSig.set(s.length < 32 ? new Uint8Array([...new Array(32 - s.length).fill(0), ...s]) : s, 32);
-
-  return `${signingInput}.${base64UrlEncode(rawSig.buffer)}`;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -69,7 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    // Read VAPID credentials from environment secrets (NOT from database)
     const vapidPrivateKeyRaw = Deno.env.get("VAPID_PRIVATE_KEY");
     const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:contato@novaesweb.com.br";
     const vapidPublicKey = "BMlJpRsOWX7luyOKwJASaYSiYsaFB8wFAby052uhW-tYhfAK57RzU6Y_aJBjJqhCWoU1OztcKE_5fUUv3ghsubA";
@@ -80,18 +23,25 @@ serve(async (req) => {
       });
     }
 
-    // Support both JWK format and raw base64url private key
-    let vapidPrivateKeyJwk: JsonWebKey;
+    // Build JWK from raw base64url private key or parse existing JWK
+    let privateJWK: JsonWebKey;
     if (vapidPrivateKeyRaw.startsWith("{")) {
-      vapidPrivateKeyJwk = JSON.parse(vapidPrivateKeyRaw);
+      privateJWK = JSON.parse(vapidPrivateKeyRaw);
     } else {
-      // Raw base64url private key - convert to JWK
-      vapidPrivateKeyJwk = {
+      // Raw base64url private key - build JWK
+      // Decode public key to get x and y coordinates
+      const pubKeyBytes = Uint8Array.from(atob(vapidPublicKey.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+      // Skip first byte (0x04 uncompressed point indicator)
+      const xBytes = pubKeyBytes.slice(1, 33);
+      const yBytes = pubKeyBytes.slice(33, 65);
+      const toBase64Url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      
+      privateJWK = {
         kty: "EC",
         crv: "P-256",
         d: vapidPrivateKeyRaw,
-        x: vapidPublicKey.substring(0, 43),
-        y: vapidPublicKey.substring(43),
+        x: toBase64Url(xBytes),
+        y: toBase64Url(yBytes),
       };
     }
 
@@ -102,10 +52,7 @@ serve(async (req) => {
 
     const { target, targetId, title, body, url, tag } = await req.json();
 
-    // Save notification to history table
-    const notificationRecords: { title: string; body: string; user_id: string; user_type: string; url?: string }[] = [];
-
-    // Get subscriptions based on target
+    // Get subscriptions
     let query = supabaseAdmin.from("push_subscriptions").select("*");
     if (target === "admin") {
       query = query.eq("user_type", "admin");
@@ -114,8 +61,9 @@ serve(async (req) => {
     }
 
     const { data: subscriptions } = await query;
-    
-    // Build unique notification records from subscriptions
+
+    // Save notification history
+    const notificationRecords: { title: string; body: string; user_id: string; user_type: string; url?: string }[] = [];
     const seenUsers = new Set<string>();
     if (subscriptions) {
       for (const sub of subscriptions) {
@@ -126,13 +74,9 @@ serve(async (req) => {
         }
       }
     }
-    
-    // Also save a general record if no subscriptions but target is known
     if (notificationRecords.length === 0 && target) {
       notificationRecords.push({ title, body, user_id: targetId || "system", user_type: target, url });
     }
-
-    // Insert notification history
     if (notificationRecords.length > 0) {
       await supabaseAdmin.from("notifications").insert(notificationRecords);
     }
@@ -150,20 +94,28 @@ serve(async (req) => {
 
     for (const sub of subscriptions) {
       try {
-        const endpointUrl = new URL(sub.endpoint);
-        const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
-
-        const jwt = await createJWT(vapidPrivateKeyJwk, audience, vapidSubject);
-
-        const response = await fetch(sub.endpoint, {
-          method: "POST",
-          headers: {
-            "Authorization": `vapid t=${jwt}, k=${vapidPublicKey}`,
-            "Content-Type": "application/json",
-            "Content-Encoding": "aes128gcm",
-            "TTL": "86400",
+        // Use pushforge to build properly encrypted push request
+        const { endpoint, headers, body: encryptedBody } = await buildPushHTTPRequest({
+          privateJWK,
+          subscription: {
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: sub.p256dh,
+              auth: sub.auth,
+            },
           },
-          body: payload,
+          message: {
+            data: payload,
+            urgency: "normal",
+            ttl: 86400,
+          },
+          adminContact: vapidSubject,
+        });
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: encryptedBody,
         });
 
         if (response.ok || response.status === 201) {
