@@ -3,23 +3,61 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Plus, Eye, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function Pedidos() {
+  const { toast } = useToast();
   const [filtro, setFiltro] = useState("todos");
   const [pedidos, setPedidos] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<any[]>([]);
+  const [projetos, setProjetos] = useState<any[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false });
-      setPedidos(data || []);
-    };
-    load();
-  }, []);
+  const load = async () => {
+    const [p, c, pr] = await Promise.all([
+      supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
+      supabase.from("projetos").select("id, titulo"),
+    ]);
+    setPedidos(p.data || []);
+    setClientes(c.data || []);
+    setProjetos(pr.data || []);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const codigo = form.codigo || `PED-${String(pedidos.length + 1).padStart(3, "0")}`;
+    const { error } = await supabase.from("pedidos").insert({
+      codigo,
+      tipo: form.tipo,
+      valor: Number(form.valor) || 0,
+      cliente_id: form.cliente_id || null,
+      projeto_id: form.projeto_id || null,
+    });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Pedido criado!" });
+      setForm({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
+      setDialogOpen(false);
+      load();
+    }
+    setSaving(false);
+  };
 
   const filtrados = filtro === "todos" ? pedidos : pedidos.filter(p => p.status === filtro);
 
@@ -33,7 +71,62 @@ export default function Pedidos() {
               onClick={() => setFiltro(s.key)}>{s.label}</Button>
           ))}
         </div>
-        <Button className="gradient-primary border-0 text-white rounded-lg" size="sm"><Plus className="w-4 h-4 mr-2" /> Novo Pedido</Button>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gradient-primary border-0 text-white rounded-lg" size="sm"><Plus className="w-4 h-4 mr-2" /> Novo Pedido</Button>
+          </DialogTrigger>
+          <DialogContent className="glass-card border-[0.5px] text-[hsl(var(--foreground))]">
+            <DialogHeader>
+              <DialogTitle>Novo Pedido</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Código</Label>
+                  <Input value={form.codigo} onChange={e => setForm({...form, codigo: e.target.value})} placeholder={`PED-${String(pedidos.length + 1).padStart(3, "0")}`} className="glass-input border-[0.5px] mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Tipo *</Label>
+                  <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v})}>
+                    <SelectTrigger className="glass-input border-[0.5px] mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="site">Site</SelectItem>
+                      <SelectItem value="sistema">Sistema</SelectItem>
+                      <SelectItem value="landing_page">Landing Page</SelectItem>
+                      <SelectItem value="ecommerce">E-commerce</SelectItem>
+                      <SelectItem value="manutencao">Manutenção</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cliente</Label>
+                  <Select value={form.cliente_id} onValueChange={v => setForm({...form, cliente_id: v})}>
+                    <SelectTrigger className="glass-input border-[0.5px] mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Valor (R$)</Label>
+                  <Input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})} className="glass-input border-[0.5px] mt-1" />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Projeto vinculado</Label>
+                <Select value={form.projeto_id} onValueChange={v => setForm({...form, projeto_id: v})}>
+                  <SelectTrigger className="glass-input border-[0.5px] mt-1"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectContent>{projetos.map(p => <SelectItem key={p.id} value={p.id}>{p.titulo}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" disabled={saving || !form.tipo} className="w-full gradient-primary border-0 text-white">
+                {saving ? "Salvando..." : "Criar Pedido"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </motion.div>
 
       <motion.div variants={fadeUp}>
