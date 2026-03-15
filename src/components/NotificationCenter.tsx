@@ -65,6 +65,11 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
           const n = payload.new as Notification;
           if (n.user_type === userType && (userType === "admin" || n.user_id === userId)) {
             setNotifications(prev => [n, ...prev].slice(0, 30));
+            // Play notification sound
+            if (audioRef.current) {
+              audioRef.current.currentTime = 0;
+              audioRef.current.play().catch(() => {});
+            }
           }
         }
       )
