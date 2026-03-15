@@ -781,23 +781,6 @@ export default function Site() {
             </div>
           </div>
 
-          {/* Aviso */}
-          <div className="glass-card rounded-xl p-5 mb-10">
-            <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
-              <div className="space-y-1.5">
-                <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  Alguns serviços podem ter custos adicionais, como registro de <strong className="text-[hsl(var(--foreground))]">domínio personalizado</strong> ou integrações com plataformas externas.
-                </p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  A <strong className="text-[hsl(var(--foreground))]">NovaesWeb possui sua própria infraestrutura de hospedagem</strong>, garantindo mais controle, desempenho e segurança para os projetos.
-                </p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  Os projetos podem ser ampliados com novas funcionalidades conforme a necessidade do cliente.
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Bottom bar */}
           <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
