@@ -23,6 +23,7 @@ export default function Site() {
     { href: "#servicos", label: "Serviços" },
     { href: "#solucoes", label: "Soluções" },
     { href: "#processo", label: "Processo" },
+    { href: "#planos", label: "Planos" },
     { href: "#resultados", label: "Resultados" },
     { href: "#contato", label: "Contato" },
   ];
