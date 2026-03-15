@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    --background: 230 25% 5%;
-    --foreground: 0 0% 100%;
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 230 20% 8%;
-    --card-foreground: 0 0% 100%;
+    --card: 240 8% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 230 20% 8%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 240 8% 11%;
+    --popover-foreground: 0 0% 95%;
 
     --primary: 346 78% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 11%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 240 8% 15%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 230 15% 14%;
-    --muted-foreground: 0 0% 100% / 0.5;
+    --muted: 240 6% 16%;
+    --muted-foreground: 240 5% 60%;
 
     --accent: 280 60% 38%;
     --accent-foreground: 0 0% 100%;
@@ -36,19 +36,19 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 0 0% 100% / 0.08;
-    --input: 0 0% 100% / 0.08;
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
     --ring: 346 78% 55%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 215 50% 10%;
-    --sidebar-foreground: 0 0% 100% / 0.5;
+    --sidebar-background: 240 10% 10%;
+    --sidebar-foreground: 240 5% 55%;
     --sidebar-primary: 346 78% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 40% 15%;
-    --sidebar-accent-foreground: 0 0% 100% / 0.7;
-    --sidebar-border: 0 0% 100% / 0.06;
+    --sidebar-accent: 240 8% 14%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 240 6% 18%;
     --sidebar-ring: 346 78% 55%;
 
     --gradient-primary: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
@@ -73,11 +73,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: hsl(240 6% 25%);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: hsl(240 6% 35%);
   }
 }
 
@@ -92,11 +92,36 @@
     background-clip: text;
   }
   .glass-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    background: hsl(240 8% 13%);
+    border: 1px solid hsl(240 6% 20%);
   }
   .glass-input {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: hsl(240 8% 14%);
+    border: 1px solid hsl(240 6% 22%);
+  }
+  .ambient-glow {
+    position: relative;
+  }
+  .ambient-glow::before {
+    content: '';
+    position: fixed;
+    top: -30%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, hsla(346, 78%, 55%, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ambient-glow::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, hsla(280, 60%, 38%, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
   }
 }
