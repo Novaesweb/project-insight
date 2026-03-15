@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Globe } from "lucide-react";
+import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Globe, Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
 
@@ -231,6 +231,35 @@ export default function Site() {
                 </div>
                 <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{step.titulo}</h3>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{step.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Projetos ou Soluções Criadas */}
+      <motion.section id="projetos-solucoes" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-6xl mx-auto">
+          <motion.div variants={fadeUp} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Exemplos</span>
+            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Projetos e Soluções</h2>
+            <p className="text-[hsl(var(--muted-foreground))] mt-2">Veja alguns exemplos de sistemas que podemos desenvolver para o seu negócio</p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie o aluguel de carros, motos ou casas com controle completo de contratos e pagamentos." },
+              { icon: UserCheck, titulo: "Controle de Clientes (CRM)", desc: "Organize e acompanhe seus clientes, leads e oportunidades de negócio." },
+              { icon: UtensilsCrossed, titulo: "Pedidos Online para Restaurantes", desc: "Receba pedidos online com cardápio digital e integração de pagamentos." },
+              { icon: Wrench, titulo: "Controle de Serviços para Oficinas", desc: "Agende serviços, gerencie ordens de serviço e controle de estoque." },
+              { icon: ShoppingBag, titulo: "Catálogo de Produtos para Lojas", desc: "Exponha seus produtos de forma organizada e atraente para seus clientes." },
+              { icon: CalendarCheck, titulo: "Sistema de Agendamentos", desc: "Facilite o agendamento de serviços e compromissos de forma prática." },
+            ].map((projeto) => (
+              <motion.div key={projeto.titulo} variants={fadeUp} className="glass-card rounded-2xl p-6 hover:border-[hsl(var(--primary))] transition-colors duration-300">
+                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mb-4">
+                  <projeto.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{projeto.titulo}</h3>
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{projeto.desc}</p>
               </motion.div>
             ))}
           </div>
