@@ -209,18 +209,21 @@ export default function Site() {
               Sistemas que podemos desenvolver para você
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
-              Cada negócio tem suas necessidades. Veja exemplos de soluções que já desenvolvemos ou podemos criar sob medida.
+              Cada negócio tem suas necessidades. Desenvolvemos soluções personalizadas com tecnologia de ponta, sempre focando em usabilidade e resultados reais.
             </p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle de contratos e pagamentos." },
-              { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio em um só lugar." },
-              { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital, pedidos online e integração com pagamentos." },
-              { icon: Wrench, titulo: "Gestão para Oficinas", desc: "Ordens de serviço, agendamentos e controle de estoque simplificados." },
-              { icon: ShoppingBag, titulo: "Catálogo de Produtos", desc: "Vitrine digital organizada e atraente para apresentar seus produtos." },
-              { icon: CalendarCheck, titulo: "Agendamento Online", desc: "Sistema prático para agendar serviços e compromissos automaticamente." },
+              { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle completo de contratos, pagamentos, vencimentos, multas e histórico de clientes." },
+              { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio. Pipeline de vendas visual, histórico de interações, follow-ups automáticos e relatórios de conversão." },
+              { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital interativo, pedidos online com personalização, integração com delivery, controle de mesa e cozinha, e relatórios de vendas por período." },
+              { icon: Wrench, titulo: "Gestão para Oficinas", desc: "Ordens de serviço digitais, agendamentos, controle de estoque de peças, histórico de veículos, orçamentos automáticos e notificação para clientes." },
+              { icon: ShoppingBag, titulo: "Catálogo de Produtos", desc: "Vitrine digital organizada com fotos, descrições, preços e categorias. Compartilhável por link ou WhatsApp. Ideal para quem vende pelo Instagram ou redes sociais." },
+              { icon: CalendarCheck, titulo: "Agendamento Online", desc: "Sistema de agenda com horários disponíveis em tempo real, confirmação automática por WhatsApp/e-mail, gestão de profissionais e relatório de atendimentos." },
+              { icon: Target, titulo: "Gestão Financeira", desc: "Controle de contas a pagar e receber, fluxo de caixa, emissão de boletos, relatórios financeiros detalhados e dashboards com indicadores em tempo real." },
+              { icon: Users, titulo: "Portal do Cliente", desc: "Área exclusiva onde seus clientes acompanham projetos, faturas, contratos, reuniões e abrem chamados de suporte. Tudo organizado em um painel moderno." },
+              { icon: Rocket, titulo: "Painel Administrativo", desc: "Dashboard completo para gerenciar toda sua operação: clientes, pedidos, financeiro, equipe, relatórios e KPIs do negócio em um só lugar." },
             ].map((p, i) => (
               <motion.div
                 key={i}
