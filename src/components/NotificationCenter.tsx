@@ -57,14 +57,22 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
     // Realtime subscription for instant updates
     const channel = supabase
-      .channel(`notifications-${userType}-${userId}`)
+      .channel(`notifications-${userType}-${userId}-${Date.now()}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_type=eq.${userType}`,
+        },
         (payload) => {
           const n = payload.new as Notification;
-          if (n.user_type === userType && (userType === "admin" || n.user_id === userId)) {
-            setNotifications(prev => [n, ...prev].slice(0, 30));
+          if (userType === "admin" || n.user_id === userId) {
+            setNotifications(prev => {
+              if (prev.some(existing => existing.id === n.id)) return prev;
+              return [n, ...prev].slice(0, 30);
+            });
             // Play notification sound
             if (audioRef.current) {
               audioRef.current.currentTime = 0;
@@ -73,10 +81,12 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`[NotificationCenter] Realtime ${userType}: ${status}`);
+      });
 
-    // Fallback polling every 60s
-    const interval = setInterval(fetchNotifications, 60000);
+    // Fallback polling every 15s
+    const interval = setInterval(fetchNotifications, 15000);
     return () => {
       clearInterval(interval);
       supabase.removeChannel(channel);
