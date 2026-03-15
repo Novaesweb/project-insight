@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
 import aboutPhoto from "@/assets/about-novaes.jpg";
+import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
