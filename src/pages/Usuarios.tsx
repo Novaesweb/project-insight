@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Power } from "lucide-react";
+import { Plus, Copy, UserPlus } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,23 +19,54 @@ export default function Usuarios() {
   const { toast } = useToast();
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [showNew, setShowNew] = useState(false);
-  const [form, setForm] = useState({ nome: "", email: "", cargo: "", acesso: "editor" });
+  const [form, setForm] = useState({ nome: "", email: "", cargo: "", acesso: "editor", senha: "" });
+  const [saving, setSaving] = useState(false);
+  const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
 
-  const fetch = async () => {
+  const fetchUsuarios = async () => {
     const { data } = await supabase.from("usuarios").select("*").order("created_at", { ascending: false });
     setUsuarios(data || []);
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetchUsuarios(); }, []);
 
   const handleSave = async () => {
+    if (!form.nome || !form.email || !form.senha || form.senha.length < 6) {
+      toast({ title: "Preencha todos os campos", description: "Senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const { error } = await supabase.from("usuarios").insert({ ...form, avatar });
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Usuário criado!" });
+
+    // Create auth account
+    const { error: accountError } = await supabase.functions.invoke("create-account", {
+      body: { email: form.email, password: form.senha, nome: form.nome, tipo: "admin" },
+    });
+
+    if (accountError) {
+      toast({ title: "Erro ao criar conta", description: accountError.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+
+    // Save to usuarios table
+    const { error } = await supabase.from("usuarios").insert({
+      nome: form.nome, email: form.email, cargo: form.cargo, acesso: form.acesso, avatar,
+    });
+
+    if (error) {
+      toast({ title: "Conta criada, mas erro ao salvar usuário", description: error.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+
+    const link = `${window.location.origin}/admin/login`;
+    setContaCriada({ email: form.email, senha: form.senha, link });
+    toast({ title: "Usuário criado com sucesso!" });
     setShowNew(false);
-    setForm({ nome: "", email: "", cargo: "", acesso: "editor" });
-    fetch();
+    setForm({ nome: "", email: "", cargo: "", acesso: "editor", senha: "" });
+    setSaving(false);
+    fetchUsuarios();
   };
 
   return (
@@ -46,9 +77,9 @@ export default function Usuarios() {
             <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Usuário</Button>
           </DialogTrigger>
           <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
-            <DialogHeader><DialogTitle className="text-white">Novo Usuário</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="text-white">Novo Usuário Admin</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
-              {[{ key: "nome", label: "Nome" }, { key: "email", label: "E-mail" }, { key: "cargo", label: "Cargo" }].map((f) => (
+              {[{ key: "nome", label: "Nome completo" }, { key: "email", label: "E-mail" }, { key: "cargo", label: "Cargo" }].map((f) => (
                 <div key={f.key} className="space-y-1.5">
                   <Label className="text-xs text-[hsl(var(--muted-foreground))]">{f.label}</Label>
                   <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
@@ -64,8 +95,15 @@ export default function Usuarios() {
                   <option value="visualizador">Visualizador</option>
                 </select>
               </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Senha de acesso (mín. 6 caracteres)</Label>
+                <Input type="text" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                  value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} placeholder="Defina a senha" />
+              </div>
             </div>
-            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave}>Salvar Usuário</Button>
+            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave} disabled={saving}>
+              {saving ? "Criando..." : "Criar Usuário"}
+            </Button>
           </DialogContent>
         </Dialog>
       </motion.div>
@@ -109,6 +147,46 @@ export default function Usuarios() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Dialog Conta Criada */}
+      <Dialog open={!!contaCriada} onOpenChange={() => setContaCriada(null)}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white flex items-center gap-2"><UserPlus className="w-5 h-5" /> Conta criada com sucesso!</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Compartilhe os dados abaixo para que a pessoa acesse o painel administrativo:</p>
+            <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] space-y-3">
+              <div>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Link do Painel</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white font-mono flex-1 truncate">{contaCriada?.link}</p>
+                  <Button size="sm" variant="ghost" className="text-white/50 h-7" onClick={() => { navigator.clipboard.writeText(contaCriada?.link || ""); toast({ title: "Link copiado!" }); }}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">E-mail</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white flex-1">{contaCriada?.email}</p>
+                  <Button size="sm" variant="ghost" className="text-white/50 h-7" onClick={() => { navigator.clipboard.writeText(contaCriada?.email || ""); toast({ title: "E-mail copiado!" }); }}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Senha</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white font-mono">{contaCriada?.senha}</p>
+                  <Button size="sm" variant="ghost" className="text-white/50 h-7" onClick={() => { navigator.clipboard.writeText(contaCriada?.senha || ""); toast({ title: "Senha copiada!" }); }}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <Button className="gradient-primary border-0 text-white w-full" onClick={() => setContaCriada(null)}>Entendi</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
