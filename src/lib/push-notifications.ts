@@ -112,30 +112,72 @@ export type PushTestResult = {
 };
 
 export async function sendTestNotification(): Promise<PushTestResult> {
-  const { data, error } = await supabase.functions.invoke("send-push-notification", {
-    body: {
-      target: "admin",
-      title: "🔔 Teste de Notificação",
-      body: "Se você está vendo isso, as notificações push estão funcionando!",
-      url: "/admin/configuracoes",
-    },
-  });
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const current = await reg.pushManager.getSubscription();
 
-  if (error) {
-    return { ok: false, sent: 0, total: 0, message: error.message };
+    if (!current) {
+      return {
+        ok: false,
+        sent: 0,
+        total: 0,
+        message: "Este navegador não está inscrito. Ative o push novamente antes de testar.",
+      };
+    }
+
+    const json = current.toJSON();
+    const endpoint = json.endpoint;
+    const p256dh = json.keys?.p256dh;
+    const auth = json.keys?.auth;
+
+    if (!endpoint || !p256dh || !auth) {
+      return {
+        ok: false,
+        sent: 0,
+        total: 0,
+        message: "Inscrição inválida no navegador. Desative/ative o push e tente de novo.",
+      };
+    }
+
+    const session = await supabase.auth.getSession();
+    const userId = session.data.session?.user?.id || "admin";
+
+    const { data, error } = await supabase.functions.invoke("send-push-notification", {
+      body: {
+        target: "admin",
+        targetId: userId,
+        title: "🔔 Teste de Notificação",
+        body: "Se você está vendo isso, as notificações push estão funcionando!",
+        url: "/admin/configuracoes",
+        directSubscription: {
+          endpoint,
+          p256dh,
+          auth,
+          user_id: userId,
+          user_type: "admin",
+        },
+      },
+    });
+
+    if (error) {
+      return { ok: false, sent: 0, total: 0, message: error.message };
+    }
+
+    const sent = Number(data?.sent ?? 0);
+    const total = Number(data?.total ?? 0);
+    const errors = Array.isArray(data?.errors) ? data.errors.map(String) : undefined;
+
+    return {
+      ok: sent > 0,
+      sent,
+      total,
+      message: data?.message,
+      errors,
+    };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Falha inesperada ao enviar teste";
+    return { ok: false, sent: 0, total: 0, message };
   }
-
-  const sent = Number(data?.sent ?? 0);
-  const total = Number(data?.total ?? 0);
-  const errors = Array.isArray(data?.errors) ? data.errors.map(String) : undefined;
-
-  return {
-    ok: sent > 0,
-    sent,
-    total,
-    message: data?.message,
-    errors,
-  };
 }
 
 export async function sendPushToAdmins(title: string, body: string, url?: string): Promise<void> {
