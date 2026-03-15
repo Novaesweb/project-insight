@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/admin/extras", label: "Extras", icon: Puzzle },
   { href: "/admin/leads", label: "Leads", icon: Headphones, count: 0 },
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
