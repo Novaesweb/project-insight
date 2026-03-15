@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
@@ -15,37 +16,65 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 const catColors: Record<string, string> = { fixo: "text-emerald-400", intermediario: "text-amber-400", mensal: "text-blue-400" };
-
+const catLabels: Record<string, string> = { fixo: "Fixo", intermediario: "Intermediário", mensal: "Mensal" };
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
+  const { toast } = useToast();
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);
   const [projetos, setProjetos] = useState<any[]>([]);
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [catalogo, setCatalogo] = useState<any[]>([]);
+  const [showAddExtra, setShowAddExtra] = useState(false);
+  const [extraSelecionado, setExtraSelecionado] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [savingExtra, setSavingExtra] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const [c, e, p, ped, cat] = await Promise.all([
-        supabase.from("clientes").select("*").eq("id", clienteId).single(),
-        supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", clienteId),
-        supabase.from("projetos").select("*").eq("cliente_id", clienteId),
-        supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
-        supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
-      ]);
-      setCliente(c.data);
-      setExtras(e.data || []);
-      setProjetos(p.data || []);
-      setPedidos(ped.data || []);
-      setCatalogo(cat.data || []);
-    };
-    load();
-  }, [clienteId]);
+  const loadData = async () => {
+    const [c, e, p, ped, cat] = await Promise.all([
+      supabase.from("clientes").select("*").eq("id", clienteId).single(),
+      supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", clienteId),
+      supabase.from("projetos").select("*").eq("cliente_id", clienteId),
+      supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
+      supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
+    ]);
+    setCliente(c.data);
+    setExtras(e.data || []);
+    setProjetos(p.data || []);
+    setPedidos(ped.data || []);
+    setCatalogo(cat.data || []);
+  };
+
+  useEffect(() => { loadData(); }, [clienteId]);
+
+  const handleAddExtra = async () => {
+    if (!extraSelecionado) return;
+    const extra = catalogo.find(c => c.id === extraSelecionado);
+    if (!extra) return;
+    setSavingExtra(true);
+    const { error } = await supabase.from("extras_clientes").insert({
+      cliente_id: clienteId,
+      extra_id: extra.id,
+      categoria: extra.categoria,
+      preco_ativacao: Number(extra.preco_ativacao) || 0,
+      preco_mensal: Number(extra.preco_mensal) || 0,
+      observacao: observacao || null,
+    });
+    setSavingExtra(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
+    setShowAddExtra(false);
+    setExtraSelecionado("");
+    setObservacao("");
+    loadData();
+  };
 
   if (!cliente) return <p className="text-white">Carregando...</p>;
 
   const avatar = cliente.avatar || cliente.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
   const totalMensal = extras.filter((e: any) => e.status === "ativo" && e.preco_mensal > 0).reduce((s: number, e: any) => s + Number(e.preco_mensal), 0);
   const totalAtivacoes = extras.filter((e: any) => e.preco_ativacao > 0).reduce((s: number, e: any) => s + Number(e.preco_ativacao), 0);
+  // Filter catalog to exclude already-added extras
+  const extrasDisponiveis = catalogo.filter(c => !extras.some(e => e.extra_id === c.id && e.status === "ativo"));
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
@@ -74,7 +103,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
         <Tabs defaultValue="extras" className="space-y-4">
           <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1">
             <TabsTrigger value="extras" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
-              <Package className="w-3.5 h-3.5" /> Extras
+              <Package className="w-3.5 h-3.5" /> Extras ({extras.length})
             </TabsTrigger>
             <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos</TabsTrigger>
             <TabsTrigger value="pedidos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Pedidos</TabsTrigger>
@@ -101,25 +130,38 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                 </CardContent>
               </Card>
             </div>
+
+            <div className="flex justify-end">
+              <Button className="gradient-primary border-0 text-white text-xs" onClick={() => setShowAddExtra(true)}>
+                <Plus className="w-3 h-3 mr-1.5" /> Adicionar Extra
+              </Button>
+            </div>
+
             <Card className="glass-card border-[0.5px]">
               <CardContent className="pt-4">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(255,255,255,0.06)]">
-                      {["Extra", "Categoria", "Ativação", "Mensal", "Status"].map(h => (
+                      {["Extra", "Categoria", "Ativação", "Mensal", "Observação", "Status"].map(h => (
                         <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {extras.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum extra contratado</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum extra contratado</TableCell></TableRow>
                     ) : extras.map((e: any) => (
                       <TableRow key={e.id} className="border-[rgba(255,255,255,0.04)]">
-                        <TableCell className="text-sm text-white font-medium">{e.extras_catalogo?.nome || "—"}</TableCell>
-                        <TableCell className={`text-xs font-medium ${catColors[e.categoria] || ""}`}>{e.categoria}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm text-white font-medium">{e.extras_catalogo?.nome || "—"}</p>
+                            {e.extras_catalogo?.descricao && <p className="text-[10px] text-[hsl(var(--muted-foreground))] line-clamp-1">{e.extras_catalogo.descricao}</p>}
+                          </div>
+                        </TableCell>
+                        <TableCell className={`text-xs font-medium ${catColors[e.categoria] || ""}`}>{catLabels[e.categoria] || e.categoria}</TableCell>
                         <TableCell className="text-sm text-white">{Number(e.preco_ativacao) > 0 ? `R$ ${Number(e.preco_ativacao).toFixed(2).replace(".", ",")}` : "—"}</TableCell>
                         <TableCell className="text-sm text-white">{Number(e.preco_mensal) > 0 ? `R$ ${Number(e.preco_mensal).toFixed(2).replace(".", ",")}/mês` : "—"}</TableCell>
+                        <TableCell className="text-xs text-[hsl(var(--muted-foreground))] max-w-[150px] truncate">{e.observacao || "—"}</TableCell>
                         <TableCell><StatusBadge status={e.status} /></TableCell>
                       </TableRow>
                     ))}
@@ -188,6 +230,64 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           </TabsContent>
         </Tabs>
       </motion.div>
+
+      {/* Dialog Adicionar Extra */}
+      <Dialog open={showAddExtra} onOpenChange={setShowAddExtra}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white">Adicionar Extra ao Cliente</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Selecionar Extra</Label>
+              <select
+                className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent"
+                value={extraSelecionado}
+                onChange={(e) => setExtraSelecionado(e.target.value)}
+              >
+                <option value="">Escolha um extra...</option>
+                {extrasDisponiveis.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome} — {catLabels[c.categoria] || c.categoria} {Number(c.preco_mensal) > 0 ? `(R$ ${Number(c.preco_mensal).toFixed(2).replace(".", ",")}/mês)` : ""} {Number(c.preco_ativacao) > 0 ? `(Ativ: R$ ${Number(c.preco_ativacao).toFixed(2).replace(".", ",")})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {extraSelecionado && (() => {
+              const sel = catalogo.find(c => c.id === extraSelecionado);
+              if (!sel) return null;
+              return (
+                <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+                  <p className="text-sm font-medium text-white">{sel.nome}</p>
+                  {sel.descricao && <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-0.5">{sel.descricao}</p>}
+                  <div className="flex gap-3 mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className={catColors[sel.categoria]}>{catLabels[sel.categoria]}</span>
+                    {Number(sel.preco_ativacao) > 0 && <span>Ativação: R$ {Number(sel.preco_ativacao).toFixed(2).replace(".", ",")}</span>}
+                    {Number(sel.preco_mensal) > 0 && <span>Mensal: R$ {Number(sel.preco_mensal).toFixed(2).replace(".", ",")}</span>}
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Observação (opcional)</Label>
+              <Textarea
+                className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]"
+                placeholder="Ex: Cortesia por 3 meses..."
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
+              />
+            </div>
+
+            <Button
+              className="gradient-primary border-0 text-white w-full rounded-lg"
+              onClick={handleAddExtra}
+              disabled={!extraSelecionado || savingExtra}
+            >
+              {savingExtra ? "Salvando..." : "Confirmar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
