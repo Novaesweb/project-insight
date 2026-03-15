@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { paga: "#4ade80", pendente: "#facc15", atrasada: "#ef4444" };
@@ -14,11 +15,14 @@ export default function ClienteFaturas() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const [faturas, setFaturas] = useState<any[]>([]);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!cliente.id) return;
     supabase.from("faturas").select("*").eq("cliente_id", cliente.id).order("vencimento", { ascending: false })
       .then(({ data }) => setFaturas(data || []));
   }, [cliente.id]);
+
+  useEffect(() => { load(); }, [load]);
+  useRealtimeSubscription("faturas", load);
 
   const totalPendente = faturas.filter(f => f.status === "pendente").reduce((a, f) => a + Number(f.valor), 0);
   const totalAtrasado = faturas.filter(f => f.status === "atrasada").reduce((a, f) => a + Number(f.valor), 0);

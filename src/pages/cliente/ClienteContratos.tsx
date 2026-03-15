@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { FileText, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aguardando: "#facc15", assinado: "#4ade80", cancelado: "#ef4444" };
@@ -16,11 +17,25 @@ export default function ClienteContratos() {
   const { toast } = useToast();
   const [contratos, setContratos] = useState<any[]>([]);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!cliente.id) return;
     supabase.from("contratos").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setContratos(data || []));
   }, [cliente.id]);
+
+  useEffect(() => { load(); }, [load]);
+  useRealtimeSubscription("contratos", load);
+
+  const assinar = async (id: string, titulo: string) => {
+    const { error } = await supabase.from("contratos").update({
+      status: "assinado",
+      data_assinatura: new Date().toISOString().split("T")[0],
+    }).eq("id", id);
+    if (!error) {
+      toast({ title: "Contrato assinado!", description: `${titulo} assinado com sucesso.` });
+      load();
+    }
+  };
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
@@ -51,7 +66,7 @@ export default function ClienteContratos() {
                   </Button>
                   {c.status === "aguardando" && (
                     <Button size="sm" className="text-[10px] h-7 border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #7b1fa2)" }}
-                      onClick={() => toast({ title: "Contrato assinado!", description: `${c.titulo} assinado com sucesso.` })}>
+                      onClick={() => assinar(c.id, c.titulo)}>
                       Assinar agora
                     </Button>
                   )}

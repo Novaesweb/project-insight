@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const etapas = ["Briefing", "Desenvolvimento", "Revisão", "Entregue"];
@@ -22,17 +23,23 @@ export default function ClienteProjetos() {
   const [projetos, setProjetos] = useState<any[]>([]);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
 
-  useEffect(() => {
+  const loadProjetos = useCallback(() => {
     if (!cliente.id) return;
     supabase.from("projetos").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setProjetos(data || []));
   }, [cliente.id]);
 
-  useEffect(() => {
+  const loadAtualizacoes = useCallback(() => {
     if (!selectedId) return;
     supabase.from("projeto_atualizacoes").select("*").eq("projeto_id", selectedId).eq("visivel_cliente", true).order("created_at", { ascending: false })
       .then(({ data }) => setAtualizacoes(data || []));
   }, [selectedId]);
+
+  useEffect(() => { loadProjetos(); }, [loadProjetos]);
+  useEffect(() => { loadAtualizacoes(); }, [loadAtualizacoes]);
+
+  useRealtimeSubscription("projetos", loadProjetos);
+  useRealtimeSubscription("projeto_atualizacoes", loadAtualizacoes);
 
   const selected = projetos.find(p => p.id === selectedId);
 

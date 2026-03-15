@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function ClienteDados() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [dados, setDados] = useState({
     nome: cliente.nome || "",
     email: cliente.email || "",
@@ -20,9 +22,16 @@ export default function ClienteDados() {
     estado: cliente.estado || "",
   });
 
-  const handleSave = () => {
-    localStorage.setItem("clienteLogado", JSON.stringify({ ...cliente, ...dados }));
-    toast({ title: "Dados atualizados!", description: "Suas informações foram salvas com sucesso." });
+  const handleSave = async () => {
+    setLoading(true);
+    const { error } = await supabase.from("clientes").update(dados).eq("id", cliente.id);
+    if (!error) {
+      localStorage.setItem("clienteLogado", JSON.stringify({ ...cliente, ...dados }));
+      toast({ title: "Dados atualizados!", description: "Suas informações foram salvas com sucesso." });
+    } else {
+      toast({ title: "Erro ao salvar", variant: "destructive" });
+    }
+    setLoading(false);
   };
 
   return (
@@ -51,31 +60,8 @@ export default function ClienteDados() {
               </div>
             ))}
           </div>
-          <Button className="border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={handleSave}>
-            Salvar alterações
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-        <CardContent className="p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-white">Alterar senha</h2>
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs text-white/50">Senha atual</Label>
-              <Input type="password" placeholder="••••••••" className="border-0 text-white placeholder:text-white/30 mt-1" style={{ background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div>
-              <Label className="text-xs text-white/50">Nova senha</Label>
-              <Input type="password" placeholder="••••••••" className="border-0 text-white placeholder:text-white/30 mt-1" style={{ background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <div>
-              <Label className="text-xs text-white/50">Confirmar nova senha</Label>
-              <Input type="password" placeholder="••••••••" className="border-0 text-white placeholder:text-white/30 mt-1" style={{ background: "rgba(255,255,255,0.06)" }} />
-            </div>
-          </div>
-          <Button variant="outline" className="text-white/70 border-white/10" onClick={() => toast({ title: "Senha alterada!", description: "Sua senha foi atualizada." })}>
-            Alterar senha
+          <Button disabled={loading} className="border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={handleSave}>
+            {loading ? "Salvando..." : "Salvar alterações"}
           </Button>
         </CardContent>
       </Card>
