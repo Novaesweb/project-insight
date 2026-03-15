@@ -94,12 +94,23 @@ export default function Configuracoes() {
 
   const handleTestPush = async () => {
     setTestLoading(true);
-    const ok = await sendTestNotification();
-    if (ok) {
-      toast({ title: "Notificação de teste enviada!" });
+    const result = await sendTestNotification();
+
+    if (result.ok) {
+      toast({
+        title: "Notificação de teste enviada!",
+        description: `Entregue para ${result.sent} de ${result.total} dispositivo(s).`,
+      });
     } else {
-      toast({ title: "Erro ao enviar teste", variant: "destructive" });
+      const fallback = "Ative novamente o push neste navegador e teste de novo.";
+      const reason = result.errors?.[0] || result.message || fallback;
+      toast({
+        title: "Falha no envio de teste",
+        description: reason,
+        variant: "destructive",
+      });
     }
+
     setTestLoading(false);
   };
 
