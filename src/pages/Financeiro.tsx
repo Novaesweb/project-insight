@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, AlertTriangle, DollarSign, Plus } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { TrendingUp, AlertTriangle, DollarSign, Plus, FileDown, FileText, FileSpreadsheet } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -54,6 +56,16 @@ export default function Financeiro() {
     setShowNew(false);
     setForm({ descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" });
     load();
+  };
+
+  const handleExport = async (f: any, type: "pdf" | "word" | "csv") => {
+    const data = { descricao: f.descricao, valor: Number(f.valor), vencimento: f.vencimento || "", data_emissao: f.data || "", status: f.status, clienteNome: f.clientes?.nome };
+    try {
+      if (type === "pdf") exportFaturaPDF(data);
+      else if (type === "word") await exportFaturaWord(data);
+      else exportFaturaCSV(data);
+      toast({ title: `Exportado em ${type.toUpperCase()}!` });
+    } catch { toast({ title: "Erro ao exportar", variant: "destructive" }); }
   };
 
   const totalRecebido = financeiro.filter(f => f.tipo === "entrada" && f.status === "pago").reduce((s, f) => s + Number(f.valor), 0);
@@ -116,14 +128,14 @@ export default function Financeiro() {
             <Table>
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Descrição", "Tipo", "Valor", "Vencimento", "Cliente", "Status"].map((h) => (
+                  {["Descrição", "Tipo", "Valor", "Vencimento", "Cliente", "Status", ""].map((h) => (
                     <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtrados.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</TableCell></TableRow>
                 ) : filtrados.map((f) => (
                   <TableRow key={f.id} className="border-[rgba(255,255,255,0.04)]">
                     <TableCell className="text-sm text-white">{f.descricao}</TableCell>
@@ -138,6 +150,26 @@ export default function Financeiro() {
                     <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}</TableCell>
                     <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.clientes?.nome || "—"}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7">
+                            <FileDown className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
+                          <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
+                            <FileText className="w-3 h-3 text-red-400" /> PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer">
+                            <FileText className="w-3 h-3 text-blue-400" /> Word
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
+                            <FileSpreadsheet className="w-3 h-3 text-green-400" /> CSV
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
