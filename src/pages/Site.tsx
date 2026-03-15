@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Globe } from "lucide-react";
+import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Globe, Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
 
