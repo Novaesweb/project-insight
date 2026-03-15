@@ -265,6 +265,9 @@
   position: relative;
   overflow: hidden;
 }
+.light .skeleton-shimmer {
+  background: rgba(0, 0, 0, 0.06);
+}
 .skeleton-shimmer::after {
   content: '';
   position: absolute;
@@ -277,6 +280,14 @@
   );
   animation: shimmer 1.5s ease-in-out infinite;
 }
+.light .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
+}
 
 /* Top bar shimmer */
 .shimmer-bar {
@@ -287,6 +298,12 @@
     transparent 100%
   );
   animation: shimmer 0.8s ease-in-out infinite;
+}
+
+/* Light mode: hide ambient glow */
+.light .ambient-glow::before,
+.light .ambient-glow::after {
+  display: none;
 }
 
 @keyframes shimmer {
