@@ -80,7 +80,20 @@ serve(async (req) => {
       });
     }
 
-    const vapidPrivateKeyJwk: JsonWebKey = JSON.parse(vapidPrivateKeyRaw);
+    // Support both JWK format and raw base64url private key
+    let vapidPrivateKeyJwk: JsonWebKey;
+    if (vapidPrivateKeyRaw.startsWith("{")) {
+      vapidPrivateKeyJwk = JSON.parse(vapidPrivateKeyRaw);
+    } else {
+      // Raw base64url private key - convert to JWK
+      vapidPrivateKeyJwk = {
+        kty: "EC",
+        crv: "P-256",
+        d: vapidPrivateKeyRaw,
+        x: vapidPublicKey.substring(0, 43),
+        y: vapidPublicKey.substring(43),
+      };
+    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
