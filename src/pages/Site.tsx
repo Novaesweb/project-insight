@@ -91,10 +91,20 @@ export default function Site() {
               className="lg:hidden border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] overflow-hidden"
             >
               <div className="px-6 py-5 flex flex-col gap-1">
-                {mobileLinks.map((link, i) => (
+                {navLinks.map((link, i) => (
                   <button
                     key={i}
                     onClick={() => scrollTo(link.href)}
+                    className="text-left text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-3 border-b border-[hsl(var(--border))] flex items-center justify-between"
+                  >
+                    {link.label}
+                    <ChevronRight className="w-4 h-4 opacity-40" />
+                  </button>
+                ))}
+                {modalLinks.map((link, i) => (
+                  <button
+                    key={`modal-${i}`}
+                    onClick={() => { setMenuOpen(false); setTimeout(() => setModalOpen(link.id), 300); }}
                     className="text-left text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-3 border-b border-[hsl(var(--border))] last:border-0 flex items-center justify-between"
                   >
                     {link.label}
