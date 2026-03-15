@@ -89,6 +89,44 @@ export default function Extras() {
     setShowAtribuir(true);
   };
 
+  const abrirEditar = (extra: any) => {
+    setEditForm({
+      id: extra.id,
+      nome: extra.nome,
+      descricao: extra.descricao || "",
+      categoria: extra.categoria,
+      preco_ativacao: String(extra.preco_ativacao || 0),
+      preco_mensal: String(extra.preco_mensal || 0),
+      status: extra.status,
+    });
+    setShowEdit(true);
+  };
+
+  const handleEdit = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("extras_catalogo").update({
+      nome: editForm.nome,
+      descricao: editForm.descricao,
+      categoria: editForm.categoria,
+      preco_ativacao: Number(editForm.preco_ativacao) || 0,
+      preco_mensal: Number(editForm.preco_mensal) || 0,
+      status: editForm.status,
+    }).eq("id", editForm.id);
+    setSaving(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra atualizado!" });
+    setShowEdit(false);
+    fetchData();
+  };
+
+  const handleDelete = async (extra: any) => {
+    if (!confirm(`Excluir "${extra.nome}"?`)) return;
+    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extra.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra excluído!" });
+    fetchData();
+  };
+
   const filtrados = extras.filter((e) => {
     const matchBusca = e.nome.toLowerCase().includes(busca.toLowerCase());
     const matchCat = filtroCategoria === "todos" || e.categoria === filtroCategoria;
