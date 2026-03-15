@@ -431,10 +431,13 @@ export default function Site() {
                 A NovaesWeb é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.
               </p>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
-                Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento.
+                Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento. Utilizamos tecnologias de ponta como React, TypeScript e bancos de dados em nuvem.
               </p>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
                 Nascemos com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa. Mesmo sendo um projeto recente, já participamos do desenvolvimento de soluções utilizadas por cerca de 6 empresas.
+              </p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
+                Acreditamos que toda empresa, independente do tamanho, merece ter uma presença digital profissional e ferramentas de gestão que simplifiquem sua rotina. Nosso diferencial está no atendimento humanizado, na agilidade de entrega e na evolução contínua dos projetos.
               </p>
             </motion.div>
             <motion.div variants={fade} className="relative">
@@ -445,6 +448,10 @@ export default function Site() {
                 <p className="text-2xl font-bold gradient-text">6+</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">Empresas atendidas</p>
               </div>
+              <div className="absolute -top-4 -right-4 glass-card rounded-xl p-4 shadow-lg">
+                <p className="text-2xl font-bold gradient-text">2025</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">Fundação</p>
+              </div>
             </motion.div>
           </div>
 
@@ -453,21 +460,21 @@ export default function Site() {
               <Users className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Quem Somos</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Somos um projeto independente que trabalha com desenvolvimento web e soluções digitais, utilizando tecnologia moderna e também o apoio de inteligência artificial para otimizar processos e acelerar o desenvolvimento de novos sistemas.
+                Somos um projeto independente de tecnologia focado em criar soluções digitais para empresas reais. Utilizamos tecnologia moderna, inteligência artificial e metodologias ágeis para entregar projetos rápidos, eficientes e de qualidade. Nosso compromisso é com resultado.
               </p>
             </motion.div>
             <motion.div variants={fade} className="glass-card rounded-2xl p-8">
               <Globe className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">De Onde Viemos</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais. Com o tempo, evoluímos para criar sistemas mais completos como painéis administrativos, cadastro e controle de clientes.
+                A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais. Com o tempo, evoluímos para criar sistemas mais completos como painéis administrativos, portais do cliente, CRMs e controle financeiro. Cada projeto nos ensinou algo novo.
               </p>
             </motion.div>
             <motion.div variants={fade} className="glass-card rounded-2xl p-8">
               <Rocket className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Para Onde Vamos</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Seguimos expandindo o projeto, criando novas soluções e aprimorando cada sistema. Surgimos da vontade de aprender, evoluir e criar soluções reais que ajudem empresas a crescer no digital.
+                Seguimos expandindo, criando novas soluções e aprimorando cada sistema. Nosso objetivo é nos tornar referência em desenvolvimento web para PMEs, oferecendo plataformas completas com preço justo e evolução constante ao lado dos nossos clientes.
               </p>
             </motion.div>
           </div>
