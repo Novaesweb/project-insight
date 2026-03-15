@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminLogin from "@/pages/AdminLogin";
 import ClienteLayout from "@/components/ClienteLayout";
 import SplashScreen from "@/components/SplashScreen";
+import { ThemeProvider } from "@/hooks/useTheme";
 import Site from "./pages/Site";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
