@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
@@ -15,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 const catColors: Record<string, string> = { fixo: "text-emerald-400", intermediario: "text-amber-400", mensal: "text-blue-400" };
-
+const catLabels: Record<string, string> = { fixo: "Fixo", intermediario: "Intermediário", mensal: "Mensal" };
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);
