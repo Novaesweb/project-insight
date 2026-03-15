@@ -65,8 +65,8 @@ export default function Site() {
             </span>
           </div>
           <div className="hidden lg:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
-            {menuLinks.map((link) => (
-              <a key={link.href} href={link.href} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</a>
+            {menuLinks.map((link, index) => (
+              <button key={`desktop-${index}`} onClick={() => scrollTo(link.href)} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</button>
             ))}
           </div>
           <div className="flex items-center gap-2">
