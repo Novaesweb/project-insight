@@ -364,8 +364,11 @@ export default function Site() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Site Express */}
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300 flex flex-col">
+            {/* Site Express – Promoção Especial */}
+            <motion.div variants={fade} className="glass-card rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300 flex flex-col relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-bold uppercase px-3 py-1 rounded-full animate-pulse">
+                🔥 Promoção
+              </div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                   <Globe className="w-6 h-6 text-emerald-400" />
@@ -375,10 +378,24 @@ export default function Site() {
                   <h3 className="text-xl font-bold text-[hsl(var(--foreground))] mt-1">Site Express</h3>
                 </div>
               </div>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-6">
-                Ideal para empresas que querem um site profissional para apresentar seu negócio e receber contatos online.
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
+                Aproveite o Plano Site Express com uma promoção exclusiva só este mês!
               </p>
-              <ul className="space-y-3 mb-8 flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Valor inicial</p>
+                  <p className="text-2xl font-bold text-emerald-400">R$180</p>
+                </div>
+                <div className="h-10 w-px bg-[hsl(var(--border))]" />
+                <div className="text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Mensalidade</p>
+                  <p className="text-2xl font-bold text-emerald-400">R$60<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span></p>
+                </div>
+              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
+                Site moderno, funcional e totalmente personalizável, podendo adicionar conteúdos e funcionalidades de acordo com suas necessidades.
+              </p>
+              <ul className="space-y-3 mb-6 flex-1">
                 {["Site moderno e responsivo", "Página de serviços", "Página de contato", "Integração com mapa", "Botão WhatsApp direto", "Otimização para celular"].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
                     <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
@@ -386,10 +403,10 @@ export default function Site() {
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-emerald-400/80 italic mb-4">💡 Perfeito para pequenos negócios que querem presença digital.</p>
-              <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Site Express." target="_blank" rel="noopener noreferrer">
+              <p className="text-xs text-emerald-400/80 italic mb-4">⚡ Não perca essa oportunidade de colocar seu negócio online de forma rápida, prática e acessível. Personalize seu site conforme seu desejo e comece a atrair mais clientes hoje!</p>
+              <a href="https://wa.me/5500000000000?text=Olá, vi a promoção do Plano Site Express da NovaesWeb e gostaria de aproveitar! Valor inicial R$180 e mensalidade R$60." target="_blank" rel="noopener noreferrer">
                 <Button className="w-full gradient-primary border-0 text-white h-11 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
-                  Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
+                  Aproveitar promoção <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </a>
             </motion.div>
