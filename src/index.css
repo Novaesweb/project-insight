@@ -139,12 +139,12 @@
     background-clip: text;
   }
   .glass-card {
-    background: hsl(240 8% 13%);
-    border: 1px solid hsl(240 6% 20%);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
   }
   .glass-input {
-    background: hsl(240 8% 14%);
-    border: 1px solid hsl(240 6% 22%);
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
   }
 
   /* Ambient glow with animated rays */
