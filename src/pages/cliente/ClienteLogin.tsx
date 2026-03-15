@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import logoImg from "@/assets/novaesweb-logo-full.jpeg";
 
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
