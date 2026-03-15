@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, Palette, Shield, Link as LinkIcon, Bell } from "lucide-react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { subscribeToPush, unsubscribeFromPush, isSubscribed, sendTestNotification, isPushSupported } from "@/lib/push-notifications";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -43,15 +45,62 @@ const integracoes = [
 export default function Configuracoes() {
   const { toast } = useToast();
   const [empresa, setEmpresa] = useState(defaultEmpresa);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
+  const [subCount, setSubCount] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("config_empresa");
     if (saved) setEmpresa(JSON.parse(saved));
+
+    isPushSupported().then(setPushSupported);
+    isSubscribed().then(setPushEnabled);
+
+    // Count subscriptions
+    supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
+      .then(({ count }) => setSubCount(count || 0));
   }, []);
 
   const handleSaveEmpresa = () => {
     localStorage.setItem("config_empresa", JSON.stringify(empresa));
     toast({ title: "Dados salvos!", description: "Informações da empresa foram atualizadas." });
+  };
+
+  const handleTogglePush = async () => {
+    setPushLoading(true);
+    try {
+      if (pushEnabled) {
+        await unsubscribeFromPush();
+        setPushEnabled(false);
+        toast({ title: "Notificações desativadas" });
+      } else {
+        const session = await supabase.auth.getSession();
+        const userId = session.data.session?.user?.id || "admin";
+        const success = await subscribeToPush("admin", userId);
+        if (success) {
+          setPushEnabled(true);
+          toast({ title: "Notificações ativadas!", description: "Você receberá alertas mesmo com o site fechado." });
+        } else {
+          toast({ title: "Não foi possível ativar", description: "Verifique se permitiu notificações no navegador.", variant: "destructive" });
+        }
+      }
+    } catch {
+      toast({ title: "Erro ao configurar notificações", variant: "destructive" });
+    }
+    setPushLoading(false);
+  };
+
+  const handleTestPush = async () => {
+    setTestLoading(true);
+    const ok = await sendTestNotification();
+    if (ok) {
+      toast({ title: "Notificação de teste enviada!" });
+    } else {
+      toast({ title: "Erro ao enviar teste", variant: "destructive" });
+    }
+    setTestLoading(false);
   };
 
   return (
@@ -186,37 +235,81 @@ export default function Configuracoes() {
           </TabsContent>
 
           <TabsContent value="notificacoes">
-            <Card className="glass-card border-[0.5px]">
-              <CardHeader>
-                <CardTitle className="text-sm text-white">Preferências de Notificação</CardTitle>
-                <CardDescription>Configure alertas por tipo de evento</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                {[
-                  { evento: "Novo pedido criado", email: true, push: true },
-                  { evento: "Ticket de suporte aberto", email: true, push: true },
-                  { evento: "Pagamento recebido", email: true, push: false },
-                  { evento: "Pagamento em atraso", email: true, push: true },
-                  { evento: "Projeto concluído", email: false, push: true },
-                  { evento: "Novo cliente cadastrado", email: true, push: false },
-                ].map((n) => (
-                  <div key={n.evento} className="flex items-center justify-between">
-                    <p className="text-sm text-white">{n.evento}</p>
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[hsl(var(--muted-foreground))]">E-mail</span>
-                        <Switch defaultChecked={n.email} />
+            <div className="space-y-4">
+              {/* Push Notification Control */}
+              <Card className="glass-card border-[0.5px]">
+                <CardHeader>
+                  <CardTitle className="text-sm text-white flex items-center gap-2">
+                    <BellRing className="w-4 h-4" /> Notificações Push (VAPID)
+                  </CardTitle>
+                  <CardDescription>
+                    Receba notificações mesmo com o site fechado.
+                    {subCount > 0 && <span className="ml-2 text-emerald-400">• {subCount} dispositivo(s) registrado(s)</span>}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {!pushSupported ? (
+                    <p className="text-sm text-yellow-400">Seu navegador não suporta notificações push.</p>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">Ativar notificações push</p>
+                          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                            {pushEnabled ? "Notificações ativas neste dispositivo" : "Clique para ativar neste dispositivo"}
+                          </p>
+                        </div>
+                        <Switch checked={pushEnabled} onCheckedChange={handleTogglePush} disabled={pushLoading} />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[hsl(var(--muted-foreground))]">Push</span>
-                        <Switch defaultChecked={n.push} />
+                      <Button
+                        className="gradient-primary border-0 text-white text-xs rounded-lg"
+                        size="sm"
+                        onClick={handleTestPush}
+                        disabled={testLoading || !pushEnabled}
+                      >
+                        <Send className="w-3 h-3 mr-1" />
+                        {testLoading ? "Enviando..." : "Enviar notificação de teste"}
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Event Preferences */}
+              <Card className="glass-card border-[0.5px]">
+                <CardHeader>
+                  <CardTitle className="text-sm text-white">Preferências por Evento</CardTitle>
+                  <CardDescription>Configure alertas por tipo de evento</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {[
+                    { evento: "Novo cliente cadastrado", email: true, push: true },
+                    { evento: "Nova mensagem no suporte", email: true, push: true },
+                    { evento: "Atualização no financeiro", email: true, push: true },
+                    { evento: "Novo contrato criado", email: true, push: true },
+                    { evento: "Extra adicionado ao projeto", email: true, push: true },
+                    { evento: "Atualização no andamento do projeto", email: true, push: true },
+                    { evento: "Novo pedido criado", email: true, push: true },
+                    { evento: "Pagamento em atraso", email: true, push: true },
+                  ].map((n) => (
+                    <div key={n.evento} className="flex items-center justify-between">
+                      <p className="text-sm text-white">{n.evento}</p>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-[hsl(var(--muted-foreground))]">E-mail</span>
+                          <Switch defaultChecked={n.email} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-[hsl(var(--muted-foreground))]">Push</span>
+                          <Switch defaultChecked={n.push} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                <Button className="gradient-primary border-0 text-white mt-4 rounded-lg" onClick={() => toast({ title: "Preferências salvas!" })}>Salvar Preferências</Button>
-              </CardContent>
-            </Card>
+                  ))}
+                  <Button className="gradient-primary border-0 text-white mt-4 rounded-lg" onClick={() => toast({ title: "Preferências salvas!" })}>Salvar Preferências</Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </motion.div>
