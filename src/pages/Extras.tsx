@@ -241,13 +241,21 @@ export default function Extras() {
                         <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))] text-xs">Mensal: </span><span className={`font-semibold ${config.color}`}>R$ {Number(extra.preco_mensal).toFixed(2).replace(".", ",")}/mês</span></p>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      className="w-full gradient-primary border-0 text-white text-xs rounded-lg h-8"
-                      onClick={() => abrirAtribuir(extra)}
-                    >
-                      <UserPlus className="w-3 h-3 mr-1.5" /> Atribuir a cliente
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 gradient-primary border-0 text-white text-xs rounded-lg h-8"
+                        onClick={() => abrirAtribuir(extra)}
+                      >
+                        <UserPlus className="w-3 h-3 mr-1.5" /> Atribuir
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/40 hover:text-white" onClick={() => abrirEditar(extra)}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/40 hover:text-red-400" onClick={() => handleDelete(extra)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
