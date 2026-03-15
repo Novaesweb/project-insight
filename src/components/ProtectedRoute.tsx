@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: "#0d0d14" }}><span className="text-white/40">Carregando...</span></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]"><span className="text-[hsl(var(--muted-foreground))]">Carregando...</span></div>;
   if (!authenticated) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
