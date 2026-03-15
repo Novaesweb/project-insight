@@ -45,13 +45,22 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     if (!reg) return false;
 
     const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    // Force refresh subscription to avoid stale browser keys/endpoints
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      const oldEndpoint = existing.endpoint;
+      await existing.unsubscribe();
+      await supabase.from("push_subscriptions").delete().eq("endpoint", oldEndpoint);
+    }
+
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: appServerKey.buffer as ArrayBuffer,
+      applicationServerKey: appServerKey,
     });
 
     const json = subscription.toJSON();
-    
+
     await supabase.from("push_subscriptions").upsert({
       user_type: userType,
       user_id: userId,

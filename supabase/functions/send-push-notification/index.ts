@@ -87,14 +87,12 @@ serve(async (req) => {
       });
     }
 
-    const payload = JSON.stringify({ title, body, url, tag, icon: "/pwa-192x192.png" });
-
     let sent = 0;
     const errors: string[] = [];
 
     for (const sub of subscriptions) {
       try {
-        // Use pushforge to build properly encrypted push request
+        // Use PushForge with correct payload/adminContact/options structure
         const { endpoint, headers, body: encryptedBody } = await buildPushHTTPRequest({
           privateJWK,
           subscription: {
@@ -105,11 +103,19 @@ serve(async (req) => {
             },
           },
           message: {
-            data: payload,
-            urgency: "normal",
-            ttl: 86400,
+            payload: {
+              title,
+              body,
+              url,
+              tag,
+              icon: "/pwa-192x192.png",
+            },
+            adminContact: vapidSubject,
+            options: {
+              urgency: "normal",
+              ttl: 86400,
+            },
           },
-          adminContact: vapidSubject,
         });
 
         const response = await fetch(endpoint, {
