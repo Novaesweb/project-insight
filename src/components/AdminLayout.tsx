@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { pageInfo } from "@/lib/mock-data";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import TopProgressBar from "@/components/TopProgressBar";
 
 interface NavItem {
   href: string;
@@ -86,7 +88,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </SheetContent>
       </Sheet>
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 relative overflow-auto">
+        <TopProgressBar />
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-semibold">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
@@ -100,7 +103,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Button variant="ghost" size="icon"><Settings className="w-5 h-5" /></Button>
           </div>
         </header>
-        {children}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );
