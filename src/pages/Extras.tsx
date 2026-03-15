@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Package, Zap, RefreshCw, UserPlus } from "lucide-react";
+import { Search, Plus, Package, Zap, RefreshCw, UserPlus, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,11 +31,13 @@ export default function Extras() {
   const [categoria, setCategoria] = useState<CategoriaExtra>("fixo");
   const [showNew, setShowNew] = useState(false);
   const [showAtribuir, setShowAtribuir] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [extraSelecionado, setExtraSelecionado] = useState<any>(null);
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [observacao, setObservacao] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ nome: "", descricao: "", preco_ativacao: "", preco_mensal: "", status: "ativo" });
+  const [editForm, setEditForm] = useState({ id: "", nome: "", descricao: "", categoria: "fixo" as CategoriaExtra, preco_ativacao: "", preco_mensal: "", status: "ativo" });
 
   const fetchData = async () => {
     const [extrasRes, clientesRes] = await Promise.all([
@@ -85,6 +87,44 @@ export default function Extras() {
     setClienteSelecionado("");
     setObservacao("");
     setShowAtribuir(true);
+  };
+
+  const abrirEditar = (extra: any) => {
+    setEditForm({
+      id: extra.id,
+      nome: extra.nome,
+      descricao: extra.descricao || "",
+      categoria: extra.categoria,
+      preco_ativacao: String(extra.preco_ativacao || 0),
+      preco_mensal: String(extra.preco_mensal || 0),
+      status: extra.status,
+    });
+    setShowEdit(true);
+  };
+
+  const handleEdit = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("extras_catalogo").update({
+      nome: editForm.nome,
+      descricao: editForm.descricao,
+      categoria: editForm.categoria,
+      preco_ativacao: Number(editForm.preco_ativacao) || 0,
+      preco_mensal: Number(editForm.preco_mensal) || 0,
+      status: editForm.status,
+    }).eq("id", editForm.id);
+    setSaving(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra atualizado!" });
+    setShowEdit(false);
+    fetchData();
+  };
+
+  const handleDelete = async (extra: any) => {
+    if (!confirm(`Excluir "${extra.nome}"?`)) return;
+    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extra.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra excluído!" });
+    fetchData();
   };
 
   const filtrados = extras.filter((e) => {
@@ -201,13 +241,21 @@ export default function Extras() {
                         <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))] text-xs">Mensal: </span><span className={`font-semibold ${config.color}`}>R$ {Number(extra.preco_mensal).toFixed(2).replace(".", ",")}/mês</span></p>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      className="w-full gradient-primary border-0 text-white text-xs rounded-lg h-8"
-                      onClick={() => abrirAtribuir(extra)}
-                    >
-                      <UserPlus className="w-3 h-3 mr-1.5" /> Atribuir a cliente
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 gradient-primary border-0 text-white text-xs rounded-lg h-8"
+                        onClick={() => abrirAtribuir(extra)}
+                      >
+                        <UserPlus className="w-3 h-3 mr-1.5" /> Atribuir
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/40 hover:text-white" onClick={() => abrirEditar(extra)}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-white/40 hover:text-red-400" onClick={() => handleDelete(extra)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -270,6 +318,48 @@ export default function Extras() {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Dialog Editar Extra */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white">Editar Extra</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome</Label>
+              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.nome} onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição</Label>
+              <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]" value={editForm.descricao} onChange={(e) => setEditForm({ ...editForm, descricao: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Categoria</Label>
+              <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent" value={editForm.categoria} onChange={(e) => setEditForm({ ...editForm, categoria: e.target.value as CategoriaExtra })}>
+                <option value="fixo">Fixo</option>
+                <option value="intermediario">Intermediário</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço ativação (R$)</Label>
+              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.preco_ativacao} onChange={(e) => setEditForm({ ...editForm, preco_ativacao: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço mensal (R$)</Label>
+              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.preco_mensal} onChange={(e) => setEditForm({ ...editForm, preco_mensal: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Status</Label>
+              <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleEdit} disabled={saving}>
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </Button>
         </DialogContent>
       </Dialog>
     </motion.div>
