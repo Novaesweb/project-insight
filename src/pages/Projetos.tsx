@@ -145,7 +145,8 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
             </div>
             <Slider
               value={[projeto.progresso]}
-              onValueCommit={updateProgresso}
+              onValueChange={handleProgressChange}
+              onValueCommit={saveProgresso}
               max={100}
               step={5}
               className="w-full"
