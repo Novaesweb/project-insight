@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/cliente/dashboard" },
