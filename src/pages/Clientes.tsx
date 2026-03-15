@@ -12,7 +12,7 @@ import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { sendPushToAdmins } from "@/lib/push-notifications";
+import { sendPushToAdmins, sendPushToClient } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -63,6 +63,17 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     setSavingExtra(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
+
+    // Notify client
+    sendPushToClient(clienteId, "🆕 Novo extra adicionado", `"${extra.nome}" foi ativado no seu plano.`, "/cliente/extras");
+    supabase.from("notifications").insert({
+      title: "Novo extra adicionado",
+      body: `"${extra.nome}" foi ativado no seu plano.`,
+      user_id: clienteId,
+      user_type: "cliente",
+      url: "/cliente/extras",
+    }).then(() => {});
+
     setShowAddExtra(false);
     setExtraSelecionado("");
     setObservacao("");
