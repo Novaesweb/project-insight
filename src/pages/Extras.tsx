@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Pencil, Package, Zap, RefreshCw, UserPlus } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, Plus, Package, Zap, RefreshCw, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,18 +25,28 @@ const catConfig: Record<CategoriaExtra, { label: string; color: string; bgColor:
 export default function Extras() {
   const { toast } = useToast();
   const [extras, setExtras] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todos");
   const [categoria, setCategoria] = useState<CategoriaExtra>("fixo");
   const [showNew, setShowNew] = useState(false);
+  const [showAtribuir, setShowAtribuir] = useState(false);
+  const [extraSelecionado, setExtraSelecionado] = useState<any>(null);
+  const [clienteSelecionado, setClienteSelecionado] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ nome: "", descricao: "", preco_ativacao: "", preco_mensal: "", status: "ativo" });
 
-  const fetch = async () => {
-    const { data } = await supabase.from("extras_catalogo").select("*").order("created_at", { ascending: false });
-    setExtras(data || []);
+  const fetchData = async () => {
+    const [extrasRes, clientesRes] = await Promise.all([
+      supabase.from("extras_catalogo").select("*").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome, email").eq("status", "ativo").order("nome"),
+    ]);
+    setExtras(extrasRes.data || []);
+    setClientes(clientesRes.data || []);
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleSave = async () => {
     const { error } = await supabase.from("extras_catalogo").insert({
@@ -46,7 +57,34 @@ export default function Extras() {
     toast({ title: "Extra criado!" });
     setShowNew(false);
     setForm({ nome: "", descricao: "", preco_ativacao: "", preco_mensal: "", status: "ativo" });
-    fetch();
+    fetchData();
+  };
+
+  const handleAtribuir = async () => {
+    if (!clienteSelecionado || !extraSelecionado) return;
+    setSaving(true);
+    const { error } = await supabase.from("extras_clientes").insert({
+      cliente_id: clienteSelecionado,
+      extra_id: extraSelecionado.id,
+      categoria: extraSelecionado.categoria,
+      preco_ativacao: Number(extraSelecionado.preco_ativacao) || 0,
+      preco_mensal: Number(extraSelecionado.preco_mensal) || 0,
+      observacao: observacao || null,
+    });
+    setSaving(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra atribuído!", description: `"${extraSelecionado.nome}" foi adicionado ao cliente.` });
+    setShowAtribuir(false);
+    setClienteSelecionado("");
+    setObservacao("");
+    setExtraSelecionado(null);
+  };
+
+  const abrirAtribuir = (extra: any) => {
+    setExtraSelecionado(extra);
+    setClienteSelecionado("");
+    setObservacao("");
+    setShowAtribuir(true);
   };
 
   const filtrados = extras.filter((e) => {
@@ -106,6 +144,10 @@ export default function Extras() {
                 <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
               </div>
               <div className="space-y-1.5">
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição</Label>
+                <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
                 <Label className="text-xs text-[hsl(var(--muted-foreground))]">Categoria</Label>
                 <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent" value={categoria} onChange={(e) => setCategoria(e.target.value as CategoriaExtra)}>
                   <option value="fixo">Fixo</option>
@@ -148,6 +190,9 @@ export default function Extras() {
                       <h4 className="text-sm font-medium text-white leading-tight">{extra.nome}</h4>
                       <Badge variant="outline" className={`text-[9px] ${config.color} ${config.borderColor} shrink-0 ml-2`}>{config.label}</Badge>
                     </div>
+                    {extra.descricao && (
+                      <p className="text-[11px] text-[hsl(var(--muted-foreground))] mb-2 line-clamp-2">{extra.descricao}</p>
+                    )}
                     <div className="space-y-1 mb-3">
                       {Number(extra.preco_ativacao) > 0 && (
                         <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))] text-xs">Ativação: </span><span className="text-white font-semibold">R$ {Number(extra.preco_ativacao).toFixed(2).replace(".", ",")}</span></p>
@@ -156,6 +201,13 @@ export default function Extras() {
                         <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))] text-xs">Mensal: </span><span className={`font-semibold ${config.color}`}>R$ {Number(extra.preco_mensal).toFixed(2).replace(".", ",")}/mês</span></p>
                       )}
                     </div>
+                    <Button
+                      size="sm"
+                      className="w-full gradient-primary border-0 text-white text-xs rounded-lg h-8"
+                      onClick={() => abrirAtribuir(extra)}
+                    >
+                      <UserPlus className="w-3 h-3 mr-1.5" /> Atribuir a cliente
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -167,6 +219,59 @@ export default function Extras() {
       {filtrados.length === 0 && (
         <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-12">Nenhum extra cadastrado ainda</p>
       )}
+
+      {/* Dialog Atribuir Extra a Cliente */}
+      <Dialog open={showAtribuir} onOpenChange={setShowAtribuir}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Atribuir Extra a Cliente</DialogTitle>
+          </DialogHeader>
+          {extraSelecionado && (
+            <div className="space-y-4 mt-2">
+              <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+                <p className="text-sm font-medium text-white">{extraSelecionado.nome}</p>
+                <div className="flex gap-3 mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+                  <span>{catConfig[extraSelecionado.categoria as CategoriaExtra]?.label}</span>
+                  {Number(extraSelecionado.preco_ativacao) > 0 && <span>Ativação: R$ {Number(extraSelecionado.preco_ativacao).toFixed(2).replace(".", ",")}</span>}
+                  {Number(extraSelecionado.preco_mensal) > 0 && <span>Mensal: R$ {Number(extraSelecionado.preco_mensal).toFixed(2).replace(".", ",")}</span>}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Selecionar Cliente</Label>
+                <select
+                  className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent"
+                  value={clienteSelecionado}
+                  onChange={(e) => setClienteSelecionado(e.target.value)}
+                >
+                  <option value="">Escolha um cliente...</option>
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nome} — {c.email}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Observação (opcional)</Label>
+                <Textarea
+                  className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]"
+                  placeholder="Ex: Cortesia por 3 meses..."
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                />
+              </div>
+
+              <Button
+                className="gradient-primary border-0 text-white w-full rounded-lg"
+                onClick={handleAtribuir}
+                disabled={!clienteSelecionado || saving}
+              >
+                {saving ? "Salvando..." : "Confirmar atribuição"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
