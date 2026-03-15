@@ -393,7 +393,7 @@ export default function Site() {
                 </div>
               </div>
               <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                Site moderno, funcional e totalmente personalizável, podendo adicionar conteúdos e funcionalidades de acordo com suas necessidades.
+                Site moderno, funcional e totalmente personalizável.
               </p>
               <ul className="space-y-3 mb-6 flex-1">
                 {["Site moderno e responsivo", "Página de serviços", "Página de contato", "Integração com mapa", "Botão WhatsApp direto", "Otimização para celular"].map((item, i) => (
