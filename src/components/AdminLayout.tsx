@@ -34,9 +34,9 @@ const navItems: NavItem[] = [
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
-  { href: "/admin/contratos", label: "Contratos", icon: FileText },
   { href: "/admin/suporte", label: "Suporte", icon: Headphones },
   { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
+  { href: "/admin/contratos", label: "Contratos", icon: FileText },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
