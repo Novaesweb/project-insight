@@ -38,7 +38,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#0d0d14" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[hsl(var(--background))] ambient-glow">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
