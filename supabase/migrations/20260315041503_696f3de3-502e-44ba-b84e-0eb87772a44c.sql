@@ -1,0 +1,1 @@
+DELETE FROM app_config WHERE key IN ('vapid_public_key', 'vapid_private_key');

@@ -1,25 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-let vapidPublicKey: string | null = null;
-
-async function getVapidPublicKey(): Promise<string | null> {
-  if (vapidPublicKey) return vapidPublicKey;
-  
-  const { data } = await supabase.from("app_config").select("value").eq("key", "vapid_public_key").maybeSingle();
-  if (data?.value) {
-    vapidPublicKey = data.value;
-    return vapidPublicKey;
-  }
-  
-  // Generate keys via edge function
-  const { data: result, error } = await supabase.functions.invoke("setup-vapid");
-  if (!error && result?.publicKey) {
-    vapidPublicKey = result.publicKey;
-    return vapidPublicKey;
-  }
-  
-  return null;
-}
+// VAPID Public Key - segura para uso no frontend
+const VAPID_PUBLIC_KEY = "BMHLIU9R0cLrQwH_xT4O7NDoWVrgJkbghGDdpVWAzDnGLRafYW6eB3710dQnHXeOOSpg1cGU31y2VA7oELSn1nw";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -62,10 +44,7 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     const reg = await registerServiceWorker();
     if (!reg) return false;
 
-    const publicKey = await getVapidPublicKey();
-    if (!publicKey) return false;
-
-    const appServerKey = urlBase64ToUint8Array(publicKey);
+    const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: appServerKey.buffer as ArrayBuffer,
