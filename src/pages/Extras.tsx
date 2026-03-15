@@ -31,11 +31,13 @@ export default function Extras() {
   const [categoria, setCategoria] = useState<CategoriaExtra>("fixo");
   const [showNew, setShowNew] = useState(false);
   const [showAtribuir, setShowAtribuir] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [extraSelecionado, setExtraSelecionado] = useState<any>(null);
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [observacao, setObservacao] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ nome: "", descricao: "", preco_ativacao: "", preco_mensal: "", status: "ativo" });
+  const [editForm, setEditForm] = useState({ id: "", nome: "", descricao: "", categoria: "fixo" as CategoriaExtra, preco_ativacao: "", preco_mensal: "", status: "ativo" });
 
   const fetchData = async () => {
     const [extrasRes, clientesRes] = await Promise.all([
