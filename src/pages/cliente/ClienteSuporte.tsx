@@ -50,6 +50,12 @@ export default function ClienteSuporte() {
   useRealtimeSubscription("tickets", loadTickets);
   useRealtimeSubscription("ticket_mensagens", loadMsgs);
 
+  useEffect(() => {
+    if (!selectedTicket) return;
+    const interval = setInterval(loadMsgs, 5000);
+    return () => clearInterval(interval);
+  }, [selectedTicket, loadMsgs]);
+
   const ticketAtivo = tickets.find(t => t.id === selectedTicket);
 
   const enviarMensagem = async () => {
