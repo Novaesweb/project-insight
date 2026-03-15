@@ -65,9 +65,10 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     const publicKey = await getVapidPublicKey();
     if (!publicKey) return false;
 
+    const appServerKey = urlBase64ToUint8Array(publicKey);
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
+      applicationServerKey: appServerKey.buffer as ArrayBuffer,
     });
 
     const json = subscription.toJSON();
