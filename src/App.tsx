@@ -23,6 +23,7 @@ import Usuarios from "./pages/Usuarios";
 import Leads from "./pages/Leads";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
+import Contratos from "./pages/Contratos";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
 import NichePage from "./pages/NichePage";
