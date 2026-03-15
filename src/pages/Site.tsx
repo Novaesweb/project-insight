@@ -41,6 +41,13 @@ export default function Site() {
     { href: "#projetos-solucoes", label: "Soluções" },
   ];
 
+  const scrollTo = (href: string) => {
+    setMenuOpen(false);
+    const id = href.replace("#", "");
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
