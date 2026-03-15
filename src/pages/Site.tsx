@@ -329,27 +329,47 @@ export default function Site() {
 
       {/* ─── RESULTADOS / AVALIAÇÕES ─── */}
       <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Resultados</span>
             <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
               O que nossos clientes dizem
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade.
+              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Métricas */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {[
-              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento.", autor: "Cliente NovaesWeb" },
-              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio.", autor: "Cliente NovaesWeb" },
+              { num: "6+", label: "Empresas atendidas" },
+              { num: "100%", label: "Satisfação dos clientes" },
+              { num: "7 dias", label: "Prazo médio de entrega" },
+              { num: "24h", label: "Tempo de resposta suporte" },
+            ].map((m, i) => (
+              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+                <p className="text-2xl font-bold gradient-text">{m.num}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{m.label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web" },
+              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional" },
+              { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin" },
             ].map((depo, i) => (
               <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-8">
-                <div className="flex gap-1 mb-4">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{depo.tipo}</span>
                 </div>
-                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4">"{depo.texto}"</p>
+                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{depo.texto}"</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
               </motion.div>
             ))}
