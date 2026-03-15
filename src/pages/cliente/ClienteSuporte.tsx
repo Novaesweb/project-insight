@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aberto: "#60a5fa", em_atendimento: "#facc15", resolvido: "#4ade80" };
@@ -70,6 +71,7 @@ export default function ClienteSuporte() {
     });
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
+      sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");
       setShowNovoTicket(false);
       setNovoTitulo("");
       setNovoDescricao("");

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const segmentos = ["Restaurante", "Clínica", "Loja", "Escritório", "Outro"];
 const servicosOpcoes = ["Site", "Loja Virtual", "App", "Marketing", "Identidade Visual", "Manutenção"];
@@ -62,6 +63,7 @@ export default function Cadastro() {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
       setEnviado(true);
+      sendPushToAdmins("🆕 Novo Cadastro no Site", `${form.nome} se cadastrou pelo site.`, "/admin/leads");
     }
   };
 

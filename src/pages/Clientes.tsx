@@ -12,6 +12,7 @@ import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -360,6 +361,7 @@ export default function Clientes() {
     }
 
     toast({ title: "Cliente criado!" });
+    sendPushToAdmins("👤 Novo Cliente", `${form.nome} foi cadastrado no sistema.`, "/admin/clientes");
     setShowNew(false);
     setForm({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo" });
     setSenhaCliente("");

@@ -13,6 +13,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
+import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -53,6 +54,7 @@ export default function Financeiro() {
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Lançamento criado!" });
+    sendPushToAdmins("💰 Novo Lançamento", `${form.descricao} — R$ ${form.valor}`, "/admin/financeiro");
     setShowNew(false);
     setForm({ descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" });
     load();
