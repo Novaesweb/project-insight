@@ -83,6 +83,7 @@ const App = () => (
           <Route path="/nicho/:slug" element={<NichePage />} />
           <Route path="/agendar" element={<AgendarPublico />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/instalar" element={<Instalar />} />
           <Route path="/cliente" element={<ClienteLogin />} />
 
           {/* Client Portal */}
