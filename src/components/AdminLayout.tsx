@@ -102,6 +102,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-4">
             <Input type="search" placeholder="Pesquisar..." className="max-w-xs glass-input border-0" />
+            <Button variant="ghost" size="icon" onClick={toggle} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
+              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
             <Button variant="ghost" size="icon"><Bell className="w-5 h-5" /></Button>
             <Button variant="ghost" size="icon"><Settings className="w-5 h-5" /></Button>
           </div>
