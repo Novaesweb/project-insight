@@ -42,7 +42,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { theme, toggle } = useTheme();
 
   return (
-    <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] ambient-glow">
+    <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      {/* Ambient glow background */}
+      <div className="ambient-glow fixed inset-0 pointer-events-none z-0" />
       <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:block">
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
