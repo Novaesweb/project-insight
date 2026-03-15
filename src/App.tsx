@@ -64,6 +64,7 @@ function AdminWithSplash() {
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/contratos" element={<Contratos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AdminLayout>
