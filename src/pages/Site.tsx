@@ -684,7 +684,7 @@ export default function Site() {
                     <p><strong className="text-[hsl(var(--foreground))]">Gerenciamento:</strong> Você pode desativar cookies nas configurações do seu navegador, porém isso pode afetar algumas funcionalidades do site.</p>
                   </div>
                 </div>
-              )
+              )}
             </motion.div>
           </motion.div>
         )}
