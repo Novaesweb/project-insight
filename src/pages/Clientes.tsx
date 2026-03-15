@@ -230,6 +230,64 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           </TabsContent>
         </Tabs>
       </motion.div>
+
+      {/* Dialog Adicionar Extra */}
+      <Dialog open={showAddExtra} onOpenChange={setShowAddExtra}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white">Adicionar Extra ao Cliente</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Selecionar Extra</Label>
+              <select
+                className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent"
+                value={extraSelecionado}
+                onChange={(e) => setExtraSelecionado(e.target.value)}
+              >
+                <option value="">Escolha um extra...</option>
+                {extrasDisponiveis.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome} — {catLabels[c.categoria] || c.categoria} {Number(c.preco_mensal) > 0 ? `(R$ ${Number(c.preco_mensal).toFixed(2).replace(".", ",")}/mês)` : ""} {Number(c.preco_ativacao) > 0 ? `(Ativ: R$ ${Number(c.preco_ativacao).toFixed(2).replace(".", ",")})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {extraSelecionado && (() => {
+              const sel = catalogo.find(c => c.id === extraSelecionado);
+              if (!sel) return null;
+              return (
+                <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+                  <p className="text-sm font-medium text-white">{sel.nome}</p>
+                  {sel.descricao && <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-0.5">{sel.descricao}</p>}
+                  <div className="flex gap-3 mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className={catColors[sel.categoria]}>{catLabels[sel.categoria]}</span>
+                    {Number(sel.preco_ativacao) > 0 && <span>Ativação: R$ {Number(sel.preco_ativacao).toFixed(2).replace(".", ",")}</span>}
+                    {Number(sel.preco_mensal) > 0 && <span>Mensal: R$ {Number(sel.preco_mensal).toFixed(2).replace(".", ",")}</span>}
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Observação (opcional)</Label>
+              <Textarea
+                className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]"
+                placeholder="Ex: Cortesia por 3 meses..."
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
+              />
+            </div>
+
+            <Button
+              className="gradient-primary border-0 text-white w-full rounded-lg"
+              onClick={handleAddExtra}
+              disabled={!extraSelecionado || savingExtra}
+            >
+              {savingExtra ? "Salvando..." : "Confirmar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
