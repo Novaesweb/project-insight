@@ -196,7 +196,7 @@ export default function Site() {
               { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas sob medida para gerenciar clientes, pedidos, agendamentos, financeiro, relatórios e tudo que seu negócio precisa. Acesso de qualquer lugar, 100% na nuvem." },
               { icon: Smartphone, titulo: "Landing Pages", desc: "Páginas de alta conversão para campanhas de marketing digital. Design focado em capturar leads e gerar resultados rápidos para seu negócio com formulários inteligentes." },
               { icon: Shield, titulo: "Manutenção e Suporte", desc: "Suporte técnico contínuo, atualizações de segurança, backups automáticos e monitoramento 24h. Garantimos que seu site esteja sempre no ar e funcionando perfeitamente." },
-              { icon: Zap, titulo: "Automação e Integrações", desc: "Automatize tarefas repetitivas e integre seu site com WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam seus resultados." },
+              { icon: Zap, titulo: "Automação e Integrações", desc: "Automatize tarefas repetitivas e integre seu site com WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam seus resultados.", badge: "Em desenvolvimento", badgeMsg: "🚀 Estamos construindo integrações poderosas para você automatizar tudo — em breve disponível!" },
             ].map((s, i) => (
               <motion.div
                 key={i}
@@ -206,8 +206,18 @@ export default function Site() {
                 <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mb-6 shadow-lg shadow-[hsl(var(--primary))]/20 group-hover:scale-105 transition-transform">
                   <s.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">{s.titulo}</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xl font-semibold text-[hsl(var(--foreground))]">{s.titulo}</h3>
+                  {'badge' in s && (s as any).badge && (
+                    <span className="text-[0.65rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                      {(s as any).badge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{s.desc}</p>
+                {'badgeMsg' in s && (s as any).badgeMsg && (
+                  <p className="text-xs text-amber-400/80 mt-3 italic">{(s as any).badgeMsg}</p>
+                )}
               </motion.div>
             ))}
           </div>
