@@ -18,19 +18,34 @@ export default function ClienteLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await supabase
+
+    // Login with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password: senha,
+    });
+
+    if (authError) {
+      toast({ title: "Erro", description: "E-mail ou senha incorretos", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    // Fetch client record by email
+    const { data: clienteData } = await supabase
       .from("clientes")
       .select("*")
       .eq("email", email)
       .eq("status", "ativo")
       .maybeSingle();
 
-    if (data) {
-      localStorage.setItem("clienteLogado", JSON.stringify(data));
-      toast({ title: "Login realizado!", description: `Bem-vindo, ${data.nome}` });
+    if (clienteData) {
+      localStorage.setItem("clienteLogado", JSON.stringify(clienteData));
+      toast({ title: "Login realizado!", description: `Bem-vindo, ${clienteData.nome}` });
       navigate("/cliente/dashboard");
     } else {
-      toast({ title: "Erro", description: "E-mail não encontrado ou cliente inativo", variant: "destructive" });
+      toast({ title: "Erro", description: "Conta de cliente não encontrada ou inativa", variant: "destructive" });
+      await supabase.auth.signOut();
     }
     setLoading(false);
   };
@@ -43,7 +58,6 @@ export default function ClienteLogin() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full max-w-[400px] space-y-8 relative z-10"
       >
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -71,7 +85,6 @@ export default function ClienteLogin() {
           </div>
         </motion.div>
 
-        {/* Form Card */}
         <motion.form
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -116,10 +129,6 @@ export default function ClienteLogin() {
           >
             {loading ? "Entrando..." : "Acessar minha conta"}
           </Button>
-
-          <button type="button" className="w-full text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
-            Esqueci minha senha
-          </button>
         </motion.form>
 
         <p className="text-center text-[10px] text-[hsl(var(--muted-foreground))]/50">

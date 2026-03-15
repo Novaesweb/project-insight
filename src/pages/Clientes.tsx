@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw } from "lucide-react";
+import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw, Link as LinkIcon, Copy, UserPlus } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -88,12 +88,26 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center">
                 <span className="text-white text-lg font-bold">{avatar}</span>
               </div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-xl font-bold text-white">{cliente.nome}</h2>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{cliente.email} · {cliente.telefone}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">{cliente.cidade}, {cliente.estado} · {cliente.documento}</p>
               </div>
-              <div className="ml-auto"><StatusBadge status={cliente.status} /></div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-white"
+                  onClick={() => {
+                    const link = `${window.location.origin}/cliente`;
+                    navigator.clipboard.writeText(link);
+                    toast({ title: "Link copiado!", description: "Compartilhe o link do portal com o cliente." });
+                  }}
+                >
+                  <LinkIcon className="w-3 h-3 mr-1" /> Link do Portal
+                </Button>
+                <StatusBadge status={cliente.status} />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -299,7 +313,11 @@ export default function Clientes() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [criarConta, setCriarConta] = useState(true);
+  const [senhaCliente, setSenhaCliente] = useState("");
+  const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo" });
+  const [saving, setSaving] = useState(false);
 
   const fetchClientes = async () => {
     const { data } = await supabase.from("clientes").select("*").order("created_at", { ascending: false });
@@ -319,12 +337,34 @@ export default function Clientes() {
   });
 
   const handleSave = async () => {
+    if (!form.nome || !form.email) {
+      toast({ title: "Preencha nome e e-mail", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
     const { error } = await supabase.from("clientes").insert({ ...form, avatar });
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); setSaving(false); return; }
+
+    // Create auth account for client portal
+    if (criarConta && senhaCliente.length >= 6) {
+      const { error: accountError } = await supabase.functions.invoke("create-account", {
+        body: { email: form.email, password: senhaCliente, nome: form.nome, tipo: "cliente" },
+      });
+      if (accountError) {
+        toast({ title: "Cliente criado, mas erro na conta", description: "Crie a conta manualmente depois.", variant: "destructive" });
+      } else {
+        const link = `${window.location.origin}/cliente`;
+        setContaCriada({ email: form.email, senha: senhaCliente, link });
+      }
+    }
+
     toast({ title: "Cliente criado!" });
     setShowNew(false);
     setForm({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo" });
+    setSenhaCliente("");
+    setCriarConta(true);
+    setSaving(false);
     fetchClientes();
   };
 
@@ -352,7 +392,24 @@ export default function Clientes() {
                 </div>
               ))}
             </div>
-            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave}>Salvar Cliente</Button>
+
+            <div className="mt-4 p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] space-y-3">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={criarConta} onChange={e => setCriarConta(e.target.checked)} className="rounded" />
+                <Label className="text-xs text-white cursor-pointer">Criar conta de acesso ao Portal do Cliente</Label>
+              </div>
+              {criarConta && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Senha de acesso (mín. 6 caracteres)</Label>
+                  <Input type="text" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                    value={senhaCliente} onChange={e => setSenhaCliente(e.target.value)} placeholder="Defina a senha do cliente" />
+                </div>
+              )}
+            </div>
+
+            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar Cliente"}
+            </Button>
           </DialogContent>
         </Dialog>
       </motion.div>
@@ -415,6 +472,41 @@ export default function Clientes() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Dialog Conta Criada */}
+      <Dialog open={!!contaCriada} onOpenChange={() => setContaCriada(null)}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white flex items-center gap-2"><UserPlus className="w-5 h-5" /> Conta criada com sucesso!</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Compartilhe os dados abaixo com o cliente para que ele acesse o portal:</p>
+            <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] space-y-3">
+              <div>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Link do Portal</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white font-mono flex-1">{contaCriada?.link}</p>
+                  <Button size="sm" variant="ghost" className="text-white/50 h-7" onClick={() => { navigator.clipboard.writeText(contaCriada?.link || ""); toast({ title: "Link copiado!" }); }}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">E-mail</p>
+                <p className="text-sm text-white">{contaCriada?.email}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Senha</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white font-mono">{contaCriada?.senha}</p>
+                  <Button size="sm" variant="ghost" className="text-white/50 h-7" onClick={() => { navigator.clipboard.writeText(contaCriada?.senha || ""); toast({ title: "Senha copiada!" }); }}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <Button className="gradient-primary border-0 text-white w-full" onClick={() => setContaCriada(null)}>Entendi</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

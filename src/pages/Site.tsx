@@ -576,8 +576,7 @@ export default function Site() {
               <h4 className="text-sm font-semibold text-[hsl(var(--foreground))] mb-3">Acesso</h4>
               <div className="flex flex-col gap-2">
                 <Link to="/cadastro" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Solicitar Orçamento</Link>
-                <Link to="/cliente" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Portal do Cliente</Link>
-                <Link to="/admin/login" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Painel Admin</Link>
+                <Link to="/agendar" className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">Agendar Reunião</Link>
               </div>
             </div>
           </div>
