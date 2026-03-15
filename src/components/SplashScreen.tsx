@@ -45,7 +45,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center ambient-glow"
           style={{ background: "#0d0d14" }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
