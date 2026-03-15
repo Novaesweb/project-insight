@@ -27,6 +27,12 @@ interface NotificationCenterProps {
 export default function NotificationCenter({ userType, userId }: NotificationCenterProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio("/notification-sound.mp3");
+    audioRef.current.volume = 0.5;
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -59,6 +65,11 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
           const n = payload.new as Notification;
           if (n.user_type === userType && (userType === "admin" || n.user_id === userId)) {
             setNotifications(prev => [n, ...prev].slice(0, 30));
+            // Play notification sound
+            if (audioRef.current) {
+              audioRef.current.currentTime = 0;
+              audioRef.current.play().catch(() => {});
+            }
           }
         }
       )
