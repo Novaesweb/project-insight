@@ -14,7 +14,7 @@ serve(async (req) => {
 
   return new Response(JSON.stringify({ 
     message: "VAPID keys are now managed via environment secrets. No action needed.",
-    publicKey: "BMHLIU9R0cLrQwH_xT4O7NDoWVrgJkbghGDdpVWAzDnGLRafYW6eB3710dQnHXeOOSpg1cGU31y2VA7oELSn1nw"
+    publicKey: "BMlJpRsOWX7luyOKwJASaYSiYsaFB8wFAby052uhW-tYhfAK57RzU6Y_aJBjJqhCWoU1OztcKE_5fUUv3ghsubA"
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
