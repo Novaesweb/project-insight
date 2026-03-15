@@ -275,40 +275,6 @@ export default function Configuracoes() {
                 </CardContent>
               </Card>
 
-              {/* Event Preferences */}
-              <Card className="glass-card border-[0.5px]">
-                <CardHeader>
-                  <CardTitle className="text-sm text-white">Preferências por Evento</CardTitle>
-                  <CardDescription>Configure alertas por tipo de evento</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  {[
-                    { evento: "Novo cliente cadastrado", email: true, push: true },
-                    { evento: "Nova mensagem no suporte", email: true, push: true },
-                    { evento: "Atualização no financeiro", email: true, push: true },
-                    { evento: "Novo contrato criado", email: true, push: true },
-                    { evento: "Extra adicionado ao projeto", email: true, push: true },
-                    { evento: "Atualização no andamento do projeto", email: true, push: true },
-                    { evento: "Novo pedido criado", email: true, push: true },
-                    { evento: "Pagamento em atraso", email: true, push: true },
-                  ].map((n) => (
-                    <div key={n.evento} className="flex items-center justify-between">
-                      <p className="text-sm text-white">{n.evento}</p>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-[hsl(var(--muted-foreground))]">E-mail</span>
-                          <Switch defaultChecked={n.email} />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-[hsl(var(--muted-foreground))]">Push</span>
-                          <Switch defaultChecked={n.push} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <Button className="gradient-primary border-0 text-white mt-4 rounded-lg" onClick={() => toast({ title: "Preferências salvas!" })}>Salvar Preferências</Button>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>
