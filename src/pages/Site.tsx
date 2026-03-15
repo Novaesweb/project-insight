@@ -182,51 +182,7 @@ export default function Site() {
         <NicheCarousel />
       </section>
 
-      {/* Sobre / Quem Somos */}
-      <motion.section id="sobre" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-3">Quem somos</span>
-            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">Sobre a NovaesWeb</h2>
-          </motion.div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <motion.div variants={fadeUp} className="glass-card rounded-2xl p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))]">Nossa história</h3>
-              </div>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                A NovaesWeb nasceu com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais, principalmente negócios que ainda não tinham presença digital. Com o tempo, o projeto evoluiu para criar sistemas mais completos, como painéis administrativos, sistemas de cadastro e controle de clientes.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Hoje seguimos expandindo o projeto, criando novas soluções e aprimorando cada sistema desenvolvido.
-              </p>
-            </motion.div>
-            <motion.div variants={fadeUp} className="glass-card rounded-2xl p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))]">Quem somos</h3>
-              </div>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                Somos um projeto independente que trabalha com desenvolvimento web e soluções digitais, utilizando tecnologia moderna e também o apoio de inteligência artificial para otimizar processos e acelerar o desenvolvimento.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                A NovaesWeb surgiu da vontade de aprender, evoluir e criar soluções reais que possam ajudar empresas a crescer no ambiente digital.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Estamos em constante evolução, sempre buscando melhorar nossos projetos e entregar soluções cada vez mais completas.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
+      {/* Sobre / Quem Somos (removido da home, mantendo apenas no menu mobile) */}
 
       {/* Missão, Visão, Valores */}
       <motion.section id="missao" className="py-20 px-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
