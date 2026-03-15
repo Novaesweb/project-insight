@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
   Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck,
-  Sun, Moon
+  Sun, Moon, Puzzle
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
