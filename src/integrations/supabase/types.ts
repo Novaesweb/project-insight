@@ -80,33 +80,39 @@ export type Database = {
       contratos: {
         Row: {
           cliente_id: string | null
+          corpo: string | null
           created_at: string
           data_assinatura: string | null
           data_envio: string
           descricao: string | null
           id: string
+          modelo: string | null
           status: string
           titulo: string
           valor: number
         }
         Insert: {
           cliente_id?: string | null
+          corpo?: string | null
           created_at?: string
           data_assinatura?: string | null
           data_envio?: string
           descricao?: string | null
           id?: string
+          modelo?: string | null
           status?: string
           titulo: string
           valor?: number
         }
         Update: {
           cliente_id?: string | null
+          corpo?: string | null
           created_at?: string
           data_assinatura?: string | null
           data_envio?: string
           descricao?: string | null
           id?: string
+          modelo?: string | null
           status?: string
           titulo?: string
           valor?: number

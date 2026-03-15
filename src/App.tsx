@@ -23,6 +23,7 @@ import Usuarios from "./pages/Usuarios";
 import Leads from "./pages/Leads";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
+import Contratos from "./pages/Contratos";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
 import NichePage from "./pages/NichePage";
@@ -63,6 +64,7 @@ function AdminWithSplash() {
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/contratos" element={<Contratos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AdminLayout>

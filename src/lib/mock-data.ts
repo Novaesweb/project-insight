@@ -42,4 +42,5 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/configuracoes": { titulo: "Configurações", subtitulo: "Configurações do sistema" },
   "/admin/agenda": { titulo: "Agenda", subtitulo: "Gerencie suas reuniões e agendamentos" },
   "/admin/leads": { titulo: "Leads", subtitulo: "Acompanhe os leads do site" },
+  "/admin/contratos": { titulo: "Contratos", subtitulo: "Gerencie contratos digitais" },
 };
