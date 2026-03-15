@@ -31,6 +31,14 @@ const valores = [
 ];
 
 export default function Site() {
+  const desktopLinks = [
+    { href: "#servicos", label: "Serviços" },
+    { href: "#nichos", label: "Segmentos" },
+    { href: "#missao", label: "Missão" },
+    { href: "#como-funciona", label: "Como Funciona" },
+    { href: "#projetos-solucoes", label: "Soluções" },
+  ];
+
   const menuLinks = [
     { href: "#servicos", label: "Serviços" },
     { href: "#nichos", label: "Segmentos" },
@@ -65,7 +73,7 @@ export default function Site() {
             </span>
           </div>
           <div className="hidden lg:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
-            {menuLinks.map((link, index) => (
+            {desktopLinks.map((link, index) => (
               <button key={`desktop-${index}`} onClick={() => scrollTo(link.href)} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</button>
             ))}
           </div>
