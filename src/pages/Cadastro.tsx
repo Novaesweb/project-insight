@@ -96,6 +96,10 @@ export default function Cadastro() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
+        {/* Botão Voltar */}
+        <Link to="/" className="inline-flex items-center gap-1 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors mb-6">
+          <ChevronLeft className="w-4 h-4" /> Voltar ao site
+        </Link>
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-6">
