@@ -26,6 +26,7 @@ import Agenda from "./pages/Agenda";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
 import NichePage from "./pages/NichePage";
+import Instalar from "./pages/Instalar";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
 import ClienteProjetos from "./pages/cliente/ClienteProjetos";
@@ -82,6 +83,7 @@ const App = () => (
           <Route path="/nicho/:slug" element={<NichePage />} />
           <Route path="/agendar" element={<AgendarPublico />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/instalar" element={<Instalar />} />
           <Route path="/cliente" element={<ClienteLogin />} />
 
           {/* Client Portal */}
