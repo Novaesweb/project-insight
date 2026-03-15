@@ -1,29 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquare, Send, ArrowLeft } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function Suporte() {
+  const { toast } = useToast();
   const [tickets, setTickets] = useState<any[]>([]);
   const [mensagens, setMensagens] = useState<any[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [filtroPrioridade, setFiltroPrioridade] = useState("todos");
+  const [texto, setTexto] = useState("");
+  const [sending, setSending] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from("tickets").select("*, clientes(nome)").order("created_at", { ascending: false });
-      setTickets(data || []);
-    };
-    load();
-  }, []);
+  const loadTickets = async () => {
+    const { data } = await supabase.from("tickets").select("*, clientes(nome)").order("created_at", { ascending: false });
+    setTickets(data || []);
+  };
+
+  useEffect(() => { loadTickets(); }, []);
 
   const loadMessages = async (ticketId: string) => {
     const { data } = await supabase.from("ticket_mensagens").select("*").eq("ticket_id", ticketId).order("created_at", { ascending: true });
@@ -36,10 +40,40 @@ export default function Suporte() {
     if (selectedTicket) loadMessages(selectedTicket);
   }, [selectedTicket]);
 
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [mensagens.length]);
+
+  const enviarMensagem = async () => {
+    if (!texto.trim() || !selectedTicket) return;
+    setSending(true);
+    const { data, error } = await supabase.from("ticket_mensagens").insert({
+      ticket_id: selectedTicket,
+      remetente: "admin",
+      nome: "Suporte NovaesWeb",
+      texto: texto.trim(),
+    }).select().single();
+    setSending(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (data) setMensagens(prev => [...prev, data]);
+    setTexto("");
+    // Auto update ticket status to em_atendimento if aberto
+    if (ticket?.status === "aberto") {
+      await supabase.from("tickets").update({ status: "em_atendimento" }).eq("id", selectedTicket);
+      setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: "em_atendimento" } : t));
+    }
+  };
+
+  const changeStatus = async (newStatus: string) => {
+    if (!selectedTicket) return;
+    const { error } = await supabase.from("tickets").update({ status: newStatus }).eq("id", selectedTicket);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: newStatus } : t));
+    toast({ title: "Status atualizado!" });
+  };
+
   const filtrados = tickets.filter(t => {
-    const matchStatus = filtroStatus === "todos" || t.status === filtroStatus;
-    const matchPrioridade = filtroPrioridade === "todos" || t.prioridade === filtroPrioridade;
-    return matchStatus && matchPrioridade;
+    return filtroStatus === "todos" || t.status === filtroStatus;
   });
 
   if (ticket) {
@@ -57,22 +91,34 @@ export default function Suporte() {
                   <CardTitle className="text-lg text-white mt-1">{ticket.titulo}</CardTitle>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{ticket.clientes?.nome}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <StatusBadge status={ticket.prioridade} />
-                  <StatusBadge status={ticket.status} />
+                  <Select value={ticket.status} onValueChange={changeStatus}>
+                    <SelectTrigger className="w-[150px] h-8 glass-input border-0 text-xs text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="aberto">Aberto</SelectItem>
+                      <SelectItem value="em_atendimento">Em atendimento</SelectItem>
+                      <SelectItem value="resolvido">Resolvido</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6">{ticket.descricao}</p>
-              <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
+              {ticket.descricao && (
+                <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">{ticket.descricao}</p>
+              )}
+              <div ref={chatRef} className="space-y-4 mb-6 max-h-[400px] overflow-y-auto pr-2">
                 {mensagens.map((msg: any) => {
-                  const isSupport = msg.remetente === "admin";
+                  const isAdmin = msg.remetente === "admin";
                   return (
-                    <div key={msg.id} className={`flex ${isSupport ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] p-3 rounded-xl text-sm ${isSupport ? "gradient-primary text-white" : "glass-card text-white"}`}>
-                        <p className="text-[10px] font-semibold mb-1 opacity-70">{msg.nome} · {new Date(msg.created_at).toLocaleString("pt-BR")}</p>
+                    <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[75%] p-3 rounded-2xl text-sm ${isAdmin ? "rounded-br-md gradient-primary text-white" : "rounded-bl-md glass-card text-white"}`}>
+                        <p className="text-[10px] font-semibold mb-1 opacity-60">{msg.nome}</p>
                         <p>{msg.texto}</p>
+                        <p className="text-[9px] opacity-40 mt-1">{new Date(msg.created_at).toLocaleString("pt-BR")}</p>
                       </div>
                     </div>
                   );
@@ -80,8 +126,20 @@ export default function Suporte() {
                 {mensagens.length === 0 && <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhuma mensagem ainda</p>}
               </div>
               <div className="flex gap-2">
-                <Input placeholder="Digite sua resposta..." className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm flex-1" />
-                <Button className="gradient-primary border-0 text-white rounded-lg"><Send className="w-4 h-4" /></Button>
+                <Input
+                  placeholder="Digite sua resposta..."
+                  className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm flex-1"
+                  value={texto}
+                  onChange={e => setTexto(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && enviarMensagem()}
+                />
+                <Button
+                  className="gradient-primary border-0 text-white rounded-lg"
+                  onClick={enviarMensagem}
+                  disabled={sending || !texto.trim()}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
