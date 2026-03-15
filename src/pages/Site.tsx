@@ -389,109 +389,108 @@ export default function Site() {
         </div>
       </motion.section>
 
-      {/* ─── MISSÃO / VISÃO / VALORES ─── */}
-      <motion.section className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-7xl mx-auto">
-          <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossos pilares</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
-              Missão, Visão e Valores
-            </h2>
+      {/* ─── MODAIS (Sobre / Quem Somos) ─── */}
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            onClick={() => setModalOpen(null)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-[hsl(var(--background))] border border-[hsl(var(--border))] shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setModalOpen(null)}
+                className="absolute top-4 right-4 p-2 rounded-xl hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--muted-foreground))] z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {modalOpen === "sobre" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossa história</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sobre a NovaesWeb</h2>
+                  </div>
+                  <div className="rounded-2xl overflow-hidden mb-6">
+                    <img src={aboutPhoto} alt="NovaesWeb" className="w-full h-48 object-cover" />
+                  </div>
+                  <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    <p>A NovaesWeb é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.</p>
+                    <p>Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento. Utilizamos tecnologias de ponta como React, TypeScript e bancos de dados em nuvem.</p>
+                    <p>Nascemos com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa. Mesmo sendo um projeto recente, já participamos do desenvolvimento de soluções utilizadas por cerca de 6 empresas.</p>
+                    <p>Acreditamos que toda empresa, independente do tamanho, merece ter uma presença digital profissional e ferramentas de gestão que simplifiquem sua rotina. Nosso diferencial está no atendimento humanizado, na agilidade de entrega e na evolução contínua dos projetos.</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mt-8">
+                    <div className="glass-card rounded-xl p-4 text-center">
+                      <Target className="w-6 h-6 text-[hsl(var(--primary))] mx-auto mb-2" />
+                      <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] mb-1">Missão</h4>
+                      <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Criar soluções digitais acessíveis para empresas</p>
+                    </div>
+                    <div className="glass-card rounded-xl p-4 text-center">
+                      <Eye className="w-6 h-6 text-[hsl(var(--primary))] mx-auto mb-2" />
+                      <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] mb-1">Visão</h4>
+                      <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Referência em tecnologia para PMEs</p>
+                    </div>
+                    <div className="glass-card rounded-xl p-4 text-center">
+                      <Heart className="w-6 h-6 text-[hsl(var(--primary))] mx-auto mb-2" />
+                      <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] mb-1">Valores</h4>
+                      <p className="text-[10px] text-[hsl(var(--muted-foreground))]">Transparência, compromisso e evolução</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-[hsl(var(--border))]">
+                    <div className="flex gap-6">
+                      <div><span className="text-lg font-bold gradient-text">6+</span><p className="text-[10px] text-[hsl(var(--muted-foreground))]">Empresas</p></div>
+                      <div><span className="text-lg font-bold gradient-text">2025</span><p className="text-[10px] text-[hsl(var(--muted-foreground))]">Fundação</p></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {modalOpen === "quem-somos" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossa equipe</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Quem Somos</h2>
+                  </div>
+                  <div className="space-y-6">
+                    <div className="glass-card rounded-2xl p-6">
+                      <Users className="w-8 h-8 text-[hsl(var(--primary))] mb-3" />
+                      <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-2">Quem Somos</h3>
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                        Somos um projeto independente de tecnologia focado em criar soluções digitais para empresas reais. Utilizamos tecnologia moderna, inteligência artificial e metodologias ágeis para entregar projetos rápidos, eficientes e de qualidade. Nosso compromisso é com resultado.
+                      </p>
+                    </div>
+                    <div className="glass-card rounded-2xl p-6">
+                      <Globe className="w-8 h-8 text-[hsl(var(--primary))] mb-3" />
+                      <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-2">De Onde Viemos</h3>
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                        A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais. Com o tempo, evoluímos para criar sistemas mais completos como painéis administrativos, portais do cliente, CRMs e controle financeiro. Cada projeto nos ensinou algo novo.
+                      </p>
+                    </div>
+                    <div className="glass-card rounded-2xl p-6">
+                      <Rocket className="w-8 h-8 text-[hsl(var(--primary))] mb-3" />
+                      <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-2">Para Onde Vamos</h3>
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                        Seguimos expandindo, criando novas soluções e aprimorando cada sistema. Nosso objetivo é nos tornar referência em desenvolvimento web para PMEs, oferecendo plataformas completas com preço justo e evolução constante ao lado dos nossos clientes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
-              <Target className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Missão</h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Criar soluções digitais simples, modernas e acessíveis que ajudem empresas a organizar seus serviços e melhorar sua presença online.
-              </p>
-            </motion.div>
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
-              <Eye className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Visão</h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Crescer como uma empresa de tecnologia que desenvolve sistemas práticos e eficientes, sempre evoluindo junto com nossos clientes.
-              </p>
-            </motion.div>
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
-              <Heart className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Valores</h3>
-              <ul className="space-y-2">
-                {["Transparência", "Compromisso", "Evolução constante", "Soluções funcionais", "Crescimento mútuo"].map((v, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                    <CheckCircle className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
-                    {v}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ─── SOBRE (acessível pelo menu mobile) ─── */}
-      <motion.section id="sobre" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-            <motion.div variants={fade}>
-              <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossa história</span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3 leading-tight">
-                Sobre a NovaesWeb
-              </h2>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-5">
-                A NovaesWeb é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
-                Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento. Utilizamos tecnologias de ponta como React, TypeScript e bancos de dados em nuvem.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
-                Nascemos com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa. Mesmo sendo um projeto recente, já participamos do desenvolvimento de soluções utilizadas por cerca de 6 empresas.
-              </p>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3">
-                Acreditamos que toda empresa, independente do tamanho, merece ter uma presença digital profissional e ferramentas de gestão que simplifiquem sua rotina. Nosso diferencial está no atendimento humanizado, na agilidade de entrega e na evolução contínua dos projetos.
-              </p>
-            </motion.div>
-            <motion.div variants={fade} className="relative">
-              <div className="rounded-2xl overflow-hidden shadow-2xl shadow-[hsl(var(--primary))]/10">
-                <img src={aboutPhoto} alt="Ambiente de trabalho NovaesWeb - desenvolvimento de soluções digitais" className="w-full h-auto object-cover" />
-              </div>
-              <div className="absolute -bottom-4 -left-4 glass-card rounded-xl p-4 shadow-lg">
-                <p className="text-2xl font-bold gradient-text">6+</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Empresas atendidas</p>
-              </div>
-              <div className="absolute -top-4 -right-4 glass-card rounded-xl p-4 shadow-lg">
-                <p className="text-2xl font-bold gradient-text">2025</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">Fundação</p>
-              </div>
-            </motion.div>
-          </div>
-
-          <div id="quem-somos" className="grid md:grid-cols-3 gap-6">
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
-              <Users className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Quem Somos</h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Somos um projeto independente de tecnologia focado em criar soluções digitais para empresas reais. Utilizamos tecnologia moderna, inteligência artificial e metodologias ágeis para entregar projetos rápidos, eficientes e de qualidade. Nosso compromisso é com resultado.
-              </p>
-            </motion.div>
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
-              <Globe className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">De Onde Viemos</h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                A ideia começou com o objetivo de desenvolver sites e sistemas simples para empresas locais. Com o tempo, evoluímos para criar sistemas mais completos como painéis administrativos, portais do cliente, CRMs e controle financeiro. Cada projeto nos ensinou algo novo.
-              </p>
-            </motion.div>
-            <motion.div variants={fade} className="glass-card rounded-2xl p-8">
-              <Rocket className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">Para Onde Vamos</h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Seguimos expandindo, criando novas soluções e aprimorando cada sistema. Nosso objetivo é nos tornar referência em desenvolvimento web para PMEs, oferecendo plataformas completas com preço justo e evolução constante ao lado dos nossos clientes.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* ─── CTA FINAL / CONTATO ─── */}
       <section id="contato" className="py-24 px-6">
