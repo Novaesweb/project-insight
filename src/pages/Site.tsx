@@ -41,6 +41,13 @@ export default function Site() {
     { href: "#projetos-solucoes", label: "Soluções" },
   ];
 
+  const scrollTo = (href: string) => {
+    setMenuOpen(false);
+    const id = href.replace("#", "");
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -58,8 +65,8 @@ export default function Site() {
             </span>
           </div>
           <div className="hidden lg:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
-            {menuLinks.map((link) => (
-              <a key={link.href} href={link.href} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</a>
+            {menuLinks.map((link, index) => (
+              <button key={`desktop-${index}`} onClick={() => scrollTo(link.href)} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</button>
             ))}
           </div>
           <div className="flex items-center gap-2">
@@ -88,14 +95,13 @@ export default function Site() {
             >
               <div className="px-4 py-4 flex flex-col gap-3">
                 {menuLinks.map((link, index) => (
-                  <a
+                  <button
                     key={`${link.href}-${index}`}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
+                    onClick={() => scrollTo(link.href)}
+                    className="text-left text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 ))}
                 <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="sm:hidden">
                   <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg w-full mt-2">
