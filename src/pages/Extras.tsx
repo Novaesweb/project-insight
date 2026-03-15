@@ -320,6 +320,48 @@ export default function Extras() {
           )}
         </DialogContent>
       </Dialog>
+      {/* Dialog Editar Extra */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white">Editar Extra</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome</Label>
+              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.nome} onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição</Label>
+              <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]" value={editForm.descricao} onChange={(e) => setEditForm({ ...editForm, descricao: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Categoria</Label>
+              <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent" value={editForm.categoria} onChange={(e) => setEditForm({ ...editForm, categoria: e.target.value as CategoriaExtra })}>
+                <option value="fixo">Fixo</option>
+                <option value="intermediario">Intermediário</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço ativação (R$)</Label>
+              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.preco_ativacao} onChange={(e) => setEditForm({ ...editForm, preco_ativacao: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Preço mensal (R$)</Label>
+              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.preco_mensal} onChange={(e) => setEditForm({ ...editForm, preco_mensal: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Status</Label>
+              <select className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleEdit} disabled={saving}>
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
