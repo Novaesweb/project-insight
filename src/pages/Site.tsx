@@ -29,6 +29,7 @@ export default function Site() {
   const modalLinks = [
     { id: "sobre", label: "Sobre NovaesWeb" },
     { id: "quem-somos", label: "Quem Somos" },
+    { id: "diferenciais", label: "Por que a NovaesWeb?" },
   ];
 
   const scrollTo = (href: string) => {
