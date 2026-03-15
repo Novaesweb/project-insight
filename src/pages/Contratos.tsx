@@ -253,7 +253,10 @@ export default function Contratos() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" className="text-[hsl(var(--muted-foreground))] text-xs h-7 px-2" onClick={() => handleDownloadPDF(c)}>
+                      <Button size="sm" variant="ghost" className="text-[hsl(var(--muted-foreground))] text-xs h-7 px-2" title="Ver contrato" onClick={() => handleViewContrato(c)}>
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-[hsl(var(--muted-foreground))] text-xs h-7 px-2" title="Baixar PDF" onClick={() => handleDownloadPDF(c)}>
                         <Download className="w-3 h-3" />
                       </Button>
                       <Badge variant="outline" className="text-[10px] border-0 px-2"
