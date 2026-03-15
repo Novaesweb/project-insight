@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { pageInfo } from "@/lib/mock-data";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import TopProgressBar from "@/components/TopProgressBar";
+import NotificationCenter from "@/components/NotificationCenter";
 
 interface NavItem {
   href: string;
