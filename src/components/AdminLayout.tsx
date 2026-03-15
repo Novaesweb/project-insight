@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck
+  Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck,
+  Sun, Moon
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
