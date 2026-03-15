@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const segmentos = ["Restaurante", "Clínica", "Loja", "Escritório", "Outro"];
 const servicosOpcoes = ["Site", "Loja Virtual", "App", "Marketing", "Identidade Visual", "Manutenção"];
