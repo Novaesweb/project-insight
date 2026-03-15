@@ -1,27 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, Clock, Video, Plus } from "lucide-react";
+import { CalendarDays, Clock, Video } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type TipoReuniao, type StatusReuniao } from "@/lib/mock-data";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function ClienteReunioes() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
-  const { toast } = useToast();
-  const [showModal, setShowModal] = useState(false);
   const [reunioes, setReunioes] = useState<any[]>([]);
-  const [form, setForm] = useState({ tipo: "", data: "", horario: "", mensagem: "" });
 
   const load = useCallback(() => {
     if (!cliente.id) return;
@@ -32,30 +22,6 @@ export default function ClienteReunioes() {
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("reunioes", load);
 
-  const solicitarReuniao = async () => {
-    if (!form.tipo || !form.data || !form.horario) {
-      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
-      return;
-    }
-    const [h, m] = form.horario.split(":");
-    const horaFim = `${String(Number(h) + 1).padStart(2, "0")}:${m}`;
-    const { error } = await supabase.from("reunioes").insert({
-      cliente_id: cliente.id,
-      tipo: form.tipo,
-      data: form.data,
-      hora_inicio: form.horario,
-      hora_fim: horaFim,
-      observacoes: form.mensagem || null,
-      status: "aguardando",
-    });
-    if (!error) {
-      toast({ title: "Solicitação enviada!", description: "Aguarde a confirmação da equipe." });
-      setShowModal(false);
-      setForm({ tipo: "", data: "", horario: "", mensagem: "" });
-      load();
-    }
-  };
-
   const proximas = reunioes.filter(r => r.status === "agendada" || r.status === "confirmada" || r.status === "aguardando");
   const passadas = reunioes.filter(r => r.status === "realizada" || r.status === "cancelada");
 
@@ -63,9 +29,6 @@ export default function ClienteReunioes() {
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-white">Minhas Reuniões</h1>
-        <Button className="border-0 text-white text-xs" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={() => setShowModal(true)}>
-          <Plus className="w-3 h-3 mr-1" /> Solicitar reunião
-        </Button>
       </div>
 
       {proximas.length > 0 && (
@@ -115,42 +78,6 @@ export default function ClienteReunioes() {
       )}
 
       {reunioes.length === 0 && <p className="text-sm text-white/40 text-center py-8">Nenhuma reunião encontrada</p>}
-
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="text-white max-w-md" style={{ background: "#0d0d14", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-          <DialogHeader><DialogTitle>Solicitar Reunião</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label className="text-xs text-white/50">Tipo de reunião</Label>
-              <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v }))}>
-                <SelectTrigger className="border-0 text-white" style={{ background: "rgba(255,255,255,0.06)" }}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {(Object.entries(tipoReuniaoLabels) as [TipoReuniao, string][]).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-white/50">Data preferida</Label>
-                <Input type="date" value={form.data} onChange={e => setForm(p => ({ ...p, data: e.target.value }))} className="border-0 text-white" style={{ background: "rgba(255,255,255,0.06)" }} />
-              </div>
-              <div>
-                <Label className="text-xs text-white/50">Horário preferido</Label>
-                <Input type="time" value={form.horario} onChange={e => setForm(p => ({ ...p, horario: e.target.value }))} className="border-0 text-white" style={{ background: "rgba(255,255,255,0.06)" }} />
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs text-white/50">Mensagem</Label>
-              <Textarea value={form.mensagem} onChange={e => setForm(p => ({ ...p, mensagem: e.target.value }))} placeholder="Descreva o assunto..." className="border-0 text-white placeholder:text-white/30 min-h-[80px]" style={{ background: "rgba(255,255,255,0.06)" }} />
-            </div>
-            <Button className="w-full border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={solicitarReuniao}>
-              Enviar solicitação
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </motion.div>
   );
 }

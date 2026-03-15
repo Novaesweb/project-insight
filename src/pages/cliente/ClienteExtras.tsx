@@ -2,10 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -14,17 +11,12 @@ const catLabels: Record<string, string> = { fixo: "Fixo", intermediario: "Interm
 
 export default function ClienteExtras() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
-  const { toast } = useToast();
-  const [showCatalogo, setShowCatalogo] = useState(false);
   const [meusExtras, setMeusExtras] = useState<any[]>([]);
-  const [catalogo, setCatalogo] = useState<any[]>([]);
 
   const load = useCallback(() => {
     if (!cliente.id) return;
     supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", cliente.id)
       .then(({ data }) => setMeusExtras(data || []));
-    supabase.from("extras_catalogo").select("*").eq("status", "ativo")
-      .then(({ data }) => setCatalogo(data || []));
   }, [cliente.id]);
 
   useEffect(() => { load(); }, [load]);
@@ -34,30 +26,10 @@ export default function ClienteExtras() {
   const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);
   const totalAtivacao = ativos.reduce((acc, e) => acc + Number(e.preco_ativacao), 0);
 
-  const idsJaContratados = meusExtras.filter(e => e.status === "ativo").map(e => e.extra_id);
-  const catalogoDisponivel = catalogo.filter(e => !idsJaContratados.includes(e.id));
-
-  const handleSolicitar = async (extra: any) => {
-    const { error } = await supabase.from("extras_clientes").insert({
-      cliente_id: cliente.id,
-      extra_id: extra.id,
-      categoria: extra.categoria,
-      preco_ativacao: Number(extra.preco_ativacao),
-      preco_mensal: Number(extra.preco_mensal),
-    });
-    if (!error) {
-      toast({ title: "Extra solicitado!", description: `"${extra.nome}" adicionado com sucesso.` });
-      load();
-    }
-  };
-
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-white">Meus Extras</h1>
-        <Button className="border-0 text-white text-xs" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={() => setShowCatalogo(true)}>
-          Ver catálogo
-        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -96,33 +68,6 @@ export default function ClienteExtras() {
         ))}
         {meusExtras.length === 0 && <p className="text-sm text-white/40 text-center py-8">Nenhum extra contratado</p>}
       </div>
-
-      <Dialog open={showCatalogo} onOpenChange={setShowCatalogo}>
-        <DialogContent className="text-white max-w-2xl max-h-[80vh] overflow-y-auto" style={{ background: "#0d0d14", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-          <DialogHeader><DialogTitle>Catálogo de Extras</DialogTitle></DialogHeader>
-          <div className="space-y-2">
-            {catalogoDisponivel.map(e => (
-              <div key={e.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-                <div>
-                  <p className="text-sm text-white font-medium">{e.nome}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-[9px] border-0 px-1.5" style={{ backgroundColor: catColors[e.categoria] + "22", color: catColors[e.categoria] }}>{catLabels[e.categoria]}</Badge>
-                    <span className="text-[10px] text-white/40">
-                      {Number(e.preco_ativacao) > 0 && `R$ ${Number(e.preco_ativacao).toFixed(2)}`}
-                      {Number(e.preco_ativacao) > 0 && Number(e.preco_mensal) > 0 && " + "}
-                      {Number(e.preco_mensal) > 0 && `R$ ${Number(e.preco_mensal).toFixed(2)}/mês`}
-                    </span>
-                  </div>
-                </div>
-                <Button size="sm" className="text-[10px] h-7 border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #7b1fa2)" }} onClick={() => handleSolicitar(e)}>
-                  Solicitar
-                </Button>
-              </div>
-            ))}
-            {catalogoDisponivel.length === 0 && <p className="text-sm text-white/40 text-center py-4">Todos os extras já foram contratados</p>}
-          </div>
-        </DialogContent>
-      </Dialog>
     </motion.div>
   );
 }
