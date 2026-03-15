@@ -38,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const leadCount = useLeadCount();
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] ambient-glow">
