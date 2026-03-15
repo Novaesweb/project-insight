@@ -164,7 +164,7 @@ export default function Site() {
                 { num: "6+", label: "Empresas atendidas" },
                 { num: "7", label: "Dias de entrega" },
                 { num: "100%", label: "Responsivo" },
-                { num: "24h", label: "Suporte incluso" },
+                { num: "24h", label: "Atendimento rápido" },
               ].map((stat, i) => (
                 <div key={i} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
                   <p className="text-2xl font-bold gradient-text">{stat.num}</p>
@@ -299,7 +299,7 @@ export default function Site() {
               { num: "01", titulo: "Entendimento", desc: "Reunião inicial para entender seu negócio, público-alvo, concorrentes e objetivos. Definimos juntos o escopo, funcionalidades e prazo do projeto.", detail: "Duração: 1-2 dias" },
               { num: "02", titulo: "Desenvolvimento", desc: "Criamos o layout e desenvolvemos todas as funcionalidades com design moderno, responsivo e performance otimizada. Você recebe atualizações diárias.", detail: "Duração: 3-5 dias" },
               { num: "03", titulo: "Entrega e Testes", desc: "Você testa o projeto completo, valida cada funcionalidade e solicita ajustes ilimitados até ficar 100% satisfeito com o resultado final.", detail: "Duração: 1-2 dias" },
-              { num: "04", titulo: "Evolução Contínua", desc: "Após a entrega, seu projeto continua evoluindo. Novas funcionalidades, melhorias e suporte técnico contínuo conforme sua empresa cresce.", detail: "Suporte incluso" },
+              { num: "04", titulo: "Evolução Contínua", desc: "Após a entrega, seu projeto continua evoluindo. Novas funcionalidades, melhorias e acompanhamento contínuo conforme sua empresa cresce.", detail: "Pós-entrega" },
             ].map((step, i) => (
               <motion.div key={i} variants={fade} className="relative">
                 <div className="glass-card rounded-2xl p-8 h-full">
