@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Globe, Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, Target, Eye, Heart, Users, Rocket, Globe, Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
 
@@ -30,6 +31,17 @@ const valores = [
 ];
 
 export default function Site() {
+  const menuLinks = [
+    { href: "#servicos", label: "Serviços" },
+    { href: "#nichos", label: "Segmentos" },
+    { href: "#sobre", label: "Sobre" },
+    { href: "#missao", label: "Missão" },
+    { href: "#como-funciona", label: "Como Funciona" },
+    { href: "#projetos-solucoes", label: "Soluções" },
+  ];
+
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[hsl(var(--background))]">
       {/* Navbar */}
@@ -44,18 +56,55 @@ export default function Site() {
               <span className="text-[hsl(var(--foreground))]">Web</span>
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
-            <a href="#servicos" className="hover:text-[hsl(var(--foreground))] transition-colors">Serviços</a>
-            <a href="#nichos" className="hover:text-[hsl(var(--foreground))] transition-colors">Segmentos</a>
-            <a href="#sobre" className="hover:text-[hsl(var(--foreground))] transition-colors">Sobre</a>
-            <a href="#missao" className="hover:text-[hsl(var(--foreground))] transition-colors">Missão</a>
+          <div className="hidden lg:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
+            {menuLinks.map((link) => (
+              <a key={link.href} href={link.href} className="hover:text-[hsl(var(--foreground))] transition-colors">{link.label}</a>
+            ))}
           </div>
-          <Link to="/cadastro">
-            <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg">
-              Começar agora <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/cadastro" className="hidden sm:block">
+              <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg">
+                Começar agora <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--foreground))]"
+            >
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 backdrop-blur-xl overflow-hidden"
+            >
+              <div className="px-4 py-4 flex flex-col gap-3">
+                {menuLinks.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="sm:hidden">
+                  <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg w-full mt-2">
+                    Começar agora <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Hero */}
