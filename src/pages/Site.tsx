@@ -95,14 +95,13 @@ export default function Site() {
             >
               <div className="px-4 py-4 flex flex-col gap-3">
                 {menuLinks.map((link, index) => (
-                  <a
+                  <button
                     key={`${link.href}-${index}`}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
+                    onClick={() => scrollTo(link.href)}
+                    className="text-left text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors py-2 border-b border-[hsl(var(--border))]"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 ))}
                 <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="sm:hidden">
                   <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg w-full mt-2">
