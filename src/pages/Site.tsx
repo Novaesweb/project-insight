@@ -70,6 +70,16 @@ export default function Site() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link to="/cliente" className="hidden sm:block">
+              <Button variant="ghost" className="text-sm h-10 px-4 rounded-xl font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
+                Área do Cliente
+              </Button>
+            </Link>
+            <Link to="/admin/login" className="hidden sm:block">
+              <Button variant="ghost" className="text-sm h-10 px-4 rounded-xl font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
+                Painel Admin
+              </Button>
+            </Link>
             <Link to="/cadastro" className="hidden sm:block">
               <Button className="gradient-primary border-0 text-white text-sm h-10 px-6 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                 Solicitar orçamento
