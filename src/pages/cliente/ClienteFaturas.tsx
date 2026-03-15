@@ -1,11 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Download } from "lucide-react";
+import { FileText, FileSpreadsheet, FileDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { paga: "#4ade80", pendente: "#facc15", atrasada: "#ef4444" };
@@ -13,6 +16,7 @@ const statusLabels: Record<string, string> = { paga: "Paga", pendente: "Pendente
 
 export default function ClienteFaturas() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const { toast } = useToast();
   const [faturas, setFaturas] = useState<any[]>([]);
 
   const load = useCallback(() => {
@@ -26,6 +30,16 @@ export default function ClienteFaturas() {
 
   const totalPendente = faturas.filter(f => f.status === "pendente").reduce((a, f) => a + Number(f.valor), 0);
   const totalAtrasado = faturas.filter(f => f.status === "atrasada").reduce((a, f) => a + Number(f.valor), 0);
+
+  const handleExport = async (f: any, type: "pdf" | "word" | "csv") => {
+    const data = { descricao: f.descricao, valor: Number(f.valor), vencimento: f.vencimento, data_emissao: f.data_emissao, status: f.status, clienteNome: cliente.nome };
+    try {
+      if (type === "pdf") exportFaturaPDF(data);
+      else if (type === "word") await exportFaturaWord(data);
+      else exportFaturaCSV(data);
+      toast({ title: `Fatura exportada em ${type.toUpperCase()}!` });
+    } catch { toast({ title: "Erro ao exportar", variant: "destructive" }); }
+  };
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
@@ -59,9 +73,24 @@ export default function ClienteFaturas() {
                   <span className="text-white font-medium">R$ {Number(f.valor).toLocaleString("pt-BR")}</span>
                   <span>Vencimento: {f.vencimento}</span>
                 </div>
-                <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7">
-                  <Download className="w-3 h-3 mr-1" /> Boleto
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7">
+                      <FileDown className="w-3 h-3 mr-1" /> Exportar
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
+                    <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
+                      <FileText className="w-3 h-3 text-red-400" /> Baixar PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer">
+                      <FileText className="w-3 h-3 text-blue-400" /> Baixar Word
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
+                      <FileSpreadsheet className="w-3 h-3 text-green-400" /> Baixar CSV
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
