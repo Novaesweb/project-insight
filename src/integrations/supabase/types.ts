@@ -397,6 +397,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read: boolean
+          title: string
+          url: string | null
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          title: string
+          url?: string | null
+          user_id: string
+          user_type?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          title?: string
+          url?: string | null
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       pedidos: {
         Row: {
           cliente_id: string | null

@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/cliente/dashboard" },
@@ -121,14 +122,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
           <div className="flex-1" />
 
-          <button className="relative text-white/50 hover:text-white transition-colors">
-            <Bell className="w-5 h-5" />
-            {notifCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] text-white font-bold">
-                {notifCount}
-              </span>
-            )}
-          </button>
+          <NotificationCenter userType="cliente" userId={cliente.id} />
           <button onClick={handleLogout} className="text-white/50 hover:text-white transition-colors">
             <LogOut className="w-4 h-4" />
           </button>
