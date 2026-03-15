@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const segmentos = ["Restaurante", "Clínica", "Loja", "Escritório", "Outro"];
-const servicosOpcoes = ["Site", "Loja Virtual", "App", "Marketing", "Identidade Visual", "Manutenção"];
+const servicosOpcoes = ["Site", "Loja Virtual", "App", "Identidade Visual"];
 const orcamentoOpcoes = ["Até R$500", "R$500 a R$1.500", "R$1.500 a R$3.000", "Acima de R$3.000", "Não sei ainda"];
 const origemOpcoes = ["Google", "Instagram", "Indicação", "Outro"];
 
