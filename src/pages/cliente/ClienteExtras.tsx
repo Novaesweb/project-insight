@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { extrasClientes, extrasCatalogo } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -15,11 +15,20 @@ export default function ClienteExtras() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const { toast } = useToast();
   const [showCatalogo, setShowCatalogo] = useState(false);
+  const [meusExtras, setMeusExtras] = useState<any[]>([]);
+  const [catalogo, setCatalogo] = useState<any[]>([]);
 
-  const meusExtras = extrasClientes.filter(e => e.clienteId === cliente.id);
+  useEffect(() => {
+    if (!cliente.id) return;
+    supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", cliente.id)
+      .then(({ data }) => setMeusExtras(data || []));
+    supabase.from("extras_catalogo").select("*").eq("status", "ativo")
+      .then(({ data }) => setCatalogo(data || []));
+  }, [cliente.id]);
+
   const ativos = meusExtras.filter(e => e.status === "ativo");
-  const totalMensal = ativos.reduce((acc, e) => acc + e.precoMensal, 0);
-  const totalAtivacao = ativos.reduce((acc, e) => acc + e.precoAtivacao, 0);
+  const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);
+  const totalAtivacao = ativos.reduce((acc, e) => acc + Number(e.preco_ativacao), 0);
 
   const handleSolicitar = (nome: string) => {
     toast({ title: "Solicitação enviada!", description: `Extra "${nome}" solicitado. Aguarde aprovação do admin.` });
@@ -55,16 +64,16 @@ export default function ClienteExtras() {
           <Card key={e.id} className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-white">{e.extraNome}</span>
+                <span className="text-sm font-medium text-white">{(e as any).extras_catalogo?.nome || "Extra"}</span>
                 <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: (e.status === "ativo" ? "#4ade80" : e.status === "pausado" ? "#facc15" : "#ef4444") + "22", color: e.status === "ativo" ? "#4ade80" : e.status === "pausado" ? "#facc15" : "#ef4444" }}>
                   {e.status}
                 </Badge>
               </div>
               <div className="flex items-center gap-4 text-[11px] text-white/40">
                 <Badge variant="outline" className="text-[9px] border-0 px-1.5" style={{ backgroundColor: catColors[e.categoria] + "22", color: catColors[e.categoria] }}>{catLabels[e.categoria]}</Badge>
-                <span>Ativação: R$ {e.precoAtivacao.toFixed(2)}</span>
-                {e.precoMensal > 0 && <span>Mensal: R$ {e.precoMensal.toFixed(2)}</span>}
-                <span>Desde: {e.dataAtivacao}</span>
+                <span>Ativação: R$ {Number(e.preco_ativacao).toFixed(2)}</span>
+                {Number(e.preco_mensal) > 0 && <span>Mensal: R$ {Number(e.preco_mensal).toFixed(2)}</span>}
+                <span>Desde: {e.data_ativacao}</span>
               </div>
             </CardContent>
           </Card>
@@ -76,16 +85,16 @@ export default function ClienteExtras() {
         <DialogContent className="text-white max-w-2xl max-h-[80vh] overflow-y-auto" style={{ background: "#0d0d14", border: "0.5px solid rgba(255,255,255,0.08)" }}>
           <DialogHeader><DialogTitle>Catálogo de Extras</DialogTitle></DialogHeader>
           <div className="space-y-2">
-            {extrasCatalogo.filter(e => e.status === "ativo").map(e => (
+            {catalogo.map(e => (
               <div key={e.id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
                 <div>
                   <p className="text-sm text-white font-medium">{e.nome}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-[9px] border-0 px-1.5" style={{ backgroundColor: catColors[e.categoria] + "22", color: catColors[e.categoria] }}>{catLabels[e.categoria]}</Badge>
                     <span className="text-[10px] text-white/40">
-                      {e.precoAtivacao > 0 && `R$ ${e.precoAtivacao.toFixed(2)}`}
-                      {e.precoAtivacao > 0 && e.precoMensal > 0 && " + "}
-                      {e.precoMensal > 0 && `R$ ${e.precoMensal.toFixed(2)}/mês`}
+                      {Number(e.preco_ativacao) > 0 && `R$ ${Number(e.preco_ativacao).toFixed(2)}`}
+                      {Number(e.preco_ativacao) > 0 && Number(e.preco_mensal) > 0 && " + "}
+                      {Number(e.preco_mensal) > 0 && `R$ ${Number(e.preco_mensal).toFixed(2)}/mês`}
                     </span>
                   </div>
                 </div>

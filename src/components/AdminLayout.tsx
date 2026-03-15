@@ -89,9 +89,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="flex-1 p-6">
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-semibold">{pageInfo[pathname as keyof typeof pageInfo]?.label}</h1>
-            {pageInfo[pathname as keyof typeof pageInfo]?.description && (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">{pageInfo[pathname as keyof typeof pageInfo]?.description}</p>
+            <h1 className="text-2xl font-semibold">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
+            {pageInfo[pathname as keyof typeof pageInfo]?.subtitulo && (
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
             )}
           </div>
           <div className="flex items-center gap-4">

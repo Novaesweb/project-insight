@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FileText, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { contratos } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -13,14 +14,19 @@ const statusLabels: Record<string, string> = { aguardando: "Aguardando assinatur
 export default function ClienteContratos() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const { toast } = useToast();
-  const meusContratos = contratos.filter(c => c.clienteId === cliente.id);
+  const [contratos, setContratos] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!cliente.id) return;
+    supabase.from("contratos").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
+      .then(({ data }) => setContratos(data || []));
+  }, [cliente.id]);
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <h1 className="text-lg font-bold text-white">Meus Contratos</h1>
-
       <div className="space-y-3">
-        {meusContratos.map(c => (
+        {contratos.map(c => (
           <Card key={c.id} className={`border-[0.5px] ${c.status === "aguardando" ? "border-yellow-500/30" : "border-white/[0.08]"}`} style={{ background: "rgba(255,255,255,0.04)" }}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
@@ -35,9 +41,9 @@ export default function ClienteContratos() {
               <p className="text-xs text-white/40 mb-3">{c.descricao}</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 text-[11px] text-white/40">
-                  <span>Valor: R$ {c.valor.toLocaleString("pt-BR")}</span>
-                  <span>Enviado: {c.dataEnvio}</span>
-                  {c.dataAssinatura && <span>Assinado: {c.dataAssinatura}</span>}
+                  <span>Valor: R$ {Number(c.valor).toLocaleString("pt-BR")}</span>
+                  <span>Enviado: {c.data_envio}</span>
+                  {c.data_assinatura && <span>Assinado: {c.data_assinatura}</span>}
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7">
@@ -54,7 +60,7 @@ export default function ClienteContratos() {
             </CardContent>
           </Card>
         ))}
-        {meusContratos.length === 0 && <p className="text-sm text-white/40 text-center py-8">Nenhum contrato encontrado</p>}
+        {contratos.length === 0 && <p className="text-sm text-white/40 text-center py-8">Nenhum contrato encontrado</p>}
       </div>
     </motion.div>
   );
