@@ -79,6 +79,8 @@ export type Database = {
       }
       contratos: {
         Row: {
+          assinatura_admin: string | null
+          assinatura_cliente: string | null
           cliente_id: string | null
           corpo: string | null
           created_at: string
@@ -92,6 +94,8 @@ export type Database = {
           valor: number
         }
         Insert: {
+          assinatura_admin?: string | null
+          assinatura_cliente?: string | null
           cliente_id?: string | null
           corpo?: string | null
           created_at?: string
@@ -105,6 +109,8 @@ export type Database = {
           valor?: number
         }
         Update: {
+          assinatura_admin?: string | null
+          assinatura_cliente?: string | null
           cliente_id?: string | null
           corpo?: string | null
           created_at?: string
