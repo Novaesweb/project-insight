@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,9 +15,20 @@ import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
+const heroWords = ["negócio", "futuro", "empresa", "projeto", "resultado"];
+
 export default function Site() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [heroWordIndex, setHeroWordIndex] = useState(0);
+  const heroWord = heroWords[heroWordIndex];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroWordIndex(prev => (prev + 1) % heroWords.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
 
   const navLinks = [
@@ -141,7 +152,19 @@ export default function Site() {
               <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
                 Tecnologia que{" "}
                 <span className="gradient-text">transforma</span>
-                {" "}seu negócio
+                {" "}seu{" "}
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={heroWord}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.4 }}
+                    className="inline-block gradient-text"
+                  >
+                    {heroWord}
+                  </motion.span>
+                </AnimatePresence>
               </motion.h1>
               <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg">
                 Desenvolvemos sites, sistemas e aplicativos sob medida para empresas que buscam organização, presença digital e resultados reais.
