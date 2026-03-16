@@ -41,8 +41,9 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
 
+  const [cepLoading, setCepLoading] = useState(false);
   const [form, setForm] = useState({
-    nome: "", email: "", whatsapp: "", cidade: "", estado: "", documento: "",
+    nome: "", email: "", whatsapp: "", cep: "", rua: "", numero: "", cidade: "", estado: "", documento: "",
     nome_negocio: "", segmento: "", servicos: [] as string[], orcamento: "", como_conheceu: "", mensagem: "",
   });
 
