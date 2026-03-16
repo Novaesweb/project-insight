@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:block">
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
-            <img src="/logo.svg" alt="Logotipo" className="w-8 h-8" />
+            <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
             <span>Painel Admin</span>
           </Link>
         </div>
