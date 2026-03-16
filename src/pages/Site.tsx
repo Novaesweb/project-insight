@@ -1,4 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+function useAnimatedCounter(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        let start = 0;
+        const step = Math.max(1, Math.floor(duration / target));
+        const timer = setInterval(() => {
+          start++;
+          setCount(start);
+          if (start >= target) clearInterval(timer);
+        }, step);
+        observer.disconnect();
+      }
+    }, { threshold: 0.3 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration]);
+  return { count, ref };
+}
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
