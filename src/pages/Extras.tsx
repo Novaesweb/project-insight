@@ -312,6 +312,9 @@ export default function Extras() {
                         <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(extra)}>
                           <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar
                         </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => { setExtraSel(extra); setShowDelete(true); }}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
