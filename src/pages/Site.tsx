@@ -137,8 +137,41 @@ export default function Site() {
       </nav>
 
       {/* ─── HERO ─── */}
+      {/* ─── SLIDE DESTAQUE ─── */}
       <motion.section
-        className="pt-36 pb-24 px-6"
+        className="relative pt-36 pb-20 px-6 overflow-hidden"
+        initial="hidden"
+        animate="show"
+        variants={stagger}
+      >
+        <div className="ambient-glow absolute inset-0 pointer-events-none" />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <motion.div variants={fade} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-8">
+            <Sparkles className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+            Nada de sites genéricos
+          </motion.div>
+          <motion.h2 variants={fade} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[hsl(var(--foreground))] leading-[1.15] tracking-tight">
+            Na NovaesWeb, seu site é desenvolvido{" "}
+            <span className="gradient-text">de acordo com a necessidade</span>{" "}
+            do seu negócio.
+          </motion.h2>
+          <motion.p variants={fade} className="text-lg sm:text-xl text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-2xl mx-auto">
+            Você escolhe o que quer, e nós transformamos em{" "}
+            <span className="font-semibold text-[hsl(var(--foreground))]">solução digital</span>.
+          </motion.p>
+          <motion.div variants={fade} className="mt-10">
+            <Link to="/cadastro">
+              <Button className="gradient-primary border-0 text-white h-14 px-10 rounded-xl text-base font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
+                Quero meu site personalizado <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* ─── HERO ─── */}
+      <motion.section
+        className="pt-12 pb-24 px-6"
         initial="hidden"
         animate="show"
         variants={stagger}
