@@ -6,7 +6,7 @@ import {
   ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle,
   Target, Eye, Heart, Users, Rocket, Car, UserCheck, UtensilsCrossed,
   Wrench, ShoppingBag, CalendarCheck, Menu, X, ChevronRight, Star,
-  Globe, Layers
+  Globe, Layers, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
