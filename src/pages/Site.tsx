@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 
-function useAnimatedCounter(target: number, duration = 2000) {
+function useAnimatedCounter(target: number, duration = 1500) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
         let start = 0;
-        const step = Math.max(1, Math.floor(duration / target));
+        const step = Math.max(16, Math.floor(duration / target));
         const timer = setInterval(() => {
           start++;
           setCount(start);
@@ -91,9 +93,14 @@ export default function Site() {
     return () => clearInterval(interval);
   }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
-  const [empresasTarget] = useState(() => Math.floor(Math.random() * 21) + 6);
-  const heroCounter = useAnimatedCounter(empresasTarget, 1500);
-  const metricsCounter = useAnimatedCounter(empresasTarget, 1500);
+  const heroEmpresasCounter = useAnimatedCounter(36, 1500);
+  const heroEntregaCounter = useAnimatedCounter(7, 800);
+  const heroResponsivoCounter = useAnimatedCounter(100, 1200);
+  const heroAtendimentoCounter = useAnimatedCounter(24, 1000);
+  const metricEmpresasCounter = useAnimatedCounter(36, 1500);
+  const metricSatisfacaoCounter = useAnimatedCounter(100, 1200);
+  const metricPrazoCounter = useAnimatedCounter(7, 800);
+  const metricRespostaCounter = useAnimatedCounter(24, 1000);
 
   const navLinks = [
     { href: "#servicos", label: "Serviços" },
@@ -280,17 +287,22 @@ export default function Site() {
               </motion.div>
             </div>
             <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
-              {[
-                { label: "Empresas atendidas", isCounter: true },
-                { num: "7", label: "Dias de entrega" },
-                { num: "100%", label: "Responsivo" },
-                { num: "24h", label: "Atendimento rápido" },
-              ].map((stat, i) => (
-                <div key={i} ref={i === 0 ? heroCounter.ref : undefined} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
-                  <p className="text-2xl font-bold gradient-text">{'isCounter' in stat ? `${heroCounter.count}+` : stat.num}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{stat.label}</p>
-                </div>
-              ))}
+              <div ref={heroEmpresasCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroEmpresasCounter.count}+</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
+              </div>
+              <div ref={heroEntregaCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroEntregaCounter.count}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Dias de entrega</p>
+              </div>
+              <div ref={heroResponsivoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroResponsivoCounter.count}%</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Responsivo</p>
+              </div>
+              <div ref={heroAtendimentoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroAtendimentoCounter.count}h</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -658,23 +670,28 @@ export default function Site() {
               O que nossos clientes dizem
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              Estamos em fase de crescimento, já atendendo cerca de {empresasTarget} empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
+              Estamos em fase de crescimento, já atendendo cerca de 36 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
             </p>
           </motion.div>
 
           {/* Métricas */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-            {[
-              { label: "Empresas atendidas", isCounter: true },
-              { num: "100%", label: "Satisfação dos clientes" },
-              { num: "7 dias", label: "Prazo médio de entrega" },
-              { num: "24h", label: "Tempo de resposta suporte" },
-            ].map((m, i) => (
-              <motion.div key={i} ref={i === 0 ? metricsCounter.ref : undefined} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-                <p className="text-2xl font-bold gradient-text">{'isCounter' in m ? `${metricsCounter.count}+` : m.num}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{m.label}</p>
-              </motion.div>
-            ))}
+            <motion.div ref={metricEmpresasCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricEmpresasCounter.count}+</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
+            </motion.div>
+            <motion.div ref={metricSatisfacaoCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricSatisfacaoCounter.count}%</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Satisfação dos clientes</p>
+            </motion.div>
+            <motion.div ref={metricPrazoCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricPrazoCounter.count} dias</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Prazo médio de entrega</p>
+            </motion.div>
+            <motion.div ref={metricRespostaCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricRespostaCounter.count}h</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Tempo de resposta suporte</p>
+            </motion.div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
