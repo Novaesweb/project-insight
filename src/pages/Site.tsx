@@ -694,24 +694,7 @@ export default function Site() {
             </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web" },
-              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional" },
-              { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin" },
-            ].map((depo, i) => (
-              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
-                  </div>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{depo.tipo}</span>
-                </div>
-                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{depo.texto}"</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
-              </motion.div>
-            ))}
-          </div>
+          <TestimonialsCarousel />
         </div>
       </motion.section>
 
