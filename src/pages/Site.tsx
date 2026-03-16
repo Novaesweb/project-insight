@@ -209,7 +209,7 @@ export default function Site() {
                     Começar meu projeto <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
-                <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] h-12 px-8 rounded-xl text-sm hover:bg-[hsl(var(--muted))]">
                     <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                   </Button>
