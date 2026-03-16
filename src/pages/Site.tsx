@@ -49,6 +49,59 @@ const extrasSlides = [
   { emoji: "🎁", title: "Programa Fidelidade", desc: "Fidelize clientes com recompensas automáticas." },
 ];
 
+const testimonials = [
+  { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web" },
+  { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional" },
+  { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin" },
+  { texto: "Desde que colocamos o site no ar, as vendas aumentaram bastante. Os clientes encontram a gente pelo Google agora.", autor: "Loja de Roupas", tipo: "Site Profissional" },
+  { texto: "A landing page que fizeram para nossa campanha converteu muito bem. Simples, direto e bonito.", autor: "Agência de Marketing", tipo: "Landing Page" },
+  { texto: "Atendimento excelente! Sempre respondem rápido e resolvem tudo no mesmo dia. Super recomendo.", autor: "Clínica Estética", tipo: "Suporte" },
+  { texto: "O sistema de agendamento online mudou completamente nossa rotina. Menos ligações e mais organização.", autor: "Barbearia Premium", tipo: "Sistema Web" },
+  { texto: "Ficamos impressionados com a qualidade do site. Muito melhor do que esperávamos pelo valor investido.", autor: "Restaurante Gourmet", tipo: "Site Profissional" },
+  { texto: "O controle financeiro integrado ao painel nos ajudou a ter uma visão clara do negócio. Ferramenta indispensável.", autor: "Consultoria Empresarial", tipo: "Painel Admin" },
+  { texto: "Nosso e-commerce ficou incrível. Fácil de gerenciar os produtos e os clientes adoraram a experiência de compra.", autor: "Pet Shop Online", tipo: "Loja Virtual" },
+];
+
+function TestimonialsCarousel() {
+  const [current, setCurrent] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setCurrent(p => (p + 1) % testimonials.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="relative overflow-hidden min-h-[200px]">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.5 }}
+          className="glass-card info-card-hover rounded-2xl p-8 max-w-2xl mx-auto"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex gap-1">
+              {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
+            </div>
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{testimonials[current].tipo}</span>
+          </div>
+          <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{testimonials[current].texto}"</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {testimonials[current].autor}</p>
+        </motion.div>
+      </AnimatePresence>
+      <div className="flex justify-center gap-2 mt-6">
+        {testimonials.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${i === current ? 'bg-[hsl(var(--primary))] w-6' : 'bg-[hsl(var(--muted-foreground))]/30'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ExtrasCarousel() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
@@ -694,24 +747,7 @@ export default function Site() {
             </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web" },
-              { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional" },
-              { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin" },
-            ].map((depo, i) => (
-              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
-                  </div>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{depo.tipo}</span>
-                </div>
-                <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{depo.texto}"</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {depo.autor}</p>
-              </motion.div>
-            ))}
-          </div>
+          <TestimonialsCarousel />
         </div>
       </motion.section>
 
