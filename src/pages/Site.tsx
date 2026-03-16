@@ -18,6 +18,44 @@ const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const heroWords = ["negócio", "futuro", "empresa", "projeto", "resultado"];
 
+const extrasSlides = [
+  { emoji: "🛒", title: "Sistema de Pedidos", desc: "Receba pedidos online organizados no painel." },
+  { emoji: "📊", title: "Painel Administrativo", desc: "Controle total do seu negócio em um só lugar." },
+  { emoji: "⭐", title: "Avaliação de Clientes", desc: "Seus clientes avaliam e você melhora sempre." },
+  { emoji: "🎁", title: "Programa Fidelidade", desc: "Fidelize clientes com recompensas automáticas." },
+];
+
+function ExtrasCarousel() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx(p => (p + 1) % extrasSlides.length), 3000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div>
+      <div className="overflow-hidden rounded-xl">
+        <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${idx * 100}%)` }}>
+          {extrasSlides.map((s, i) => (
+            <div key={i} className="min-w-full px-2">
+              <div className="glass-card rounded-xl p-8 text-center">
+                <span className="text-5xl mb-4 block">{s.emoji}</span>
+                <h4 className="font-bold text-[hsl(var(--foreground))] mb-2">{s.title}</h4>
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-center gap-2 mt-4">
+        {extrasSlides.map((_, i) => (
+          <button key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full transition-all duration-300 ${i === idx ? "w-6 gradient-primary" : "bg-[hsl(var(--muted))]"}`} />
+        ))}
+      </div>
+      <p className="text-center text-sm text-[hsl(var(--muted-foreground))] mt-4 font-medium">Entre muitos outros recursos disponíveis</p>
+    </div>
+  );
+}
+
 export default function Site() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState<string | null>(null);
