@@ -665,13 +665,13 @@ export default function Site() {
           {/* Métricas */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {[
-              { num: "6+", label: "Empresas atendidas" },
+              { label: "Empresas atendidas", isCounter: true },
               { num: "100%", label: "Satisfação dos clientes" },
               { num: "7 dias", label: "Prazo médio de entrega" },
               { num: "24h", label: "Tempo de resposta suporte" },
             ].map((m, i) => (
-              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-                <p className="text-2xl font-bold gradient-text">{m.num}</p>
+              <motion.div key={i} ref={i === 0 ? metricsCounter.ref : undefined} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+                <p className="text-2xl font-bold gradient-text">{'isCounter' in m ? `${metricsCounter.count}+` : m.num}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{m.label}</p>
               </motion.div>
             ))}
