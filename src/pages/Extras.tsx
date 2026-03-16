@@ -43,6 +43,7 @@ export default function Extras() {
   const [showNew, setShowNew] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAtribuir, setShowAtribuir] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [extraSel, setExtraSel] = useState<any>(null);
   const [clienteSel, setClienteSel] = useState("");
   const [observacao, setObservacao] = useState("");
