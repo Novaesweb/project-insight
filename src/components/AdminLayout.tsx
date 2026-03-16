@@ -90,11 +90,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span>Painel Admin</span>
             </Link>
           </div>
-          <nav className="space-y-0.5">
+          <nav className="space-y-0.5 flex-1">
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
-                <Link key={item.href} to={item.href} className={cn("group flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all hover:bg-[hsl(var(--card))] hover:text-[hsl(var(--primary))]", isActive ? "bg-[hsl(var(--card))] text-[hsl(var(--primary))]" : "text-[hsl(var(--muted-foreground))]")}>
+                <Link key={item.href} to={item.href} onClick={() => setOpen(false)} className={cn("group flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all hover:bg-[hsl(var(--card))] hover:text-[hsl(var(--primary))]", isActive ? "bg-[hsl(var(--card))] text-[hsl(var(--primary))]" : "text-[hsl(var(--muted-foreground))]")}>
                   <item.icon className="w-4 h-4" />
                   <span>{item.label}</span>
                   {item.count !== undefined && item.count > 0 && (
@@ -104,6 +104,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               );
             })}
           </nav>
+          <div className="px-6 pt-2 border-t border-[hsl(var(--border))]">
+            <button onClick={handleLogout} className="flex items-center gap-2 px-0 py-3 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] transition-colors w-full">
+              <LogOut className="w-4 h-4" />
+              <span>Sair do Painel</span>
+            </button>
+          </div>
         </SheetContent>
       </Sheet>
       <main className="flex-1 p-6 relative overflow-auto">
