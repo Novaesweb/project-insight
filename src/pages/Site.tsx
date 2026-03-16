@@ -658,7 +658,7 @@ export default function Site() {
               O que nossos clientes dizem
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
+              Estamos em fase de crescimento, já atendendo cerca de {empresasTarget} empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
             </p>
           </motion.div>
 
