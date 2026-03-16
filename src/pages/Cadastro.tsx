@@ -253,12 +253,33 @@ export default function Cadastro() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cidade</Label>
-                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.cidade} onChange={e => updateForm("cidade", e.target.value)} />
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">CEP</Label>
+                      <div className="relative">
+                        <Input
+                          className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10"
+                          placeholder="00000-000"
+                          value={form.cep} onChange={e => handleCepChange(e.target.value)}
+                        />
+                        {cepLoading && <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-3 text-[hsl(var(--muted-foreground))]" />}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Estado</Label>
                       <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.estado} onChange={e => updateForm("estado", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cidade</Label>
+                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.cidade} onChange={e => updateForm("cidade", e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Rua</Label>
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.rua} onChange={e => updateForm("rua", e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Número</Label>
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" placeholder="123" value={form.numero} onChange={e => updateForm("numero", e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
