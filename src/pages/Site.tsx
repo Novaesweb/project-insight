@@ -281,13 +281,13 @@ export default function Site() {
             </div>
             <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
               {[
-                { num: "6+", label: "Empresas atendidas" },
+                { label: "Empresas atendidas", isCounter: true },
                 { num: "7", label: "Dias de entrega" },
                 { num: "100%", label: "Responsivo" },
                 { num: "24h", label: "Atendimento rápido" },
               ].map((stat, i) => (
-                <div key={i} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
-                  <p className="text-2xl font-bold gradient-text">{stat.num}</p>
+                <div key={i} ref={i === 0 ? heroCounter.ref : undefined} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                  <p className="text-2xl font-bold gradient-text">{'isCounter' in stat ? `${heroCounter.count}+` : stat.num}</p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{stat.label}</p>
                 </div>
               ))}
