@@ -1,4 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+function useAnimatedCounter(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        let start = 0;
+        const step = Math.max(1, Math.floor(duration / target));
+        const timer = setInterval(() => {
+          start++;
+          setCount(start);
+          if (start >= target) clearInterval(timer);
+        }, step);
+        observer.disconnect();
+      }
+    }, { threshold: 0.3 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration]);
+  return { count, ref };
+}
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +91,9 @@ export default function Site() {
     return () => clearInterval(interval);
   }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
+  const [empresasTarget] = useState(() => Math.floor(Math.random() * 21) + 6);
+  const heroCounter = useAnimatedCounter(empresasTarget, 1500);
+  const metricsCounter = useAnimatedCounter(empresasTarget, 1500);
 
   const navLinks = [
     { href: "#servicos", label: "Serviços" },
@@ -256,13 +281,13 @@ export default function Site() {
             </div>
             <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
               {[
-                { num: "6+", label: "Empresas atendidas" },
+                { label: "Empresas atendidas", isCounter: true },
                 { num: "7", label: "Dias de entrega" },
                 { num: "100%", label: "Responsivo" },
                 { num: "24h", label: "Atendimento rápido" },
               ].map((stat, i) => (
-                <div key={i} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
-                  <p className="text-2xl font-bold gradient-text">{stat.num}</p>
+                <div key={i} ref={i === 0 ? heroCounter.ref : undefined} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                  <p className="text-2xl font-bold gradient-text">{'isCounter' in stat ? `${heroCounter.count}+` : stat.num}</p>
                   <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{stat.label}</p>
                 </div>
               ))}
@@ -633,20 +658,20 @@ export default function Site() {
               O que nossos clientes dizem
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              Estamos em fase de crescimento, já atendendo cerca de 6 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
+              Estamos em fase de crescimento, já atendendo cerca de {empresasTarget} empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
             </p>
           </motion.div>
 
           {/* Métricas */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {[
-              { num: "6+", label: "Empresas atendidas" },
+              { label: "Empresas atendidas", isCounter: true },
               { num: "100%", label: "Satisfação dos clientes" },
               { num: "7 dias", label: "Prazo médio de entrega" },
               { num: "24h", label: "Tempo de resposta suporte" },
             ].map((m, i) => (
-              <motion.div key={i} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-                <p className="text-2xl font-bold gradient-text">{m.num}</p>
+              <motion.div key={i} ref={i === 0 ? metricsCounter.ref : undefined} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+                <p className="text-2xl font-bold gradient-text">{'isCounter' in m ? `${metricsCounter.count}+` : m.num}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{m.label}</p>
               </motion.div>
             ))}
