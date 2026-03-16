@@ -444,7 +444,7 @@ export default function Site() {
               { num: "04", titulo: "Evolução Contínua", desc: "Após a entrega, seu projeto continua evoluindo. Novas funcionalidades, melhorias e acompanhamento contínuo conforme sua empresa cresce.", detail: "Pós-entrega" },
             ].map((step, i) => (
               <motion.div key={i} variants={fade} className="relative">
-                <div className="glass-card rounded-2xl p-8 h-full">
+                <div className="glass-card rounded-2xl p-8 h-full info-card-hover">
                   <span className="text-4xl font-extrabold gradient-text opacity-30">{step.num}</span>
                   <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">{step.titulo}</h3>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">{step.desc}</p>
