@@ -533,6 +533,60 @@ export default function Site() {
         </div>
       </motion.section>
 
+      {/* ─── FUNCIONALIDADE EXTRA ─── */}
+      <motion.section className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div variants={fade}>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="group inline-flex items-center gap-3 glass-card rounded-2xl px-8 py-5 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] transition-all duration-300 cursor-pointer">
+                  <span className="text-3xl">⚙️</span>
+                  <span className="text-xl font-bold text-[hsl(var(--foreground))] group-hover:gradient-text transition-all">Funcionalidade Extra</span>
+                  <ChevronRight className="w-5 h-5 text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--primary))] transition-colors" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-[hsl(var(--background))] border-[hsl(var(--border))] p-6 sm:p-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <span className="text-4xl mb-3 block">⚙️</span>
+                  <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] mb-2">Funcionalidade Extra</h2>
+                  <p className="text-[hsl(var(--primary))] font-medium">Personalize seu site conforme a necessidade do seu negócio</p>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">Ferramenta que permite adicionar novas funções ao seu site conforme sua empresa cresce.</p>
+                </div>
+
+                {/* Info blocks */}
+                <div className="grid sm:grid-cols-2 gap-4 mb-8">
+                  {[
+                    { icon: <ShoppingBag className="w-5 h-5 text-emerald-400" />, title: "Sistema de Pedidos", desc: "Permite que seus clientes façam pedidos diretamente pelo site, organizando tudo no painel administrativo." },
+                    { icon: <Layers className="w-5 h-5 text-[hsl(var(--primary))]" />, title: "Painel Administrativo", desc: "Gerencie produtos, pedidos, clientes e informações do site de forma simples e organizada." },
+                    { icon: <CalendarCheck className="w-5 h-5 text-purple-400" />, title: "Reservas e Agendamentos", desc: "Ideal para restaurantes, pizzarias e serviços que precisam organizar horários e reservas." },
+                    { icon: <Zap className="w-5 h-5 text-yellow-400" />, title: "Pagamento e tipos de extras", desc: "Alguns recursos podem ser pagamento único ou mensalidade para manutenção e funcionamento contínuo." },
+                  ].map((item, i) => (
+                    <div key={i} className="glass-card rounded-xl p-5 text-left">
+                      <div className="w-10 h-10 rounded-lg bg-[hsl(var(--muted))]/50 flex items-center justify-center mb-3">{item.icon}</div>
+                      <h4 className="font-semibold text-[hsl(var(--foreground))] mb-1 text-sm">{item.title}</h4>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Carousel de extras */}
+                <div className="mb-6">
+                  <ExtrasCarousel />
+                </div>
+
+                {/* Evolução */}
+                <div className="glass-card rounded-xl p-6 text-center">
+                  <Rocket className="w-8 h-8 text-[hsl(var(--primary))] mx-auto mb-3" />
+                  <h4 className="font-bold text-[hsl(var(--foreground))] mb-2">Seu site evolui com o seu negócio</h4>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))]">Você pode adicionar novos recursos sempre que precisar, construindo o site de acordo com a ideia e necessidade da sua empresa.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </motion.div>
+        </div>
+      </motion.section>
+
       {/* ─── RESULTADOS / AVALIAÇÕES ─── */}
       <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
         <div className="max-w-6xl mx-auto">
