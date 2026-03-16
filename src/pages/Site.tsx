@@ -209,7 +209,7 @@ export default function Site() {
                     Começar meu projeto <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
-                <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] h-12 px-8 rounded-xl text-sm hover:bg-[hsl(var(--muted))]">
                     <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                   </Button>
@@ -447,7 +447,7 @@ export default function Site() {
                       ))}
                     </ul>
                     <p className="text-xs text-emerald-400/80 italic mb-3">⚡ Não perca essa oportunidade!</p>
-                    <a href="https://wa.me/5500000000000?text=Olá, vi a promoção do Plano Site Express da NovaesWeb e gostaria de aproveitar! Valor inicial R$180 e mensalidade R$60." target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/5551981964238?text=Olá, vi a promoção do Plano Site Express da NovaesWeb e gostaria de aproveitar! Valor inicial R$180 e mensalidade R$60." target="_blank" rel="noopener noreferrer">
                       <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                         Aproveitar promoção <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -482,7 +482,7 @@ export default function Site() {
                       ))}
                     </ul>
                     <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-3">💡 Ideal para empresas que querem mais controle e organização.</p>
-                    <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Gestão Pro." target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/5551981964238?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Gestão Pro." target="_blank" rel="noopener noreferrer">
                       <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                         Falar com especialista <MessageCircle className="w-4 h-4 ml-2" />
                       </Button>
@@ -512,7 +512,7 @@ export default function Site() {
                       ))}
                     </ul>
                     <p className="text-xs text-purple-400/80 italic mb-3">💡 Cada projeto é planejado conforme a necessidade da empresa.</p>
-                    <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Sistema Sob Medida." target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/5551981964238?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Sistema Sob Medida." target="_blank" rel="noopener noreferrer">
                       <Button className="w-full bg-purple-600 hover:bg-purple-700 border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-purple-600/20">
                         Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -796,7 +796,7 @@ export default function Site() {
                 Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
               <Button className="bg-white/20 text-white hover:bg-white/30 border border-white/30 h-12 px-10 rounded-xl text-base font-semibold">
                 <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp
               </Button>
@@ -849,7 +849,7 @@ export default function Site() {
               <div className="flex flex-col gap-2">
                 <Link to="/cadastro" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">Solicitar Orçamento</Link>
                 <Link to="/agendar" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">Agendar Reunião</Link>
-                <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
+                <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
                   Falar pelo WhatsApp
                 </a>
               </div>
