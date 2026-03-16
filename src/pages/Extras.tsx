@@ -478,6 +478,24 @@ export default function Extras() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* MODAL — Confirmar Exclusão */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Excluir Extra</DialogTitle>
+            <DialogDescription className="text-white/50">
+              Tem certeza que deseja excluir <strong className="text-white">{extraSel?.nome}</strong>? Esta ação também removerá todas as atribuições a clientes e não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-2">
+            <Button variant="ghost" className="border border-white/10 text-white/60" onClick={() => setShowDelete(false)}>Cancelar</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white border-0" onClick={handleDelete} disabled={saving}>
+              {saving ? "Excluindo..." : "Excluir"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
