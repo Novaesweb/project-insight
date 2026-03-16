@@ -447,7 +447,7 @@ export default function Site() {
                       ))}
                     </ul>
                     <p className="text-xs text-emerald-400/80 italic mb-3">⚡ Não perca essa oportunidade!</p>
-                    <a href="https://wa.me/5500000000000?text=Olá, vi a promoção do Plano Site Express da NovaesWeb e gostaria de aproveitar! Valor inicial R$180 e mensalidade R$60." target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/5551981964238?text=Olá, vi a promoção do Plano Site Express da NovaesWeb e gostaria de aproveitar! Valor inicial R$180 e mensalidade R$60." target="_blank" rel="noopener noreferrer">
                       <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                         Aproveitar promoção <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
