@@ -151,6 +151,20 @@ export default function Extras() {
     fetchData();
   };
 
+  const handleDelete = async () => {
+    if (!extraSel) return;
+    setSaving(true);
+    // Remove atribuições primeiro
+    await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
+    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
+    setSaving(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra excluído!" });
+    setShowDelete(false);
+    setExtraSel(null);
+    fetchData();
+  };
+
   const config = catConfig[categoriaSel];
 
   return (
