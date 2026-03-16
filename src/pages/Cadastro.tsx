@@ -56,6 +56,35 @@ export default function Cadastro() {
     updateForm("whatsapp", formatWhatsApp(value));
   };
 
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleCepChange = async (value: string) => {
+    const formatted = formatCep(value);
+    updateForm("cep", formatted);
+    const digits = formatted.replace(/\D/g, "");
+    if (digits.length === 8) {
+      setCepLoading(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setForm(prev => ({
+            ...prev,
+            cep: formatted,
+            rua: data.logradouro || prev.rua,
+            cidade: data.localidade || prev.cidade,
+            estado: data.uf || prev.estado,
+          }));
+        }
+      } catch { /* silently fail */ }
+      setCepLoading(false);
+    }
+  };
+
   const toggleServico = (s: string) => {
     setForm(prev => ({
       ...prev,
