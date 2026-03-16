@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft, AlertCircle } from "lucide-react";
+import { Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
@@ -41,8 +41,9 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
 
+  const [cepLoading, setCepLoading] = useState(false);
   const [form, setForm] = useState({
-    nome: "", email: "", whatsapp: "", cidade: "", estado: "", documento: "",
+    nome: "", email: "", whatsapp: "", cep: "", rua: "", numero: "", cidade: "", estado: "", documento: "",
     nome_negocio: "", segmento: "", servicos: [] as string[], orcamento: "", como_conheceu: "", mensagem: "",
   });
 
@@ -53,6 +54,35 @@ export default function Cadastro() {
 
   const handleWhatsAppChange = (value: string) => {
     updateForm("whatsapp", formatWhatsApp(value));
+  };
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleCepChange = async (value: string) => {
+    const formatted = formatCep(value);
+    updateForm("cep", formatted);
+    const digits = formatted.replace(/\D/g, "");
+    if (digits.length === 8) {
+      setCepLoading(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setForm(prev => ({
+            ...prev,
+            cep: formatted,
+            rua: data.logradouro || prev.rua,
+            cidade: data.localidade || prev.cidade,
+            estado: data.uf || prev.estado,
+          }));
+        }
+      } catch { /* silently fail */ }
+      setCepLoading(false);
+    }
   };
 
   const toggleServico = (s: string) => {
@@ -223,12 +253,33 @@ export default function Cadastro() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cidade</Label>
-                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.cidade} onChange={e => updateForm("cidade", e.target.value)} />
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">CEP</Label>
+                      <div className="relative">
+                        <Input
+                          className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10"
+                          placeholder="00000-000"
+                          value={form.cep} onChange={e => handleCepChange(e.target.value)}
+                        />
+                        {cepLoading && <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-3 text-[hsl(var(--muted-foreground))]" />}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Estado</Label>
                       <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.estado} onChange={e => updateForm("estado", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cidade</Label>
+                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.cidade} onChange={e => updateForm("cidade", e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Rua</Label>
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.rua} onChange={e => updateForm("rua", e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Número</Label>
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" placeholder="123" value={form.numero} onChange={e => updateForm("numero", e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
