@@ -287,19 +287,19 @@ export default function Site() {
               </motion.div>
             </div>
             <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
-              <div ref={heroEmpresasCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroEmpresasCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroEmpresasCounter.count}+</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
               </div>
-              <div ref={heroEntregaCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroEntregaCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroEntregaCounter.count}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Dias de entrega</p>
               </div>
-              <div ref={heroResponsivoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroResponsivoCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroResponsivoCounter.count}%</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Responsivo</p>
               </div>
-              <div ref={heroAtendimentoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroAtendimentoCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroAtendimentoCounter.count}h</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
               </div>
@@ -333,7 +333,7 @@ export default function Site() {
               <motion.div
                 key={i}
                 variants={fade}
-                className="glass-card rounded-2xl p-8 group hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
+                className="glass-card rounded-2xl p-8 group info-card-hover"
               >
                 <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mb-6 shadow-lg shadow-[hsl(var(--primary))]/20 group-hover:scale-105 transition-transform">
                   <s.icon className="w-7 h-7 text-white" />
@@ -389,7 +389,7 @@ export default function Site() {
                     <motion.div
                       key={i}
                       variants={fade}
-                      className="glass-card rounded-2xl p-6 flex gap-4 items-start hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
+                      className="glass-card rounded-2xl p-6 flex gap-4 items-start info-card-hover"
                     >
                       <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
                         <p.icon className="w-5 h-5 text-white" />
@@ -444,7 +444,7 @@ export default function Site() {
               { num: "04", titulo: "Evolução Contínua", desc: "Após a entrega, seu projeto continua evoluindo. Novas funcionalidades, melhorias e acompanhamento contínuo conforme sua empresa cresce.", detail: "Pós-entrega" },
             ].map((step, i) => (
               <motion.div key={i} variants={fade} className="relative">
-                <div className="glass-card rounded-2xl p-8 h-full">
+                <div className="glass-card rounded-2xl p-8 h-full info-card-hover">
                   <span className="text-4xl font-extrabold gradient-text opacity-30">{step.num}</span>
                   <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">{step.titulo}</h3>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">{step.desc}</p>
