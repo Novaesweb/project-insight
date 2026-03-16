@@ -51,14 +51,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       {/* Ambient glow background */}
       <div className="ambient-glow fixed inset-0 pointer-events-none z-0" />
-      <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:block">
+      <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:flex md:flex-col">
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
             <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
             <span>Painel Admin</span>
           </Link>
         </div>
-        <nav className="space-y-0.5">
+        <nav className="space-y-0.5 flex-1">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -72,6 +72,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
+        <div className="px-6 pt-2 border-t border-[hsl(var(--border))]">
+          <button onClick={handleLogout} className="flex items-center gap-2 px-0 py-3 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] transition-colors w-full">
+            <LogOut className="w-4 h-4" />
+            <span>Sair do Painel</span>
+          </button>
+        </div>
       </aside>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild className="md:hidden">
