@@ -512,7 +512,7 @@ export default function Site() {
                       ))}
                     </ul>
                     <p className="text-xs text-purple-400/80 italic mb-3">💡 Cada projeto é planejado conforme a necessidade da empresa.</p>
-                    <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Sistema Sob Medida." target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/5551981964238?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Sistema Sob Medida." target="_blank" rel="noopener noreferrer">
                       <Button className="w-full bg-purple-600 hover:bg-purple-700 border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-purple-600/20">
                         Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
