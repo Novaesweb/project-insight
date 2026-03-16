@@ -796,7 +796,7 @@ export default function Site() {
                 Solicitar orçamento <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <a href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
               <Button className="bg-white/20 text-white hover:bg-white/30 border border-white/30 h-12 px-10 rounded-xl text-base font-semibold">
                 <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp
               </Button>
