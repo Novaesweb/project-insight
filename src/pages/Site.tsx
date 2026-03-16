@@ -287,17 +287,22 @@ export default function Site() {
               </motion.div>
             </div>
             <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
-              {[
-                { label: "Empresas atendidas", isCounter: true },
-                { num: "7", label: "Dias de entrega" },
-                { num: "100%", label: "Responsivo" },
-                { num: "24h", label: "Atendimento rápido" },
-              ].map((stat, i) => (
-                <div key={i} ref={i === 0 ? heroCounter.ref : undefined} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
-                  <p className="text-2xl font-bold gradient-text">{'isCounter' in stat ? `${heroCounter.count}+` : stat.num}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{stat.label}</p>
-                </div>
-              ))}
+              <div ref={heroEmpresasCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroEmpresasCounter.count}+</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
+              </div>
+              <div ref={heroEntregaCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroEntregaCounter.count}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Dias de entrega</p>
+              </div>
+              <div ref={heroResponsivoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroResponsivoCounter.count}%</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Responsivo</p>
+              </div>
+              <div ref={heroAtendimentoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+                <p className="text-2xl font-bold gradient-text">{heroAtendimentoCounter.count}h</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
+              </div>
             </motion.div>
           </div>
         </div>
