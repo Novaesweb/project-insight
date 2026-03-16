@@ -83,7 +83,7 @@ export default function Cadastro() {
             Em breve nossa equipe vai entrar em contato pelo WhatsApp. Fique de olho!
           </p>
           <a
-            href={`https://wa.me/5511999999999?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site.`)}`}
+            href={`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site.`)}`}
             target="_blank" rel="noopener noreferrer"
           >
             <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl px-8 h-12 text-base gap-2">

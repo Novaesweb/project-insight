@@ -114,7 +114,7 @@ export default function NicheCarousel() {
           <p className="text-[hsl(var(--muted-foreground))] mb-4">
             Não encontrou seu segmento? A gente atende qualquer tipo de negócio local.
           </p>
-          <a href="https://wa.me/5500000000000?text=Olá! Quero um site para meu negócio." target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/5551981964238?text=Olá! Quero um site para meu negócio." target="_blank" rel="noopener noreferrer">
             <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-11 px-6 rounded-xl text-sm font-semibold">
               <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
             </Button>
