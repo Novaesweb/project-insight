@@ -482,7 +482,7 @@ export default function Site() {
                       ))}
                     </ul>
                     <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-3">💡 Ideal para empresas que querem mais controle e organização.</p>
-                    <a href="https://wa.me/5500000000000?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Gestão Pro." target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/5551981964238?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Gestão Pro." target="_blank" rel="noopener noreferrer">
                       <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                         Falar com especialista <MessageCircle className="w-4 h-4 ml-2" />
                       </Button>
