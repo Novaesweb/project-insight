@@ -93,9 +93,14 @@ export default function Site() {
     return () => clearInterval(interval);
   }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
-  const [empresasTarget] = useState(() => Math.floor(Math.random() * 21) + 6);
-  const heroCounter = useAnimatedCounter(empresasTarget, 1500);
-  const metricsCounter = useAnimatedCounter(empresasTarget, 1500);
+  const heroEmpresasCounter = useAnimatedCounter(36, 1500);
+  const heroEntregaCounter = useAnimatedCounter(7, 800);
+  const heroResponsivoCounter = useAnimatedCounter(100, 1200);
+  const heroAtendimentoCounter = useAnimatedCounter(24, 1000);
+  const metricEmpresasCounter = useAnimatedCounter(36, 1500);
+  const metricSatisfacaoCounter = useAnimatedCounter(100, 1200);
+  const metricPrazoCounter = useAnimatedCounter(7, 800);
+  const metricRespostaCounter = useAnimatedCounter(24, 1000);
 
   const navLinks = [
     { href: "#servicos", label: "Serviços" },
