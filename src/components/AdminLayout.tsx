@@ -48,6 +48,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const leadCount = useLeadCount();
   const { theme, toggle } = useTheme();
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/admin/login");
+  };
+
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       {/* Ambient glow background */}
