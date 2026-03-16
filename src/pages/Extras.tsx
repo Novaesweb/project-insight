@@ -4,11 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp } from "lucide-react";
+import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +43,7 @@ export default function Extras() {
   const [showNew, setShowNew] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAtribuir, setShowAtribuir] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [extraSel, setExtraSel] = useState<any>(null);
   const [clienteSel, setClienteSel] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -147,6 +148,20 @@ export default function Extras() {
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atribuído!", description: `"${extraSel.nome}" adicionado ao cliente.` });
     setShowAtribuir(false);
+    fetchData();
+  };
+
+  const handleDelete = async () => {
+    if (!extraSel) return;
+    setSaving(true);
+    // Remove atribuições primeiro
+    await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
+    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
+    setSaving(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra excluído!" });
+    setShowDelete(false);
+    setExtraSel(null);
     fetchData();
   };
 
@@ -296,6 +311,9 @@ export default function Extras() {
                         </Button>
                         <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(extra)}>
                           <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => { setExtraSel(extra); setShowDelete(true); }}>
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </CardContent>
@@ -458,6 +476,24 @@ export default function Extras() {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL — Confirmar Exclusão */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Excluir Extra</DialogTitle>
+            <DialogDescription className="text-white/50">
+              Tem certeza que deseja excluir <strong className="text-white">{extraSel?.nome}</strong>? Esta ação também removerá todas as atribuições a clientes e não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-2">
+            <Button variant="ghost" className="border border-white/10 text-white/60" onClick={() => setShowDelete(false)}>Cancelar</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white border-0" onClick={handleDelete} disabled={saving}>
+              {saving ? "Excluindo..." : "Excluir"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </motion.div>
