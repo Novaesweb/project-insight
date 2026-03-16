@@ -91,6 +91,9 @@ export default function Site() {
     return () => clearInterval(interval);
   }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
+  const [empresasTarget] = useState(() => Math.floor(Math.random() * 21) + 6);
+  const heroCounter = useAnimatedCounter(empresasTarget, 1500);
+  const metricsCounter = useAnimatedCounter(empresasTarget, 1500);
 
   const navLinks = [
     { href: "#servicos", label: "Serviços" },
