@@ -287,19 +287,19 @@ export default function Site() {
               </motion.div>
             </div>
             <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
-              <div ref={heroEmpresasCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroEmpresasCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroEmpresasCounter.count}+</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
               </div>
-              <div ref={heroEntregaCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroEntregaCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroEntregaCounter.count}</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Dias de entrega</p>
               </div>
-              <div ref={heroResponsivoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroResponsivoCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroResponsivoCounter.count}%</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Responsivo</p>
               </div>
-              <div ref={heroAtendimentoCounter.ref} className="glass-card rounded-2xl p-6 text-center hover:border-[hsl(var(--primary))]/30 transition-colors">
+              <div ref={heroAtendimentoCounter.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
                 <p className="text-2xl font-bold gradient-text">{heroAtendimentoCounter.count}h</p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
               </div>
