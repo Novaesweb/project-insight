@@ -670,23 +670,28 @@ export default function Site() {
               O que nossos clientes dizem
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              Estamos em fase de crescimento, já atendendo cerca de {empresasTarget} empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
+              Estamos em fase de crescimento, já atendendo cerca de 36 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
             </p>
           </motion.div>
 
           {/* Métricas */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-            {[
-              { label: "Empresas atendidas", isCounter: true },
-              { num: "100%", label: "Satisfação dos clientes" },
-              { num: "7 dias", label: "Prazo médio de entrega" },
-              { num: "24h", label: "Tempo de resposta suporte" },
-            ].map((m, i) => (
-              <motion.div key={i} ref={i === 0 ? metricsCounter.ref : undefined} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-                <p className="text-2xl font-bold gradient-text">{'isCounter' in m ? `${metricsCounter.count}+` : m.num}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">{m.label}</p>
-              </motion.div>
-            ))}
+            <motion.div ref={metricEmpresasCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricEmpresasCounter.count}+</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
+            </motion.div>
+            <motion.div ref={metricSatisfacaoCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricSatisfacaoCounter.count}%</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Satisfação dos clientes</p>
+            </motion.div>
+            <motion.div ref={metricPrazoCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricPrazoCounter.count} dias</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Prazo médio de entrega</p>
+            </motion.div>
+            <motion.div ref={metricRespostaCounter.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-2xl font-bold gradient-text">{metricRespostaCounter.count}h</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Tempo de resposta suporte</p>
+            </motion.div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
