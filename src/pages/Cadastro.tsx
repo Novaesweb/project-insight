@@ -15,7 +15,7 @@ import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const segmentos = ["Restaurante", "Clínica", "Loja", "Escritório", "Outro"];
 const servicosOpcoes = ["Site", "Loja Virtual", "App", "Identidade Visual"];
-const orcamentoOpcoes = ["Até R$500", "R$500 a R$1.500", "R$1.500 a R$3.000", "Acima de R$3.000", "Não sei ainda"];
+const orcamentoOpcoes = ["Até R$500/mês", "R$500 a R$1.500/mês", "R$1.500 a R$3.000/mês", "Acima de R$3.000/mês", "Não sei ainda"];
 const origemOpcoes = ["Google", "Instagram", "Indicação", "Outro"];
 
 const formatWhatsApp = (value: string) => {
