@@ -389,7 +389,7 @@ export default function Site() {
                     <motion.div
                       key={i}
                       variants={fade}
-                      className="glass-card rounded-2xl p-6 flex gap-4 items-start hover:border-[hsl(var(--primary))]/30 transition-all duration-300"
+                      className="glass-card rounded-2xl p-6 flex gap-4 items-start info-card-hover"
                     >
                       <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
                         <p.icon className="w-5 h-5 text-white" />
