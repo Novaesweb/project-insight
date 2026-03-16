@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationCenter from "@/components/NotificationCenter";
+import nwLogo from "@/assets/novaesweb-logo-n.jpeg";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/cliente/dashboard" },
