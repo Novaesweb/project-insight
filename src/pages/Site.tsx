@@ -598,7 +598,7 @@ export default function Site() {
                     { icon: <ShoppingBag className="w-5 h-5 text-emerald-400" />, title: "Sistema de Pedidos", desc: "Permite que seus clientes façam pedidos diretamente pelo site, organizando tudo no painel administrativo." },
                     { icon: <Layers className="w-5 h-5 text-[hsl(var(--primary))]" />, title: "Painel Administrativo", desc: "Gerencie produtos, pedidos, clientes e informações do site de forma simples e organizada." },
                     { icon: <CalendarCheck className="w-5 h-5 text-purple-400" />, title: "Reservas e Agendamentos", desc: "Ideal para restaurantes, pizzarias e serviços que precisam organizar horários e reservas." },
-                    { icon: <Zap className="w-5 h-5 text-yellow-400" />, title: "Pagamento e tipos de extras", desc: "Alguns recursos podem ser pagamento único ou mensalidade para manutenção e funcionamento contínuo." },
+                    
                   ].map((item, i) => (
                     <div key={i} className="glass-card rounded-xl p-5 text-left">
                       <div className="w-10 h-10 rounded-lg bg-[hsl(var(--muted))]/50 flex items-center justify-center mb-3">{item.icon}</div>
