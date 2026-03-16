@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
+import nwLogo from "@/assets/novaesweb-symbol.jpeg";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:block">
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
-            <img src="/logo.svg" alt="Logotipo" className="w-8 h-8" />
+            <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
             <span>Painel Admin</span>
           </Link>
         </div>
@@ -79,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SheetContent side="left" className="w-64 border-r border-[hsl(var(--border))] px-0 pt-4">
           <div className="px-6 pb-4">
             <Link to="/admin" className="flex items-center gap-2 font-semibold">
-              <img src="/logo.svg" alt="Logotipo" className="w-8 h-8" />
+              <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
               <span>Painel Admin</span>
             </Link>
           </div>
