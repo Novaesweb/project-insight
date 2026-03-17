@@ -955,7 +955,7 @@ export default function Site() {
                       >
                         {item.image && (
                           <motion.div
-                            className="w-full h-40 overflow-hidden"
+                            className="w-full h-28 overflow-hidden"
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.4 }}
                           >
