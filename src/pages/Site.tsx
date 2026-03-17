@@ -118,6 +118,7 @@ export default function Site() {
     { id: "sobre", label: "Sobre NovaesWeb" },
     { id: "quem-somos", label: "Quem Somos" },
     { id: "diferenciais", label: "Por que a NovaesWeb?" },
+    { id: "demonstracao", label: "Demonstração" },
   ];
 
   const scrollTo = (href: string) => {
@@ -921,6 +922,38 @@ export default function Site() {
                     <p><strong className="text-[hsl(var(--foreground))]">Propriedade intelectual:</strong> Após a quitação total do projeto, o cliente recebe os direitos de uso sobre o produto desenvolvido. O código-fonte e a tecnologia utilizada permanecem como propriedade da NovaesWeb.</p>
                     <p><strong className="text-[hsl(var(--foreground))]">Pagamento:</strong> Os valores e condições de pagamento são definidos no orçamento aprovado. Custos adicionais, como domínio e serviços externos, são de responsabilidade do cliente.</p>
                     <p><strong className="text-[hsl(var(--foreground))]">Cancelamento:</strong> O cliente pode cancelar o projeto a qualquer momento, porém valores já pagos referentes a etapas concluídas não serão reembolsados.</p>
+                  </div>
+                </div>
+              )}
+
+              {modalOpen === "demonstracao" && (
+                <div className="p-8">
+                  <div className="mb-6">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Portfólio</span>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sites de Demonstração</h2>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">Conheça alguns dos projetos desenvolvidos pela NovaesWeb.</p>
+                  </div>
+                  <div className="grid gap-4">
+                    {[
+                      { name: "Bella Massa", description: "Site completo para pizzaria com cardápio digital e pedidos online.", link: "https://bellamassa0.vercel.app/" },
+                      { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/" },
+                      { name: "Pizzaria Novaes", description: "Plataforma com pedidos integrados e painel administrativo.", link: "https://pizzarianovaes.vercel.app/" },
+                      { name: "Açaí Delivery", description: "Loja online para venda de açaí com controle de pedidos.", link: "https://demoacai.vercel.app/" },
+                    ].map((item, index) => (
+                      <a
+                        key={index}
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group p-5 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 hover:bg-[hsl(var(--muted))]/60 hover:border-[hsl(var(--primary))]/40 transition-all duration-300"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">{item.name}</h3>
+                          <ArrowRight className="w-4 h-4 text-[hsl(var(--primary))] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{item.description}</p>
+                      </a>
+                    ))}
                   </div>
                 </div>
               )}
