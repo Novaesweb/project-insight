@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationCenter from "@/components/NotificationCenter";
-import nwLogo from "@/assets/novaesweb-logo-n.jpeg";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/cliente/dashboard" },
@@ -28,7 +27,9 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
     <div className="flex flex-col h-full" style={{ background: "#0f172a" }}>
       <div className="px-4 py-4 border-b border-white/5">
         <div className="flex items-center gap-2">
-          <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }}>
+            <span className="text-white font-bold text-xs">NW</span>
+          </div>
           <div>
             <span className="text-sm font-bold">
               <span className="gradient-text">Novaes</span>

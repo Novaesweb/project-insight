@@ -10,247 +10,322 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
-      app_config: {
+      audit_log: {
         Row: {
+          action: string
           created_at: string
-          key: string
-          value: string
+          details: Json | null
+          id: string
+          record_id: string | null
+          table_name: string
+          user_id: string | null
         }
         Insert: {
+          action: string
           created_at?: string
-          key: string
-          value: string
+          details?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
         }
         Update: {
+          action?: string
           created_at?: string
-          key?: string
-          value?: string
+          details?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
         }
         Relationships: []
+      }
+      cadastros: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          cidade: string | null
+          created_at: string
+          descricao_empresa: string | null
+          email: string | null
+          estado: string | null
+          fotos_urls: string[] | null
+          funcionalidades: string[] | null
+          id: string
+          informacoes_extras: string | null
+          logo_url: string | null
+          nome_empresa: string
+          nome_responsavel: string
+          ramo: string | null
+          status: Database["public"]["Enums"]["cadastro_status"]
+          tipo_busca: string[] | null
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          cidade?: string | null
+          created_at?: string
+          descricao_empresa?: string | null
+          email?: string | null
+          estado?: string | null
+          fotos_urls?: string[] | null
+          funcionalidades?: string[] | null
+          id?: string
+          informacoes_extras?: string | null
+          logo_url?: string | null
+          nome_empresa: string
+          nome_responsavel: string
+          ramo?: string | null
+          status?: Database["public"]["Enums"]["cadastro_status"]
+          tipo_busca?: string[] | null
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          cidade?: string | null
+          created_at?: string
+          descricao_empresa?: string | null
+          email?: string | null
+          estado?: string | null
+          fotos_urls?: string[] | null
+          funcionalidades?: string[] | null
+          id?: string
+          informacoes_extras?: string | null
+          logo_url?: string | null
+          nome_empresa?: string
+          nome_responsavel?: string
+          ramo?: string | null
+          status?: Database["public"]["Enums"]["cadastro_status"]
+          tipo_busca?: string[] | null
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      client_notifications: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          lida: boolean
+          mensagem: string | null
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          lida?: boolean
+          mensagem?: string | null
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          lida?: boolean
+          mensagem?: string | null
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_notifications_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_extras: {
+        Row: {
+          ativado_por: string | null
+          ativo: boolean
+          cliente_id: string
+          created_at: string
+          extra_id: string
+          id: string
+          projeto_id: string | null
+        }
+        Insert: {
+          ativado_por?: string | null
+          ativo?: boolean
+          cliente_id: string
+          created_at?: string
+          extra_id: string
+          id?: string
+          projeto_id?: string | null
+        }
+        Update: {
+          ativado_por?: string | null
+          ativo?: boolean
+          cliente_id?: string
+          created_at?: string
+          extra_id?: string
+          id?: string
+          projeto_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_extras_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_extras_extra_id_fkey"
+            columns: ["extra_id"]
+            isOneToOne: false
+            referencedRelation: "extras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_extras_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes: {
         Row: {
-          avatar: string | null
+          ativo: boolean
+          cadastro_id: string | null
           cidade: string | null
           created_at: string
-          documento: string | null
-          email: string
-          endereco: string | null
+          criado_por: string | null
+          email: string | null
           estado: string | null
           id: string
-          nome: string
-          status: string
-          telefone: string | null
+          nome_empresa: string
+          nome_responsavel: string
+          observacao_admin: string | null
+          ramo: string | null
           updated_at: string
+          user_id: string | null
+          whatsapp: string
         }
         Insert: {
-          avatar?: string | null
+          ativo?: boolean
+          cadastro_id?: string | null
           cidade?: string | null
           created_at?: string
-          documento?: string | null
-          email: string
-          endereco?: string | null
+          criado_por?: string | null
+          email?: string | null
           estado?: string | null
           id?: string
-          nome: string
-          status?: string
-          telefone?: string | null
+          nome_empresa: string
+          nome_responsavel: string
+          observacao_admin?: string | null
+          ramo?: string | null
           updated_at?: string
+          user_id?: string | null
+          whatsapp: string
         }
         Update: {
-          avatar?: string | null
+          ativo?: boolean
+          cadastro_id?: string | null
           cidade?: string | null
           created_at?: string
-          documento?: string | null
-          email?: string
-          endereco?: string | null
+          criado_por?: string | null
+          email?: string | null
           estado?: string | null
           id?: string
-          nome?: string
-          status?: string
-          telefone?: string | null
+          nome_empresa?: string
+          nome_responsavel?: string
+          observacao_admin?: string | null
+          ramo?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      contratos: {
-        Row: {
-          assinatura_admin: string | null
-          assinatura_cliente: string | null
-          cliente_id: string | null
-          corpo: string | null
-          created_at: string
-          data_assinatura: string | null
-          data_envio: string
-          descricao: string | null
-          id: string
-          modelo: string | null
-          status: string
-          titulo: string
-          valor: number
-        }
-        Insert: {
-          assinatura_admin?: string | null
-          assinatura_cliente?: string | null
-          cliente_id?: string | null
-          corpo?: string | null
-          created_at?: string
-          data_assinatura?: string | null
-          data_envio?: string
-          descricao?: string | null
-          id?: string
-          modelo?: string | null
-          status?: string
-          titulo: string
-          valor?: number
-        }
-        Update: {
-          assinatura_admin?: string | null
-          assinatura_cliente?: string | null
-          cliente_id?: string | null
-          corpo?: string | null
-          created_at?: string
-          data_assinatura?: string | null
-          data_envio?: string
-          descricao?: string | null
-          id?: string
-          modelo?: string | null
-          status?: string
-          titulo?: string
-          valor?: number
+          user_id?: string | null
+          whatsapp?: string
         }
         Relationships: [
           {
-            foreignKeyName: "contratos_cliente_id_fkey"
-            columns: ["cliente_id"]
+            foreignKeyName: "clientes_cadastro_id_fkey"
+            columns: ["cadastro_id"]
             isOneToOne: false
-            referencedRelation: "clientes"
+            referencedRelation: "cadastros"
             referencedColumns: ["id"]
           },
         ]
       }
-      extras_catalogo: {
+      extras: {
         Row: {
-          categoria: string
+          ativo: boolean
           created_at: string
           descricao: string | null
           id: string
           nome: string
-          preco_ativacao: number
-          preco_mensal: number
-          status: string
+          preco: number | null
+          preco_mensal: number | null
+          tipo: string
         }
         Insert: {
-          categoria?: string
+          ativo?: boolean
           created_at?: string
           descricao?: string | null
           id?: string
           nome: string
-          preco_ativacao?: number
-          preco_mensal?: number
-          status?: string
+          preco?: number | null
+          preco_mensal?: number | null
+          tipo?: string
         }
         Update: {
-          categoria?: string
+          ativo?: boolean
           created_at?: string
           descricao?: string | null
           id?: string
           nome?: string
-          preco_ativacao?: number
-          preco_mensal?: number
-          status?: string
+          preco?: number | null
+          preco_mensal?: number | null
+          tipo?: string
         }
         Relationships: []
-      }
-      extras_clientes: {
-        Row: {
-          categoria: string
-          cliente_id: string
-          created_at: string
-          data_ativacao: string
-          data_cancelamento: string | null
-          extra_id: string
-          id: string
-          observacao: string | null
-          preco_ativacao: number
-          preco_mensal: number
-          status: string
-        }
-        Insert: {
-          categoria?: string
-          cliente_id: string
-          created_at?: string
-          data_ativacao?: string
-          data_cancelamento?: string | null
-          extra_id: string
-          id?: string
-          observacao?: string | null
-          preco_ativacao?: number
-          preco_mensal?: number
-          status?: string
-        }
-        Update: {
-          categoria?: string
-          cliente_id?: string
-          created_at?: string
-          data_ativacao?: string
-          data_cancelamento?: string | null
-          extra_id?: string
-          id?: string
-          observacao?: string | null
-          preco_ativacao?: number
-          preco_mensal?: number
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "extras_clientes_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "extras_clientes_extra_id_fkey"
-            columns: ["extra_id"]
-            isOneToOne: false
-            referencedRelation: "extras_catalogo"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       faturas: {
         Row: {
-          cliente_id: string | null
+          cliente_id: string
           created_at: string
-          data_emissao: string
           descricao: string
           id: string
+          pago_em: string | null
           status: string
+          updated_at: string
           valor: number
           vencimento: string
         }
         Insert: {
-          cliente_id?: string | null
+          cliente_id: string
           created_at?: string
-          data_emissao?: string
           descricao: string
           id?: string
+          pago_em?: string | null
           status?: string
+          updated_at?: string
           valor?: number
           vencimento: string
         }
         Update: {
-          cliente_id?: string | null
+          cliente_id?: string
           created_at?: string
-          data_emissao?: string
           descricao?: string
           id?: string
+          pago_em?: string | null
           status?: string
+          updated_at?: string
           valor?: number
           vencimento?: string
         }
@@ -264,217 +339,75 @@ export type Database = {
           },
         ]
       }
-      financeiro: {
-        Row: {
-          cliente_id: string | null
-          created_at: string
-          data: string
-          descricao: string
-          id: string
-          status: string
-          tipo: string
-          valor: number
-          vencimento: string | null
-        }
-        Insert: {
-          cliente_id?: string | null
-          created_at?: string
-          data?: string
-          descricao: string
-          id?: string
-          status?: string
-          tipo?: string
-          valor?: number
-          vencimento?: string | null
-        }
-        Update: {
-          cliente_id?: string | null
-          created_at?: string
-          data?: string
-          descricao?: string
-          id?: string
-          status?: string
-          tipo?: string
-          valor?: number
-          vencimento?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financeiro_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      leads: {
-        Row: {
-          cidade: string | null
-          como_conheceu: string | null
-          created_at: string
-          documento: string | null
-          email: string
-          estado: string | null
-          id: string
-          mensagem: string | null
-          motivo_perda: string | null
-          nome: string
-          nome_negocio: string | null
-          orcamento: string | null
-          segmento: string | null
-          servicos: string[] | null
-          status: string
-          updated_at: string
-          visualizado: boolean
-          whatsapp: string
-        }
-        Insert: {
-          cidade?: string | null
-          como_conheceu?: string | null
-          created_at?: string
-          documento?: string | null
-          email: string
-          estado?: string | null
-          id?: string
-          mensagem?: string | null
-          motivo_perda?: string | null
-          nome: string
-          nome_negocio?: string | null
-          orcamento?: string | null
-          segmento?: string | null
-          servicos?: string[] | null
-          status?: string
-          updated_at?: string
-          visualizado?: boolean
-          whatsapp: string
-        }
-        Update: {
-          cidade?: string | null
-          como_conheceu?: string | null
-          created_at?: string
-          documento?: string | null
-          email?: string
-          estado?: string | null
-          id?: string
-          mensagem?: string | null
-          motivo_perda?: string | null
-          nome?: string
-          nome_negocio?: string | null
-          orcamento?: string | null
-          segmento?: string | null
-          servicos?: string[] | null
-          status?: string
-          updated_at?: string
-          visualizado?: boolean
-          whatsapp?: string
-        }
-        Relationships: []
-      }
-      notificacoes: {
-        Row: {
-          cliente_id: string | null
-          created_at: string
-          descricao: string | null
-          id: string
-          lida: boolean
-          tipo: string
-          titulo: string
-        }
-        Insert: {
-          cliente_id?: string | null
-          created_at?: string
-          descricao?: string | null
-          id?: string
-          lida?: boolean
-          tipo?: string
-          titulo: string
-        }
-        Update: {
-          cliente_id?: string | null
-          created_at?: string
-          descricao?: string | null
-          id?: string
-          lida?: boolean
-          tipo?: string
-          titulo?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notificacoes_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       notifications: {
         Row: {
-          body: string
           created_at: string
           id: string
+          message: string | null
           read: boolean
           title: string
-          url: string | null
-          user_id: string
-          user_type: string
+          type: Database["public"]["Enums"]["notification_type"]
         }
         Insert: {
-          body: string
           created_at?: string
           id?: string
+          message?: string | null
           read?: boolean
           title: string
-          url?: string | null
-          user_id: string
-          user_type?: string
+          type?: Database["public"]["Enums"]["notification_type"]
         }
         Update: {
-          body?: string
           created_at?: string
           id?: string
+          message?: string | null
           read?: boolean
           title?: string
-          url?: string | null
-          user_id?: string
-          user_type?: string
+          type?: Database["public"]["Enums"]["notification_type"]
         }
         Relationships: []
       }
       pedidos: {
         Row: {
-          cliente_id: string | null
-          codigo: string
+          aceito_em: string | null
+          aceito_por: string | null
+          cliente_id: string
           created_at: string
-          data: string
+          descricao: string
+          entregue_em: string | null
           id: string
           projeto_id: string | null
-          status: string
-          tipo: string
-          valor: number
+          status: Database["public"]["Enums"]["pedido_status"]
+          tipo: Database["public"]["Enums"]["pedido_tipo"]
+          updated_at: string
+          valor: number | null
         }
         Insert: {
-          cliente_id?: string | null
-          codigo: string
+          aceito_em?: string | null
+          aceito_por?: string | null
+          cliente_id: string
           created_at?: string
-          data?: string
+          descricao: string
+          entregue_em?: string | null
           id?: string
           projeto_id?: string | null
-          status?: string
-          tipo: string
-          valor?: number
+          status?: Database["public"]["Enums"]["pedido_status"]
+          tipo?: Database["public"]["Enums"]["pedido_tipo"]
+          updated_at?: string
+          valor?: number | null
         }
         Update: {
-          cliente_id?: string | null
-          codigo?: string
+          aceito_em?: string | null
+          aceito_por?: string | null
+          cliente_id?: string
           created_at?: string
-          data?: string
+          descricao?: string
+          entregue_em?: string | null
           id?: string
           projeto_id?: string | null
-          status?: string
-          tipo?: string
-          valor?: number
+          status?: Database["public"]["Enums"]["pedido_status"]
+          tipo?: Database["public"]["Enums"]["pedido_tipo"]
+          updated_at?: string
+          valor?: number | null
         }
         Relationships: [
           {
@@ -493,80 +426,108 @@ export type Database = {
           },
         ]
       }
-      projeto_atualizacoes: {
+      pending_users: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
+          assigned_role: Database["public"]["Enums"]["app_role"] | null
           created_at: string
-          descricao: string
+          display_name: string | null
+          email: string
           id: string
-          projeto_id: string
-          visivel_cliente: boolean
+          status: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_role?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string
-          descricao: string
+          display_name?: string | null
+          email: string
           id?: string
-          projeto_id: string
-          visivel_cliente?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_role?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string
-          descricao?: string
+          display_name?: string | null
+          email?: string
           id?: string
-          projeto_id?: string
-          visivel_cliente?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "projeto_atualizacoes_projeto_id_fkey"
-            columns: ["projeto_id"]
-            isOneToOne: false
-            referencedRelation: "projetos"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       projetos: {
         Row: {
-          cliente_id: string | null
+          arquivos_urls: string[] | null
+          cliente_id: string
           created_at: string
+          criado_por: string | null
           descricao: string | null
           id: string
-          inicio: string | null
-          prazo: string | null
-          progresso: number
-          responsavel: string | null
-          status: string
-          titulo: string
+          nome: string
+          notas: string | null
+          status: Database["public"]["Enums"]["projeto_status"]
           updated_at: string
-          valor: number
         }
         Insert: {
-          cliente_id?: string | null
+          arquivos_urls?: string[] | null
+          cliente_id: string
           created_at?: string
+          criado_por?: string | null
           descricao?: string | null
           id?: string
-          inicio?: string | null
-          prazo?: string | null
-          progresso?: number
-          responsavel?: string | null
-          status?: string
-          titulo: string
+          nome: string
+          notas?: string | null
+          status?: Database["public"]["Enums"]["projeto_status"]
           updated_at?: string
-          valor?: number
         }
         Update: {
-          cliente_id?: string | null
+          arquivos_urls?: string[] | null
+          cliente_id?: string
           created_at?: string
+          criado_por?: string | null
           descricao?: string | null
           id?: string
-          inicio?: string | null
-          prazo?: string | null
-          progresso?: number
-          responsavel?: string | null
-          status?: string
-          titulo?: string
+          nome?: string
+          notas?: string | null
+          status?: Database["public"]["Enums"]["projeto_status"]
           updated_at?: string
-          valor?: number
         }
         Relationships: [
           {
@@ -608,125 +569,67 @@ export type Database = {
         }
         Relationships: []
       }
-      reunioes: {
+      site_settings: {
         Row: {
-          cliente_id: string | null
-          created_at: string
-          data: string
-          hora_fim: string
-          hora_inicio: string
-          id: string
-          link: string | null
-          observacoes: string | null
-          status: string
-          tipo: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
         }
         Insert: {
-          cliente_id?: string | null
-          created_at?: string
-          data: string
-          hora_fim: string
-          hora_inicio: string
-          id?: string
-          link?: string | null
-          observacoes?: string | null
-          status?: string
-          tipo?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Update: {
-          cliente_id?: string | null
-          created_at?: string
-          data?: string
-          hora_fim?: string
-          hora_inicio?: string
-          id?: string
-          link?: string | null
-          observacoes?: string | null
-          status?: string
-          tipo?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "reunioes_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      ticket_mensagens: {
+      tickets_suporte: {
         Row: {
+          assunto: string
+          cliente_id: string
           created_at: string
           id: string
-          nome: string
-          remetente: string
-          texto: string
-          ticket_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          nome: string
-          remetente?: string
-          texto: string
-          ticket_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          nome?: string
-          remetente?: string
-          texto?: string
-          ticket_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ticket_mensagens_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tickets: {
-        Row: {
-          cliente_id: string | null
-          codigo: string
-          created_at: string
-          descricao: string | null
-          id: string
-          prioridade: string
+          mensagem: string
+          respondido_em: string | null
+          respondido_por: string | null
+          resposta: string | null
           status: string
-          titulo: string
           updated_at: string
         }
         Insert: {
-          cliente_id?: string | null
-          codigo: string
+          assunto: string
+          cliente_id: string
           created_at?: string
-          descricao?: string | null
           id?: string
-          prioridade?: string
+          mensagem: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta?: string | null
           status?: string
-          titulo: string
           updated_at?: string
         }
         Update: {
-          cliente_id?: string | null
-          codigo?: string
+          assunto?: string
+          cliente_id?: string
           created_at?: string
-          descricao?: string | null
           id?: string
-          prioridade?: string
+          mensagem?: string
+          respondido_em?: string | null
+          respondido_por?: string | null
+          resposta?: string | null
           status?: string
-          titulo?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tickets_cliente_id_fkey"
+            foreignKeyName: "tickets_suporte_cliente_id_fkey"
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
@@ -734,36 +637,24 @@ export type Database = {
           },
         ]
       }
-      usuarios: {
+      user_roles: {
         Row: {
-          acesso: string
-          avatar: string | null
-          cargo: string | null
           created_at: string
-          email: string
           id: string
-          nome: string
-          status: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Insert: {
-          acesso?: string
-          avatar?: string | null
-          cargo?: string | null
           created_at?: string
-          email: string
           id?: string
-          nome: string
-          status?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Update: {
-          acesso?: string
-          avatar?: string | null
-          cargo?: string | null
           created_at?: string
-          email?: string
           id?: string
-          nome?: string
-          status?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -772,10 +663,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
+      send_push_via_edge: {
+        Args: { body: string; target_type: string; title: string; url?: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user" | "vendendo" | "administrativo"
+      cadastro_status: "novo" | "em_analise" | "aprovado" | "recusado"
+      notification_type: "cadastro" | "cliente" | "alerta" | "suporte"
+      pedido_status:
+        | "recebido"
+        | "em_analise"
+        | "aceito"
+        | "entregue"
+        | "cancelado"
+      pedido_tipo: "produto" | "servico" | "combo"
+      projeto_status: "planejamento" | "em_andamento" | "concluido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -902,6 +814,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user", "vendendo", "administrativo"],
+      cadastro_status: ["novo", "em_analise", "aprovado", "recusado"],
+      notification_type: ["cadastro", "cliente", "alerta", "suporte"],
+      pedido_status: [
+        "recebido",
+        "em_analise",
+        "aceito",
+        "entregue",
+        "cancelado",
+      ],
+      pedido_tipo: ["produto", "servico", "combo"],
+      projeto_status: ["planejamento", "em_andamento", "concluido"],
+    },
   },
 } as const

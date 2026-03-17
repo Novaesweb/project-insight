@@ -145,44 +145,6 @@
     background: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
   }
-  .info-card-hover {
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  }
-  .info-card-hover:hover {
-    transform: scale(1.04);
-    box-shadow: 0 0 20px hsla(346, 78%, 55%, 0.25), 0 0 40px hsla(280, 60%, 38%, 0.15);
-    border-color: hsl(346 78% 55% / 0.5);
-  }
-
-  /* Glint Reveal Effect */
-  .fx-glintReveal {
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-  }
-  .fx-glintReveal::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(
-      105deg,
-      transparent 20%,
-      hsla(0, 0%, 100%, 0.15) 45%,
-      hsla(0, 0%, 100%, 0.35) 50%,
-      hsla(0, 0%, 100%, 0.15) 55%,
-      transparent 80%
-    );
-    animation: glint-sweep 4s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  @keyframes glint-sweep {
-    0%, 100% { left: -100%; }
-    50% { left: 150%; }
-  }
 
   /* Ambient glow with animated rays */
   .ambient-glow {
