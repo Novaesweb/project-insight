@@ -448,8 +448,10 @@ export default function Site() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {visibleSolucoes.map((p, i) => (
                     <motion.div
-                      key={i}
-                      variants={fade}
+                      key={p.titulo}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: i >= 2 && showAllSolucoes ? (i - 2) * 0.08 : i * 0.08 }}
                       className="glass-card rounded-2xl p-6 flex gap-4 items-start info-card-hover"
                     >
                       <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
