@@ -66,21 +66,20 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
         {
           event: "INSERT",
           schema: "public",
-          table: "notifications",
-          filter: `user_type=eq.${userType}`,
+          table: userType === "admin" ? "notifications" : "client_notifications",
         },
         (payload) => {
-          const n = payload.new as Notification;
-          if (userType === "admin" || n.user_id === userId) {
-            setNotifications(prev => {
-              if (prev.some(existing => existing.id === n.id)) return prev;
-              return [n, ...prev].slice(0, 30);
-            });
-            // Play notification sound
-            if (audioRef.current) {
-              audioRef.current.currentTime = 0;
-              audioRef.current.play().catch(() => {});
-            }
+          const raw = payload.new as any;
+          const n: Notification = userType === "admin"
+            ? { id: raw.id, title: raw.title, message: raw.message, read: raw.read, created_at: raw.created_at, type: raw.type }
+            : { id: raw.id, title: raw.titulo, message: raw.mensagem, read: raw.lida, created_at: raw.created_at, type: raw.tipo };
+          setNotifications(prev => {
+            if (prev.some(existing => existing.id === n.id)) return prev;
+            return [n, ...prev].slice(0, 30);
+          });
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(() => {});
           }
         }
       )
