@@ -30,21 +30,23 @@ export function AnimatedTestimonials({ data, autoplay = true, interval = 5000 }:
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-        {/* Image */}
-        <div className="relative w-48 h-48 md:w-64 md:h-64 shrink-0">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={active}
-              src={data[active].image}
-              alt={data[active].name}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-              className="w-full h-full rounded-2xl object-cover shadow-xl"
-            />
-          </AnimatePresence>
-        </div>
+        {/* Image - only show if provided */}
+        {data[active].image && (
+          <div className="relative w-48 h-48 md:w-64 md:h-64 shrink-0">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={active}
+                src={data[active].image}
+                alt={data[active].name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
+                className="w-full h-full rounded-2xl object-cover shadow-xl"
+              />
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 text-center md:text-left">
