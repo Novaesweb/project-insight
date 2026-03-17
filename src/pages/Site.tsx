@@ -118,6 +118,7 @@ export default function Site() {
     { id: "sobre", label: "Sobre NovaesWeb" },
     { id: "quem-somos", label: "Quem Somos" },
     { id: "diferenciais", label: "Por que a NovaesWeb?" },
+    { id: "demonstracao", label: "Demonstração" },
   ];
 
   const scrollTo = (href: string) => {
