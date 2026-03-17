@@ -608,6 +608,38 @@ export type Database = {
         }
         Relationships: []
       }
+      projeto_atualizacoes: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          projeto_id: string
+          visivel_cliente: boolean
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          projeto_id: string
+          visivel_cliente?: boolean
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          projeto_id?: string
+          visivel_cliente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_atualizacoes_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projetos: {
         Row: {
           arquivos_urls: string[] | null
@@ -755,6 +787,41 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      ticket_mensagens: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string | null
+          remetente: string
+          texto: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome?: string | null
+          remetente?: string
+          texto: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string | null
+          remetente?: string
+          texto?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_mensagens_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_suporte"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets_suporte: {
         Row: {
