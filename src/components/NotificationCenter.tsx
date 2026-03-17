@@ -35,19 +35,24 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const fetchNotifications = async () => {
-    let query = supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_type", userType)
-      .order("created_at", { ascending: false })
-      .limit(30);
-
-    if (userType !== "admin") {
-      query = query.eq("user_id", userId);
+    if (userType === "admin") {
+      const { data } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (data) setNotifications(data as Notification[]);
+    } else {
+      const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+      if (!cliente.id) return;
+      const { data } = await supabase
+        .from("client_notifications")
+        .select("*")
+        .eq("cliente_id", cliente.id)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (data) setNotifications(data.map(n => ({ id: n.id, title: n.titulo, message: n.mensagem, read: n.lida, created_at: n.created_at, type: n.tipo })));
     }
-
-    const { data } = await query;
-    if (data) setNotifications(data as Notification[]);
   };
 
   useEffect(() => {
