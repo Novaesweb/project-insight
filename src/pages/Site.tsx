@@ -283,7 +283,7 @@ export default function Site() {
           </motion.div>
           <motion.h2 variants={fade} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[hsl(var(--foreground))] leading-[1.15] tracking-tight">
             Na NovaesWeb, seu site é desenvolvido{" "}
-            <span className="gradient-text">de acordo com a necessidade</span>{" "}
+            <span className="gradient-text fx-glintReveal">de acordo com a necessidade</span>{" "}
             do seu negócio.
           </motion.h2>
           <motion.p variants={fade} className="text-lg sm:text-xl text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-2xl mx-auto">
