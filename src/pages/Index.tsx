@@ -33,11 +33,11 @@ export default function Dashboard() {
   useEffect(() => {
     const load = async () => {
       const [c, p, ped, t, fin] = await Promise.all([
-        supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
+        supabase.from("clientes").select("*", { count: "exact", head: true }).eq("ativo", true),
         supabase.from("projetos").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
-        supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }).limit(5),
-        supabase.from("tickets").select("*, clientes(nome)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
-        supabase.from("financeiro").select("valor").eq("tipo", "entrada").eq("status", "pago"),
+        supabase.from("pedidos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("tickets_suporte").select("*, clientes(nome_empresa)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
+        supabase.from("faturas").select("valor").eq("status", "pago"),
       ]);
       const receita = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
       setStats({ clientes: c.count || 0, projetos: p.count || 0, pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, receita });
