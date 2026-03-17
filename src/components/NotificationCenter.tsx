@@ -11,12 +11,10 @@ import { ptBR } from "date-fns/locale";
 interface Notification {
   id: string;
   title: string;
-  body: string;
-  url: string | null;
+  message: string | null;
   read: boolean;
   created_at: string;
-  user_type: string;
-  user_id: string;
+  type: string;
 }
 
 interface NotificationCenterProps {
