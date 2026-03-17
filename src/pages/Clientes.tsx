@@ -33,10 +33,10 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const loadData = async () => {
     const [c, e, p, ped, cat] = await Promise.all([
       supabase.from("clientes").select("*").eq("id", clienteId).single(),
-      supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", clienteId),
+      supabase.from("cliente_extras").select("*, extras(nome, descricao)").eq("cliente_id", clienteId),
       supabase.from("projetos").select("*").eq("cliente_id", clienteId),
       supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
-      supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
+      supabase.from("extras").select("*").eq("ativo", true),
     ]);
     setCliente(c.data);
     setExtras(e.data || []);
