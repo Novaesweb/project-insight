@@ -106,9 +106,9 @@ export default function Contratos() {
     if (!cliente) return;
     setFormValues(prev => ({
       ...prev,
-      nome_cliente: cliente.nome,
-      cpf_cnpj: cliente.documento || "",
-      endereco: cliente.endereco || "",
+      nome_cliente: cliente.nome_empresa,
+      cpf_cnpj: "",
+      endereco: "",
     }));
   }, [selectedClienteId, clientes, selectedTemplate]);
 
