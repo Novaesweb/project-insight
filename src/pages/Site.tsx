@@ -748,7 +748,7 @@ export default function Site() {
               },
               {
                 description: "Recomendo a Novaesweb para qualquer empresa que queira crescer no digital. O trabalho ficou excelente e trouxe mais credibilidade para minha marca.",
-                image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                image: "",
                 name: "Patrícia Alves",
                 handle: "@patriciaalves",
               },
