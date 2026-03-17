@@ -88,7 +88,7 @@ export default function Contratos() {
   const [adminSignature, setAdminSignature] = useState<string>("");
 
   const loadContratos = useCallback(() => {
-    supabase.from("contratos").select("*, clientes(nome)").order("created_at", { ascending: false })
+    supabase.from("contratos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false })
       .then(({ data }) => setContratos(data || []));
   }, []);
 
