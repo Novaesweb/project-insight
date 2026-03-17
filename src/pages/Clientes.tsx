@@ -339,8 +339,8 @@ export default function Clientes() {
   }
 
   const filtrados = clientes.filter((c) => {
-    const matchBusca = c.nome.toLowerCase().includes(busca.toLowerCase()) || c.email.toLowerCase().includes(busca.toLowerCase());
-    const matchStatus = filtroStatus === "todos" || c.status === filtroStatus;
+    const matchBusca = (c.nome_empresa || "").toLowerCase().includes(busca.toLowerCase()) || (c.email || "").toLowerCase().includes(busca.toLowerCase());
+    const matchStatus = filtroStatus === "todos" || (filtroStatus === "ativo" ? c.ativo : !c.ativo);
     return matchBusca && matchStatus;
   });
 
