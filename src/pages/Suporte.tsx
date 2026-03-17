@@ -47,7 +47,7 @@ export default function Suporte() {
     if (selectedTicket) loadMessages(selectedTicket);
   }, [selectedTicket, loadMessages]);
 
-  useRealtimeSubscription("tickets", loadTickets);
+  useRealtimeSubscription("tickets_suporte", loadTickets);
   useRealtimeSubscription("ticket_mensagens", refreshSelectedMessages);
 
   useEffect(() => {
