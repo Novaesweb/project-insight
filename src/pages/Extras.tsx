@@ -107,10 +107,10 @@ export default function Extras() {
 
   const handleEdit = async () => {
     setSaving(true);
-    const { error } = await supabase.from("extras_catalogo").update({
-      nome: editForm.nome, descricao: editForm.descricao || null, categoria: editForm.categoria,
-      preco_ativacao: Number(editForm.preco_ativacao) || 0, preco_mensal: Number(editForm.preco_mensal) || 0, status: editForm.status,
-    }).eq("id", editForm.id);
+    const { error } = await supabase.from("extras").update({
+      nome: editForm.nome, descricao: editForm.descricao || null, tipo: editForm.categoria,
+      preco: Number(editForm.preco_ativacao) || 0, preco_mensal: Number(editForm.preco_mensal) || 0, ativo: editForm.status === "ativo",
+    } as any).eq("id", editForm.id);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atualizado!" });
