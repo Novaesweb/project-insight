@@ -119,8 +119,8 @@ export default function Extras() {
   };
 
   const toggleStatus = async (extra: any) => {
-    const newStatus = extra.status === "ativo" ? "inativo" : "ativo";
-    await supabase.from("extras_catalogo").update({ status: newStatus }).eq("id", extra.id);
+    const newAtivo = !extra.ativo;
+    await supabase.from("extras").update({ ativo: newAtivo }).eq("id", extra.id);
     fetchData();
   };
 
