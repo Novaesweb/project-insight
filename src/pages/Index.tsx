@@ -62,17 +62,13 @@ export default function Dashboard() {
     const extra = catalogo.find(c => c.id === extraSel);
     if (!extra) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_clientes").insert({
+    const { error } = await supabase.from("cliente_extras").insert({
       cliente_id: clienteSel,
       extra_id: extra.id,
-      categoria: extra.categoria,
-      preco_ativacao: Number(extra.preco_ativacao) || 0,
-      preco_mensal: Number(extra.preco_mensal) || 0,
-      observacao: obs || null,
-    });
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    const clienteNome = clientes.find(c => c.id === clienteSel)?.nome;
+    const clienteNome = clientes.find(c => c.id === clienteSel)?.nome_empresa;
     toast({ title: "Extra adicionado!", description: `"${extra.nome}" vinculado a ${clienteNome}.` });
     setShowAddExtra(false);
     setClienteSel("");

@@ -40,19 +40,18 @@ export default function Pedidos() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const codigo = form.codigo || `PED-${String(pedidos.length + 1).padStart(3, "0")}`;
     const { error } = await supabase.from("pedidos").insert({
-      codigo,
-      tipo: form.tipo,
+      descricao: form.descricao || "Novo pedido",
+      tipo: form.tipo as any,
       valor: Number(form.valor) || 0,
-      cliente_id: form.cliente_id || null,
+      cliente_id: form.cliente_id,
       projeto_id: form.projeto_id || null,
     });
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Pedido criado!" });
-      setForm({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
+      setForm({ descricao: "", tipo: "produto", valor: "", cliente_id: "", projeto_id: "" });
       setDialogOpen(false);
       load();
     }

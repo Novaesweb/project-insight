@@ -35,10 +35,10 @@ export default function Agenda() {
 
   const load = async () => {
     const [r, c] = await Promise.all([
-      supabase.from("reunioes").select("*, clientes(nome)").order("data", { ascending: true }),
-      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
+      supabase.from("reunioes").select("*, clientes(nome_empresa)").order("data", { ascending: true }),
+      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
     ]);
-    setReunioes((r.data || []) as Reuniao[]);
+    setReunioes((r.data || []) as unknown as Reuniao[]);
     setClientes(c.data || []);
   };
 

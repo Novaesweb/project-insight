@@ -96,7 +96,7 @@ export default function Suporte() {
 
   const changeStatus = async (newStatus: string) => {
     if (!selectedTicket) return;
-    const { error } = await supabase.from("tickets").update({ status: newStatus }).eq("id", selectedTicket);
+    const { error } = await supabase.from("tickets_suporte").update({ status: newStatus }).eq("id", selectedTicket);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: newStatus } : t));
     toast({ title: "Status atualizado!" });
