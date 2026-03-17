@@ -96,14 +96,22 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
   }, [userType, userId]);
 
   const markAsRead = async (id: string) => {
-    await supabase.from("notifications").update({ read: true } as any).eq("id", id);
+    if (userType === "admin") {
+      await supabase.from("notifications").update({ read: true }).eq("id", id);
+    } else {
+      await supabase.from("client_notifications").update({ lida: true }).eq("id", id);
+    }
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const markAllAsRead = async () => {
     const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
     if (unreadIds.length === 0) return;
-    await supabase.from("notifications").update({ read: true } as any).in("id", unreadIds);
+    if (userType === "admin") {
+      await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
+    } else {
+      await supabase.from("client_notifications").update({ lida: true }).in("id", unreadIds);
+    }
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
