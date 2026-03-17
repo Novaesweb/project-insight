@@ -730,7 +730,7 @@ export default function Site() {
               },
               {
                 description: "A Novaesweb conseguiu criar um site que realmente representa minha empresa. Hoje recebo mais contatos e meu negócio parece muito mais valorizado.",
-                image: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                image: "",
                 name: "Carlos Henrique",
                 handle: "@carlosh",
               },
