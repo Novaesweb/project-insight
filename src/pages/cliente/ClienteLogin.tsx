@@ -37,7 +37,7 @@ export default function ClienteLogin() {
       .from("clientes")
       .select("*")
       .eq("email", email)
-      .eq("status", "ativo")
+      .eq("ativo", true)
       .maybeSingle();
 
     if (clienteData) {
