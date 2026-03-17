@@ -15,7 +15,7 @@ export default function ClienteExtras() {
 
   const load = useCallback(() => {
     if (!cliente.id) return;
-    supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", cliente.id)
+    supabase.from("cliente_extras").select("*, extras(nome)").eq("cliente_id", cliente.id)
       .then(({ data }) => setMeusExtras(data || []));
   }, [cliente.id]);
 
