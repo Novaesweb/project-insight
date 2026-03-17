@@ -718,7 +718,7 @@ export default function Site() {
             data={[
               {
                 description: "A Novaesweb transformou a presença digital do meu negócio. O site ficou moderno, rápido e muito mais profissional.",
-                image: "https://images.unsplash.com/photo-1611558709798-e009c8fd7706?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                image: "",
                 name: "Mariana Souza",
                 handle: "@marianasouza",
               },
