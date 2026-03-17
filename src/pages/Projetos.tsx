@@ -51,7 +51,7 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   useEffect(() => { loadProjeto(); loadAtualizacoes(); }, [projetoId]);
 
   const updateStatus = async (newStatus: string) => {
-    const { error } = await supabase.from("projetos").update({ status: newStatus }).eq("id", projetoId);
+    const { error } = await supabase.from("projetos").update({ status: newStatus } as any).eq("id", projetoId);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     setProjeto((prev: any) => ({ ...prev, status: newStatus }));
     toast({ title: "Status atualizado!" });
