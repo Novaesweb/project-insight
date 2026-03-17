@@ -742,7 +742,7 @@ export default function Site() {
               },
               {
                 description: "O diferencial da Novaesweb é unir design moderno com funcionalidade. Meu site ficou profissional e pronto para divulgar meu trabalho.",
-                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                image: "",
                 name: "Juliana Martins",
                 handle: "@julianamartins",
               },
