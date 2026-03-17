@@ -54,9 +54,9 @@ export default function Extras() {
 
   const fetchData = async () => {
     const [extrasRes, clientesRes, ecRes] = await Promise.all([
-      supabase.from("extras_catalogo").select("*").order("nome"),
-      supabase.from("clientes").select("id, nome, email").eq("status", "ativo").order("nome"),
-      supabase.from("extras_clientes").select("extra_id").eq("status", "ativo"),
+      supabase.from("extras").select("*").order("nome"),
+      supabase.from("clientes").select("id, nome_empresa, email").eq("ativo", true).order("nome_empresa"),
+      supabase.from("cliente_extras").select("extra_id").eq("ativo", true),
     ]);
     setExtras(extrasRes.data || []);
     setClientes(clientesRes.data || []);
