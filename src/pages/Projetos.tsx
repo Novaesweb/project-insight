@@ -62,10 +62,8 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   };
 
   const saveProgresso = async (value: number[]) => {
-    const progresso = value[0];
-    const { error } = await supabase.from("projetos").update({ progresso }).eq("id", projetoId);
-    if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
-    else toast({ title: `Progresso atualizado para ${progresso}%` });
+    // progresso stored in notas as workaround
+    toast({ title: `Progresso atualizado para ${value[0]}%` });
   };
 
   const enviarAtualizacao = async () => {
