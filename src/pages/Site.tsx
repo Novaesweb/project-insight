@@ -50,16 +50,16 @@ const extrasSlides = [
 ];
 
 const testimonials = [
-  { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web" },
-  { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional" },
-  { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin" },
-  { texto: "Desde que colocamos o site no ar, as vendas aumentaram bastante. Os clientes encontram a gente pelo Google agora.", autor: "Loja de Roupas", tipo: "Site Profissional" },
-  { texto: "A landing page que fizeram para nossa campanha converteu muito bem. Simples, direto e bonito.", autor: "Agência de Marketing", tipo: "Landing Page" },
-  { texto: "Atendimento excelente! Sempre respondem rápido e resolvem tudo no mesmo dia. Super recomendo.", autor: "Clínica Estética", tipo: "Suporte" },
-  { texto: "O sistema de agendamento online mudou completamente nossa rotina. Menos ligações e mais organização.", autor: "Barbearia Premium", tipo: "Sistema Web" },
-  { texto: "Ficamos impressionados com a qualidade do site. Muito melhor do que esperávamos pelo valor investido.", autor: "Restaurante Gourmet", tipo: "Site Profissional" },
-  { texto: "O controle financeiro integrado ao painel nos ajudou a ter uma visão clara do negócio. Ferramenta indispensável.", autor: "Consultoria Empresarial", tipo: "Painel Admin" },
-  { texto: "Nosso e-commerce ficou incrível. Fácil de gerenciar os produtos e os clientes adoraram a experiência de compra.", autor: "Pet Shop Online", tipo: "Loja Virtual" },
+  { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web", nome: "Carlos M.", cor: "from-rose-500 to-pink-600" },
+  { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional", nome: "Ana P.", cor: "from-violet-500 to-purple-600" },
+  { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin", nome: "Roberto S.", cor: "from-blue-500 to-cyan-600" },
+  { texto: "Desde que colocamos o site no ar, as vendas aumentaram bastante. Os clientes encontram a gente pelo Google agora.", autor: "Loja de Roupas", tipo: "Site Profissional", nome: "Juliana F.", cor: "from-emerald-500 to-teal-600" },
+  { texto: "A landing page que fizeram para nossa campanha converteu muito bem. Simples, direto e bonito.", autor: "Agência de Marketing", tipo: "Landing Page", nome: "Lucas T.", cor: "from-amber-500 to-orange-600" },
+  { texto: "Atendimento excelente! Sempre respondem rápido e resolvem tudo no mesmo dia. Super recomendo.", autor: "Clínica Estética", tipo: "Suporte", nome: "Fernanda R.", cor: "from-pink-500 to-rose-600" },
+  { texto: "O sistema de agendamento online mudou completamente nossa rotina. Menos ligações e mais organização.", autor: "Barbearia Premium", tipo: "Sistema Web", nome: "Diego L.", cor: "from-indigo-500 to-blue-600" },
+  { texto: "Ficamos impressionados com a qualidade do site. Muito melhor do que esperávamos pelo valor investido.", autor: "Restaurante Gourmet", tipo: "Site Profissional", nome: "Mariana K.", cor: "from-fuchsia-500 to-pink-600" },
+  { texto: "O controle financeiro integrado ao painel nos ajudou a ter uma visão clara do negócio. Ferramenta indispensável.", autor: "Consultoria Empresarial", tipo: "Painel Admin", nome: "Eduardo B.", cor: "from-cyan-500 to-blue-600" },
+  { texto: "Nosso e-commerce ficou incrível. Fácil de gerenciar os produtos e os clientes adoraram a experiência de compra.", autor: "Pet Shop Online", tipo: "Loja Virtual", nome: "Patrícia G.", cor: "from-lime-500 to-emerald-600" },
 ];
 
 function TestimonialsCarousel() {
@@ -85,8 +85,16 @@ function TestimonialsCarousel() {
             </div>
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{testimonials[current].tipo}</span>
           </div>
-          <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{testimonials[current].texto}"</p>
-          <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {testimonials[current].autor}</p>
+          <p className="text-[hsl(var(--foreground))] leading-relaxed mb-6 text-sm italic">"{testimonials[current].texto}"</p>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${testimonials[current].cor} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
+              {testimonials[current].nome.charAt(0)}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{testimonials[current].nome}</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">{testimonials[current].autor}</p>
+            </div>
+          </div>
         </motion.div>
       </AnimatePresence>
       <div className="flex justify-center gap-2 mt-6">
