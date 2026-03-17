@@ -85,8 +85,16 @@ function TestimonialsCarousel() {
             </div>
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{testimonials[current].tipo}</span>
           </div>
-          <p className="text-[hsl(var(--foreground))] leading-relaxed mb-4 text-sm">"{testimonials[current].texto}"</p>
-          <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">— {testimonials[current].autor}</p>
+          <p className="text-[hsl(var(--foreground))] leading-relaxed mb-6 text-sm italic">"{testimonials[current].texto}"</p>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${testimonials[current].cor} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
+              {testimonials[current].nome.charAt(0)}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{testimonials[current].nome}</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">{testimonials[current].autor}</p>
+            </div>
+          </div>
         </motion.div>
       </AnimatePresence>
       <div className="flex justify-center gap-2 mt-6">
