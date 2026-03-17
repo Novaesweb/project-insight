@@ -708,7 +708,46 @@ export default function Site() {
             </motion.div>
           </div>
 
-          <TestimonialsCarousel />
+          <AnimatedTestimonials
+            data={[
+              {
+                description: "A Novaesweb transformou a presença digital do meu negócio. O site ficou moderno, rápido e muito mais profissional.",
+                image: "https://images.unsplash.com/photo-1611558709798-e009c8fd7706?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Mariana Souza",
+                handle: "@marianasouza",
+              },
+              {
+                description: "Gostei muito da facilidade no atendimento e da qualidade do site entregue. Ficou bonito, responsivo e passou mais confiança para meus clientes.",
+                image: "https://plus.unsplash.com/premium_photo-1692340973636-6f2ff926af39?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Lucas Ferreira",
+                handle: "@lucasferreira",
+              },
+              {
+                description: "A Novaesweb conseguiu criar um site que realmente representa minha empresa. Hoje recebo mais contatos e meu negócio parece muito mais valorizado.",
+                image: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Carlos Henrique",
+                handle: "@carlosh",
+              },
+              {
+                description: "Além do visual bonito, o site ficou prático e fácil de usar no celular. Era exatamente isso que eu precisava para atender melhor meus clientes.",
+                image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Fernanda Lima",
+                handle: "@fernandalima",
+              },
+              {
+                description: "O diferencial da Novaesweb é unir design moderno com funcionalidade. Meu site ficou profissional e pronto para divulgar meu trabalho.",
+                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Juliana Martins",
+                handle: "@julianamartins",
+              },
+              {
+                description: "Recomendo a Novaesweb para qualquer empresa que queira crescer no digital. O trabalho ficou excelente e trouxe mais credibilidade para minha marca.",
+                image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Patrícia Alves",
+                handle: "@patriciaalves",
+              },
+            ]}
+          />
         </div>
       </motion.section>
 
