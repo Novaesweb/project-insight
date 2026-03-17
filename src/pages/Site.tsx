@@ -38,6 +38,7 @@ import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import aboutPhoto from "@/assets/about-novaes.jpg";
 import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 import bellaMassaDemo from "@/assets/bella-massa-demo.png";
+import barbeariaDemo from "@/assets/barbearia-demo.png";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -937,7 +938,7 @@ export default function Site() {
                   <div className="grid gap-4">
                     {[
                       { name: "Bella Massa", description: "Site completo para pizzaria com cardápio digital e pedidos online.", link: "https://bellamassa0.vercel.app/", image: bellaMassaDemo },
-                      { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/" },
+                      { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/", image: barbeariaDemo },
                       { name: "Pizzaria Novaes", description: "Plataforma com pedidos integrados e painel administrativo.", link: "https://pizzarianovaes.vercel.app/" },
                       { name: "Açaí Delivery", description: "Loja online para venda de açaí com controle de pedidos.", link: "https://demoacai.vercel.app/" },
                     ].map((item, index) => (
