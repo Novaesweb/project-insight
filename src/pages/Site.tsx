@@ -316,7 +316,7 @@ export default function Site() {
               </motion.div>
               <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
                 Tecnologia que{" "}
-                <span className="gradient-text">transforma</span>
+                <span className="gradient-text fx-glintReveal">transforma</span>
                 {" "}seu{" "}
                 <AnimatePresence mode="wait">
                   <motion.span
