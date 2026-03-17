@@ -89,7 +89,7 @@ export default function Suporte() {
 
     // Auto update ticket status to em_atendimento if aberto
     if (ticket?.status === "aberto") {
-      await supabase.from("tickets").update({ status: "em_atendimento" }).eq("id", selectedTicket);
+      await supabase.from("tickets_suporte").update({ status: "em_atendimento" }).eq("id", selectedTicket);
       setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: "em_atendimento" } : t));
     }
   };
