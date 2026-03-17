@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
+import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import aboutPhoto from "@/assets/about-novaes.jpg";
 import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 
@@ -49,66 +50,7 @@ const extrasSlides = [
   { emoji: "🎁", title: "Programa Fidelidade", desc: "Fidelize clientes com recompensas automáticas." },
 ];
 
-const testimonials = [
-  { texto: "Sistema simples e funcional, ajudou a organizar melhor nosso atendimento. Antes fazíamos tudo no papel, agora está tudo digital.", autor: "Empresa de Serviços", tipo: "Sistema Web", nome: "Carlos M.", cor: "from-rose-500 to-pink-600" },
-  { texto: "Site rápido e fácil de usar, ficou muito bom para nosso negócio. Os clientes elogiam a aparência e a facilidade de navegação.", autor: "Comércio Local", tipo: "Site Profissional", nome: "Ana P.", cor: "from-violet-500 to-purple-600" },
-  { texto: "O painel administrativo facilitou muito a gestão da empresa. Consigo ver relatórios, clientes e financeiro em um só lugar.", autor: "Escritório", tipo: "Painel Admin", nome: "Roberto S.", cor: "from-blue-500 to-cyan-600" },
-  { texto: "Desde que colocamos o site no ar, as vendas aumentaram bastante. Os clientes encontram a gente pelo Google agora.", autor: "Loja de Roupas", tipo: "Site Profissional", nome: "Juliana F.", cor: "from-emerald-500 to-teal-600" },
-  { texto: "A landing page que fizeram para nossa campanha converteu muito bem. Simples, direto e bonito.", autor: "Agência de Marketing", tipo: "Landing Page", nome: "Lucas T.", cor: "from-amber-500 to-orange-600" },
-  { texto: "Atendimento excelente! Sempre respondem rápido e resolvem tudo no mesmo dia. Super recomendo.", autor: "Clínica Estética", tipo: "Suporte", nome: "Fernanda R.", cor: "from-pink-500 to-rose-600" },
-  { texto: "O sistema de agendamento online mudou completamente nossa rotina. Menos ligações e mais organização.", autor: "Barbearia Premium", tipo: "Sistema Web", nome: "Diego L.", cor: "from-indigo-500 to-blue-600" },
-  { texto: "Ficamos impressionados com a qualidade do site. Muito melhor do que esperávamos pelo valor investido.", autor: "Restaurante Gourmet", tipo: "Site Profissional", nome: "Mariana K.", cor: "from-fuchsia-500 to-pink-600" },
-  { texto: "O controle financeiro integrado ao painel nos ajudou a ter uma visão clara do negócio. Ferramenta indispensável.", autor: "Consultoria Empresarial", tipo: "Painel Admin", nome: "Eduardo B.", cor: "from-cyan-500 to-blue-600" },
-  { texto: "Nosso e-commerce ficou incrível. Fácil de gerenciar os produtos e os clientes adoraram a experiência de compra.", autor: "Pet Shop Online", tipo: "Loja Virtual", nome: "Patrícia G.", cor: "from-lime-500 to-emerald-600" },
-];
-
-function TestimonialsCarousel() {
-  const [current, setCurrent] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setCurrent(p => (p + 1) % testimonials.length), 4000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="relative overflow-hidden min-h-[200px]">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -30 }}
-          transition={{ duration: 0.5 }}
-          className="glass-card info-card-hover rounded-2xl p-8 max-w-2xl mx-auto"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-1">
-              {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-[hsl(var(--primary))] fill-[hsl(var(--primary))]" />)}
-            </div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-1 rounded-full">{testimonials[current].tipo}</span>
-          </div>
-          <p className="text-[hsl(var(--foreground))] leading-relaxed mb-6 text-sm italic">"{testimonials[current].texto}"</p>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${testimonials[current].cor} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
-              {testimonials[current].nome.charAt(0)}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{testimonials[current].nome}</p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))]">{testimonials[current].autor}</p>
-            </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-      <div className="flex justify-center gap-2 mt-6">
-        {testimonials.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${i === current ? 'bg-[hsl(var(--primary))] w-6' : 'bg-[hsl(var(--muted-foreground))]/30'}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+// Testimonials data moved to AnimatedTestimonials component
 
 function ExtrasCarousel() {
   const [idx, setIdx] = useState(0);
@@ -767,7 +709,46 @@ export default function Site() {
             </motion.div>
           </div>
 
-          <TestimonialsCarousel />
+          <AnimatedTestimonials
+            data={[
+              {
+                description: "A Novaesweb transformou a presença digital do meu negócio. O site ficou moderno, rápido e muito mais profissional.",
+                image: "https://images.unsplash.com/photo-1611558709798-e009c8fd7706?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Mariana Souza",
+                handle: "@marianasouza",
+              },
+              {
+                description: "Gostei muito da facilidade no atendimento e da qualidade do site entregue. Ficou bonito, responsivo e passou mais confiança para meus clientes.",
+                image: "https://plus.unsplash.com/premium_photo-1692340973636-6f2ff926af39?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Lucas Ferreira",
+                handle: "@lucasferreira",
+              },
+              {
+                description: "A Novaesweb conseguiu criar um site que realmente representa minha empresa. Hoje recebo mais contatos e meu negócio parece muito mais valorizado.",
+                image: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Carlos Henrique",
+                handle: "@carlosh",
+              },
+              {
+                description: "Além do visual bonito, o site ficou prático e fácil de usar no celular. Era exatamente isso que eu precisava para atender melhor meus clientes.",
+                image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Fernanda Lima",
+                handle: "@fernandalima",
+              },
+              {
+                description: "O diferencial da Novaesweb é unir design moderno com funcionalidade. Meu site ficou profissional e pronto para divulgar meu trabalho.",
+                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Juliana Martins",
+                handle: "@julianamartins",
+              },
+              {
+                description: "Recomendo a Novaesweb para qualquer empresa que queira crescer no digital. O trabalho ficou excelente e trouxe mais credibilidade para minha marca.",
+                image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                name: "Patrícia Alves",
+                handle: "@patriciaalves",
+              },
+            ]}
+          />
         </div>
       </motion.section>
 
