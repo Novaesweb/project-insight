@@ -154,6 +154,36 @@
     border-color: hsl(346 78% 55% / 0.5);
   }
 
+  /* Glint Reveal Effect */
+  .fx-glintReveal {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+  .fx-glintReveal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      105deg,
+      transparent 20%,
+      hsla(0, 0%, 100%, 0.15) 45%,
+      hsla(0, 0%, 100%, 0.35) 50%,
+      hsla(0, 0%, 100%, 0.15) 55%,
+      transparent 80%
+    );
+    animation: glint-sweep 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes glint-sweep {
+    0%, 100% { left: -100%; }
+    50% { left: 150%; }
+  }
+
   /* Ambient glow with animated rays */
   .ambient-glow {
     position: relative;
