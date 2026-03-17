@@ -49,8 +49,8 @@ export default function Dashboard() {
 
   const openAddExtra = async () => {
     const [cli, cat] = await Promise.all([
-      supabase.from("clientes").select("id, nome").eq("status", "ativo").order("nome"),
-      supabase.from("extras_catalogo").select("*").eq("status", "ativo").order("nome"),
+      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true).order("nome_empresa"),
+      supabase.from("extras").select("*").eq("ativo", true).order("nome"),
     ]);
     setClientes(cli.data || []);
     setCatalogo(cat.data || []);
