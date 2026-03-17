@@ -47,7 +47,7 @@ export default function ClienteSuporte() {
   useEffect(() => { loadMsgs(); }, [loadMsgs]);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs.length]);
 
-  useRealtimeSubscription("tickets", loadTickets);
+  useRealtimeSubscription("tickets_suporte", loadTickets);
   useRealtimeSubscription("ticket_mensagens", loadMsgs);
 
   useEffect(() => {
