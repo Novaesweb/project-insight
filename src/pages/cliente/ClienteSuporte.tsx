@@ -33,7 +33,7 @@ export default function ClienteSuporte() {
 
   const loadTickets = useCallback(() => {
     if (!cliente.id) return;
-    supabase.from("tickets").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
+    supabase.from("tickets_suporte").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setTickets(data || []));
   }, [cliente.id]);
 
