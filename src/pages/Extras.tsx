@@ -93,10 +93,10 @@ export default function Extras() {
   const handleSave = async () => {
     if (!form.nome) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_catalogo").insert({
-      nome: form.nome, descricao: form.descricao || null, categoria: form.categoria,
-      preco_ativacao: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, status: form.status,
-    });
+    const { error } = await supabase.from("extras").insert({
+      nome: form.nome, descricao: form.descricao || null, tipo: form.categoria,
+      preco: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, ativo: form.status === "ativo",
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra criado!" });
