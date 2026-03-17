@@ -724,7 +724,7 @@ export default function Site() {
               },
               {
                 description: "Gostei muito da facilidade no atendimento e da qualidade do site entregue. Ficou bonito, responsivo e passou mais confiança para meus clientes.",
-                image: "https://plus.unsplash.com/premium_photo-1692340973636-6f2ff926af39?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                image: "",
                 name: "Lucas Ferreira",
                 handle: "@lucasferreira",
               },
