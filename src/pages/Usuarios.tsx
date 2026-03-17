@@ -49,14 +49,7 @@ export default function Usuarios() {
       return;
     }
 
-    // Profile is auto-created by trigger
-    const profileError = null;
-
-    if (error) {
-      toast({ title: "Conta criada, mas erro ao salvar usuário", description: error.message, variant: "destructive" });
-      setSaving(false);
-      return;
-    }
+    // Profile is auto-created by trigger, no additional save needed
 
     const link = `${window.location.origin}/admin/login`;
     setContaCriada({ email: form.email, senha: form.senha, link });
