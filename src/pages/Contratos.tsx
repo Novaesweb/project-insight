@@ -23,10 +23,9 @@ const statusLabels: Record<string, string> = { aguardando: "Aguardando", assinad
 
 interface Cliente {
   id: string;
-  nome: string;
-  email: string;
-  documento: string | null;
-  endereco: string | null;
+  nome_empresa: string;
+  email: string | null;
+  nome_responsavel: string;
 }
 
 function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, assinaturaCliente?: string) {
