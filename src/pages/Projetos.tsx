@@ -233,8 +233,8 @@ export default function Projetos() {
 
   const load = async () => {
     const [p, c] = await Promise.all([
-      supabase.from("projetos").select("*, clientes(nome)").order("created_at", { ascending: false }),
-      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
+      supabase.from("projetos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
     ]);
     setProjetos(p.data || []);
     setClientes(c.data || []);
