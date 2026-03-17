@@ -28,7 +28,7 @@ export default function ClienteDashboard() {
     supabase.from("reunioes").select("*").eq("cliente_id", cId).in("status", ["agendada", "confirmada"]).order("data", { ascending: true }).limit(1)
       .then(({ data }) => setProximaReuniao(data?.[0] || null));
 
-    supabase.from("projeto_atualizacoes").select("*, projetos!inner(titulo, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
+    supabase.from("projeto_atualizacoes" as any).select("*, projetos!inner(nome, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
       .order("created_at", { ascending: false }).limit(5)
       .then(({ data }) => setAtualizacoes(data || []));
   }, [cId]);
