@@ -938,7 +938,7 @@ export default function Site() {
                   <div className="grid gap-4">
                     {[
                       { name: "Bella Massa", description: "Site completo para pizzaria com cardápio digital e pedidos online.", link: "https://bellamassa0.vercel.app/", image: bellaMassaDemo },
-                      { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/" },
+                      { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/", image: barbeariaDemo },
                       { name: "Pizzaria Novaes", description: "Plataforma com pedidos integrados e painel administrativo.", link: "https://pizzarianovaes.vercel.app/" },
                       { name: "Açaí Delivery", description: "Loja online para venda de açaí com controle de pedidos.", link: "https://demoacai.vercel.app/" },
                     ].map((item, index) => (
