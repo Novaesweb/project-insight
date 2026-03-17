@@ -91,7 +91,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (!cliente) { navigate("/cliente"); return; }
-    supabase.from("notificacoes").select("id", { count: "exact", head: true })
+    supabase.from("client_notifications").select("id", { count: "exact", head: true })
       .eq("cliente_id", cliente.id).eq("lida", false)
       .then(({ count }) => setNotifCount(count || 0));
   }, [cliente, navigate]);

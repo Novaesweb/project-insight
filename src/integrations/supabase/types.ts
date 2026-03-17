@@ -262,6 +262,59 @@ export type Database = {
           },
         ]
       }
+      contratos: {
+        Row: {
+          assinatura_admin: string | null
+          assinatura_cliente: string | null
+          cliente_id: string
+          corpo: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          modelo: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          assinatura_admin?: string | null
+          assinatura_cliente?: string | null
+          cliente_id: string
+          corpo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          modelo?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          assinatura_admin?: string | null
+          assinatura_cliente?: string | null
+          cliente_id?: string
+          corpo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          modelo?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       extras: {
         Row: {
           ativo: boolean
@@ -338,6 +391,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leads: {
+        Row: {
+          cidade: string | null
+          como_conheceu: string | null
+          created_at: string
+          documento: string | null
+          email: string
+          estado: string | null
+          id: string
+          mensagem: string | null
+          motivo_perda: string | null
+          nome: string
+          nome_negocio: string | null
+          orcamento: string | null
+          segmento: string | null
+          servicos: string[] | null
+          status: string
+          updated_at: string
+          visualizado: boolean
+          whatsapp: string
+        }
+        Insert: {
+          cidade?: string | null
+          como_conheceu?: string | null
+          created_at?: string
+          documento?: string | null
+          email: string
+          estado?: string | null
+          id?: string
+          mensagem?: string | null
+          motivo_perda?: string | null
+          nome: string
+          nome_negocio?: string | null
+          orcamento?: string | null
+          segmento?: string | null
+          servicos?: string[] | null
+          status?: string
+          updated_at?: string
+          visualizado?: boolean
+          whatsapp: string
+        }
+        Update: {
+          cidade?: string | null
+          como_conheceu?: string | null
+          created_at?: string
+          documento?: string | null
+          email?: string
+          estado?: string | null
+          id?: string
+          mensagem?: string | null
+          motivo_perda?: string | null
+          nome?: string
+          nome_negocio?: string | null
+          orcamento?: string | null
+          segmento?: string | null
+          servicos?: string[] | null
+          status?: string
+          updated_at?: string
+          visualizado?: boolean
+          whatsapp?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -492,6 +608,38 @@ export type Database = {
         }
         Relationships: []
       }
+      projeto_atualizacoes: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          projeto_id: string
+          visivel_cliente: boolean
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          projeto_id: string
+          visivel_cliente?: boolean
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          projeto_id?: string
+          visivel_cliente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_atualizacoes_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projetos: {
         Row: {
           arquivos_urls: string[] | null
@@ -569,6 +717,56 @@ export type Database = {
         }
         Relationships: []
       }
+      reunioes: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          link: string | null
+          observacoes: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+          link?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          link?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reunioes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           key: string
@@ -589,6 +787,41 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      ticket_mensagens: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string | null
+          remetente: string
+          texto: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome?: string | null
+          remetente?: string
+          texto: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string | null
+          remetente?: string
+          texto?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_mensagens_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_suporte"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets_suporte: {
         Row: {

@@ -19,16 +19,16 @@ export default function ClienteDashboard() {
   const load = useCallback(() => {
     if (!cId) return;
     Promise.all([
-      supabase.from("projetos").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "cancelado"),
-      supabase.from("extras_clientes").select("id", { count: "exact", head: true }).eq("cliente_id", cId).eq("status", "ativo"),
+      supabase.from("projetos").select("id", { count: "exact", head: true }).eq("cliente_id", cId),
+      supabase.from("cliente_extras").select("id", { count: "exact", head: true }).eq("cliente_id", cId).eq("ativo", true),
       supabase.from("faturas").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "paga"),
-      supabase.from("tickets").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
+      supabase.from("tickets_suporte").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
     ]).then(([p, e, f, t]) => setCounts({ projetos: p.count || 0, extras: e.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
 
     supabase.from("reunioes").select("*").eq("cliente_id", cId).in("status", ["agendada", "confirmada"]).order("data", { ascending: true }).limit(1)
       .then(({ data }) => setProximaReuniao(data?.[0] || null));
 
-    supabase.from("projeto_atualizacoes").select("*, projetos!inner(titulo, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
+    supabase.from("projeto_atualizacoes" as any).select("*, projetos!inner(nome, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
       .order("created_at", { ascending: false }).limit(5)
       .then(({ data }) => setAtualizacoes(data || []));
   }, [cId]);
@@ -36,8 +36,8 @@ export default function ClienteDashboard() {
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("faturas", load);
-  useRealtimeSubscription("tickets", load);
-  useRealtimeSubscription("extras_clientes", load);
+  useRealtimeSubscription("tickets_suporte", load);
+  useRealtimeSubscription("cliente_extras", load);
   useRealtimeSubscription("reunioes", load);
   useRealtimeSubscription("projeto_atualizacoes", load);
 

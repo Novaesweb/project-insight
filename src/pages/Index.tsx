@@ -33,11 +33,11 @@ export default function Dashboard() {
   useEffect(() => {
     const load = async () => {
       const [c, p, ped, t, fin] = await Promise.all([
-        supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
+        supabase.from("clientes").select("*", { count: "exact", head: true }).eq("ativo", true),
         supabase.from("projetos").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
-        supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }).limit(5),
-        supabase.from("tickets").select("*, clientes(nome)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
-        supabase.from("financeiro").select("valor").eq("tipo", "entrada").eq("status", "pago"),
+        supabase.from("pedidos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("tickets_suporte").select("*, clientes(nome_empresa)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
+        supabase.from("faturas").select("valor").eq("status", "pago"),
       ]);
       const receita = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
       setStats({ clientes: c.count || 0, projetos: p.count || 0, pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, receita });
@@ -49,8 +49,8 @@ export default function Dashboard() {
 
   const openAddExtra = async () => {
     const [cli, cat] = await Promise.all([
-      supabase.from("clientes").select("id, nome").eq("status", "ativo").order("nome"),
-      supabase.from("extras_catalogo").select("*").eq("status", "ativo").order("nome"),
+      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true).order("nome_empresa"),
+      supabase.from("extras").select("*").eq("ativo", true).order("nome"),
     ]);
     setClientes(cli.data || []);
     setCatalogo(cat.data || []);
@@ -62,17 +62,13 @@ export default function Dashboard() {
     const extra = catalogo.find(c => c.id === extraSel);
     if (!extra) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_clientes").insert({
+    const { error } = await supabase.from("cliente_extras").insert({
       cliente_id: clienteSel,
       extra_id: extra.id,
-      categoria: extra.categoria,
-      preco_ativacao: Number(extra.preco_ativacao) || 0,
-      preco_mensal: Number(extra.preco_mensal) || 0,
-      observacao: obs || null,
-    });
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    const clienteNome = clientes.find(c => c.id === clienteSel)?.nome;
+    const clienteNome = clientes.find(c => c.id === clienteSel)?.nome_empresa;
     toast({ title: "Extra adicionado!", description: `"${extra.nome}" vinculado a ${clienteNome}.` });
     setShowAddExtra(false);
     setClienteSel("");

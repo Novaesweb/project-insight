@@ -23,10 +23,9 @@ const statusLabels: Record<string, string> = { aguardando: "Aguardando", assinad
 
 interface Cliente {
   id: string;
-  nome: string;
-  email: string;
-  documento: string | null;
-  endereco: string | null;
+  nome_empresa: string;
+  email: string | null;
+  nome_responsavel: string;
 }
 
 function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, assinaturaCliente?: string) {
@@ -94,8 +93,8 @@ export default function Contratos() {
   }, []);
 
   const loadClientes = useCallback(() => {
-    supabase.from("clientes").select("id, nome, email, documento, endereco").eq("status", "ativo")
-      .then(({ data }) => setClientes(data || []));
+    supabase.from("clientes").select("id, nome_empresa, email, nome_responsavel").eq("ativo", true)
+      .then(({ data }) => setClientes((data || []) as unknown as Cliente[]));
   }, []);
 
   useEffect(() => { loadContratos(); loadClientes(); }, [loadContratos, loadClientes]);
@@ -107,9 +106,9 @@ export default function Contratos() {
     if (!cliente) return;
     setFormValues(prev => ({
       ...prev,
-      nome_cliente: cliente.nome,
-      cpf_cnpj: cliente.documento || "",
-      endereco: cliente.endereco || "",
+      nome_cliente: cliente.nome_empresa,
+      cpf_cnpj: "",
+      endereco: "",
     }));
   }, [selectedClienteId, clientes, selectedTemplate]);
 
@@ -323,7 +322,7 @@ export default function Contratos() {
                         </SelectTrigger>
                         <SelectContent>
                           {clientes.map(c => (
-                            <SelectItem key={c.id} value={c.id}>{c.nome} — {c.email}</SelectItem>
+                            <SelectItem key={c.id} value={c.id}>{c.nome_empresa} — {c.email}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

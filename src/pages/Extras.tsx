@@ -54,9 +54,9 @@ export default function Extras() {
 
   const fetchData = async () => {
     const [extrasRes, clientesRes, ecRes] = await Promise.all([
-      supabase.from("extras_catalogo").select("*").order("nome"),
-      supabase.from("clientes").select("id, nome, email").eq("status", "ativo").order("nome"),
-      supabase.from("extras_clientes").select("extra_id").eq("status", "ativo"),
+      supabase.from("extras").select("*").order("nome"),
+      supabase.from("clientes").select("id, nome_empresa, email").eq("ativo", true).order("nome_empresa"),
+      supabase.from("cliente_extras").select("extra_id").eq("ativo", true),
     ]);
     setExtras(extrasRes.data || []);
     setClientes(clientesRes.data || []);
@@ -93,10 +93,10 @@ export default function Extras() {
   const handleSave = async () => {
     if (!form.nome) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_catalogo").insert({
-      nome: form.nome, descricao: form.descricao || null, categoria: form.categoria,
-      preco_ativacao: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, status: form.status,
-    });
+    const { error } = await supabase.from("extras").insert({
+      nome: form.nome, descricao: form.descricao || null, tipo: form.categoria,
+      preco: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, ativo: form.status === "ativo",
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra criado!" });
@@ -107,10 +107,10 @@ export default function Extras() {
 
   const handleEdit = async () => {
     setSaving(true);
-    const { error } = await supabase.from("extras_catalogo").update({
-      nome: editForm.nome, descricao: editForm.descricao || null, categoria: editForm.categoria,
-      preco_ativacao: Number(editForm.preco_ativacao) || 0, preco_mensal: Number(editForm.preco_mensal) || 0, status: editForm.status,
-    }).eq("id", editForm.id);
+    const { error } = await supabase.from("extras").update({
+      nome: editForm.nome, descricao: editForm.descricao || null, tipo: editForm.categoria,
+      preco: Number(editForm.preco_ativacao) || 0, preco_mensal: Number(editForm.preco_mensal) || 0, ativo: editForm.status === "ativo",
+    } as any).eq("id", editForm.id);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atualizado!" });
@@ -119,8 +119,8 @@ export default function Extras() {
   };
 
   const toggleStatus = async (extra: any) => {
-    const newStatus = extra.status === "ativo" ? "inativo" : "ativo";
-    await supabase.from("extras_catalogo").update({ status: newStatus }).eq("id", extra.id);
+    const newAtivo = !extra.ativo;
+    await supabase.from("extras").update({ ativo: newAtivo }).eq("id", extra.id);
     fetchData();
   };
 
@@ -139,10 +139,9 @@ export default function Extras() {
   const handleAtribuir = async () => {
     if (!clienteSel || !extraSel) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_clientes").insert({
-      cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
-      preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
-    });
+    const { error } = await supabase.from("cliente_extras").insert({
+      cliente_id: clienteSel, extra_id: extraSel.id,
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atribuído!", description: `"${extraSel.nome}" adicionado ao cliente.` });

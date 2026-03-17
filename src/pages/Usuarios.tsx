@@ -24,7 +24,7 @@ export default function Usuarios() {
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
 
   const fetchUsuarios = async () => {
-    const { data } = await supabase.from("usuarios").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
     setUsuarios(data || []);
   };
 
@@ -49,16 +49,7 @@ export default function Usuarios() {
       return;
     }
 
-    // Save to usuarios table
-    const { error } = await supabase.from("usuarios").insert({
-      nome: form.nome, email: form.email, cargo: form.cargo, acesso: form.acesso, avatar,
-    });
-
-    if (error) {
-      toast({ title: "Conta criada, mas erro ao salvar usuário", description: error.message, variant: "destructive" });
-      setSaving(false);
-      return;
-    }
+    // Profile is auto-created by trigger, no additional save needed
 
     const link = `${window.location.origin}/admin/login`;
     setContaCriada({ email: form.email, senha: form.senha, link });

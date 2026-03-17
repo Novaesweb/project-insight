@@ -33,10 +33,10 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const loadData = async () => {
     const [c, e, p, ped, cat] = await Promise.all([
       supabase.from("clientes").select("*").eq("id", clienteId).single(),
-      supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", clienteId),
+      supabase.from("cliente_extras").select("*, extras(nome, descricao)").eq("cliente_id", clienteId),
       supabase.from("projetos").select("*").eq("cliente_id", clienteId),
       supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
-      supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
+      supabase.from("extras").select("*").eq("ativo", true),
     ]);
     setCliente(c.data);
     setExtras(e.data || []);
@@ -52,14 +52,10 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     const extra = catalogo.find(c => c.id === extraSelecionado);
     if (!extra) return;
     setSavingExtra(true);
-    const { error } = await supabase.from("extras_clientes").insert({
+    const { error } = await supabase.from("cliente_extras").insert({
       cliente_id: clienteId,
       extra_id: extra.id,
-      categoria: extra.categoria,
-      preco_ativacao: Number(extra.preco_ativacao) || 0,
-      preco_mensal: Number(extra.preco_mensal) || 0,
-      observacao: observacao || null,
-    });
+    } as any);
     setSavingExtra(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
@@ -355,7 +351,7 @@ export default function Clientes() {
     }
     setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const { error } = await supabase.from("clientes").insert({ ...form, avatar });
+    const { error } = await supabase.from("clientes").insert({ nome_empresa: form.nome, nome_responsavel: form.nome, email: form.email, whatsapp: form.telefone || "", cidade: form.cidade, estado: form.estado } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); setSaving(false); return; }
 
     // Create auth account for client portal
