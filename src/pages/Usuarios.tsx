@@ -24,7 +24,7 @@ export default function Usuarios() {
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
 
   const fetchUsuarios = async () => {
-    const { data } = await supabase.from("usuarios").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
     setUsuarios(data || []);
   };
 
