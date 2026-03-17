@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-interface Reuniao { id: string; cliente_id: string; tipo: string; data: string; hora_inicio: string; hora_fim: string; link?: string; observacoes?: string; status: StatusReuniao; clientes?: { nome: string }; }
+interface Reuniao { id: string; cliente_id: string; tipo: string; data: string; hora_inicio: string; hora_fim: string; link?: string; observacoes?: string; status: string; clientes?: { nome_empresa: string }; }
 
 export default function Agenda() {
   const { toast } = useToast();
