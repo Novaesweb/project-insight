@@ -158,7 +158,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
                   {!n.read && <div className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] mt-1.5 shrink-0" />}
                   <div className={cn(!n.read ? "" : "ml-4")}>
                     <p className="text-sm font-medium">{n.title}</p>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-2">{n.body}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-2">{n.message}</p>
                     <p className="text-[0.65rem] text-[hsl(var(--muted-foreground))] mt-1">
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                     </p>
