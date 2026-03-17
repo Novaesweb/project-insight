@@ -123,7 +123,7 @@ export default function Agenda() {
                     <div className="mt-1 space-y-0.5">
                       {dayReunioes.slice(0, 3).map(r => (
                         <div key={r.id} className="text-[10px] px-1.5 py-0.5 rounded truncate text-white font-medium" style={{ backgroundColor: statusReuniaoColors[r.status] + "cc" }}>
-                          {r.hora_inicio} {r.clientes?.nome?.split(" ")[0]}
+                          {r.hora_inicio} {r.clientes?.nome_empresa?.split(" ")[0]}
                         </div>
                       ))}
                     </div>
