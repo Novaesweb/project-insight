@@ -25,7 +25,7 @@ export default function Suporte() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   const loadTickets = useCallback(async () => {
-    const { data } = await supabase.from("tickets").select("*, clientes(nome)").order("created_at", { ascending: false });
+    const { data } = await supabase.from("tickets_suporte").select("*, clientes(nome_empresa)").order("created_at", { ascending: false });
     setTickets(data || []);
   }, []);
 
