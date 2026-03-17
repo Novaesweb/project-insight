@@ -736,7 +736,7 @@ export default function Site() {
               },
               {
                 description: "Além do visual bonito, o site ficou prático e fácil de usar no celular. Era exatamente isso que eu precisava para atender melhor meus clientes.",
-                image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3",
+                image: "",
                 name: "Fernanda Lima",
                 handle: "@fernandalima",
               },
