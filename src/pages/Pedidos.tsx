@@ -22,13 +22,13 @@ export default function Pedidos() {
   const [projetos, setProjetos] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
+  const [form, setForm] = useState({ descricao: "", tipo: "produto" as const, valor: "", cliente_id: "", projeto_id: "" });
 
   const load = async () => {
     const [p, c, pr] = await Promise.all([
-      supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }),
-      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
-      supabase.from("projetos").select("id, titulo"),
+      supabase.from("pedidos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
+      supabase.from("projetos").select("id, nome"),
     ]);
     setPedidos(p.data || []);
     setClientes(c.data || []);
