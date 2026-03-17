@@ -464,7 +464,7 @@ export default function Site() {
                     </motion.div>
                   ))}
                 </div>
-                {!showAllSolucoes && (
+                {!showAllSolucoes ? (
                   <div className="text-center mt-8">
                     <Button
                       variant="outline"
@@ -472,6 +472,16 @@ export default function Site() {
                       className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl px-8 h-11 hover:bg-[hsl(var(--muted))]"
                     >
                       Ver todas as soluções ({solucoes.length - 2} mais) <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAllSolucoes(false)}
+                      className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl px-8 h-11 hover:bg-[hsl(var(--muted))]"
+                    >
+                      Ver menos <ChevronRight className="w-4 h-4 ml-2 rotate-90" />
                     </Button>
                   </div>
                 )}
