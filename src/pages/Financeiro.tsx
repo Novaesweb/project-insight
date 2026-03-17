@@ -28,8 +28,8 @@ export default function Financeiro() {
 
   const load = async () => {
     const [f, c] = await Promise.all([
-      supabase.from("financeiro").select("*, clientes(nome)").order("created_at", { ascending: false }),
-      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
+      supabase.from("faturas").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
     ]);
     setFinanceiro(f.data || []);
     setClientes(c.data || []);
