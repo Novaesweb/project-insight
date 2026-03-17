@@ -49,10 +49,8 @@ export default function Usuarios() {
       return;
     }
 
-    // Save to usuarios table
-    const { error } = await supabase.from("usuarios").insert({
-      nome: form.nome, email: form.email, cargo: form.cargo, acesso: form.acesso, avatar,
-    });
+    // Profile is auto-created by trigger
+    const profileError = null;
 
     if (error) {
       toast({ title: "Conta criada, mas erro ao salvar usuário", description: error.message, variant: "destructive" });

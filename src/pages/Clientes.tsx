@@ -351,7 +351,7 @@ export default function Clientes() {
     }
     setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const { error } = await supabase.from("clientes").insert({ ...form, avatar });
+    const { error } = await supabase.from("clientes").insert({ nome_empresa: form.nome, nome_responsavel: form.nome, email: form.email, whatsapp: form.telefone || "", cidade: form.cidade, estado: form.estado } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); setSaving(false); return; }
 
     // Create auth account for client portal

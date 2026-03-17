@@ -20,7 +20,7 @@ export default function ClienteExtras() {
   }, [cliente.id]);
 
   useEffect(() => { load(); }, [load]);
-  useRealtimeSubscription("extras_clientes", load);
+  useRealtimeSubscription("cliente_extras", load);
 
   const ativos = meusExtras.filter(e => e.status === "ativo");
   const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);

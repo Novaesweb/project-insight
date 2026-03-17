@@ -69,12 +69,11 @@ export default function ClienteSuporte() {
   const criarTicket = async () => {
     if (!novoTitulo.trim()) return;
     const codigo = `TK-${Date.now().toString().slice(-6)}`;
-    const { error } = await supabase.from("tickets").insert({
-      titulo: novoTitulo,
-      descricao: novoDescricao || null,
+    const { error } = await supabase.from("tickets_suporte").insert({
+      assunto: novoTitulo,
+      mensagem: novoDescricao || "Sem descrição",
       cliente_id: cliente.id,
-      codigo,
-    });
+    } as any);
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
       sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");

@@ -145,10 +145,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
             notifications.map(n => (
               <button
                 key={n.id}
-                onClick={() => {
-                  markAsRead(n.id);
-                  if (n.url) window.location.href = n.url;
-                }}
+                onClick={() => markAsRead(n.id)}
                 className={cn(
                   "w-full text-left px-4 py-3 border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] transition-colors",
                   !n.read && "bg-[hsl(var(--primary)/0.05)]"

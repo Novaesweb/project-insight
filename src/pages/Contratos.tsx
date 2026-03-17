@@ -322,7 +322,7 @@ export default function Contratos() {
                         </SelectTrigger>
                         <SelectContent>
                           {clientes.map(c => (
-                            <SelectItem key={c.id} value={c.id}>{c.nome} — {c.email}</SelectItem>
+                            <SelectItem key={c.id} value={c.id}>{c.nome_empresa} — {c.email}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

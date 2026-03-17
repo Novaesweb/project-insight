@@ -36,8 +36,8 @@ export default function ClienteDashboard() {
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("faturas", load);
-  useRealtimeSubscription("tickets", load);
-  useRealtimeSubscription("extras_clientes", load);
+  useRealtimeSubscription("tickets_suporte", load);
+  useRealtimeSubscription("cliente_extras", load);
   useRealtimeSubscription("reunioes", load);
   useRealtimeSubscription("projeto_atualizacoes", load);
 

@@ -246,14 +246,10 @@ export default function Projetos() {
     e.preventDefault();
     setSaving(true);
     const { error } = await supabase.from("projetos").insert({
-      titulo: form.titulo,
+      nome: form.titulo,
       descricao: form.descricao || null,
       cliente_id: form.cliente_id || null,
-      responsavel: form.responsavel || null,
-      valor: Number(form.valor) || 0,
-      prazo: form.prazo || null,
-      inicio: form.inicio || null,
-    });
+    } as any);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {

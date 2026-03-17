@@ -43,14 +43,13 @@ export default function Financeiro() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("financeiro").insert({
+    const { error } = await supabase.from("faturas").insert({
       descricao: form.descricao,
-      tipo: form.tipo,
       valor: Number(form.valor) || 0,
-      vencimento: form.vencimento || null,
-      cliente_id: form.cliente_id || null,
+      vencimento: form.vencimento || new Date().toISOString().slice(0, 10),
+      cliente_id: form.cliente_id,
       status: form.status,
-    });
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Lançamento criado!" });

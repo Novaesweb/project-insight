@@ -139,10 +139,9 @@ export default function Extras() {
   const handleAtribuir = async () => {
     if (!clienteSel || !extraSel) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_clientes").insert({
-      cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
-      preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
-    });
+    const { error } = await supabase.from("cliente_extras").insert({
+      cliente_id: clienteSel, extra_id: extraSel.id,
+    } as any);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atribuído!", description: `"${extraSel.nome}" adicionado ao cliente.` });
