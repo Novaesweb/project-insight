@@ -93,8 +93,8 @@ export default function Contratos() {
   }, []);
 
   const loadClientes = useCallback(() => {
-    supabase.from("clientes").select("id, nome, email, documento, endereco").eq("status", "ativo")
-      .then(({ data }) => setClientes(data || []));
+    supabase.from("clientes").select("id, nome_empresa, email, nome_responsavel").eq("ativo", true)
+      .then(({ data }) => setClientes((data || []) as unknown as Cliente[]));
   }, []);
 
   useEffect(() => { loadContratos(); loadClientes(); }, [loadContratos, loadClientes]);

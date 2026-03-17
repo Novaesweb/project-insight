@@ -142,7 +142,7 @@ export default function Agenda() {
             ) : reunioesHoje.map(r => (
               <div key={r.id} className="p-3 rounded-xl bg-[hsl(var(--accent)/0.3)] border border-[hsl(var(--border))] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">{r.clientes?.nome}</span>
+                  <span className="text-xs font-bold text-white">{r.clientes?.nome_empresa}</span>
                   <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: statusReuniaoColors[r.status] + "33", color: statusReuniaoColors[r.status] }}>
                     {statusReuniaoLabels[r.status]}
                   </Badge>

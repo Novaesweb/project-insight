@@ -42,7 +42,7 @@ export default function ClienteLogin() {
 
     if (clienteData) {
       localStorage.setItem("clienteLogado", JSON.stringify(clienteData));
-      toast({ title: "Login realizado!", description: `Bem-vindo, ${clienteData.nome}` });
+      toast({ title: "Login realizado!", description: `Bem-vindo, ${clienteData.nome_empresa}` });
       navigate("/cliente/dashboard");
     } else {
       toast({ title: "Erro", description: "Conta de cliente não encontrada ou inativa", variant: "destructive" });

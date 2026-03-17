@@ -82,12 +82,12 @@ export default function Pedidos() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Código</Label>
-                  <Input value={form.codigo} onChange={e => setForm({...form, codigo: e.target.value})} placeholder={`PED-${String(pedidos.length + 1).padStart(3, "0")}`} className="glass-input border-[0.5px] mt-1" />
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição</Label>
+                  <Input value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})} placeholder="Descrição do pedido" className="glass-input border-[0.5px] mt-1" />
                 </div>
                 <div>
                   <Label className="text-xs text-[hsl(var(--muted-foreground))]">Tipo *</Label>
-                  <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v})}>
+                  <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v as any})}>
                     <SelectTrigger className="glass-input border-[0.5px] mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="site">Site</SelectItem>
