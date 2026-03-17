@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NicheCarousel from "@/components/NicheCarousel";
+import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import aboutPhoto from "@/assets/about-novaes.jpg";
 import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 
