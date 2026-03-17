@@ -455,7 +455,7 @@ export default function Clientes() {
                 {filtrados.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</TableCell></TableRow>
                 ) : filtrados.map((c) => {
-                  const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+                  const avatar = c.nome_empresa?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
                   return (
                     <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]" onClick={() => setSelectedCliente(c.id)}>
                       <TableCell>
@@ -463,13 +463,13 @@ export default function Clientes() {
                           <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
                             <span className="text-white text-[10px] font-bold">{avatar}</span>
                           </div>
-                          <span className="text-sm font-medium text-white">{c.nome}</span>
+                          <span className="text-sm font-medium text-white">{c.nome_empresa}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
-                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
+                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.whatsapp}</TableCell>
                       <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
-                      <TableCell><StatusBadge status={c.status} /></TableCell>
+                      <TableCell><StatusBadge status={c.ativo ? "ativo" : "inativo"} /></TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" className="text-[hsl(var(--muted-foreground))] hover:text-white text-xs">Ver</Button>
                       </TableCell>
