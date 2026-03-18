@@ -60,7 +60,7 @@ export default function HeroSection() {
                 </Button>
               </a>
             </motion.div>
-          <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
+          <motion.div variants={fade} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
             <div ref={empresas.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
               <p className="text-2xl font-bold gradient-text">{empresas.count}+</p>
               <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
@@ -78,7 +78,6 @@ export default function HeroSection() {
               <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
             </div>
           </motion.div>
-        </div>
       </div>
     </motion.section>
   );
