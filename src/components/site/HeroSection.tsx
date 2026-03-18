@@ -26,7 +26,7 @@ export default function HeroSection() {
   const atendimento = useAnimatedCounter(24, 1000);
 
   return (
-    <motion.section className="pt-12 pb-24 px-6" initial="hidden" animate="show" variants={stagger}>
+    <motion.section className="pt-28 pb-24 px-6" initial="hidden" animate="show" variants={stagger}>
       <div className="max-w-5xl mx-auto text-center">
             <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
               Tecnologia que{" "}
