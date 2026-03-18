@@ -474,7 +474,7 @@ export default function Site() {
                     <p className="text-sm text-[hsl(var(--muted-foreground))] max-w-md leading-relaxed">
                       Transformando atendimento em resultado através da automação inteligente.
                     </p>
-                </div>
+                  </div>
               </motion.div>
             )}
           </AnimatePresence>
