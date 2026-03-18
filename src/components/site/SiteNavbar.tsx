@@ -47,18 +47,6 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           </span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link, i) => (
-            <button
-              key={i}
-              onClick={() => scrollTo(link.href)}
-              className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors duration-200"
-            >
-              {link.label}
-            </button>
-          ))}
-        </div>
-
         <div className="flex items-center gap-3">
           <Link to="/cadastro" className="hidden sm:block">
             <Button className="gradient-primary border-0 text-white text-sm h-10 px-6 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
@@ -67,7 +55,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden p-2.5 rounded-xl hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--foreground))]"
+            className="p-2.5 rounded-xl hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--foreground))]"
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
