@@ -84,7 +84,11 @@ export default function AdminLogin() {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="flex flex-col items-center gap-4"
         >
-          <img src={logoImg} alt="NovaesWeb" className="w-48 h-auto rounded-xl" />
+          <img 
+            src={logoImg} 
+            alt="NovaesWeb" 
+            className="w-32 h-32 rounded-full object-cover border-2 border-[hsl(var(--primary))]/20 shadow-[0_0_30px_-5px_hsl(var(--primary))]" 
+          />
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
             <Lock className="w-3 h-3 text-[hsl(var(--primary))]" />
             <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
