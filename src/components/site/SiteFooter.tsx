@@ -73,9 +73,9 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
           <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
             © {new Date().getFullYear()} NovaesWeb — Todos os direitos reservados
           </p>
-          <div className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]">
-            <ShieldCheck className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
-            <span>Ambiente 100% Seguro e Criptografado</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-[11px] font-semibold text-emerald-400 tracking-wide">Ambiente 100% Seguro e Criptografado</span>
           </div>
           <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
             Desenvolvido por <span className="font-semibold gradient-text">NovaesWeb</span>
