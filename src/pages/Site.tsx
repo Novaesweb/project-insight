@@ -364,6 +364,109 @@ export default function Site() {
         </div>
       </motion.section>
 
+      {/* ─── AUTOMAÇÃO INTELIGENTE ─── */}
+      <motion.section className="py-16 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+        <div className="max-w-3xl mx-auto">
+          <Button
+            onClick={() => setShowAutomacao(!showAutomacao)}
+            className="w-full h-14 rounded-2xl text-base font-bold gradient-primary text-white shadow-lg shadow-[hsl(var(--primary))]/25 hover:shadow-xl hover:shadow-[hsl(var(--primary))]/35 transition-all"
+          >
+            🚀 {showAutomacao ? "Fechar Automação Inteligente" : "Ver Automação Inteligente"}
+          </Button>
+
+          <AnimatePresence>
+            {showAutomacao && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-6 glass-card rounded-2xl p-8 space-y-6">
+                  <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] flex items-center gap-2">
+                    <Rocket className="w-6 h-6 text-[hsl(var(--primary))]" /> NOVAESWEB + AUTOMAÇÃO INTELIGENTE
+                  </h2>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    Na NovaesWeb, desenvolvemos sites completos, sistemas de pedidos e soluções digitais estruturadas.
+                  </p>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-5">
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-2">
+                      <MessageCircle className="w-5 h-5 text-[hsl(var(--primary))]" /> POSICIONAMENTO
+                    </h3>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] font-medium">
+                      Criamos seu site, organizamos pedidos e automatizamos atendimento.
+                    </p>
+                  </div>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-5">
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
+                      <Sparkles className="w-5 h-5 text-[hsl(var(--primary))]" /> COMO FUNCIONA
+                    </h3>
+                    <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Desenvolvimento do site</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Sistema de pedidos</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Painel administrativo</li>
+                      <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Controle completo</li>
+                    </ul>
+                    <p className="text-sm font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">+ Automação:</p>
+                    <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
+                      <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-[hsl(var(--primary))]" /> WhatsApp automatizado</li>
+                      <li className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-[hsl(var(--primary))]" /> Atendimento automático</li>
+                      <li className="flex items-center gap-2"><Target className="w-4 h-4 text-[hsl(var(--primary))]" /> Respostas rápidas</li>
+                    </ul>
+                  </div>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-5">
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
+                      <ArrowRight className="w-5 h-5 text-[hsl(var(--primary))]" /> RESULTADO
+                    </h3>
+                    <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
+                      <li>👉 Cliente entra no site</li>
+                      <li>👉 WhatsApp responde automaticamente</li>
+                      <li>👉 Direciona com link pro site</li>
+                    </ul>
+                    <p className="text-sm font-bold text-[hsl(var(--foreground))] mt-3">🔥 Mais vendas e organização</p>
+                  </div>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-5">
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
+                      💰 PLANOS
+                    </h3>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4">
+                        <p className="text-sm font-bold text-green-400">🟢 Essencial</p>
+                        <p className="text-2xl font-bold text-[hsl(var(--foreground))] mt-1">R$ 60<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span></p>
+                      </div>
+                      <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+                        <p className="text-sm font-bold text-red-400">🔴 Estruturado</p>
+                        <p className="text-2xl font-bold text-[hsl(var(--foreground))] mt-1">R$ 97,99<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-5">
+                    <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-2">
+                      📌 IMPORTANTE
+                    </h3>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                      Valores válidos com site NovaesWeb. Automação isolada é definida pela Codethio.
+                    </p>
+                  </div>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-5">
+                    <p className="text-sm italic text-[hsl(var(--muted-foreground))] leading-relaxed">
+                      A NovaesWeb estrutura o sistema. A automação potencializa o atendimento.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.section>
+
       {/* ─── SOLUÇÕES (Projetos) ─── */}
       <motion.section id="solucoes" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
         <div className="max-w-7xl mx-auto">
