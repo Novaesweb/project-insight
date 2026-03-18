@@ -465,8 +465,9 @@ export default function Site() {
 
                   <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col items-center text-center gap-3">
                     <p className="text-xs uppercase tracking-widest text-[hsl(var(--muted-foreground))]">Automação desenvolvida por</p>
-                    <p className="text-2xl font-bold">
-                      <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
+                    <div className="flex items-center gap-3">
+                      <img src={codethioLogo} alt="Codethio" className="w-10 h-10 rounded-full object-cover" />
+                      <p className="text-2xl font-bold">
                     </p>
                     <p className="text-sm text-[hsl(var(--muted-foreground))] max-w-md leading-relaxed">
                       Transformando atendimento em resultado através da automação inteligente.
