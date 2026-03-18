@@ -22,13 +22,13 @@ export default function Pedidos() {
   const [projetos, setProjetos] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ descricao: "", tipo: "produto" as const, valor: "", cliente_id: "", projeto_id: "" });
+  const [form, setForm] = useState({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
 
   const load = async () => {
     const [p, c, pr] = await Promise.all([
-      supabase.from("pedidos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }),
-      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
-      supabase.from("projetos").select("id, nome"),
+      supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
+      supabase.from("projetos").select("id, titulo"),
     ]);
     setPedidos(p.data || []);
     setClientes(c.data || []);
@@ -40,18 +40,19 @@ export default function Pedidos() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    const codigo = form.codigo || `PED-${String(pedidos.length + 1).padStart(3, "0")}`;
     const { error } = await supabase.from("pedidos").insert({
-      descricao: form.descricao || "Novo pedido",
-      tipo: form.tipo as any,
+      codigo,
+      tipo: form.tipo,
       valor: Number(form.valor) || 0,
-      cliente_id: form.cliente_id,
+      cliente_id: form.cliente_id || null,
       projeto_id: form.projeto_id || null,
     });
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Pedido criado!" });
-      setForm({ descricao: "", tipo: "produto", valor: "", cliente_id: "", projeto_id: "" });
+      setForm({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
       setDialogOpen(false);
       load();
     }
@@ -82,12 +83,12 @@ export default function Pedidos() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição</Label>
-                  <Input value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})} placeholder="Descrição do pedido" className="glass-input border-[0.5px] mt-1" />
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Código</Label>
+                  <Input value={form.codigo} onChange={e => setForm({...form, codigo: e.target.value})} placeholder={`PED-${String(pedidos.length + 1).padStart(3, "0")}`} className="glass-input border-[0.5px] mt-1" />
                 </div>
                 <div>
                   <Label className="text-xs text-[hsl(var(--muted-foreground))]">Tipo *</Label>
-                  <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v as any})}>
+                  <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v})}>
                     <SelectTrigger className="glass-input border-[0.5px] mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="site">Site</SelectItem>

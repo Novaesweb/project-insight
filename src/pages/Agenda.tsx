@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-interface Reuniao { id: string; cliente_id: string; tipo: string; data: string; hora_inicio: string; hora_fim: string; link?: string; observacoes?: string; status: string; clientes?: { nome_empresa: string }; }
+interface Reuniao { id: string; cliente_id: string; tipo: string; data: string; hora_inicio: string; hora_fim: string; link?: string; observacoes?: string; status: StatusReuniao; clientes?: { nome: string }; }
 
 export default function Agenda() {
   const { toast } = useToast();
@@ -35,10 +35,10 @@ export default function Agenda() {
 
   const load = async () => {
     const [r, c] = await Promise.all([
-      supabase.from("reunioes").select("*, clientes(nome_empresa)").order("data", { ascending: true }),
-      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
+      supabase.from("reunioes").select("*, clientes(nome)").order("data", { ascending: true }),
+      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
     ]);
-    setReunioes((r.data || []) as unknown as Reuniao[]);
+    setReunioes((r.data || []) as Reuniao[]);
     setClientes(c.data || []);
   };
 
@@ -123,7 +123,7 @@ export default function Agenda() {
                     <div className="mt-1 space-y-0.5">
                       {dayReunioes.slice(0, 3).map(r => (
                         <div key={r.id} className="text-[10px] px-1.5 py-0.5 rounded truncate text-white font-medium" style={{ backgroundColor: statusReuniaoColors[r.status] + "cc" }}>
-                          {r.hora_inicio} {r.clientes?.nome_empresa?.split(" ")[0]}
+                          {r.hora_inicio} {r.clientes?.nome?.split(" ")[0]}
                         </div>
                       ))}
                     </div>
@@ -142,7 +142,7 @@ export default function Agenda() {
             ) : reunioesHoje.map(r => (
               <div key={r.id} className="p-3 rounded-xl bg-[hsl(var(--accent)/0.3)] border border-[hsl(var(--border))] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">{r.clientes?.nome_empresa}</span>
+                  <span className="text-xs font-bold text-white">{r.clientes?.nome}</span>
                   <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: statusReuniaoColors[r.status] + "33", color: statusReuniaoColors[r.status] }}>
                     {statusReuniaoLabels[r.status]}
                   </Badge>

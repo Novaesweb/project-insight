@@ -25,7 +25,7 @@ export default function Suporte() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   const loadTickets = useCallback(async () => {
-    const { data } = await supabase.from("tickets_suporte").select("*, clientes(nome_empresa)").order("created_at", { ascending: false });
+    const { data } = await supabase.from("tickets").select("*, clientes(nome)").order("created_at", { ascending: false });
     setTickets(data || []);
   }, []);
 
@@ -47,7 +47,7 @@ export default function Suporte() {
     if (selectedTicket) loadMessages(selectedTicket);
   }, [selectedTicket, loadMessages]);
 
-  useRealtimeSubscription("tickets_suporte", loadTickets);
+  useRealtimeSubscription("tickets", loadTickets);
   useRealtimeSubscription("ticket_mensagens", refreshSelectedMessages);
 
   useEffect(() => {
@@ -89,14 +89,14 @@ export default function Suporte() {
 
     // Auto update ticket status to em_atendimento if aberto
     if (ticket?.status === "aberto") {
-      await supabase.from("tickets_suporte").update({ status: "em_atendimento" }).eq("id", selectedTicket);
+      await supabase.from("tickets").update({ status: "em_atendimento" }).eq("id", selectedTicket);
       setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: "em_atendimento" } : t));
     }
   };
 
   const changeStatus = async (newStatus: string) => {
     if (!selectedTicket) return;
-    const { error } = await supabase.from("tickets_suporte").update({ status: newStatus }).eq("id", selectedTicket);
+    const { error } = await supabase.from("tickets").update({ status: newStatus }).eq("id", selectedTicket);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: newStatus } : t));
     toast({ title: "Status atualizado!" });

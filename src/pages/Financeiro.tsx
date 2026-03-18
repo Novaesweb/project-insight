@@ -28,8 +28,8 @@ export default function Financeiro() {
 
   const load = async () => {
     const [f, c] = await Promise.all([
-      supabase.from("faturas").select("*, clientes(nome_empresa)").order("created_at", { ascending: false }),
-      supabase.from("clientes").select("id, nome_empresa").eq("ativo", true),
+      supabase.from("financeiro").select("*, clientes(nome)").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
     ]);
     setFinanceiro(f.data || []);
     setClientes(c.data || []);
@@ -43,13 +43,14 @@ export default function Financeiro() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("faturas").insert({
+    const { error } = await supabase.from("financeiro").insert({
       descricao: form.descricao,
+      tipo: form.tipo,
       valor: Number(form.valor) || 0,
-      vencimento: form.vencimento || new Date().toISOString().slice(0, 10),
-      cliente_id: form.cliente_id,
+      vencimento: form.vencimento || null,
+      cliente_id: form.cliente_id || null,
       status: form.status,
-    } as any);
+    });
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Lançamento criado!" });

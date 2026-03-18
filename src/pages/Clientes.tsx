@@ -33,10 +33,10 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const loadData = async () => {
     const [c, e, p, ped, cat] = await Promise.all([
       supabase.from("clientes").select("*").eq("id", clienteId).single(),
-      supabase.from("cliente_extras").select("*, extras(nome, descricao)").eq("cliente_id", clienteId),
+      supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", clienteId),
       supabase.from("projetos").select("*").eq("cliente_id", clienteId),
       supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
-      supabase.from("extras").select("*").eq("ativo", true),
+      supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
     ]);
     setCliente(c.data);
     setExtras(e.data || []);
@@ -52,10 +52,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     const extra = catalogo.find(c => c.id === extraSelecionado);
     if (!extra) return;
     setSavingExtra(true);
-    const { error } = await supabase.from("cliente_extras").insert({
+    const { error } = await supabase.from("extras_clientes").insert({
       cliente_id: clienteId,
       extra_id: extra.id,
-    } as any);
+      categoria: extra.categoria,
+      preco_ativacao: Number(extra.preco_ativacao) || 0,
+      preco_mensal: Number(extra.preco_mensal) || 0,
+      observacao: observacao || null,
+    });
     setSavingExtra(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
@@ -339,8 +343,8 @@ export default function Clientes() {
   }
 
   const filtrados = clientes.filter((c) => {
-    const matchBusca = (c.nome_empresa || "").toLowerCase().includes(busca.toLowerCase()) || (c.email || "").toLowerCase().includes(busca.toLowerCase());
-    const matchStatus = filtroStatus === "todos" || (filtroStatus === "ativo" ? c.ativo : !c.ativo);
+    const matchBusca = c.nome.toLowerCase().includes(busca.toLowerCase()) || c.email.toLowerCase().includes(busca.toLowerCase());
+    const matchStatus = filtroStatus === "todos" || c.status === filtroStatus;
     return matchBusca && matchStatus;
   });
 
@@ -351,7 +355,7 @@ export default function Clientes() {
     }
     setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const { error } = await supabase.from("clientes").insert({ nome_empresa: form.nome, nome_responsavel: form.nome, email: form.email, whatsapp: form.telefone || "", cidade: form.cidade, estado: form.estado } as any);
+    const { error } = await supabase.from("clientes").insert({ ...form, avatar });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); setSaving(false); return; }
 
     // Create auth account for client portal
@@ -455,7 +459,7 @@ export default function Clientes() {
                 {filtrados.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</TableCell></TableRow>
                 ) : filtrados.map((c) => {
-                  const avatar = c.nome_empresa?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
+                  const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
                   return (
                     <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]" onClick={() => setSelectedCliente(c.id)}>
                       <TableCell>
@@ -463,13 +467,13 @@ export default function Clientes() {
                           <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
                             <span className="text-white text-[10px] font-bold">{avatar}</span>
                           </div>
-                          <span className="text-sm font-medium text-white">{c.nome_empresa}</span>
+                          <span className="text-sm font-medium text-white">{c.nome}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
-                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.whatsapp}</TableCell>
+                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
                       <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
-                      <TableCell><StatusBadge status={c.ativo ? "ativo" : "inativo"} /></TableCell>
+                      <TableCell><StatusBadge status={c.status} /></TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" className="text-[hsl(var(--muted-foreground))] hover:text-white text-xs">Ver</Button>
                       </TableCell>

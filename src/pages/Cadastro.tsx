@@ -8,28 +8,82 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft } from "lucide-react";
+import { Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const segmentos = ["Restaurante", "Clínica", "Loja", "Escritório", "Outro"];
 const servicosOpcoes = ["Site", "Loja Virtual", "App", "Identidade Visual"];
-const orcamentoOpcoes = ["Até R$500", "R$500 a R$1.500", "R$1.500 a R$3.000", "Acima de R$3.000", "Não sei ainda"];
+const orcamentoOpcoes = ["Até R$500/mês", "R$500 a R$1.500/mês", "R$1.500 a R$3.000/mês", "Acima de R$3.000/mês", "Não sei ainda"];
 const origemOpcoes = ["Google", "Instagram", "Indicação", "Outro"];
+
+const formatWhatsApp = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+const validateWhatsApp = (whatsapp: string) => {
+  const digits = whatsapp.replace(/\D/g, "");
+  return digits.length === 10 || digits.length === 11;
+};
+
+type FieldErrors = { [key: string]: string };
 
 export default function Cadastro() {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
+  const [cepLoading, setCepLoading] = useState(false);
   const [form, setForm] = useState({
-    nome: "", email: "", whatsapp: "", cidade: "", estado: "", documento: "",
+    nome: "", email: "", whatsapp: "", cep: "", rua: "", numero: "", cidade: "", estado: "", documento: "",
     nome_negocio: "", segmento: "", servicos: [] as string[], orcamento: "", como_conheceu: "", mensagem: "",
   });
 
-  const updateForm = (field: string, value: string | string[]) => setForm(prev => ({ ...prev, [field]: value }));
+  const updateForm = (field: string, value: string | string[]) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+  };
+
+  const handleWhatsAppChange = (value: string) => {
+    updateForm("whatsapp", formatWhatsApp(value));
+  };
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleCepChange = async (value: string) => {
+    const formatted = formatCep(value);
+    updateForm("cep", formatted);
+    const digits = formatted.replace(/\D/g, "");
+    if (digits.length === 8) {
+      setCepLoading(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setForm(prev => ({
+            ...prev,
+            cep: formatted,
+            rua: data.logradouro || prev.rua,
+            cidade: data.localidade || prev.cidade,
+            estado: data.uf || prev.estado,
+          }));
+        }
+      } catch { /* silently fail */ }
+      setCepLoading(false);
+    }
+  };
 
   const toggleServico = (s: string) => {
     setForm(prev => ({
@@ -38,16 +92,36 @@ export default function Cadastro() {
     }));
   };
 
+  const validateStep1 = (): boolean => {
+    const newErrors: FieldErrors = {};
+    if (!form.nome.trim()) newErrors.nome = "Nome é obrigatório";
+    else if (form.nome.trim().length < 3) newErrors.nome = "Nome deve ter pelo menos 3 caracteres";
+    
+    if (!form.email.trim()) newErrors.email = "E-mail é obrigatório";
+    else if (!validateEmail(form.email)) newErrors.email = "Digite um e-mail válido";
+    
+    if (!form.whatsapp.trim()) newErrors.whatsapp = "WhatsApp é obrigatório";
+    else if (!validateWhatsApp(form.whatsapp)) newErrors.whatsapp = "Número inválido. Use (DD) 99999-9999";
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      toast({ title: "Corrija os campos destacados", variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!form.nome || !form.email || !form.whatsapp) {
       toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
       return;
     }
     setLoading(true);
+    const whatsappDigits = form.whatsapp.replace(/\D/g, "");
     const { error } = await supabase.from("leads").insert({
-      nome: form.nome,
-      email: form.email,
-      whatsapp: form.whatsapp,
+      nome: form.nome.trim(),
+      email: form.email.trim().toLowerCase(),
+      whatsapp: whatsappDigits,
       cidade: form.cidade || null,
       estado: form.estado || null,
       documento: form.documento || null,
@@ -67,6 +141,15 @@ export default function Cadastro() {
     }
   };
 
+  const FieldError = ({ field }: { field: string }) => {
+    if (!errors[field]) return null;
+    return (
+      <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-400 flex items-center gap-1 mt-1">
+        <AlertCircle className="w-3 h-3" /> {errors[field]}
+      </motion.p>
+    );
+  };
+
   if (enviado) {
     return (
       <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
@@ -78,12 +161,12 @@ export default function Cadastro() {
           >
             <Check className="w-12 h-12 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-white mb-3">Cadastro recebido!</h1>
+          <h1 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-3">Cadastro recebido!</h1>
           <p className="text-[hsl(var(--muted-foreground))] mb-8">
             Em breve nossa equipe vai entrar em contato pelo WhatsApp. Fique de olho!
           </p>
           <a
-            href={`https://wa.me/5511999999999?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site.`)}`}
+            href={`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site.`)}`}
             target="_blank" rel="noopener noreferrer"
           >
             <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl px-8 h-12 text-base gap-2">
@@ -98,11 +181,10 @@ export default function Cadastro() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        {/* Botão Voltar */}
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors mb-6">
           <ChevronLeft className="w-4 h-4" /> Voltar ao site
         </Link>
-        {/* Header */}
+
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
@@ -110,10 +192,10 @@ export default function Cadastro() {
             </div>
             <span className="text-xl font-bold">
               <span className="gradient-text">Novaes</span>
-              <span className="text-white">Web</span>
+              <span className="text-[hsl(var(--foreground))]">Web</span>
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Vamos começar o seu projeto?</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[hsl(var(--foreground))] mb-2">Vamos começar o seu projeto?</h1>
           <p className="text-[hsl(var(--muted-foreground))] text-sm">
             Preencha seus dados e nossa equipe entrará em contato em até 2 horas
           </p>
@@ -126,7 +208,7 @@ export default function Cadastro() {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? "gradient-primary text-white shadow-lg shadow-red-500/20" : "bg-[rgba(255,255,255,0.06)] text-[hsl(var(--muted-foreground))]"}`}>
                 {s}
               </div>
-              <span className={`text-xs font-medium hidden sm:block ${step >= s ? "text-white" : "text-[hsl(var(--muted-foreground))]"}`}>
+              <span className={`text-xs font-medium hidden sm:block ${step >= s ? "text-[hsl(var(--foreground))]" : "text-[hsl(var(--muted-foreground))]"}`}>
                 {s === 1 ? "Dados pessoais" : "Sobre o projeto"}
               </span>
               {s === 1 && <div className="w-12 h-0.5 bg-[rgba(255,255,255,0.1)] mx-1"><div className={`h-full transition-all ${step >= 2 ? "gradient-primary w-full" : "w-0"}`} /></div>}
@@ -140,36 +222,72 @@ export default function Cadastro() {
               {step === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome completo *</Label>
-                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={form.nome} onChange={e => updateForm("nome", e.target.value)} />
+                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome completo <span className="text-red-400">*</span></Label>
+                    <Input
+                      className={`glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10 ${errors.nome ? "border-red-500/60 ring-1 ring-red-500/30" : ""}`}
+                      value={form.nome} onChange={e => updateForm("nome", e.target.value)}
+                      placeholder="Seu nome completo"
+                    />
+                    <FieldError field="nome" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">E-mail *</Label>
-                      <Input type="email" className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={form.email} onChange={e => updateForm("email", e.target.value)} />
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">E-mail <span className="text-red-400">*</span></Label>
+                      <Input
+                        type="email"
+                        className={`glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10 ${errors.email ? "border-red-500/60 ring-1 ring-red-500/30" : ""}`}
+                        value={form.email} onChange={e => updateForm("email", e.target.value)}
+                        placeholder="seu@email.com"
+                      />
+                      <FieldError field="email" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">WhatsApp *</Label>
-                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" placeholder="(11) 99999-9999" value={form.whatsapp} onChange={e => updateForm("whatsapp", e.target.value)} />
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">WhatsApp <span className="text-red-400">*</span></Label>
+                      <Input
+                        className={`glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10 ${errors.whatsapp ? "border-red-500/60 ring-1 ring-red-500/30" : ""}`}
+                        placeholder="(51) 99999-9999"
+                        value={form.whatsapp} onChange={e => handleWhatsAppChange(e.target.value)}
+                      />
+                      <FieldError field="whatsapp" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cidade</Label>
-                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={form.cidade} onChange={e => updateForm("cidade", e.target.value)} />
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">CEP</Label>
+                      <div className="relative">
+                        <Input
+                          className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10"
+                          placeholder="00000-000"
+                          value={form.cep} onChange={e => handleCepChange(e.target.value)}
+                        />
+                        {cepLoading && <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-3 text-[hsl(var(--muted-foreground))]" />}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Estado</Label>
-                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={form.estado} onChange={e => updateForm("estado", e.target.value)} />
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.estado} onChange={e => updateForm("estado", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cidade</Label>
+                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.cidade} onChange={e => updateForm("cidade", e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Rua</Label>
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.rua} onChange={e => updateForm("rua", e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Número</Label>
+                      <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" placeholder="123" value={form.numero} onChange={e => updateForm("numero", e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">CPF ou CNPJ</Label>
-                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={form.documento} onChange={e => updateForm("documento", e.target.value)} />
+                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.documento} onChange={e => updateForm("documento", e.target.value)} />
                   </div>
                   <Button className="gradient-primary border-0 text-white w-full h-11 rounded-xl mt-2 gap-2" onClick={() => {
-                    if (!form.nome || !form.email || !form.whatsapp) { toast({ title: "Preencha nome, e-mail e WhatsApp", variant: "destructive" }); return; }
-                    setStep(2);
+                    if (validateStep1()) setStep(2);
                   }}>
                     Próximo <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -180,12 +298,12 @@ export default function Cadastro() {
                 <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome do negócio</Label>
-                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} />
+                    <Input className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10" value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">Segmento</Label>
                     <Select value={form.segmento} onValueChange={v => updateForm("segmento", v)}>
-                      <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                       <SelectContent>{segmentos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
@@ -193,7 +311,7 @@ export default function Cadastro() {
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">O que precisa?</Label>
                     <div className="grid grid-cols-2 gap-2">
                       {servicosOpcoes.map(s => (
-                        <label key={s} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all text-sm ${form.servicos.includes(s) ? "border-red-500/50 bg-red-500/10 text-white" : "border-[rgba(255,255,255,0.08)] text-[hsl(var(--muted-foreground))] hover:border-[rgba(255,255,255,0.15)]"}`}>
+                        <label key={s} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all text-sm ${form.servicos.includes(s) ? "border-red-500/50 bg-red-500/10 text-[hsl(var(--foreground))]" : "border-[rgba(255,255,255,0.08)] text-[hsl(var(--muted-foreground))] hover:border-[rgba(255,255,255,0.15)]"}`}>
                           <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} />
                           {s}
                         </label>
@@ -204,7 +322,7 @@ export default function Cadastro() {
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">Orçamento aproximado</Label>
                     <div className="grid grid-cols-1 gap-1.5">
                       {orcamentoOpcoes.map(o => (
-                        <label key={o} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all text-sm ${form.orcamento === o ? "border-red-500/50 bg-red-500/10 text-white" : "border-[rgba(255,255,255,0.08)] text-[hsl(var(--muted-foreground))] hover:border-[rgba(255,255,255,0.15)]"}`}
+                        <label key={o} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all text-sm ${form.orcamento === o ? "border-red-500/50 bg-red-500/10 text-[hsl(var(--foreground))]" : "border-[rgba(255,255,255,0.08)] text-[hsl(var(--muted-foreground))] hover:border-[rgba(255,255,255,0.15)]"}`}
                           onClick={() => updateForm("orcamento", o)}>
                           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${form.orcamento === o ? "border-red-500" : "border-[rgba(255,255,255,0.2)]"}`}>
                             {form.orcamento === o && <div className="w-2 h-2 rounded-full bg-red-500" />}
@@ -217,16 +335,16 @@ export default function Cadastro() {
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">Como nos conheceu?</Label>
                     <Select value={form.como_conheceu} onValueChange={v => updateForm("como_conheceu", v)}>
-                      <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-10"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                       <SelectContent>{origemOpcoes.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-[hsl(var(--muted-foreground))]">Mensagem (opcional)</Label>
-                    <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white min-h-[80px]" value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)} />
+                    <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[80px]" value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)} />
                   </div>
                   <div className="flex gap-3 mt-2">
-                    <Button variant="outline" className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-white flex-1 h-11 rounded-xl gap-2" onClick={() => setStep(1)}>
+                    <Button variant="outline" className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] flex-1 h-11 rounded-xl gap-2" onClick={() => setStep(1)}>
                       <ArrowLeft className="w-4 h-4" /> Voltar
                     </Button>
                     <Button className="gradient-primary border-0 text-white flex-[2] h-11 rounded-xl" onClick={handleSubmit} disabled={loading}>

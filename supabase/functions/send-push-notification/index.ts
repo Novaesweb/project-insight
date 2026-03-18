@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildPushHTTPRequest } from "https://esm.sh/@pushforge/builder@2";
+import { buildPushHTTPRequest } from "npm:@pushforge/builder@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

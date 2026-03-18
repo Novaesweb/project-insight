@@ -11,10 +11,12 @@ import { ptBR } from "date-fns/locale";
 interface Notification {
   id: string;
   title: string;
-  message: string | null;
+  body: string;
+  url: string | null;
   read: boolean;
   created_at: string;
-  type: string;
+  user_type: string;
+  user_id: string;
 }
 
 interface NotificationCenterProps {
@@ -35,24 +37,19 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const fetchNotifications = async () => {
-    if (userType === "admin") {
-      const { data } = await supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(30);
-      if (data) setNotifications(data as Notification[]);
-    } else {
-      const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
-      if (!cliente.id) return;
-      const { data } = await supabase
-        .from("client_notifications")
-        .select("*")
-        .eq("cliente_id", cliente.id)
-        .order("created_at", { ascending: false })
-        .limit(30);
-      if (data) setNotifications(data.map(n => ({ id: n.id, title: n.titulo, message: n.mensagem, read: n.lida, created_at: n.created_at, type: n.tipo })));
+    let query = supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_type", userType)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    if (userType !== "admin") {
+      query = query.eq("user_id", userId);
     }
+
+    const { data } = await query;
+    if (data) setNotifications(data as Notification[]);
   };
 
   useEffect(() => {
@@ -66,20 +63,21 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
         {
           event: "INSERT",
           schema: "public",
-          table: userType === "admin" ? "notifications" : "client_notifications",
+          table: "notifications",
+          filter: `user_type=eq.${userType}`,
         },
         (payload) => {
-          const raw = payload.new as any;
-          const n: Notification = userType === "admin"
-            ? { id: raw.id, title: raw.title, message: raw.message, read: raw.read, created_at: raw.created_at, type: raw.type }
-            : { id: raw.id, title: raw.titulo, message: raw.mensagem, read: raw.lida, created_at: raw.created_at, type: raw.tipo };
-          setNotifications(prev => {
-            if (prev.some(existing => existing.id === n.id)) return prev;
-            return [n, ...prev].slice(0, 30);
-          });
-          if (audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(() => {});
+          const n = payload.new as Notification;
+          if (userType === "admin" || n.user_id === userId) {
+            setNotifications(prev => {
+              if (prev.some(existing => existing.id === n.id)) return prev;
+              return [n, ...prev].slice(0, 30);
+            });
+            // Play notification sound
+            if (audioRef.current) {
+              audioRef.current.currentTime = 0;
+              audioRef.current.play().catch(() => {});
+            }
           }
         }
       )
@@ -96,22 +94,14 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
   }, [userType, userId]);
 
   const markAsRead = async (id: string) => {
-    if (userType === "admin") {
-      await supabase.from("notifications").update({ read: true }).eq("id", id);
-    } else {
-      await supabase.from("client_notifications").update({ lida: true }).eq("id", id);
-    }
+    await supabase.from("notifications").update({ read: true } as any).eq("id", id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const markAllAsRead = async () => {
     const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
     if (unreadIds.length === 0) return;
-    if (userType === "admin") {
-      await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
-    } else {
-      await supabase.from("client_notifications").update({ lida: true }).in("id", unreadIds);
-    }
+    await supabase.from("notifications").update({ read: true } as any).in("id", unreadIds);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
@@ -145,7 +135,10 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
             notifications.map(n => (
               <button
                 key={n.id}
-                onClick={() => markAsRead(n.id)}
+                onClick={() => {
+                  markAsRead(n.id);
+                  if (n.url) window.location.href = n.url;
+                }}
                 className={cn(
                   "w-full text-left px-4 py-3 border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] transition-colors",
                   !n.read && "bg-[hsl(var(--primary)/0.05)]"
@@ -155,7 +148,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
                   {!n.read && <div className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] mt-1.5 shrink-0" />}
                   <div className={cn(!n.read ? "" : "ml-4")}>
                     <p className="text-sm font-medium">{n.title}</p>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-2">{n.body}</p>
                     <p className="text-[0.65rem] text-[hsl(var(--muted-foreground))] mt-1">
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                     </p>

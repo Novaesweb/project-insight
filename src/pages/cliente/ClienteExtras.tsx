@@ -15,12 +15,12 @@ export default function ClienteExtras() {
 
   const load = useCallback(() => {
     if (!cliente.id) return;
-    supabase.from("cliente_extras").select("*, extras(nome)").eq("cliente_id", cliente.id)
+    supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", cliente.id)
       .then(({ data }) => setMeusExtras(data || []));
   }, [cliente.id]);
 
   useEffect(() => { load(); }, [load]);
-  useRealtimeSubscription("cliente_extras", load);
+  useRealtimeSubscription("extras_clientes", load);
 
   const ativos = meusExtras.filter(e => e.status === "ativo");
   const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);

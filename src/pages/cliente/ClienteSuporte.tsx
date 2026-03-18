@@ -33,7 +33,7 @@ export default function ClienteSuporte() {
 
   const loadTickets = useCallback(() => {
     if (!cliente.id) return;
-    supabase.from("tickets_suporte").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
+    supabase.from("tickets").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setTickets(data || []));
   }, [cliente.id]);
 
@@ -47,7 +47,7 @@ export default function ClienteSuporte() {
   useEffect(() => { loadMsgs(); }, [loadMsgs]);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs.length]);
 
-  useRealtimeSubscription("tickets_suporte", loadTickets);
+  useRealtimeSubscription("tickets", loadTickets);
   useRealtimeSubscription("ticket_mensagens", loadMsgs);
 
   useEffect(() => {
@@ -69,11 +69,12 @@ export default function ClienteSuporte() {
   const criarTicket = async () => {
     if (!novoTitulo.trim()) return;
     const codigo = `TK-${Date.now().toString().slice(-6)}`;
-    const { error } = await supabase.from("tickets_suporte").insert({
-      assunto: novoTitulo,
-      mensagem: novoDescricao || "Sem descrição",
+    const { error } = await supabase.from("tickets").insert({
+      titulo: novoTitulo,
+      descricao: novoDescricao || null,
       cliente_id: cliente.id,
-    } as any);
+      codigo,
+    });
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
       sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");

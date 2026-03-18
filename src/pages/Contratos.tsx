@@ -23,9 +23,10 @@ const statusLabels: Record<string, string> = { aguardando: "Aguardando", assinad
 
 interface Cliente {
   id: string;
-  nome_empresa: string;
-  email: string | null;
-  nome_responsavel: string;
+  nome: string;
+  email: string;
+  documento: string | null;
+  endereco: string | null;
 }
 
 function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, assinaturaCliente?: string) {
@@ -88,13 +89,13 @@ export default function Contratos() {
   const [adminSignature, setAdminSignature] = useState<string>("");
 
   const loadContratos = useCallback(() => {
-    supabase.from("contratos").select("*, clientes(nome_empresa)").order("created_at", { ascending: false })
+    supabase.from("contratos").select("*, clientes(nome)").order("created_at", { ascending: false })
       .then(({ data }) => setContratos(data || []));
   }, []);
 
   const loadClientes = useCallback(() => {
-    supabase.from("clientes").select("id, nome_empresa, email, nome_responsavel").eq("ativo", true)
-      .then(({ data }) => setClientes((data || []) as unknown as Cliente[]));
+    supabase.from("clientes").select("id, nome, email, documento, endereco").eq("status", "ativo")
+      .then(({ data }) => setClientes(data || []));
   }, []);
 
   useEffect(() => { loadContratos(); loadClientes(); }, [loadContratos, loadClientes]);
@@ -106,9 +107,9 @@ export default function Contratos() {
     if (!cliente) return;
     setFormValues(prev => ({
       ...prev,
-      nome_cliente: cliente.nome_empresa,
-      cpf_cnpj: "",
-      endereco: "",
+      nome_cliente: cliente.nome,
+      cpf_cnpj: cliente.documento || "",
+      endereco: cliente.endereco || "",
     }));
   }, [selectedClienteId, clientes, selectedTemplate]);
 
@@ -322,7 +323,7 @@ export default function Contratos() {
                         </SelectTrigger>
                         <SelectContent>
                           {clientes.map(c => (
-                            <SelectItem key={c.id} value={c.id}>{c.nome_empresa} — {c.email}</SelectItem>
+                            <SelectItem key={c.id} value={c.id}>{c.nome} — {c.email}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

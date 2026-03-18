@@ -4,11 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp } from "lucide-react";
+import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +43,7 @@ export default function Extras() {
   const [showNew, setShowNew] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAtribuir, setShowAtribuir] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [extraSel, setExtraSel] = useState<any>(null);
   const [clienteSel, setClienteSel] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -54,9 +55,9 @@ export default function Extras() {
 
   const fetchData = async () => {
     const [extrasRes, clientesRes, ecRes] = await Promise.all([
-      supabase.from("extras").select("*").order("nome"),
-      supabase.from("clientes").select("id, nome_empresa, email").eq("ativo", true).order("nome_empresa"),
-      supabase.from("cliente_extras").select("extra_id").eq("ativo", true),
+      supabase.from("extras_catalogo").select("*").order("nome"),
+      supabase.from("clientes").select("id, nome, email").eq("status", "ativo").order("nome"),
+      supabase.from("extras_clientes").select("extra_id").eq("status", "ativo"),
     ]);
     setExtras(extrasRes.data || []);
     setClientes(clientesRes.data || []);
@@ -93,10 +94,10 @@ export default function Extras() {
   const handleSave = async () => {
     if (!form.nome) return;
     setSaving(true);
-    const { error } = await supabase.from("extras").insert({
-      nome: form.nome, descricao: form.descricao || null, tipo: form.categoria,
-      preco: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, ativo: form.status === "ativo",
-    } as any);
+    const { error } = await supabase.from("extras_catalogo").insert({
+      nome: form.nome, descricao: form.descricao || null, categoria: form.categoria,
+      preco_ativacao: Number(form.preco_ativacao) || 0, preco_mensal: Number(form.preco_mensal) || 0, status: form.status,
+    });
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra criado!" });
@@ -107,10 +108,10 @@ export default function Extras() {
 
   const handleEdit = async () => {
     setSaving(true);
-    const { error } = await supabase.from("extras").update({
-      nome: editForm.nome, descricao: editForm.descricao || null, tipo: editForm.categoria,
-      preco: Number(editForm.preco_ativacao) || 0, preco_mensal: Number(editForm.preco_mensal) || 0, ativo: editForm.status === "ativo",
-    } as any).eq("id", editForm.id);
+    const { error } = await supabase.from("extras_catalogo").update({
+      nome: editForm.nome, descricao: editForm.descricao || null, categoria: editForm.categoria,
+      preco_ativacao: Number(editForm.preco_ativacao) || 0, preco_mensal: Number(editForm.preco_mensal) || 0, status: editForm.status,
+    }).eq("id", editForm.id);
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atualizado!" });
@@ -119,8 +120,8 @@ export default function Extras() {
   };
 
   const toggleStatus = async (extra: any) => {
-    const newAtivo = !extra.ativo;
-    await supabase.from("extras").update({ ativo: newAtivo }).eq("id", extra.id);
+    const newStatus = extra.status === "ativo" ? "inativo" : "ativo";
+    await supabase.from("extras_catalogo").update({ status: newStatus }).eq("id", extra.id);
     fetchData();
   };
 
@@ -139,13 +140,28 @@ export default function Extras() {
   const handleAtribuir = async () => {
     if (!clienteSel || !extraSel) return;
     setSaving(true);
-    const { error } = await supabase.from("cliente_extras").insert({
-      cliente_id: clienteSel, extra_id: extraSel.id,
-    } as any);
+    const { error } = await supabase.from("extras_clientes").insert({
+      cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
+      preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
+    });
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Extra atribuído!", description: `"${extraSel.nome}" adicionado ao cliente.` });
     setShowAtribuir(false);
+    fetchData();
+  };
+
+  const handleDelete = async () => {
+    if (!extraSel) return;
+    setSaving(true);
+    // Remove atribuições primeiro
+    await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
+    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
+    setSaving(false);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Extra excluído!" });
+    setShowDelete(false);
+    setExtraSel(null);
     fetchData();
   };
 
@@ -295,6 +311,9 @@ export default function Extras() {
                         </Button>
                         <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(extra)}>
                           <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => { setExtraSel(extra); setShowDelete(true); }}>
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </CardContent>
@@ -457,6 +476,24 @@ export default function Extras() {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL — Confirmar Exclusão */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Excluir Extra</DialogTitle>
+            <DialogDescription className="text-white/50">
+              Tem certeza que deseja excluir <strong className="text-white">{extraSel?.nome}</strong>? Esta ação também removerá todas as atribuições a clientes e não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-2">
+            <Button variant="ghost" className="border border-white/10 text-white/60" onClick={() => setShowDelete(false)}>Cancelar</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white border-0" onClick={handleDelete} disabled={saving}>
+              {saving ? "Excluindo..." : "Excluir"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </motion.div>
