@@ -27,9 +27,7 @@ export default function HeroSection() {
 
   return (
     <motion.section className="pt-12 pb-24 px-6" initial="hidden" animate="show" variants={stagger}>
-      <div className="max-w-5xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+      <div className="max-w-5xl mx-auto text-center">
             <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
               Tecnologia que{" "}
               <span className="gradient-text fx-glintReveal">transforma</span>
@@ -47,10 +45,10 @@ export default function HeroSection() {
                 </motion.span>
               </AnimatePresence>
             </motion.h1>
-            <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg">
+            <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg mx-auto">
               Desenvolvemos sites, sistemas e aplicativos sob medida para empresas que buscam organização, presença digital e resultados reais.
             </motion.p>
-            <motion.div variants={fade} className="flex flex-col sm:flex-row gap-3 mt-8">
+            <motion.div variants={fade} className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
               <Link to="/cadastro">
                 <Button className="gradient-primary border-0 text-white h-12 px-8 rounded-xl text-sm font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                   Começar meu projeto <ArrowRight className="w-4 h-4 ml-2" />
@@ -62,7 +60,6 @@ export default function HeroSection() {
                 </Button>
               </a>
             </motion.div>
-          </div>
           <motion.div variants={fade} className="hidden lg:grid grid-cols-2 gap-4">
             <div ref={empresas.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
               <p className="text-2xl font-bold gradient-text">{empresas.count}+</p>
