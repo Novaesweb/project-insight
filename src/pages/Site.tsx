@@ -468,11 +468,12 @@ export default function Site() {
                     <div className="flex items-center gap-3">
                       <img src={codethioLogo} alt="Codethio" className="w-10 h-10 rounded-full object-cover" />
                       <p className="text-2xl font-bold">
-                    </p>
+                        <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
+                      </p>
+                    </div>
                     <p className="text-sm text-[hsl(var(--muted-foreground))] max-w-md leading-relaxed">
                       Transformando atendimento em resultado através da automação inteligente.
                     </p>
-                  </div>
                 </div>
               </motion.div>
             )}
