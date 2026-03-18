@@ -403,16 +403,40 @@ export default function Site() {
 
                   <div className="border-t border-[hsl(var(--border))] pt-5">
                     <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
-                      💰 PLANOS
+                      💰 PLANO ESSENCIAL
                     </h3>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4">
-                        <p className="text-sm font-bold text-green-400">🟢 Essencial</p>
-                        <p className="text-2xl font-bold text-[hsl(var(--foreground))] mt-1">R$ 60<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span></p>
+                    <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-6 space-y-4">
+                      <p className="text-2xl font-bold text-[hsl(var(--foreground))]">
+                        A partir de R$ 60<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span>
+                      </p>
+                      <p className="text-sm text-green-400 font-medium">
+                        👉 Ideal para automatizar o atendimento de forma simples e eficiente
+                      </p>
+
+                      <div>
+                        <p className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">Inclui:</p>
+                        <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
+                          <li className="flex items-start gap-2">🤖 Resposta automática no WhatsApp</li>
+                          <li className="flex items-start gap-2">💬 Mensagem inicial de boas-vindas</li>
+                          <li className="flex items-start gap-2">📌 Direcionamento para o site (link automático)</li>
+                          <li className="flex items-start gap-2">📦 Informações básicas sobre pedidos</li>
+                          <li className="flex items-start gap-2">⏱ Respostas rápidas para perguntas frequentes</li>
+                          <li className="flex items-start gap-2">🔄 Atendimento inicial organizado</li>
+                        </ul>
                       </div>
-                      <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
-                        <p className="text-sm font-bold text-red-400">🔴 Estruturado</p>
-                        <p className="text-2xl font-bold text-[hsl(var(--foreground))] mt-1">R$ 97,99<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span></p>
+
+                      <div className="border-t border-green-500/20 pt-4">
+                        <p className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">⚙️ PERSONALIZAÇÃO</p>
+                        <p className="text-xs text-green-400 font-medium mb-3">💡 O valor pode variar de acordo com:</p>
+                        <ul className="space-y-1.5 text-sm text-[hsl(var(--muted-foreground))]">
+                          <li>📊 Volume de mensagens (ex: 50, 100, 300 por dia)</li>
+                          <li>🧠 Complexidade do atendimento</li>
+                          <li>🔁 Quantidade de fluxos automatizados</li>
+                          <li>📦 Tipo de operação do cliente</li>
+                        </ul>
+                        <p className="text-sm font-medium text-[hsl(var(--foreground))] mt-3">
+                          👉 Cada projeto é ajustado conforme a necessidade do negócio
+                        </p>
                       </div>
                     </div>
                   </div>
