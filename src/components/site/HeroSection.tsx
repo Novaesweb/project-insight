@@ -30,10 +30,6 @@ export default function HeroSection() {
       <div className="max-w-5xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <motion.div variants={fade} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-6">
-              <Star className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
-              Soluções digitais para empresas
-            </motion.div>
             <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
               Tecnologia que{" "}
               <span className="gradient-text fx-glintReveal">transforma</span>
