@@ -68,7 +68,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] overflow-hidden"
+            className="border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] overflow-hidden"
           >
             <div className="px-6 py-5 flex flex-col gap-1">
               {navLinks.map((link, i) => (
