@@ -475,6 +475,7 @@ export default function Site() {
                       Transformando atendimento em resultado através da automação inteligente.
                     </p>
                   </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
