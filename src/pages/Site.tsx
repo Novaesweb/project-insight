@@ -217,37 +217,6 @@ export default function Site() {
       </nav>
 
       {/* ─── HERO ─── */}
-      {/* ─── SLIDE DESTAQUE ─── */}
-      <motion.section
-        className="relative pt-36 pb-20 px-6 overflow-hidden"
-        initial="hidden"
-        animate="show"
-        variants={stagger}
-      >
-        <div className="ambient-glow absolute inset-0 pointer-events-none" />
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div variants={fade} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-xs text-[hsl(var(--muted-foreground))] font-medium mb-8">
-            <Sparkles className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
-            Nada de sites genéricos
-          </motion.div>
-          <motion.h2 variants={fade} className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[hsl(var(--foreground))] leading-[1.15] tracking-tight">
-            Na NovaesWeb, seu site é desenvolvido{" "}
-            <span className="gradient-text fx-glintReveal">de acordo com a necessidade</span>{" "}
-            do seu negócio.
-          </motion.h2>
-          <motion.p variants={fade} className="text-lg sm:text-xl text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-2xl mx-auto">
-            Você escolhe o que quer, e nós transformamos em{" "}
-            <span className="font-semibold text-[hsl(var(--foreground))]">solução digital</span>.
-          </motion.p>
-          <motion.div variants={fade} className="mt-10">
-            <Link to="/cadastro">
-              <Button className="gradient-primary border-0 text-white h-14 px-10 rounded-xl text-base font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
-                Quero meu site personalizado <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </motion.section>
 
       {/* ─── HERO ─── */}
       <motion.section
@@ -338,7 +307,7 @@ export default function Site() {
               { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas sob medida para gerenciar clientes, pedidos, agendamentos, financeiro, relatórios e tudo que seu negócio precisa. Acesso de qualquer lugar, 100% na nuvem." },
               { icon: Smartphone, titulo: "Landing Pages", desc: "Páginas de alta conversão para campanhas de marketing digital. Design focado em capturar leads e gerar resultados rápidos para seu negócio com formulários inteligentes." },
               { icon: Shield, titulo: "Manutenção e Suporte", desc: "Suporte técnico contínuo, atualizações de segurança, backups automáticos e monitoramento 24h. Garantimos que seu site esteja sempre no ar e funcionando perfeitamente." },
-              { icon: Zap, titulo: "Automação e Integrações", desc: "Automatize tarefas repetitivas e integre seu site com WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam seus resultados.", badge: "Em desenvolvimento", badgeMsg: "🚀 Estamos construindo integrações poderosas para você automatizar tudo — em breve disponível!" },
+              { icon: Zap, titulo: "Automação e Integrações", desc: "Automatize tarefas repetitivas e integre seu site com WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam seus resultados." },
             ].map((s, i) => (
               <motion.div
                 key={i}
