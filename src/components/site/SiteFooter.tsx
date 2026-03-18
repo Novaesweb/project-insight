@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
 import { scrollTo } from "./SiteNavbar";
 
