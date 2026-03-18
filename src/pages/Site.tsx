@@ -1174,6 +1174,17 @@ export default function Site() {
             </div>
           </div>
 
+          {/* Parceria Automação */}
+          <div className="border-t border-[hsl(var(--border))] pt-5 flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2">
+              <img src={codethioLogo} alt="Codethio" className="w-7 h-7 rounded-full object-cover" />
+              <p className="text-sm font-bold">
+                <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
+              </p>
+              <span className="text-[10px] text-[hsl(var(--muted-foreground))]">— Parceria em Automação Inteligente</span>
+            </div>
+          </div>
+
           {/* Separador + Bottom */}
           <div className="border-t border-[hsl(var(--border))] pt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
