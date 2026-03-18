@@ -446,7 +446,7 @@ export default function Site() {
                       📌 IMPORTANTE
                     </h3>
                     <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                      Valores válidos com site NovaesWeb. Automação isolada é definida pela Codethio.
+                      Para projetos que utilizam apenas automação no WhatsApp, sem o site, os valores são definidos diretamente pela Codethio.
                     </p>
                   </div>
 
