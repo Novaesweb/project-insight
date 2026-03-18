@@ -461,6 +461,16 @@ export default function Site() {
                       A NovaesWeb estrutura o sistema. A automação potencializa o atendimento.
                     </p>
                   </div>
+
+                  <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col items-center text-center gap-3">
+                    <p className="text-xs uppercase tracking-widest text-[hsl(var(--muted-foreground))]">Automação desenvolvida por</p>
+                    <p className="text-2xl font-bold">
+                      <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
+                    </p>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] max-w-md leading-relaxed">
+                      Transformando atendimento em resultado através da automação inteligente.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )}
