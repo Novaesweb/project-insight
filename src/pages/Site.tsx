@@ -100,6 +100,7 @@ export default function Site() {
     return () => clearInterval(interval);
   }, []);
   const [showAllSolucoes, setShowAllSolucoes] = useState(false);
+  const [showAutomacao, setShowAutomacao] = useState(false);
   const heroEmpresasCounter = useAnimatedCounter(36, 1500);
   const heroEntregaCounter = useAnimatedCounter(7, 800);
   const heroResponsivoCounter = useAnimatedCounter(100, 1200);
