@@ -304,3 +304,10 @@ BEGIN
     END IF;
   END LOOP;
 END$$;
+
+-- 10. INICIALIZAÇÃO DE CONFIGURAÇÕES (VAPID)
+INSERT INTO public.app_config (key, value) 
+VALUES 
+  ('vapid_public_key', 'BJnUoxTYpeAuhr2EhCR2KxQNW_qCA-IXt6yQKMpyZBT6odx_6jwRdiG0tZICJW50LQS-ujmwMgWeoMy28eya64I'),
+  ('vapid_subject', 'mailto:contato@novaesweb.com.br')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;

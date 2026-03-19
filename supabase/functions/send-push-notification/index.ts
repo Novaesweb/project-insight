@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const vapidPrivateKeyRaw = Deno.env.get("VAPID_PRIVATE_KEY");
     const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:contato@novaesweb.com.br";
-    const vapidPublicKey = "BMlJpRsOWX7luyOKwJASaYSiYsaFB8wFAby052uhW-tYhfAK57RzU6Y_aJBjJqhCWoU1OztcKE_5fUUv3ghsubA";
+    const vapidPublicKey = "BJnUoxTYpeAuhr2EhCR2KxQNW_qCA-IXt6yQKMpyZBT6odx_6jwRdiG0tZICJW50LQS-ujmwMgWeoMy28eya64I";
 
     if (!vapidPrivateKeyRaw) {
       return new Response(JSON.stringify({ error: "VAPID_PRIVATE_KEY secret not configured" }), {
