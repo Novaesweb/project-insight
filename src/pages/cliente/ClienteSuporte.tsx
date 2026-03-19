@@ -62,7 +62,22 @@ export default function ClienteSuporte() {
     if (!mensagem.trim() || !selectedTicket) return;
     const nova = { ticket_id: selectedTicket, remetente: "cliente", nome: cliente.nome, texto: mensagem };
     const { data } = await supabase.from("ticket_mensagens").insert(nova).select().single();
-    if (data) setMsgs(prev => [...prev, data]);
+    if (data) {
+      setMsgs(prev => [...prev, data]);
+      
+      // Notificar automação do n8n
+      fetch("https://lucasalencar.app.n8n.cloud/webhook/7315698c-b037-4e83-82c2-1f3c193fea88", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          evento: "nova_mensagem",
+          ticket_id: selectedTicket,
+          mensagem: mensagem,
+          cliente_nome: cliente.nome,
+          cliente_email: cliente.email
+        })
+      }).catch(err => console.error("Erro no webhook n8n:", err));
+    }
     setMensagem("");
   };
 
@@ -78,6 +93,22 @@ export default function ClienteSuporte() {
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
       sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");
+      
+      // Enviar dados completos para o n8n Webhook
+      fetch("https://lucasalencar.app.n8n.cloud/webhook/7315698c-b037-4e83-82c2-1f3c193fea88", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          evento: "novo_ticket",
+          codigo: codigo,
+          titulo: novoTitulo,
+          descricao: novoDescricao,
+          cliente_nome: cliente.nome,
+          cliente_email: cliente.email,
+          cliente_telefone: cliente.telefone || "Não informado"
+        })
+      }).catch(err => console.error("Erro no webhook n8n:", err));
+
       setShowNovoTicket(false);
       setNovoTitulo("");
       setNovoDescricao("");
