@@ -66,7 +66,7 @@ export default function ClienteSuporte() {
       setMsgs(prev => [...prev, data]);
       
       // Notificar automação do n8n
-      fetch("https://lucasalencar.app.n8n.cloud/webhook/7315698c-b037-4e83-82c2-1f3c193fea88", {
+      fetch("https://lucasalencar.app.n8n.cloud/webhook-test/7315698c-b037-4e83-82c2-1f3c193fea88", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export default function ClienteSuporte() {
       sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");
       
       // Enviar dados completos para o n8n Webhook
-      fetch("https://lucasalencar.app.n8n.cloud/webhook/7315698c-b037-4e83-82c2-1f3c193fea88", {
+      fetch("https://lucasalencar.app.n8n.cloud/webhook-test/7315698c-b037-4e83-82c2-1f3c193fea88", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
