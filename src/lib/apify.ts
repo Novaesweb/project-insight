@@ -14,8 +14,7 @@ export async function extractLeadsFromApify(
 ) {
   if (!token) throw new Error("Token do Apify é obrigatório");
 
-  const actorId = "vpscE17Iq07V9n7yD"; // compass/google-maps-scraper - Ator muito bom e barato para mapas
-  // Se esse falhar, uma alternativa é o dtrungtin/google-maps-scraper
+  const actorId = "drobnikj~crawler-google-places"; // O scraper mais oficial e famoso de Google Maps do Apify
 
   try {
     // 1. Iniciar a extração (Run Actor)
@@ -35,6 +34,9 @@ export async function extractLeadsFromApify(
 
     if (!runRes.ok) {
       const err = await runRes.json();
+      if (err.error?.type === 'not-enough-usage-to-run-paid-actor') {
+        throw new Error("Saldo insuficiente no Apify! Você precisa adicionar créditos de uso/cartão na sua conta da Apify para rodar este extrator.");
+      }
       throw new Error(err.error?.message || "Erro ao iniciar raspagem no Apify");
     }
 
