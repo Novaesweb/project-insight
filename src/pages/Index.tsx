@@ -116,15 +116,23 @@ export default function Dashboard() {
         ))}
       </motion.div>
 
-      {/* Quick Actions */}
-      <motion.div variants={fadeUp}>
-        <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Button className="gradient-primary border-0 text-white text-xs" onClick={openAddExtra}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> Adicionar Extra ao Cliente
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Quick Actions Premium */}
+      <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+        <Button className="h-14 px-6 rounded-2xl gradient-primary text-white shadow-xl shadow-[hsl(var(--primary))]/20 hover:shadow-[hsl(var(--primary))]/40 hover:-translate-y-1 transition-all duration-300 text-sm font-semibold border-0" onClick={openAddExtra}>
+          <Plus className="w-4 h-4 mr-2" /> Adicionar Extra
+        </Button>
+        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Users className="w-4 h-4 mr-2 text-blue-400" /> Novo Cliente
+        </Button>
+        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <DollarSign className="w-4 h-4 mr-2 text-emerald-400" /> Nova Fatura
+        </Button>
+        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <FolderKanban className="w-4 h-4 mr-2 text-amber-400" /> Novo Projeto
+        </Button>
+        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Headphones className="w-4 h-4 mr-2 text-purple-400" /> Suporte
+        </Button>
       </motion.div>
 
       {/* Tables */}

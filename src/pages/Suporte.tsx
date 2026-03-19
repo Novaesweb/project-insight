@@ -87,6 +87,19 @@ export default function Suporte() {
       }).then(() => {});
     }
 
+    // Acionar o n8n informando que o Admin respondeu
+    fetch("https://lucasalencar.app.n8n.cloud/webhook-test/7315698c-b037-4e83-82c2-1f3c193fea88", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        evento: "admin_respondeu_ticket",
+        ticket_id: selectedTicket,
+        codigo_ticket: ticket?.codigo,
+        cliente_id: clienteId,
+        mensagem_admin: texto.trim()
+      })
+    }).catch(err => console.error("Erro no webhook n8n admin:", err));
+
     // Auto update ticket status to em_atendimento if aberto
     if (ticket?.status === "aberto") {
       await supabase.from("tickets").update({ status: "em_atendimento" }).eq("id", selectedTicket);

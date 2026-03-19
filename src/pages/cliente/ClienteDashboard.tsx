@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type StatusReuniao, type TipoReuniao } from "@/lib/mock-data";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
@@ -71,9 +73,37 @@ export default function ClienteDashboard() {
         ))}
       </div>
 
+      {/* Ações Rápidas - Premium SaaS Look */}
+      <motion.div variants={fadeUp} className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <Link to="/cliente/suporte" className="flex-shrink-0">
+          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all"><Headphones className="w-5 h-5" /></div>
+            <span className="text-xs font-semibold">Suporte</span>
+          </Button>
+        </Link>
+        <Link to="/cliente/faturas" className="flex-shrink-0">
+          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all"><Receipt className="w-5 h-5" /></div>
+            <span className="text-xs font-semibold">Faturas</span>
+          </Button>
+        </Link>
+        <Link to="/cliente/projetos" className="flex-shrink-0">
+          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all"><FolderKanban className="w-5 h-5" /></div>
+            <span className="text-xs font-semibold">Projetos</span>
+          </Button>
+        </Link>
+        <Link to="/cliente/reunioes" className="flex-shrink-0">
+          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all"><CalendarDays className="w-5 h-5" /></div>
+            <span className="text-xs font-semibold">Reuniões</span>
+          </Button>
+        </Link>
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-          <CardContent className="p-5">
+        <Card className="border-[0.5px] border-[rgba(255,255,255,0.1)] shadow-[0_0_40px_-15px_rgba(255,255,255,0.1)] rounded-2xl" style={{ background: "rgba(255,255,255,0.02)" }}>
+          <CardContent className="p-6">
             <h2 className="text-sm font-semibold text-white mb-4">Últimas atualizações</h2>
             {atualizacoes.length === 0 ? (
               <p className="text-xs text-white/40 text-center py-6">Nenhuma atualização recente</p>
