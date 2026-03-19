@@ -50,12 +50,6 @@ export default function Configuracoes() {
   const [pushLoading, setPushLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
   const [subCount, setSubCount] = useState(0);
-  const [apifyToken, setApifyToken] = useState(localStorage.getItem("apify_api_token") || "");
-
-  const saveApifyToken = (token: string) => {
-    setApifyToken(token);
-    localStorage.setItem("apify_api_token", token);
-  };
 
   useEffect(() => {
     const saved = localStorage.getItem("config_empresa");
@@ -230,29 +224,6 @@ export default function Configuracoes() {
 
           <TabsContent value="integracoes">
             <div className="space-y-4">
-              {/* APIFY INTEGRATION */}
-              <Card className="glass-card border-[0.5px]">
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-white">Apify (Robô de Extração de Dados)</p>
-                      <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">Automatize a geração de leads no Google Maps</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-[10px] font-semibold ${apifyToken ? "text-emerald-400" : "text-[hsl(var(--muted-foreground))]"}`}>
-                        {apifyToken ? "Conectado" : "Desconectado"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 pt-2">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Token de API Pessoal do Apify</Label>
-                    <div className="flex gap-2">
-                       <Input type="password" placeholder="apify_api_..." className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={apifyToken} onChange={e => saveApifyToken(e.target.value)} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {integracoes.map((integ) => (
                 <Card key={integ.nome} className="glass-card border-[0.5px]">
                   <CardContent className="p-5">
