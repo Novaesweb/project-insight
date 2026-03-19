@@ -19,7 +19,7 @@ export default function Site() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow">
       <SiteNavbar onOpenModal={setModalOpen} />
-      <HeroSection />
+      <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ServicosSection />
       <AutomacaoSection />
       <SolucoesSection />

@@ -63,6 +63,15 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
                   <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                 </Button>
               </a>
+              {onOpenDemo && (
+                <Button
+                  onClick={onOpenDemo}
+                  variant="outline"
+                  className="h-12 px-8 rounded-xl text-sm font-semibold border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all"
+                >
+                  🚀 Ver Demonstração
+                </Button>
+              )}
             </motion.div>
           <motion.div variants={fade} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
             <div ref={empresas.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
