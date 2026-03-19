@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus, Sparkles, Calendar, BellRing } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ clientes: 0, projetos: 0, pedidos: 0, receita: 0 });
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
+  const [dbStatus, setDbStatus] = useState<"conectado" | "erro" | "carregando">("carregando");
+  const [subCount, setSubCount] = useState(0);
 
   // Add Extra state
   const [showAddExtra, setShowAddExtra] = useState(false);
@@ -43,6 +46,11 @@ export default function Dashboard() {
       setStats({ clientes: c.count || 0, projetos: p.count || 0, pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, receita });
       setPedidos(ped.data || []);
       setTickets(t.data || []);
+      setDbStatus(c.error || p.error || ped.error || t.error || fin.error ? "erro" : "conectado");
+
+      // Count subscriptions
+      supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
+        .then(({ count }) => setSubCount(count || 0));
     };
     load();
   }, []);
@@ -116,23 +124,86 @@ export default function Dashboard() {
         ))}
       </motion.div>
 
+
       {/* Quick Actions Premium */}
       <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
         <Button className="h-14 px-6 rounded-2xl gradient-primary text-white shadow-xl shadow-[hsl(var(--primary))]/20 hover:shadow-[hsl(var(--primary))]/40 hover:-translate-y-1 transition-all duration-300 text-sm font-semibold border-0" onClick={openAddExtra}>
           <Plus className="w-4 h-4 mr-2" /> Adicionar Extra
         </Button>
-        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Users className="w-4 h-4 mr-2 text-blue-400" /> Novo Cliente
+        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Link to="/admin/clientes">
+            <Users className="w-4 h-4 mr-2 text-blue-400" /> Novo Cliente
+          </Link>
         </Button>
-        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <DollarSign className="w-4 h-4 mr-2 text-emerald-400" /> Nova Fatura
+        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Link to="/admin/financeiro">
+            <DollarSign className="w-4 h-4 mr-2 text-emerald-400" /> Nova Fatura
+          </Link>
         </Button>
-        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <FolderKanban className="w-4 h-4 mr-2 text-amber-400" /> Novo Projeto
+        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Link to="/admin/projetos">
+            <FolderKanban className="w-4 h-4 mr-2 text-amber-400" /> Novo Projeto
+          </Link>
         </Button>
-        <Button className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Headphones className="w-4 h-4 mr-2 text-purple-400" /> Suporte
+        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Link to="/admin/agenda">
+            <Calendar className="w-4 h-4 mr-2 text-red-400" /> Nova Reunião
+          </Link>
         </Button>
+        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Link to="/admin/leads">
+            <Sparkles className="w-4 h-4 mr-2 text-purple-400" /> Capturar Leads
+          </Link>
+        </Button>
+        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Link to="/admin/suporte">
+            <Headphones className="w-4 h-4 mr-2 text-indigo-400" /> Suporte
+          </Link>
+        </Button>
+      </motion.div>
+
+      {/* System Status Alert */}
+      <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="glass-card border-[0.5px] bg-emerald-500/5 border-emerald-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div>
+                <p className="text-xs font-semibold text-white">Banco de Dados</p>
+                <p className="text-[10px] text-emerald-400">Operacional • Latência Baixa</p>
+              </div>
+            </div>
+            <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${dbStatus === "conectado" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+              {dbStatus === "conectado" ? "ESTÁVEL" : "ERRO"}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card border-[0.5px] bg-blue-500/5 border-blue-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BellRing className="w-4 h-4 text-blue-400" />
+              <div>
+                <p className="text-xs font-semibold text-white">Notificações Push</p>
+                <p className="text-[10px] text-blue-400">{subCount} aparelhos registrados</p>
+              </div>
+            </div>
+            <Link to="/admin/configuracoes?tab=notificacoes" className="text-[10px] font-bold text-blue-400 hover:underline">GERENCIAR</Link>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card border-[0.5px] bg-purple-500/5 border-purple-500/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-4 h-4 text-purple-400" />
+              <div>
+                <p className="text-xs font-semibold text-white">Performance Mensal</p>
+                <p className="text-[10px] text-purple-400">Crescimento de +12.5%</p>
+              </div>
+            </div>
+            <Link to="/admin/relatorios" className="text-[10px] font-bold text-purple-400 hover:underline">VER MAIS</Link>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Tables */}
