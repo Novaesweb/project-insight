@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, User, Eye, EyeOff, ShieldAlert, Timer } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ShieldAlert, Timer, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-full.jpeg";
@@ -108,6 +108,13 @@ export default function ClienteLogin() {
           <div className="flex items-center justify-center gap-2 mt-2">
             <div className="px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
               <div className="flex items-center gap-1.5">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="relative"
+                >
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                </motion.div>
                 <User className="w-3 h-3 text-[hsl(var(--primary))]" />
                 <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
                   Portal do Cliente
