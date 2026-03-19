@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, UserPlus, Phone, Eye, MessageCircle, X, CheckCircle, Clock, XCircle, Users } from "lucide-react";
+import { Search, UserPlus, Phone, Eye, MessageCircle, X, CheckCircle, Clock, XCircle, Users, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { extractLeadsFromApify } from "@/lib/apify";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -39,6 +40,29 @@ export default function Leads() {
   const [criarAcesso, setCriarAcesso] = useState(false);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
+
+  // Apify state
+  const [apifyModal, setApifyModal] = useState(false);
+  const [apifyTermo, setApifyTermo] = useState("");
+  const [apifyLimit, setApifyLimit] = useState(20);
+  const [apifyLoading, setApifyLoading] = useState(false);
+  const [apifyProgress, setApifyProgress] = useState("");
+
+  const handleRunApify = async () => {
+    const token = localStorage.getItem("apify_api_token") || "";
+    setApifyLoading(true);
+    setApifyProgress("Validando permissões...");
+    try {
+      const res = await extractLeadsFromApify(apifyTermo, token, apifyLimit, setApifyProgress);
+      toast({ title: "Extração Concluída!", description: res.message });
+      setApifyModal(false);
+      fetchLeads();
+    } catch (err: any) {
+      toast({ title: "Erro na extração", description: err.message, variant: "destructive" });
+    }
+    setApifyLoading(false);
+    setApifyProgress("");
+  };
 
   const fetchLeads = async () => {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
@@ -118,6 +142,9 @@ export default function Leads() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                 <Input placeholder="Buscar lead..." className="pl-9 glass-input border-0 text-white text-sm" value={busca} onChange={e => setBusca(e.target.value)} />
               </div>
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white border-0 shrink-0 h-[40px]" onClick={() => setApifyModal(true)}>
+                <Sparkles className="w-4 h-4 mr-2" /> Prospecção Apify
+              </Button>
               <div className="flex gap-2 flex-wrap">
                 {["todos", "novo", "em_contato", "convertido", "perdido"].map(s => (
                   <Button key={s} size="sm"
@@ -273,6 +300,35 @@ export default function Leads() {
             <Button variant="outline" className="w-full glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-white rounded-lg" onClick={handlePerda}>
               Confirmar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Apify Modal */}
+      <Dialog open={apifyModal} onOpenChange={!apifyLoading ? setApifyModal : undefined}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-white flex items-center gap-2"><Sparkles className="w-5 h-5 text-purple-400"/> Prospecção Inteligente (Apify)</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">O que você quer buscar no Google Maps?</Label>
+              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={apifyTermo} onChange={e => setApifyTermo(e.target.value)} placeholder="Ex: Clínicas Odontológicas em São Paulo" disabled={apifyLoading} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Limite de lugares visitados</Label>
+              <Input type="number" min={5} max={100} className="glass-input border-[rgba(255,255,255,0.1)] text-white h-10" value={apifyLimit} onChange={e => setApifyLimit(Number(e.target.value))} disabled={apifyLoading} />
+            </div>
+            
+            {apifyLoading && (
+               <div className="flex flex-col items-center justify-center p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-lg">
+                 <Loader2 className="w-6 h-6 animate-spin text-purple-500 mb-2" />
+                 <p className="text-xs text-[hsl(var(--muted-foreground))] text-center animate-pulse">{apifyProgress || "Executando Apify..."}</p>
+               </div>
+            )}
+
+            {!apifyLoading && (
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg mt-2" onClick={handleRunApify} disabled={!apifyTermo}>
+                Iniciar Varredura Online
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
