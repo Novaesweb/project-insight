@@ -151,7 +151,7 @@ serve(async (req) => {
               body,
               url,
               tag,
-              icon: "/pwa-192x192.png",
+              icon: "/push-logo.png",
             },
             adminContact: vapidSubject,
             options: {

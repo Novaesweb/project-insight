@@ -1,6 +1,6 @@
 // Service Worker for Push Notifications - NovaesWeb
 self.addEventListener('push', function(event) {
-  let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/pwa-192x192.png' };
+  let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-logo.png' };
   
   if (event.data) {
     try {
@@ -12,8 +12,8 @@ self.addEventListener('push', function(event) {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/pwa-192x192.png',
-    badge: '/pwa-192x192.png',
+    icon: data.icon || '/push-logo.png',
+    badge: '/push-logo.png',
     vibrate: [200, 100, 200, 100, 200],
     sound: '/notification-sound.mp3',
     data: {
