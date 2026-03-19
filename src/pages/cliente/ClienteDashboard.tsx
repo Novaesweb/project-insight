@@ -75,30 +75,30 @@ export default function ClienteDashboard() {
 
       {/* Ações Rápidas - Premium SaaS Look */}
       <motion.div variants={fadeUp} className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-        <Link to="/cliente/suporte" className="flex-shrink-0">
-          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+        <Button asChild className="flex-shrink-0 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer">
+          <Link to="/cliente/suporte">
             <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all"><Headphones className="w-5 h-5" /></div>
             <span className="text-xs font-semibold">Suporte</span>
-          </Button>
-        </Link>
-        <Link to="/cliente/faturas" className="flex-shrink-0">
-          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+          </Link>
+        </Button>
+        <Button asChild className="flex-shrink-0 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer">
+          <Link to="/cliente/faturas">
             <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all"><Receipt className="w-5 h-5" /></div>
             <span className="text-xs font-semibold">Faturas</span>
-          </Button>
-        </Link>
-        <Link to="/cliente/projetos" className="flex-shrink-0">
-          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+          </Link>
+        </Button>
+        <Button asChild className="flex-shrink-0 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer">
+          <Link to="/cliente/projetos">
             <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all"><FolderKanban className="w-5 h-5" /></div>
             <span className="text-xs font-semibold">Projetos</span>
-          </Button>
-        </Link>
-        <Link to="/cliente/reunioes" className="flex-shrink-0">
-          <Button className="bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group">
+          </Link>
+        </Button>
+        <Button asChild className="flex-shrink-0 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border-[0.5px] border-white/10 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer">
+          <Link to="/cliente/reunioes">
             <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all"><CalendarDays className="w-5 h-5" /></div>
             <span className="text-xs font-semibold">Reuniões</span>
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
