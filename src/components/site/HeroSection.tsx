@@ -9,7 +9,11 @@ const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transiti
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 const heroWords = ["negócio", "futuro", "empresa", "projeto", "resultado"];
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onOpenDemo?: () => void;
+}
+
+export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const [heroWordIndex, setHeroWordIndex] = useState(0);
   const heroWord = heroWords[heroWordIndex];
 
