@@ -86,7 +86,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
           </div>
 
           {/* Version */}
-          <p className="absolute bottom-6 right-6 text-[10px] text-white/20">v1.0 — NovaesWeb</p>
+          <p className="absolute bottom-6 right-6 text-[10px] text-white/20">v2.4.8 Premium — NovaesWeb</p>
         </motion.div>
       )}
     </AnimatePresence>

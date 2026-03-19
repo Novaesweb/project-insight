@@ -75,7 +75,7 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
       </div>
 
       <div className="py-2 px-4" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }}>
-        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">NovaesWeb © 2025</p>
+        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">NovaesWeb © 2025 — v2.4.8 Premium</p>
       </div>
     </div>
   );
@@ -132,7 +132,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
             {children}
           </div>
           <div className="py-2 px-4 mt-6" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }}>
-            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">NovaesWeb © 2025</p>
+            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">NovaesWeb © 2025 — v2.4.8 Premium</p>
           </div>
         </main>
       </div>
