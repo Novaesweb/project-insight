@@ -1,35 +1,31 @@
-// Service Worker for Push Notifications - NovaesWeb
+// Service Worker for Push Notifications - NovaesWeb v2
 self.addEventListener('push', function(event) {
-  let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-logo.png' };
-  
+  let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-icon-192.png', url: '/' };
+
   if (event.data) {
     try {
-      data = { ...data, ...event.data.json() };
-    } catch (e) {
+      const parsed = event.data.json();
+      data = { ...data, ...parsed };
+    } catch {
       data.body = event.data.text();
     }
   }
 
   const options = {
     body: data.body,
-    icon: data.icon || '/push-logo.png',
-    badge: '/push-logo.png',
-    vibrate: [200, 100, 200, 100, 200],
-    sound: '/notification-sound.mp3',
+    icon: data.icon || '/push-icon-192.png',
+    badge: '/push-icon-192.png',
+    vibrate: [200, 100, 200],
     data: {
       url: data.url || '/',
-      dateOfArrival: Date.now(),
     },
-    actions: data.actions || [],
     tag: data.tag || 'novaesweb-notification',
     renotify: true,
     requireInteraction: false,
-    silent: false,
   };
 
   event.waitUntil(
     self.registration.showNotification(data.title, options).then(function() {
-      // Play sound via clients (for browsers that don't support sound in notifications)
       return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
         for (const client of clientList) {
           client.postMessage({
@@ -45,9 +41,7 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-
   const url = event.notification.data?.url || '/';
-
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       for (const client of clientList) {
@@ -61,7 +55,7 @@ self.addEventListener('notificationclick', function(event) {
   );
 });
 
-self.addEventListener('install', function(event) {
+self.addEventListener('install', function() {
   self.skipWaiting();
 });
 

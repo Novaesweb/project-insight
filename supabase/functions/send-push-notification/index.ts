@@ -1,12 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildPushHTTPRequest } from "npm:@pushforge/builder@2";
+import webPush from "npm:web-push@3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+const VAPID_PUBLIC_KEY = "BF6pXzgJ2bcUFzQAUEsnkoSGoYaPsDXLuf47QJ2XgzWLVjrWO_LgbDFp4sOHe-q68kXkv3b3w7XAhDFzQKBKEuo";
+const VAPID_SUBJECT = "mailto:camila.lucas2604@gmail.com";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -14,43 +17,20 @@ serve(async (req) => {
   }
 
   try {
-    console.log("[Push Function] Initialization started...");
-    const vapidPrivateKeyRaw = Deno.env.get("VAPID_PRIVATE_KEY");
-    const vapidSubject = "mailto:camila.lucas2604@gmail.com";
-    const vapidPublicKey = "BF6pXzgJ2bcUFzQAUEsnkoSGoYaPsDXLuf47QJ2XgzWLVjrWO_LgbDFp4sOHe-q68kXkv3b3w7XAhDFzQKBKEuo";
+    console.log("[Push] Starting request...");
 
-    if (!vapidPrivateKeyRaw) {
-      console.error("[Push Function] VAPID_PRIVATE_KEY is missing in Deno.env");
-      return new Response(JSON.stringify({ error: "VAPID_PRIVATE_KEY secret not configured" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
+    if (!VAPID_PRIVATE_KEY) {
+      console.error("[Push] VAPID_PRIVATE_KEY not set");
+      return new Response(JSON.stringify({ error: "VAPID_PRIVATE_KEY not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("[Push Function] VAPID_PRIVATE_KEY found (length:", vapidPrivateKeyRaw.length, ")");
-
-    // Build JWK from raw base64url private key or parse existing JWK
-    let privateJWK: JsonWebKey;
-    if (vapidPrivateKeyRaw.startsWith("{")) {
-      privateJWK = JSON.parse(vapidPrivateKeyRaw);
-    } else {
-      // Raw base64url private key - build JWK
-      // Decode public key to get x and y coordinates
-      const pubBase64 = vapidPublicKey.replace(/-/g, "+").replace(/_/g, "/");
-      const pubPadded = pubBase64 + "=".repeat((4 - (pubBase64.length % 4)) % 4);
-      const pubKeyBytes = Uint8Array.from(atob(pubPadded), c => c.charCodeAt(0));
-      // Skip first byte (0x04 uncompressed point indicator)
-      const xBytes = pubKeyBytes.slice(1, 33);
-      const yBytes = pubKeyBytes.slice(33, 65);
-      const toBase64Url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-      
-      privateJWK = {
-        kty: "EC",
-        crv: "P-256",
-        d: vapidPrivateKeyRaw,
-        x: toBase64Url(xBytes),
-        y: toBase64Url(yBytes),
-      };
-    }
+    // Configure web-push with VAPID keys
+    webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    console.log("[Push] VAPID configured successfully");
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -59,6 +39,8 @@ serve(async (req) => {
 
     const bodyData = await req.json();
     const { target, targetId, title, body, url, tag, directSubscription } = bodyData;
+
+    console.log("[Push] Request:", { target, targetId, title });
 
     let subscriptions: Array<{
       id: string;
@@ -69,11 +51,9 @@ serve(async (req) => {
       user_type: string;
     }> = [];
 
-    if (
-      directSubscription?.endpoint &&
-      directSubscription?.p256dh &&
-      directSubscription?.auth
-    ) {
+    // Direct subscription provided (test notification)
+    if (directSubscription?.endpoint && directSubscription?.p256dh && directSubscription?.auth) {
+      console.log("[Push] Using direct subscription");
       const directUserId = directSubscription.user_id || targetId || "admin";
       const directUserType = directSubscription.user_type || target || "admin";
 
@@ -85,19 +65,17 @@ serve(async (req) => {
           user_id: directUserId,
           user_type: directUserType,
         },
-        { onConflict: "endpoint" },
+        { onConflict: "endpoint" }
       );
 
-      subscriptions = [
-        {
-          id: "direct",
-          endpoint: directSubscription.endpoint,
-          p256dh: directSubscription.p256dh,
-          auth: directSubscription.auth,
-          user_id: directUserId,
-          user_type: directUserType,
-        },
-      ];
+      subscriptions = [{
+        id: "direct",
+        endpoint: directSubscription.endpoint,
+        p256dh: directSubscription.p256dh,
+        auth: directSubscription.auth,
+        user_id: directUserId,
+        user_type: directUserType,
+      }];
     } else {
       let query = supabaseAdmin.from("push_subscriptions").select("*");
       if (target === "admin") {
@@ -106,20 +84,20 @@ serve(async (req) => {
         query = query.eq("user_type", "cliente").eq("user_id", targetId);
       }
 
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) console.error("[Push] Error fetching subscriptions:", error);
       subscriptions = (data || []) as typeof subscriptions;
+      console.log("[Push] Found", subscriptions.length, "subscriptions");
     }
 
-    // Save notification history
+    // Save notification to history
     const notificationRecords: { title: string; body: string; user_id: string; user_type: string; url?: string }[] = [];
     const seenUsers = new Set<string>();
-    if (subscriptions) {
-      for (const sub of subscriptions) {
-        const key = `${sub.user_type}:${sub.user_id}`;
-        if (!seenUsers.has(key)) {
-          seenUsers.add(key);
-          notificationRecords.push({ title, body, user_id: sub.user_id, user_type: sub.user_type, url });
-        }
+    for (const sub of subscriptions) {
+      const key = `${sub.user_type}:${sub.user_id}`;
+      if (!seenUsers.has(key)) {
+        seenUsers.add(key);
+        notificationRecords.push({ title, body, user_id: sub.user_id, user_type: sub.user_type, url });
       }
     }
     if (notificationRecords.length === 0 && target) {
@@ -129,8 +107,8 @@ serve(async (req) => {
       await supabaseAdmin.from("notifications").insert(notificationRecords);
     }
 
-    if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ message: "No subscriptions found, notification saved to history", sent: 0 }), {
+    if (subscriptions.length === 0) {
+      return new Response(JSON.stringify({ message: "No subscriptions found", sent: 0, total: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -138,59 +116,57 @@ serve(async (req) => {
     let sent = 0;
     const errors: string[] = [];
 
+    const payload = JSON.stringify({
+      title,
+      body,
+      url: url || "/",
+      tag: tag || "novaesweb",
+      icon: "/push-icon-192.png",
+      badge: "/push-icon-192.png",
+    });
+
     for (const sub of subscriptions) {
       try {
-        // Use PushForge with correct payload/adminContact/options structure
-        const { endpoint, headers, body: encryptedBody } = await buildPushHTTPRequest({
-          privateJWK,
-          subscription: {
+        await webPush.sendNotification(
+          {
             endpoint: sub.endpoint,
             keys: {
               p256dh: sub.p256dh,
               auth: sub.auth,
             },
           },
-          message: {
-            payload: {
-              title,
-              body,
-              url,
-              tag,
-              icon: "/push-logo.png",
-            },
-            adminContact: vapidSubject,
-            options: {
-              urgency: "normal",
-              ttl: 86400,
-            },
-          },
-        });
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers,
-          body: encryptedBody,
-        });
-
-        if (response.ok || response.status === 201) {
-          sent++;
-        } else if (response.status === 410 || response.status === 404) {
+          payload,
+          {
+            TTL: 86400,
+            urgency: "normal",
+          }
+        );
+        sent++;
+        console.log("[Push] Sent to:", sub.endpoint.slice(0, 50));
+      } catch (e: unknown) {
+        const err = e as { statusCode?: number; message?: string };
+        console.error("[Push] Error sending:", err.statusCode, err.message);
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          // Subscription expired, remove it
           await supabaseAdmin.from("push_subscriptions").delete().eq("id", sub.id);
+          console.log("[Push] Removed expired subscription:", sub.id);
         } else {
-          const text = await response.text();
-          errors.push(`${response.status}: ${text}`);
+          errors.push(`${err.statusCode}: ${err.message}`);
         }
-      } catch (e) {
-        errors.push(e.message);
       }
     }
 
+    console.log("[Push] Done. Sent:", sent, "of", subscriptions.length);
     return new Response(JSON.stringify({ sent, total: subscriptions.length, errors: errors.length > 0 ? errors : undefined }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+
+  } catch (err: unknown) {
+    const error = err as { message?: string };
+    console.error("[Push] Fatal error:", error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
