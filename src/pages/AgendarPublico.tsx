@@ -9,6 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { tipoReuniaoLabels, type TipoReuniao } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { sendPushToAdmins } from "@/lib/push-notifications";
+import { Loader2 } from "lucide-react";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -20,6 +24,8 @@ export default function AgendarPublico() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [formData, setFormData] = useState({ nome: "", email: "", telefone: "", tipo: "" as string, mensagem: "" });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -33,9 +39,40 @@ export default function AgendarPublico() {
     return day > 0 && day < 6;
   };
 
-  const handleSubmit = () => {
-    if (formData.nome && formData.email && formData.telefone && selectedDate && selectedTime) {
+  const handleSubmit = async () => {
+    if (!formData.nome || !formData.email || !formData.telefone || !selectedDate || !selectedTime) {
+      toast({ title: "Preencha todos os campos", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.from("reunioes").insert({
+      cliente_id: null, // Lead publico ainda não é cliente
+      tipo: formData.tipo || "alinhamento",
+      data: format(selectedDate, "yyyy-MM-dd"),
+      hora_inicio: selectedTime,
+      hora_fim: selectedTime, // Simplificado
+      observacoes: `Solicitação via site.\nNome: ${formData.nome}\nEmail: ${formData.email}\nTel: ${formData.telefone}\nMsg: ${formData.mensagem}`,
+      status: "agendada",
+    });
+
+    if (error) {
+      toast({ title: "Erro ao agendar", description: error.message, variant: "destructive" });
+      setLoading(false);
+    } else {
+      // Salvar como lead também para prospecção
+      await supabase.from("leads").insert({
+        nome: formData.nome,
+        email: formData.email,
+        whatsapp: formData.telefone.replace(/\D/g, ""),
+        mensagem: `Agendamento de reunião (${formData.tipo}): ${formData.mensagem}`,
+        status: "novo",
+      });
+
+      sendPushToAdmins("📅 Nova Reunião Agendada", `${formData.nome} solicitou uma reunião para ${format(selectedDate, "dd/MM")}.`, "/admin/agenda");
+      
       setConfirmed(true);
+      setLoading(false);
     }
   };
 
@@ -210,12 +247,19 @@ export default function AgendarPublico() {
             )}
 
             <Button
-              className="w-full border-0 text-white font-semibold"
+              className="w-full border-0 text-white font-semibold h-11"
               style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }}
-              disabled={!selectedDate || !selectedTime || !formData.nome || !formData.email || !formData.telefone}
+              disabled={loading || !selectedDate || !selectedTime || !formData.nome || !formData.email || !formData.telefone}
               onClick={handleSubmit}
             >
-              Solicitar agendamento
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Agendando...
+                </>
+              ) : (
+                "Solicitar agendamento"
+              )}
             </Button>
           </div>
         </div>

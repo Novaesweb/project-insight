@@ -46,6 +46,12 @@ export default function Dashboard() {
       setStats({ clientes: c.count || 0, projetos: p.count || 0, pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, receita });
       setPedidos(ped.data || []);
       setTickets(t.data || []);
+      if (c.error) console.error("[Dashboard] Error fetching clients:", c.error);
+      if (p.error) console.error("[Dashboard] Error fetching projects:", p.error);
+      if (ped.error) console.error("[Dashboard] Error fetching orders:", ped.error);
+      if (t.error) console.error("[Dashboard] Error fetching tickets:", t.error);
+      if (fin.error) console.error("[Dashboard] Error fetching finance:", fin.error);
+
       setDbStatus(c.error || p.error || ped.error || t.error || fin.error ? "erro" : "conectado");
 
       // Count subscriptions
