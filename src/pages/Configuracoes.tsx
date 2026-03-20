@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send } from "lucide-react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, sendTestNotification, isPushSupported } from "@/lib/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,7 +59,6 @@ export default function Configuracoes() {
     isPushSupported().then(setPushSupported);
     isSubscribed().then(setPushEnabled);
 
-    // Count subscriptions
     supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
       .then(({ count }) => setSubCount(count || 0));
   }, []);
@@ -118,15 +118,16 @@ export default function Configuracoes() {
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <motion.div variants={fadeUp}>
         <Tabs defaultValue="empresa" className="space-y-6">
-          <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1">
+          <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1 flex-wrap h-auto">
             {[
               { value: "empresa", label: "Empresa", icon: Building2 },
               { value: "aparencia", label: "Aparência", icon: Palette },
+              { value: "usuarios", label: "Usuários", icon: Users },
               { value: "permissoes", label: "Permissões", icon: Shield },
               { value: "integracoes", label: "Integrações", icon: LinkIcon },
               { value: "notificacoes", label: "Notificações", icon: Bell },
             ].map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
+              <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 flex-1 min-w-[100px]">
                 <tab.icon className="w-3.5 h-3.5" /> {tab.label}
               </TabsTrigger>
             ))}
@@ -247,7 +248,6 @@ export default function Configuracoes() {
 
           <TabsContent value="notificacoes">
             <div className="space-y-4">
-              {/* Push Notification Control */}
               <Card className="glass-card border-[0.5px]">
                 <CardHeader>
                   <CardTitle className="text-sm text-white flex items-center gap-2">
@@ -285,11 +285,142 @@ export default function Configuracoes() {
                   )}
                 </CardContent>
               </Card>
-
             </div>
+          </TabsContent>
+
+          <TabsContent value="usuarios">
+            <Card className="glass-card border-[0.5px]">
+              <CardHeader>
+                <CardTitle className="text-sm text-white">Gestão de Usuários e Clientes</CardTitle>
+                <CardDescription>Gerencie acessos, edite perfis e altere senhas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UserManagementList />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </motion.div>
     </motion.div>
+  );
+}
+
+function UserManagementList() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [newPass, setNewPass] = useState("");
+  const { toast } = useToast();
+
+  const loadAll = async () => {
+    setLoading(true);
+    const [u, c] = await Promise.all([
+      supabase.from("usuarios").select("*").order("nome"),
+      supabase.from("clientes").select("*").order("nome")
+    ]);
+    setUsers(u.data || []);
+    setClients(c.data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const handleUpdate = async (type: 'usuarios' | 'clientes', id: string, data: any) => {
+    const { error } = await supabase.from(type).update(data).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Atualizado com sucesso!" });
+      setEditingItem(null);
+      setNewPass("");
+      loadAll();
+    }
+  };
+
+  if (loading) return <div className="py-10 text-center text-white/40 text-xs">Carregando usuários...</div>;
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 px-1">Administradores e Equipe</h3>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/5">
+              <TableHead className="text-[10px] uppercase">Nome</TableHead>
+              <TableHead className="text-[10px] uppercase">E-mail</TableHead>
+              <TableHead className="text-[10px] uppercase">Cargo</TableHead>
+              <TableHead className="text-[10px] uppercase">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map(u => (
+              <TableRow key={u.id} className="border-white/5">
+                <TableCell className="text-sm text-white font-medium">{u.nome}</TableCell>
+                <TableCell className="text-sm text-white/50">{u.email}</TableCell>
+                <TableCell><Badge variant="outline" className="text-[9px] uppercase border-primary/20 text-primary">{u.cargo}</Badge></TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="sm" className="text-xs text-white/40 hover:text-white" onClick={() => setEditingItem({ ...u, _type: 'usuarios' })}>Editar</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div>
+        <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 px-1">Clientes (Portal)</h3>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/5">
+              <TableHead className="text-[10px] uppercase">Cliente</TableHead>
+              <TableHead className="text-[10px] uppercase">E-mail</TableHead>
+              <TableHead className="text-[10px] uppercase">Senha</TableHead>
+              <TableHead className="text-[10px] uppercase">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clients.map(c => (
+              <TableRow key={c.id} className="border-white/5">
+                <TableCell className="text-sm text-white font-medium">{c.nome}</TableCell>
+                <TableCell className="text-sm text-white/50">{c.email}</TableCell>
+                <TableCell className="text-xs font-mono text-white/30">{c.senha || "—"}</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="sm" className="text-xs text-white/40 hover:text-white" onClick={() => setEditingItem({ ...c, _type: 'clientes' })}>Editar</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="glass-card border-white/10 w-full max-w-md p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">Editar {editingItem._type === 'usuarios' ? 'Usuário' : 'Cliente'}</h3>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/40">Nome</Label>
+                <Input value={editingItem.nome} onChange={e => setEditingItem({ ...editingItem, nome: e.target.value })} className="glass-input h-9 text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/40">E-mail</Label>
+                <Input value={editingItem.email} onChange={e => setEditingItem({ ...editingItem, email: e.target.value })} className="glass-input h-9 text-sm" />
+              </div>
+              <div className="space-y-1.5 pt-2 border-t border-white/5">
+                <Label className="text-xs text-white/40">Trocar Senha</Label>
+                <div className="flex gap-2">
+                  <Input value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="Nova senha..." className="glass-input h-9 text-sm" />
+                  <Button size="sm" className="gradient-primary h-9" onClick={() => handleUpdate(editingItem._type, editingItem.id, { ...editingItem, senha: newPass, _type: undefined })}>Salvar</Button>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button variant="ghost" className="text-white/40 hover:text-white" onClick={() => setEditingItem(null)}>Cancelar</Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
   );
 }

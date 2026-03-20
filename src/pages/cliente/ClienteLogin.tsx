@@ -35,13 +35,39 @@ export default function ClienteLogin() {
 
     setLoading(true);
 
-    // Login with Supabase Auth
+    // First attempt: Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password: senha,
     });
 
-    if (authError) {
+    let clienteRecord = null;
+
+    if (!authError && authData.user) {
+      const { data } = await supabase
+        .from("clientes")
+        .select("*")
+        .eq("email", email.trim())
+        .eq("status", "ativo")
+        .maybeSingle();
+      clienteRecord = data;
+    } else {
+      // Fallback: Check the 'clientes' table directly if Auth fails or account doesn't exist in Auth
+      const { data } = await supabase
+        .from("clientes")
+        .select("*")
+        .eq("email", email.trim())
+        .eq("senha", senha) // Direct password check (fallback)
+        .eq("status", "ativo")
+        .maybeSingle();
+      clienteRecord = data;
+    }
+
+    if (clienteRecord) {
+      localStorage.setItem("clienteLogado", JSON.stringify(clienteRecord));
+      toast({ title: "Login realizado!", description: `Bem-vindo, ${clienteRecord.nome}` });
+      navigate("/cliente/dashboard");
+    } else {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
       
@@ -60,25 +86,6 @@ export default function ClienteLogin() {
           variant: "destructive" 
         });
       }
-      setLoading(false);
-      return;
-    }
-
-    // Fetch client record by email
-    const { data: clienteData } = await supabase
-      .from("clientes")
-      .select("*")
-      .eq("email", email.trim())
-      .eq("status", "ativo")
-      .maybeSingle();
-
-    if (clienteData) {
-      localStorage.setItem("clienteLogado", JSON.stringify(clienteData));
-      toast({ title: "Login realizado!", description: `Bem-vindo, ${clienteData.nome}` });
-      navigate("/cliente/dashboard");
-    } else {
-      toast({ title: "Erro", description: "Conta de cliente não encontrada ou inativa", variant: "destructive" });
-      await supabase.auth.signOut();
     }
     setLoading(false);
   };

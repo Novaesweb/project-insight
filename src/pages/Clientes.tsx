@@ -355,20 +355,12 @@ export default function Clientes() {
     }
     setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const { error } = await supabase.from("clientes").insert({ ...form, avatar });
+    const { error } = await supabase.from("clientes").insert({ ...form, avatar, senha: senhaCliente });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); setSaving(false); return; }
-
-    // Create auth account for client portal
+ 
     if (criarConta && senhaCliente.length >= 6) {
-      const { error: accountError } = await supabase.functions.invoke("create-account", {
-        body: { email: form.email, password: senhaCliente, nome: form.nome, tipo: "cliente" },
-      });
-      if (accountError) {
-        toast({ title: "Cliente criado, mas erro na conta", description: "Crie a conta manualmente depois.", variant: "destructive" });
-      } else {
-        const link = `${window.location.origin}/cliente`;
-        setContaCriada({ email: form.email, senha: senhaCliente, link });
-      }
+      const link = `${window.location.origin}/cliente`;
+      setContaCriada({ email: form.email, senha: senhaCliente, link });
     }
 
     toast({ title: "Cliente criado!" });
