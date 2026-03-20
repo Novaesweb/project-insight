@@ -17,14 +17,12 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      // Disable SW generation entirely — our custom sw.js in /public handles push
+      // VitePWA is used here ONLY to generate the manifest.webmanifest
       registerType: "autoUpdate",
-      filename: "pwa-sw.js",         // Different filename — never overwrites our sw.js
-      injectRegister: "auto",
+      injectRegister: null,        // Do NOT auto-register any service worker
+      selfDestroying: true,        // Unregister any previously VitePWA-generated SW
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
-      workbox: {
-        navigateFallbackDenylist: [/^\/~oauth/],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-      },
       manifest: {
         name: "Novaes Web — Painel Administrativo",
         short_name: "Novaes Web",
@@ -40,6 +38,10 @@ export default defineConfig(({ mode }) => ({
           { src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
           { src: "pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
+      },
+      workbox: {
+        // Empty workbox config since we're not generating a SW
+        globPatterns: [],
       },
     }),
   ].filter(Boolean),
