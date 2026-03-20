@@ -407,6 +407,12 @@ function UserManagementList() {
                 <Label className="text-xs text-white/40">E-mail</Label>
                 <Input value={editingItem.email} onChange={e => setEditingItem({ ...editingItem, email: e.target.value })} className="glass-input h-9 text-sm" />
               </div>
+              {editingItem._type === 'clientes' && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-white/40">URL do Site</Label>
+                  <Input value={editingItem.site_url || ""} onChange={e => setEditingItem({ ...editingItem, site_url: e.target.value })} placeholder="https://..." className="glass-input h-9 text-sm" />
+                </div>
+              )}
               <div className="space-y-1.5 pt-2 border-t border-white/5">
                 <Label className="text-xs text-white/40">Trocar Senha</Label>
                 <div className="flex gap-2">

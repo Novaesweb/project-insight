@@ -19,6 +19,7 @@ export default function ClienteDashboard() {
   const [counts, setCounts] = useState({ projetos: 0, extras: 0, faturas: 0, tickets: 0 });
   const [proximaReuniao, setProximaReuniao] = useState<any>(null);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
+  const [perfil, setPerfil] = useState<any>(cliente);
 
   const load = useCallback(() => {
     if (!cId) return;
@@ -35,6 +36,9 @@ export default function ClienteDashboard() {
     supabase.from("projeto_atualizacoes").select("*, projetos!inner(titulo, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
       .order("created_at", { ascending: false }).limit(5)
       .then(({ data }) => setAtualizacoes(data || []));
+
+    supabase.from("clientes").select("*").eq("id", cId).single()
+      .then(({ data }) => { if (data) setPerfil(data); });
   }, [cId]);
 
   useEffect(() => { load(); }, [load]);
@@ -67,7 +71,6 @@ export default function ClienteDashboard() {
         </div>
       </div>
 
-      {/* Primary KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map(kpi => (
           <Card key={kpi.label} className="glass-card border-white/5 info-card-hover overflow-hidden group">
@@ -85,7 +88,6 @@ export default function ClienteDashboard() {
         ))}
       </div>
 
-      {/* Quick Actions - High-End SaaS UI */}
       <div className="space-y-3">
         <h2 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold px-1">Atalhos rápidos</h2>
         <motion.div variants={stagger} className="flex gap-3 overflow-x-auto pb-4 scrollbar-none">
@@ -95,11 +97,10 @@ export default function ClienteDashboard() {
             { to: "/cliente/projetos", label: "Projetos", icon: FolderKanban, color: "purple" },
             { to: "/cliente/reunioes", label: "Reuniões", icon: CalendarDays, color: "amber" },
           ].map((item, idx) => (
-            <Button key={idx} asChild className="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden">
+            <Button key={idx} asChild className="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center">
               <Link to={item.to}>
-                <div className={`p-2.5 rounded-xl bg-${item.color}-500/10 text-${item.color}-400 group-hover:scale-110 group-hover:bg-${item.color}-500/20 transition-all z-10`}><item.icon className="w-5 h-5" /></div>
+                <div className={`p-2.5 rounded-xl bg-white/5 group-hover:scale-110 transition-all z-10 mx-auto`}><item.icon className="w-5 h-5" /></div>
                 <span className="text-xs font-semibold z-10">{item.label}</span>
-                <div className={`absolute bottom-0 left-0 w-full h-0.5 bg-${item.color}-500/30 scale-x-0 group-hover:scale-x-100 transition-transform origin-left`} />
               </Link>
             </Button>
           ))}
@@ -107,7 +108,6 @@ export default function ClienteDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        {/* Main Updates Section */}
         <Card className="glass-card border-white/5 overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -150,21 +150,25 @@ export default function ClienteDashboard() {
         </Card>
 
         <div className="space-y-6">
-          {/* Live Status Widget */}
-          <Card className="glass-card border-emerald-500/10 bg-emerald-500/5 group">
+          <Card className={`glass-card border-${perfil.site_url ? "emerald" : "amber"}-500/10 bg-${perfil.site_url ? "emerald" : "amber"}-500/5 group`}>
             <CardContent className="p-5 flex flex-col items-center text-center">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+              <div className={`w-12 h-12 rounded-full bg-${perfil.site_url ? "emerald" : "amber"}-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <div className={`w-3 h-3 rounded-full bg-${perfil.site_url ? "emerald" : "amber"}-400 animate-pulse`} />
               </div>
               <p className="text-xs font-bold text-white mb-1">Status do Seu Site</p>
-              <p className="text-[10px] text-emerald-400/70 mb-4 font-medium uppercase tracking-wider">Publicado e Seguro</p>
-              <Button asChild variant="outline" className="w-full h-8 text-[10px] rounded-lg border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all">
-                <a href="https://novaesweb.com.br" target="_blank" rel="noopener noreferrer">Acessar Meu Site →</a>
+              <p className={`text-[10px] text-${perfil.site_url ? "emerald" : "amber"}-400/70 mb-4 font-medium uppercase tracking-wider`}>
+                {perfil.site_url ? "Publicado e Seguro" : "Em Desenvolvimento"}
+              </p>
+              <Button asChild variant="outline" className={`w-full h-8 text-[10px] rounded-lg border-${perfil.site_url ? "emerald" : "amber"}-500/20 bg-${perfil.site_url ? "emerald" : "amber"}-500/10 text-${perfil.site_url ? "emerald" : "amber"}-400 hover:bg-${perfil.site_url ? "emerald" : "amber"}-500 hover:text-white transition-all`}>
+                {perfil.site_url ? (
+                  <a href={perfil.site_url} target="_blank" rel="noopener noreferrer">Acessar Meu Site →</a>
+                ) : (
+                  <span className="opacity-50 cursor-not-allowed">Site em Breve →</span>
+                )}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Meeting Widget */}
           <Card className="glass-card border-white/5 hover:border-white/10 transition-all">
             <CardContent className="p-5 space-y-4">
               <h2 className="text-xs font-bold text-white uppercase tracking-[0.2em] flex items-center gap-2">

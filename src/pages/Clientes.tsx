@@ -103,7 +103,34 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-white">{cliente.nome}</h2>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{cliente.email} · {cliente.telefone}</p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">{cliente.cidade}, {cliente.estado} · {cliente.documento}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+                   <div className="flex-1 max-w-sm">
+                      <Label className="text-[10px] text-white/30 uppercase font-bold mb-1 block">URL do Site</Label>
+                      <div className="flex gap-2">
+                         <Input 
+                           value={cliente.site_url || ""} 
+                           onChange={e => setCliente({ ...cliente, site_url: e.target.value })}
+                           placeholder="https://exemplo.com.br"
+                           className="glass-input h-8 text-xs border-white/10"
+                         />
+                         <Button 
+                           size="sm" 
+                           className="h-8 gradient-primary border-0 text-[10px] px-3"
+                           onClick={async () => {
+                             const { error } = await supabase.from("clientes").update({ site_url: cliente.site_url }).eq("id", clienteId);
+                             if (error) toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+                             else toast({ title: "URL do site salva!" });
+                           }}
+                         >
+                           Salvar
+                         </Button>
+                      </div>
+                   </div>
+                   <div className="pt-4 sm:pt-0">
+                      <p className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold mb-1">Localização</p>
+                      <p className="text-xs text-white/60">{cliente.cidade}, {cliente.estado} · {cliente.documento}</p>
+                   </div>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -328,7 +355,7 @@ export default function Clientes() {
   const [criarConta, setCriarConta] = useState(true);
   const [senhaCliente, setSenhaCliente] = useState("");
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo" });
+  const [form, setForm] = useState({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "" });
   const [saving, setSaving] = useState(false);
 
   const fetchClientes = async () => {
@@ -366,7 +393,7 @@ export default function Clientes() {
     toast({ title: "Cliente criado!" });
     sendPushToAdmins("👤 Novo Cliente", `${form.nome} foi cadastrado no sistema.`, "/admin/clientes");
     setShowNew(false);
-    setForm({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo" });
+    setForm({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "" });
     setSenhaCliente("");
     setCriarConta(true);
     setSaving(false);
@@ -389,6 +416,7 @@ export default function Clientes() {
                 { key: "telefone", label: "Telefone" }, { key: "documento", label: "CPF/CNPJ" },
                 { key: "endereco", label: "Endereço" }, { key: "cidade", label: "Cidade" },
                 { key: "estado", label: "Estado" },
+                { key: "site_url", label: "URL do Site (ex: https://...)" },
               ].map((f) => (
                 <div key={f.key} className="space-y-1.5">
                   <Label className="text-xs text-[hsl(var(--muted-foreground))]">{f.label}</Label>
