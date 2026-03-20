@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type StatusReuniao, type TipoReuniao } from "@/lib/mock-data";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import StatusBadge from "@/components/StatusBadge";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -20,6 +21,10 @@ export default function ClienteDashboard() {
   const [proximaReuniao, setProximaReuniao] = useState<any>(null);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<any>(cliente);
+  const [projetoAtivo, setProjetoAtivo] = useState<any>(null);
+  const [briefing, setBriefing] = useState("");
+  const [referencias, setReferencias] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
     if (!cId) return;
@@ -29,6 +34,16 @@ export default function ClienteDashboard() {
       supabase.from("faturas").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "paga"),
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
     ]).then(([p, e, f, t]) => setCounts({ projetos: p.count || 0, extras: e.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
+
+    supabase.from("projetos").select("*").eq("cliente_id", cId).neq("status", "cancelado").order("created_at", { ascending: false }).limit(1)
+      .then(({ data }) => {
+        if (data?.[0]) {
+          const p = data[0] as any;
+          setProjetoAtivo(p);
+          setBriefing(p.briefing || "");
+          setReferencias(p.referencias || "");
+        }
+      });
 
     supabase.from("reunioes").select("*").eq("cliente_id", cId).in("status", ["agendada", "confirmada"]).order("data", { ascending: true }).limit(1)
       .then(({ data }) => setProximaReuniao(data?.[0] || null));
@@ -40,6 +55,24 @@ export default function ClienteDashboard() {
     supabase.from("clientes").select("*").eq("id", cId).single()
       .then(({ data }) => { if (data) setPerfil(data); });
   }, [cId]);
+
+  const { toast } = useToast();
+
+  const salvarBriefing = async () => {
+    if (!projetoAtivo) return;
+    setSaving(true);
+    const { error } = await supabase.from("projetos").update({ 
+      briefing, 
+      referencias 
+    } as any).eq("id", projetoAtivo.id);
+    
+    setSaving(false);
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Briefing salvo!", description: "Suas referências foram atualizadas com sucesso." });
+    }
+  };
 
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("projetos", load);
@@ -108,46 +141,94 @@ export default function ClienteDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        <Card className="glass-card border-white/5 overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" /> Histórico de Evolução
-              </h2>
-              <StatusBadge status="em_andamento" />
-            </div>
-            
-            {atualizacoes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                  <Clock className="w-6 h-6 text-white/20" />
-                </div>
-                <p className="text-xs text-white/40">Iniciando os trabalhos... As atualizações aparecerão aqui.</p>
+        <div className="space-y-6">
+          {/* Briefing Card */}
+          <Card className="glass-card border-white/5 overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" /> Briefing & Referências
+                </h2>
+                {projetoAtivo && <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">{projetoAtivo.titulo}</Badge>}
               </div>
-            ) : (
-              <div className="space-y-0 relative ml-2">
-                <div className="absolute left-[5px] top-2 bottom-6 w-px bg-white/5" />
-                {atualizacoes.map((a: any, i: number) => (
-                  <div key={a.id} className="flex gap-4 pb-6 last:pb-0 relative group">
-                    <div className="relative z-10">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-purple-600 shadow-[0_0_8px_rgba(232,51,74,0.4)] group-hover:scale-125 transition-transform mt-1" />
-                    </div>
-                    <div className="flex-1 -mt-0.5 p-3 rounded-xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
-                      <p className="text-sm font-medium text-white group-hover:text-primary transition-colors">{a.descricao}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                         <Badge variant="outline" className="text-[9px] border-white/10 text-white/30 h-4">{ (a as any).projetos?.titulo }</Badge>
-                         <span className="text-[10px] text-white/30 flex items-center gap-1">
-                           <Clock className="w-3 h-3 text-white/20" /> 
-                           {new Date(a.created_at).toLocaleDateString("pt-BR")}
-                         </span>
+
+              {projetoAtivo ? (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">O que não pode faltar no seu site?</p>
+                    <textarea 
+                      className="w-full min-h-[100px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-primary/50 transition-colors outline-none placeholder:text-white/10"
+                      placeholder="Ex: Botão de WhatsApp flutuante, Galeria de fotos na Home, Seção de depoimentos..."
+                      value={briefing}
+                      onChange={(e) => setBriefing(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Referências (Links de sites que você gosta)</p>
+                    <textarea 
+                      className="w-full min-h-[60px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-primary/50 transition-colors outline-none placeholder:text-white/10"
+                      placeholder="Ex: https://referencia.com, https://meuconcorrente.com..."
+                      value={referencias}
+                      onChange={(e) => setReferencias(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    className="w-full gradient-primary text-white border-0 h-10 rounded-xl shadow-lg shadow-primary/20"
+                    onClick={salvarBriefing}
+                    disabled={saving}
+                  >
+                    {saving ? "Salvando..." : "Salvar Briefing"}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-xs text-white/40">Seu projeto aparecerá aqui em breve.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card border-white/5 overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary" /> Histórico de Evolução
+                </h2>
+                <StatusBadge status="em_andamento" />
+              </div>
+              
+              {atualizacoes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                    <Clock className="w-6 h-6 text-white/20" />
+                  </div>
+                  <p className="text-xs text-white/40">Iniciando os trabalhos... As atualizações aparecerão aqui.</p>
+                </div>
+              ) : (
+                <div className="space-y-0 relative ml-2">
+                  <div className="absolute left-[5px] top-2 bottom-6 w-px bg-white/5" />
+                  {atualizacoes.map((a: any, i: number) => (
+                    <div key={a.id} className="flex gap-4 pb-6 last:pb-0 relative group">
+                      <div className="relative z-10">
+                        <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-purple-600 shadow-[0_0_8px_rgba(232,51,74,0.4)] group-hover:scale-125 transition-transform mt-1" />
+                      </div>
+                      <div className="flex-1 -mt-0.5 p-3 rounded-xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
+                        <p className="text-sm font-medium text-white group-hover:text-primary transition-colors">{a.descricao}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                           <Badge variant="outline" className="text-[9px] border-white/10 text-white/30 h-4">{ (a as any).projetos?.titulo }</Badge>
+                           <span className="text-[10px] text-white/30 flex items-center gap-1">
+                             <Clock className="w-3 h-3 text-white/20" /> 
+                             {new Date(a.created_at).toLocaleDateString("pt-BR")}
+                           </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="space-y-6">
           <Card className={`glass-card border-${perfil.site_url ? "emerald" : "amber"}-500/10 bg-${perfil.site_url ? "emerald" : "amber"}-500/5 group`}>

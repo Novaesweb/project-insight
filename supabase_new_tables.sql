@@ -7,8 +7,12 @@ CREATE TABLE IF NOT EXISTS public.projeto_arquivos (
   tipo text, -- 'pdf', 'img', 'doc', etc.
   tamanho numeric,
   enviado_por text DEFAULT 'admin', -- 'admin' ou 'cliente'
-  created_at timestamptz DEFAULT now()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+-- ADICIONAR COLUNAS DE BRIEFING E REFERENCIAS CASO NÃO EXISTAM
+ALTER TABLE public.projetos ADD COLUMN IF NOT EXISTS briefing TEXT;
+ALTER TABLE public.projetos ADD COLUMN IF NOT EXISTS referencias TEXT;
 
 -- Ativar RLS
 ALTER TABLE public.projeto_arquivos ENABLE ROW LEVEL SECURITY;

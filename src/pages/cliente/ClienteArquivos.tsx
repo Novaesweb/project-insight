@@ -26,7 +26,7 @@ export default function ClienteArquivos() {
 
   const loadData = async () => {
     try {
-      const userStr = localStorage.getItem("cliente_user");
+      const userStr = localStorage.getItem("clienteLogado");
       if (!userStr) return;
       const user = JSON.parse(userStr);
 

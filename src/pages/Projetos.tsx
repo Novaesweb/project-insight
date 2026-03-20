@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip } from "lucide-react";
+import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
@@ -151,8 +151,44 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
               <Slider value={[projeto.progresso]} onValueChange={handleProgressChange} onValueCommit={saveProgresso} max={100} step={5} className="w-full" />
             </CardContent>
           </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="glass-card border-[0.5px]">
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold text-white flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Briefing do Cliente</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-xs text-white/60 leading-relaxed whitespace-pre-wrap">{(projeto as any).briefing || "O cliente ainda não preencheu o briefing."}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card border-[0.5px]">
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold text-white flex items-center gap-2"><List className="w-4 h-4 text-primary" /> Referências & Inspirações</CardTitle></CardHeader>
+              <CardContent>
+                { (projeto as any).referencias ? (
+                  <div className="space-y-2">
+                    {(projeto as any).referencias.split('\n').map((ref: string, i: number) => {
+                      const isUrl = ref.trim().startsWith('http');
+                      return (
+                        <div key={i} className="text-[11px] p-2 rounded-lg bg-white/5 border border-white/5 truncate">
+                          {isUrl ? (
+                            <a href={ref.trim()} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline flex items-center gap-1">
+                              <ExternalLink className="w-3 h-3" /> {ref.trim()}
+                            </a>
+                          ) : (
+                            <span className="text-white/60">{ref}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-white/40 italic">Nenhuma referência enviada.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           <Card className="glass-card border-[0.5px]">
-            <CardHeader><CardTitle className="text-sm font-semibold text-white">Descrição</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm font-semibold text-white">Descrição Interna</CardTitle></CardHeader>
             <CardContent><p className="text-xs text-white/60 leading-relaxed">{projeto.descricao || "Sem descrição."}</p></CardContent>
           </Card>
         </TabsContent>
