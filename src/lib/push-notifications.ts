@@ -213,9 +213,37 @@ export async function sendTestNotification(): Promise<PushTestResult> {
 }
 
 export async function sendPushToAdmins(title: string, body: string, url?: string): Promise<void> {
-  await supabase.functions.invoke("send-push-notification", {
-    body: { target: "admin", title, body, url: url || "/admin" },
-  });
+  try {
+    // Try to get the current browser's subscription to ensure delivery even if DB lookup fails
+    let directSubscription: { endpoint: string; p256dh: string; auth: string; user_type: string; user_id: string } | undefined;
+    
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      const reg = await navigator.serviceWorker.getRegistration("/");
+      if (reg) {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          const json = sub.toJSON();
+          if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
+            const session = await supabase.auth.getSession();
+            const userId = session.data.session?.user?.id || "admin";
+            directSubscription = {
+              endpoint: json.endpoint,
+              p256dh: json.keys.p256dh,
+              auth: json.keys.auth,
+              user_type: "admin",
+              user_id: userId,
+            };
+          }
+        }
+      }
+    }
+
+    await supabase.functions.invoke("send-push-notification", {
+      body: { target: "admin", title, body, url: url || "/admin", directSubscription },
+    });
+  } catch (e) {
+    console.error("[Push] sendPushToAdmins failed:", e);
+  }
 }
 
 export async function sendPushToClient(clienteId: string, title: string, body: string, url?: string): Promise<void> {
