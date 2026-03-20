@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowRight } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,8 +21,9 @@ export default function Pedidos() {
   const [clientes, setClientes] = useState<any[]>([]);
   const [projetos, setProjetos] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
+  const [form, setForm] = useState({ id: "", codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
 
   const load = async () => {
     const [p, c, pr] = await Promise.all([
@@ -41,22 +42,52 @@ export default function Pedidos() {
     e.preventDefault();
     setSaving(true);
     const codigo = form.codigo || `PED-${String(pedidos.length + 1).padStart(3, "0")}`;
-    const { error } = await supabase.from("pedidos").insert({
-      codigo,
-      tipo: form.tipo,
-      valor: Number(form.valor) || 0,
-      cliente_id: form.cliente_id || null,
-      projeto_id: form.projeto_id || null,
-    });
+    const { error } = form.id 
+      ? await supabase.from("pedidos").update({
+          codigo,
+          tipo: form.tipo,
+          valor: Number(form.valor) || 0,
+          cliente_id: form.cliente_id || null,
+          projeto_id: form.projeto_id || null,
+        }).eq("id", form.id)
+      : await supabase.from("pedidos").insert({
+          codigo,
+          tipo: form.tipo,
+          valor: Number(form.valor) || 0,
+          cliente_id: form.cliente_id || null,
+          projeto_id: form.projeto_id || null,
+        });
+
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Pedido criado!" });
-      setForm({ codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
+      toast({ title: form.id ? "Pedido atualizado!" : "Pedido criado!" });
+      setForm({ id: "", codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" });
       setDialogOpen(false);
+      setEditingItem(null);
       load();
     }
     setSaving(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este pedido?")) return;
+    const { error } = await supabase.from("pedidos").delete().eq("id", id);
+    if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+    else { toast({ title: "Pedido excluído" }); load(); }
+  };
+
+  const openEdit = (pedido: any) => {
+    setForm({
+      id: pedido.id,
+      codigo: pedido.codigo,
+      tipo: pedido.tipo,
+      valor: pedido.valor,
+      cliente_id: pedido.cliente_id,
+      projeto_id: pedido.projeto_id
+    });
+    setEditingItem(pedido);
+    setDialogOpen(true);
   };
  
   const iniciarProjeto = async (pedido: any) => {
@@ -81,8 +112,7 @@ export default function Pedidos() {
 
     // 2. Vincular o projeto ao pedido
     const { error: errorPed } = await supabase.from("pedidos").update({
-      projeto_id: novoProjeto.id,
-      status: "entregue"
+      projeto_id: novoProjeto.id
     }).eq("id", pedido.id);
 
     if (errorPed) {
@@ -98,22 +128,14 @@ export default function Pedidos() {
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
-      <motion.div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" variants={fadeUp}>
-        <div className="flex gap-2 flex-wrap">
-          {[{ key: "todos", label: "Todos" }, { key: "pendente", label: "Pendente" }, { key: "em_revisao", label: "Em revisão" }, { key: "entregue", label: "Entregue" }, { key: "cancelado", label: "Cancelado" }].map((s) => (
-            <Button key={s.key} size="sm"
-              className={filtro === s.key ? "gradient-primary border-0 text-white" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white"}
-              onClick={() => setFiltro(s.key)}>{s.label}</Button>
-          ))}
-        </div>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <motion.div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4" variants={fadeUp}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setForm({ id: "", codigo: "", tipo: "", valor: "", cliente_id: "", projeto_id: "" }); setEditingItem(null); } }}>
           <DialogTrigger asChild>
             <Button className="gradient-primary border-0 text-white rounded-lg" size="sm"><Plus className="w-4 h-4 mr-2" /> Novo Pedido</Button>
           </DialogTrigger>
           <DialogContent className="glass-card border-[0.5px] text-[hsl(var(--foreground))]">
             <DialogHeader>
-              <DialogTitle>Novo Pedido</DialogTitle>
+              <DialogTitle>{editingItem ? "Editar Pedido" : "Novo Pedido"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -157,7 +179,7 @@ export default function Pedidos() {
                 </Select>
               </div>
               <Button type="submit" disabled={saving || !form.tipo} className="w-full gradient-primary border-0 text-white">
-                {saving ? "Salvando..." : "Criar Pedido"}
+                {saving ? "Salvando..." : editingItem ? "Salvar Alterações" : "Criar Pedido"}
               </Button>
             </form>
           </DialogContent>
@@ -170,7 +192,7 @@ export default function Pedidos() {
             <Table>
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Nº Pedido", "Cliente", "Tipo", "Valor", "Data", "Status", "Ações"].map((h) => (
+                  {["Nº Pedido", "Cliente", "Tipo", "Valor", "Data", "Ações"].map((h) => (
                     <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
                   ))}
                 </TableRow>
@@ -183,25 +205,31 @@ export default function Pedidos() {
                     <TableCell className="text-sm font-mono font-medium gradient-text">{p.codigo}</TableCell>
                     <TableCell className="text-sm text-white">{p.clientes?.nome || "—"}</TableCell>
                     <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.tipo}</TableCell>
-                    <TableCell className="text-sm text-white">R$ {Number(p.valor).toLocaleString("pt-BR")}</TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.data ? new Date(p.data).toLocaleDateString("pt-BR") : "—"}</TableCell>
-                    <TableCell><StatusBadge status={p.status} /></TableCell>
+                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.data ? new Date(p.data).toLocaleDateString("pt-BR") : new Date(p.created_at).toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell>
-                      {p.projeto_id ? (
-                        <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 h-7 text-[10px]" onClick={() => window.location.href = `/admin/projetos`}>
-                          Ver Projeto
+                      <div className="flex items-center gap-2">
+                        {p.projeto_id ? (
+                          <Button variant="ghost" size="sm" className="text-emerald-400 hover:text-emerald-300 h-8 gap-1.5 text-[10px]" onClick={() => window.location.href = `/admin/projetos`}>
+                            <ArrowRight className="w-3 h-3" /> Ver Projeto
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 text-[10px] border-primary/20 text-primary hover:bg-primary/10 gap-1.5" 
+                            disabled={saving}
+                            onClick={() => iniciarProjeto(p)}
+                          >
+                            <Plus className="w-3 h-3" /> Iniciar Projeto
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/50 hover:text-white" onClick={() => openEdit(p)}>
+                          <Pencil className="w-3 h-3" />
                         </Button>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 text-[10px] border-primary/20 text-primary hover:bg-primary/10" 
-                          disabled={saving}
-                          onClick={() => iniciarProjeto(p)}
-                        >
-                          Iniciar Projeto
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500/50 hover:text-red-500" onClick={() => handleDelete(p.id)}>
+                          <Trash2 className="w-3 h-3" />
                         </Button>
-                      )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

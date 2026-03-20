@@ -38,6 +38,7 @@ const statusLabels: Record<string, string> = {
 function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () => void }) {
   const { toast } = useToast();
   const [projeto, setProjeto] = useState<any>(null);
+  const [pedido, setPedido] = useState<any>(null);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
   const [novaAtualizacao, setNovaAtualizacao] = useState("");
   const [visivelCliente, setVisivelCliente] = useState(true);
@@ -46,6 +47,10 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   const loadProjeto = async () => {
     const { data } = await supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single();
     setProjeto(data);
+    if (data) {
+      const { data: pedData } = await supabase.from("pedidos").select("codigo").eq("projeto_id", data.id).maybeSingle();
+      setPedido(pedData);
+    }
   };
 
   const loadAtualizacoes = async () => {
@@ -117,7 +122,14 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
           <CardContent className="p-5">
             <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-white">{projeto.titulo}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-white">{projeto.titulo}</h2>
+                  {pedido && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-mono border border-primary/20">
+                      Origem: {pedido.codigo}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{projeto.clientes?.nome || "Sem cliente"}</p>
                 {projeto.descricao && <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">{projeto.descricao}</p>}
               </div>
