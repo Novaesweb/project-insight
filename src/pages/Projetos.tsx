@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sendPushToClient } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -106,7 +107,14 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     if (!novaAtualizacao.trim()) return;
     setSending(true);
     const { error } = await supabase.from("projeto_atualizacoes").insert({ projeto_id: projetoId, descricao: novaAtualizacao.trim(), visivel_cliente: visivelCliente });
-    if (!error) { toast({ title: "Atualização registrada!" }); setNovaAtualizacao(""); loadData(); }
+    if (!error) {
+      toast({ title: "Atualização registrada!" });
+      if (visivelCliente && projeto?.cliente_id) {
+        sendPushToClient(projeto.cliente_id, "🚀 Nova atualização em seu projeto", novaAtualizacao.trim().substring(0, 100) + "...", "/cliente/projetos");
+      }
+      setNovaAtualizacao("");
+      loadData();
+    }
     setSending(false);
   };
 

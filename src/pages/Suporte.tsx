@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Send, ArrowLeft } from "lucide-react";
+import { MessageSquare, Send, ArrowLeft, CheckCircle2 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -146,6 +146,21 @@ export default function Suporte() {
                       <SelectItem value="resolvido">Resolvido</SelectItem>
                     </SelectContent>
                   </Select>
+                  {ticket.status !== "resolvido" && (
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg gap-1.5"
+                      onClick={async () => {
+                        await changeStatus("resolvido");
+                        const clienteId = ticket?.cliente_id;
+                        if (clienteId) {
+                          sendPushToClient(clienteId, "✅ Ticket Resolvido", `Seu ticket ${ticket.codigo} foi marcado como resolvido.`, "/cliente/suporte");
+                        }
+                      }}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Resolver Ticket
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>

@@ -14,6 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
+import { jsPDF } from "jspdf";
+import { useBranding } from "@/hooks/useBranding";
+
 export default function ClienteDashboard() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const cId = cliente.id;
@@ -57,6 +60,7 @@ export default function ClienteDashboard() {
   }, [cId]);
 
   const { toast } = useToast();
+  const branding = useBranding();
 
   const salvarBriefing = async () => {
     if (!projetoAtivo) return;
@@ -72,6 +76,50 @@ export default function ClienteDashboard() {
     } else {
       toast({ title: "Briefing salvo!", description: "Suas referências foram atualizadas com sucesso." });
     }
+  };
+
+  const exportarPDF = () => {
+    if (!projetoAtivo) return;
+    
+    const doc = new jsPDF();
+    const title = branding.nome || "Briefing de Projeto";
+    const projName = projetoAtivo.titulo;
+    
+    doc.setFontSize(22);
+    doc.setTextColor(232, 51, 74); // primary color hex #e8334a approx
+    doc.text(title, 20, 20);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Projeto: ${projName}`, 20, 35);
+    doc.text(`Cliente: ${cliente.nome}`, 20, 45);
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 50, 190, 50);
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Resumo de Necessidades:", 20, 65);
+    
+    doc.setFont("helvetica", "normal");
+    const splitBriefing = doc.splitTextToSize(briefing || "Nenhuma informação fornecida.", 170);
+    doc.text(splitBriefing, 20, 75);
+    
+    let y = 75 + (splitBriefing.length * 7);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("Referências:", 20, y + 15);
+    
+    doc.setFont("helvetica", "normal");
+    const splitRefs = doc.splitTextToSize(referencias || "Nenhum link ou referência fornecida.", 170);
+    doc.text(splitRefs, 20, y + 25);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Documento gerado em ${new Date().toLocaleDateString("pt-BR")} via Portal do Cliente`, 20, 280);
+    
+    doc.save(`briefing-${projName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    toast({ title: "PDF Gerado!", description: "Seu briefing foi baixado com sucesso." });
   };
 
   useEffect(() => { load(); }, [load]);
@@ -172,13 +220,22 @@ export default function ClienteDashboard() {
                       onChange={(e) => setReferencias(e.target.value)}
                     />
                   </div>
-                  <Button 
-                    className="w-full gradient-primary text-white border-0 h-10 rounded-xl shadow-lg shadow-primary/20"
-                    onClick={salvarBriefing}
-                    disabled={saving}
-                  >
-                    {saving ? "Salvando..." : "Salvar Briefing"}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button 
+                      className="flex-1 gradient-primary text-white border-0 h-10 rounded-xl shadow-lg shadow-primary/20"
+                      onClick={salvarBriefing}
+                      disabled={saving}
+                    >
+                      {saving ? "Salvando..." : "Salvar Briefing"}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="border-white/10 text-white/60 h-10 rounded-xl hover:bg-white/5"
+                      onClick={exportarPDF}
+                    >
+                      PDF
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">

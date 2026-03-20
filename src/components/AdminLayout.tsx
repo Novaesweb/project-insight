@@ -18,6 +18,7 @@ import { pageInfo } from "@/lib/mock-data";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import TopProgressBar from "@/components/TopProgressBar";
 import NotificationCenter from "@/components/NotificationCenter";
+import GlobalSearch from "@/components/GlobalSearch";
 
 interface NavItem {
   href: string;
@@ -41,12 +42,15 @@ const navItems: NavItem[] = [
   { href: "/admin/contratos", label: "Contratos", icon: FileText },
 ];
 
+import { useBranding } from "@/hooks/useBranding";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const leadCount = useLeadCount();
   const { theme, toggle } = useTheme();
+  const branding = useBranding();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -60,8 +64,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:flex md:flex-col">
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
-            <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
-            <span>Painel Admin</span>
+            {branding.logo ? (
+              <img src={branding.logo} alt={branding.nome} className="w-8 h-8 rounded-lg object-cover" />
+            ) : (
+              <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
+            )}
+            <span>{branding.nome || "Painel Admin"}</span>
           </Link>
         </div>
         <nav className="space-y-0.5 flex-1">
@@ -91,9 +99,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </SheetTrigger>
         <SheetContent side="left" className="w-64 border-r border-[hsl(var(--border))] px-0 pt-4">
           <div className="px-6 pb-4">
-            <Link to="/admin" className="flex items-center gap-2 font-semibold">
-              <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
-              <span>Painel Admin</span>
+            <Link to="/admin" className="flex items-center gap-2 font-semibold" onClick={() => setOpen(false)}>
+              {branding.logo ? (
+                <img src={branding.logo} alt={branding.nome} className="w-8 h-8 rounded-lg object-cover" />
+              ) : (
+                <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
+              )}
+              <span>{branding.nome || "Painel Admin"}</span>
             </Link>
           </div>
           <nav className="space-y-0.5 flex-1">
@@ -128,7 +140,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
           <div className="flex items-center gap-4">
-            <Input type="search" placeholder="Pesquisar..." className="max-w-xs glass-input border-0" />
+            <GlobalSearch />
             <Button variant="ghost" size="icon" onClick={toggle} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
               {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>

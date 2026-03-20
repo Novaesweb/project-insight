@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, Clock, Video, ExternalLink, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Video, ExternalLink, Filter, Pencil, Trash2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +15,11 @@ import { tipoReuniaoLabels, statusReuniaoLabels, statusReuniaoColors, type Statu
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sendPushToClient } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const emptyForm = { cliente_id: "", tipo: "alinhamento", data: "", hora_inicio: "", hora_fim: "", link: "", observacoes: "" };
 
 interface Reuniao { id: string; cliente_id: string; tipo: string; data: string; hora_inicio: string; hora_fim: string; link?: string; observacoes?: string; status: StatusReuniao; clientes?: { nome: string }; }
 
@@ -28,10 +30,11 @@ export default function Agenda() {
   const [view, setView] = useState<"mensal" | "semanal">("mensal");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [showModal, setShowModal] = useState(false);
+  const [editingReuniao, setEditingReuniao] = useState<Reuniao | null>(null);
   const [reunioes, setReunioes] = useState<Reuniao[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ cliente_id: "", tipo: "alinhamento", data: "", hora_inicio: "", hora_fim: "", link: "", observacoes: "" });
+  const [form, setForm] = useState(emptyForm);
 
   const load = async () => {
     const [r, c] = await Promise.all([
@@ -44,13 +47,33 @@ export default function Agenda() {
 
   useEffect(() => { load(); }, []);
 
+  const openNew = () => {
+    setForm(emptyForm);
+    setEditingReuniao(null);
+    setShowModal(true);
+  };
+
+  const openEdit = (r: Reuniao) => {
+    setForm({
+      cliente_id: r.cliente_id,
+      tipo: r.tipo,
+      data: r.data,
+      hora_inicio: r.hora_inicio,
+      hora_fim: r.hora_fim,
+      link: r.link || "",
+      observacoes: r.observacoes || "",
+    });
+    setEditingReuniao(r);
+    setShowModal(true);
+  };
+
   const handleSave = async () => {
     if (!form.cliente_id || !form.data || !form.hora_inicio || !form.hora_fim) {
       toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("reunioes").insert({
+    const payload = {
       cliente_id: form.cliente_id,
       tipo: form.tipo,
       data: form.data,
@@ -58,12 +81,42 @@ export default function Agenda() {
       hora_fim: form.hora_fim,
       link: form.link || null,
       observacoes: form.observacoes || null,
-    });
-    setSaving(false);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Reunião agendada!" });
+    };
+
+    if (editingReuniao) {
+      const { error } = await supabase.from("reunioes").update(payload).eq("id", editingReuniao.id);
+      setSaving(false);
+      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Reunião atualizada!" });
+    } else {
+      const { error } = await supabase.from("reunioes").insert(payload);
+      setSaving(false);
+      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Reunião agendada!" });
+      // Notificar o cliente
+      const c = clientes.find(cl => cl.id === form.cliente_id);
+      if (c) {
+        sendPushToClient(form.cliente_id, "📅 Nova Reunião Agendada", `${tipoReuniaoLabels[form.tipo as TipoReuniao] || form.tipo} — ${form.data} às ${form.hora_inicio}`, "/cliente/reunioes");
+      }
+    }
     setShowModal(false);
-    setForm({ cliente_id: "", tipo: "alinhamento", data: "", hora_inicio: "", hora_fim: "", link: "", observacoes: "" });
+    setForm(emptyForm);
+    setEditingReuniao(null);
+    load();
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm("Cancelar esta reunião?")) return;
+    const { error } = await supabase.from("reunioes").update({ status: "cancelada" }).eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Reunião cancelada." });
+    load();
+  };
+
+  const handleMarkRealizada = async (id: string) => {
+    const { error } = await supabase.from("reunioes").update({ status: "realizada" }).eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Reunião marcada como realizada!" });
     load();
   };
 
@@ -102,7 +155,7 @@ export default function Agenda() {
             <SelectItem value="cancelada">Cancelada</SelectItem>
           </SelectContent>
         </Select>
-        <Button className="ml-auto gradient-primary border-0 text-white" onClick={() => setShowModal(true)}><Plus className="w-4 h-4 mr-1.5" /> Nova reunião</Button>
+        <Button className="ml-auto gradient-primary border-0 text-white" onClick={openNew}><Plus className="w-4 h-4 mr-1.5" /> Nova reunião</Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -150,15 +203,29 @@ export default function Agenda() {
                 <div className="flex items-center gap-2 text-[11px] text-[hsl(var(--muted-foreground))]"><Clock className="w-3 h-3" />{r.hora_inicio} — {r.hora_fim}</div>
                 <div className="text-[11px] text-[hsl(var(--muted-foreground))]">{tipoReuniaoLabels[r.tipo as TipoReuniao] || r.tipo}</div>
                 {r.link && <a href={r.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-blue-400 hover:underline"><Video className="w-3 h-3" /> Entrar <ExternalLink className="w-3 h-3" /></a>}
+                {/* Ações contextuais */}
+                {r.status !== "cancelada" && r.status !== "realizada" && (
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" variant="ghost" className="h-7 text-[10px] text-white/40 hover:text-white px-2" onClick={() => openEdit(r)}>
+                      <Pencil className="w-3 h-3 mr-1" /> Editar
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-[10px] text-emerald-400/70 hover:text-emerald-400 px-2" onClick={() => handleMarkRealizada(r.id)}>
+                      <CheckCircle2 className="w-3 h-3 mr-1" /> Realizada
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-[10px] text-red-400/70 hover:text-red-400 px-2" onClick={() => handleCancel(r.id)}>
+                      <Trash2 className="w-3 h-3 mr-1" /> Cancelar
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
+      <Dialog open={showModal} onOpenChange={(o) => { setShowModal(o); if (!o) { setEditingReuniao(null); setForm(emptyForm); } }}>
         <DialogContent className="glass-card border-[hsl(var(--border))] text-white max-w-lg">
-          <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingReuniao ? "Editar Reunião" : "Nova Reunião"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cliente *</Label>
@@ -203,7 +270,7 @@ export default function Agenda() {
               <Textarea className="glass-input border-0 text-white min-h-[60px]" value={form.observacoes} onChange={e => setForm({ ...form, observacoes: e.target.value })} />
             </div>
             <Button className="w-full gradient-primary border-0 text-white" onClick={handleSave} disabled={saving}>
-              {saving ? "Salvando..." : "Agendar Reunião"}
+              {saving ? "Salvando..." : editingReuniao ? "Salvar Alterações" : "Agendar Reunião"}
             </Button>
           </div>
         </DialogContent>

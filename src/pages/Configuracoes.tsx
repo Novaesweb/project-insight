@@ -11,6 +11,7 @@ import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Use
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, sendTestNotification, isPushSupported } from "@/lib/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,21 +52,55 @@ export default function Configuracoes() {
   const [pushLoading, setPushLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
   const [subCount, setSubCount] = useState(0);
+  const [integSaving, setIntegSaving] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [integValues, setIntegValues] = useState({
+    whatsapp_webhook: "",
+    pix_key: "",
+    google_analytics_id: "",
+    primary_color: "#e8334a",
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("config_empresa");
-    if (saved) setEmpresa(JSON.parse(saved));
-
     isPushSupported().then(setPushSupported);
     isSubscribed().then(setPushEnabled);
 
     supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
       .then(({ count }) => setSubCount(count || 0));
+
+    // Carregar tudo do Supabase app_config
+    const keys = ["nome", "cnpj", "email", "telefone", "endereco", "logo", "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color"];
+    supabase.from("app_config").select("key, value")
+      .in("key", keys)
+      .then(({ data }) => {
+        if (data) {
+          const newEmpresa = { ...empresa };
+          const newIntegs = { ...integValues };
+          data.forEach(row => {
+            if ((newEmpresa as any)[row.key] !== undefined) (newEmpresa as any)[row.key] = row.value;
+            if ((newIntegs as any)[row.key] !== undefined) (newIntegs as any)[row.key] = row.value;
+          });
+          setEmpresa(newEmpresa);
+          setIntegValues(newIntegs);
+        }
+        setLoading(false);
+      });
   }, []);
 
-  const handleSaveEmpresa = () => {
-    localStorage.setItem("config_empresa", JSON.stringify(empresa));
-    toast({ title: "Dados salvos!", description: "Informações da empresa foram atualizadas." });
+  const handleSaveEmpresa = async () => {
+    setLoading(true);
+    const updates = Object.entries(empresa).map(([key, value]) => ({ key, value }));
+    const { error } = await supabase.from("app_config").upsert(updates, { onConflict: "key" });
+    setLoading(false);
+    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Dados salvos!", description: "Informações da empresa foram sincronizadas no banco de dados." });
+  };
+
+  const handleSaveInteg = async (key: string, value: string) => {
+    setIntegSaving(key);
+    await supabase.from("app_config").upsert({ key, value }, { onConflict: "key" });
+    setIntegSaving(null);
+    toast({ title: "Integração salva!" });
   };
 
   const handleTogglePush = async () => {
@@ -113,6 +148,30 @@ export default function Configuracoes() {
 
     setTestLoading(false);
   };
+
+  const integracoes = [
+    {
+      key: "whatsapp_webhook",
+      nome: "WhatsApp / n8n Webhook",
+      descricao: "URL do webhook n8n para envio de mensagens automáticas via WhatsApp.",
+      placeholder: "https://lucasalencar.app.n8n.cloud/webhook/...",
+      icon: "💬",
+    },
+    {
+      key: "pix_key",
+      nome: "Chave Pix",
+      descricao: "Chave Pix exibida para clientes na tela de faturas para facilitar o pagamento.",
+      placeholder: "CPF, CNPJ, e-mail, celular ou chave aleatória",
+      icon: "💰",
+    },
+    {
+      key: "google_analytics_id",
+      nome: "Google Analytics ID",
+      descricao: "ID de medição do GA4 para rastreamento do site (ex: G-XXXXXXXXXX).",
+      placeholder: "G-XXXXXXXXXX",
+      icon: "📊",
+    },
+  ];
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
@@ -167,23 +226,45 @@ export default function Configuracoes() {
           <TabsContent value="aparencia">
             <Card className="glass-card border-[0.5px]">
               <CardHeader>
-                <CardTitle className="text-sm text-white">Aparência</CardTitle>
-                <CardDescription>Personalize o visual do painel</CardDescription>
+                <CardTitle className="text-sm text-white">Aparência & Identidade</CardTitle>
+                <CardDescription>Personalize o visual e as cores do seu painel</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-white">Tema Escuro</p>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">Ativar tema escuro no painel</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cor Primária</Label>
-                  <div className="flex gap-3">
-                    {["#e8334a", "#c2185b", "#7b1fa2", "#1976d2", "#388e3c"].map((color) => (
-                      <button key={color} className="w-8 h-8 rounded-lg border-2 border-transparent hover:border-white/50 transition-all" style={{ background: color }} />
+                <div className="space-y-3">
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cor Primária do Sistema</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {["#e8334a", "#c2185b", "#7b1fa2", "#1976d2", "#388e3c", "#f59e0b"].map((color) => (
+                      <button 
+                        key={color} 
+                        onClick={() => handleSaveInteg("primary_color", color)}
+                        className={cn(
+                          "w-10 h-10 rounded-xl border-2 transition-all hover:scale-110",
+                          integValues.primary_color === color ? "border-white shadow-lg shadow-white/20" : "border-transparent"
+                        )} 
+                        style={{ background: color }} 
+                      />
                     ))}
+                    <div className="flex items-center gap-2 ml-2">
+                       <Input 
+                         type="color" 
+                         className="w-10 h-10 p-1 bg-white/5 border-white/10 rounded-xl cursor-pointer"
+                         value={integValues.primary_color || "#e8334a"}
+                         onChange={e => setIntegValues(prev => ({ ...prev, primary_color: e.target.value }))}
+                         onBlur={e => handleSaveInteg("primary_color", e.target.value)}
+                       />
+                       <span className="text-[10px] text-white/40 font-monouppercase">{integValues.primary_color || "#e8334a"}</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-white/30 italic">Esta cor será aplicada a botões, links e elementos de destaque em todo o sistema.</p>
+                </div>
+
+                <div className="pt-6 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-white">Tema do Sistema</p>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">Ativar tema escuro/claro (Configuração do navegador)</p>
+                    </div>
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/5">Dark Mode Ativo</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -226,20 +307,36 @@ export default function Configuracoes() {
           <TabsContent value="integracoes">
             <div className="space-y-4">
               {integracoes.map((integ) => (
-                <Card key={integ.nome} className="glass-card border-[0.5px]">
+                <Card key={integ.key} className="glass-card border-[0.5px]">
                   <CardContent className="p-5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xl">{integ.icon}</span>
                       <div>
-                        <p className="text-sm font-medium text-white">{integ.nome}</p>
+                        <p className="text-sm font-semibold text-white">{integ.nome}</p>
                         <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">{integ.descricao}</p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-[10px] font-semibold ${integ.ativo ? "text-emerald-400" : "text-[hsl(var(--muted-foreground))]"}`}>
-                          {integ.ativo ? "Conectado" : "Desconectado"}
-                        </span>
-                        <Switch defaultChecked={integ.ativo} />
-                      </div>
                     </div>
+                    <div className="flex gap-2">
+                      <Input
+                        className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9 flex-1"
+                        placeholder={integ.placeholder}
+                        value={(integValues as any)[integ.key]}
+                        onChange={e => setIntegValues(prev => ({ ...prev, [integ.key]: e.target.value }))}
+                      />
+                      <Button
+                        size="sm"
+                        className="gradient-primary border-0 text-white h-9 px-4 rounded-lg"
+                        onClick={() => handleSaveInteg(integ.key, (integValues as any)[integ.key])}
+                        disabled={integSaving === integ.key}
+                      >
+                        {integSaving === integ.key ? "Salvando..." : "Salvar"}
+                      </Button>
+                    </div>
+                    {(integValues as any)[integ.key] && (
+                      <p className="text-[10px] text-emerald-400 mt-2 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" /> Configurado
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               ))}

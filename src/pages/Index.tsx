@@ -58,9 +58,19 @@ export default function Dashboard() {
       // Count subscriptions
       supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
         .then(({ count }) => setSubCount(count || 0));
+
+      // Fetch Recent Activity (Admin Notifications)
+      const { data: acts } = await supabase.from("notifications")
+        .select("*")
+        .eq("user_type", "admin")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      setActivity(acts || []);
     };
     load();
   }, []);
+
+  const [activity, setActivity] = useState<any[]>([]);
 
   const openAddExtra = async () => {
     const [cli, cat] = await Promise.all([
@@ -234,9 +244,39 @@ export default function Dashboard() {
         </Card>
       </motion.div>
 
-      {/* Tables */}
-      <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-4" variants={fadeUp}>
-        <Card className="glass-card border-[0.5px]">
+      {/* Tables & Activity */}
+      <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-4" variants={fadeUp}>
+        <Card className="glass-card border-[0.5px] lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Atividade Recente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {activity.length === 0 ? (
+              <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-8">Sem atividades recentes</p>
+            ) : (
+              <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary/20 before:via-primary/5 before:to-transparent">
+                {activity.map((act) => (
+                  <div key={act.id} className="relative flex items-center gap-4 group">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
+                       <BellRing className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-white leading-none">{act.title}</h4>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 line-clamp-1">{act.body}</p>
+                      <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter">
+                        {new Date(act.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })} • Just now
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card border-[0.5px] lg:col-span-1">
           <CardHeader><CardTitle className="text-sm font-semibold text-white">Pedidos Recentes</CardTitle></CardHeader>
           <CardContent>
             {pedidos.length === 0 ? (
@@ -246,8 +286,6 @@ export default function Dashboard() {
                 <TableHeader>
                   <TableRow className="border-[rgba(255,255,255,0.06)]">
                     <TableHead className="text-[11px] text-[hsl(var(--muted-foreground))]">Cliente</TableHead>
-                    <TableHead className="text-[11px] text-[hsl(var(--muted-foreground))]">Tipo</TableHead>
-                    <TableHead className="text-[11px] text-[hsl(var(--muted-foreground))]">Valor</TableHead>
                     <TableHead className="text-[11px] text-[hsl(var(--muted-foreground))]">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -255,8 +293,6 @@ export default function Dashboard() {
                   {pedidos.map((p: any) => (
                     <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)]">
                       <TableCell className="text-sm text-white">{p.clientes?.nome || "—"}</TableCell>
-                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.tipo}</TableCell>
-                      <TableCell className="text-sm text-white">R$ {Number(p.valor).toLocaleString("pt-BR")}</TableCell>
                       <TableCell><StatusBadge status={p.status} /></TableCell>
                     </TableRow>
                   ))}
@@ -266,10 +302,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-[0.5px]">
+        <Card className="glass-card border-[0.5px] lg:col-span-1">
           <CardHeader>
             <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
-              <Headphones className="w-4 h-4" /> Tickets de Suporte
+              <Headphones className="w-4 h-4" /> Suporte
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -279,11 +315,10 @@ export default function Dashboard() {
               tickets.map((t: any) => (
                 <div key={t.id} className="flex items-start justify-between p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)]">
                   <div>
-                    <p className="text-sm font-medium text-white">{t.titulo}</p>
+                    <p className="text-sm font-medium text-white line-clamp-1">{t.titulo}</p>
                     <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-0.5">{t.clientes?.nome || "—"}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <StatusBadge status={t.prioridade} />
                     <StatusBadge status={t.status} />
                   </div>
                 </div>

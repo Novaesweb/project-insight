@@ -117,7 +117,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                            size="sm" 
                            className="h-8 gradient-primary border-0 text-[10px] px-3"
                            onClick={async () => {
-                             const { error } = await supabase.from("clientes").update({ site_url: cliente.site_url }).eq("id", clienteId);
+                             const { error } = await supabase.from("clientes").update({ site_url: cliente.site_url } as any).eq("id", clienteId);
                              if (error) toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
                              else toast({ title: "URL do site salva!" });
                            }}
@@ -132,21 +132,56 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                    </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs border-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-white"
+                  className="text-xs border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
                   onClick={() => {
-                    const link = `${window.location.origin}/cliente`;
-                    navigator.clipboard.writeText(link);
-                    toast({ title: "Link copiado!", description: "Compartilhe o link do portal com o cliente." });
+                    const msg = `Olá ${cliente.nome}!\n\nSeu acesso ao Portal do Cliente NovaesWeb está pronto.\n\n🔗 Acesse aqui: ${window.location.origin}/cliente\n📧 E-mail: ${cliente.email}\n🔑 Senha: ${cliente.senha || "(sua senha cadastrada)"}\n\nLá você poderá acompanhar seus projetos, faturas e abrir chamados de suporte.`;
+                    navigator.clipboard.writeText(msg);
+                    toast({ title: "Convite copiado!", description: "A mensagem foi copiada para sua área de transferência." });
                   }}
                 >
-                  <LinkIcon className="w-3 h-3 mr-1" /> Link do Portal
+                  <UserPlus className="w-3 h-3 mr-1" /> Convidar Acesso
                 </Button>
+                <Dialog>
+                   <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-[hsl(var(--muted-foreground))] hover:text-white text-xs">
+                         {cliente.senha ? "Alterar Senha" : "Definir Senha"}
+                      </Button>
+                   </DialogTrigger>
+                   <DialogContent className="glass-card border-white/10 text-white max-w-sm">
+                      <DialogHeader><DialogTitle className="text-white">Acesso do Cliente</DialogTitle></DialogHeader>
+                      <div className="space-y-4 mt-2">
+                         <div className="space-y-1.5">
+                            <Label className="text-xs text-white/50">Nova Senha de Acesso</Label>
+                            <Input 
+                              type="text" 
+                              className="glass-input h-9 text-sm" 
+                              placeholder="Mínimo 6 caracteres"
+                              value={cliente.senha || ""}
+                              onChange={e => setCliente({ ...cliente, senha: e.target.value })}
+                            />
+                         </div>
+                         <Button 
+                           className="w-full gradient-primary border-0"
+                           onClick={async () => {
+                             if (!cliente.senha || cliente.senha.length < 4) {
+                               toast({ title: "Senha muito curta", variant: "destructive" });
+                               return;
+                             }
+                             const { error } = await supabase.from("clientes").update({ senha: cliente.senha } as any).eq("id", clienteId);
+                             if (error) toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+                             else toast({ title: "Senha atualizada!" });
+                           }}
+                         >
+                           Salvar Senha
+                         </Button>
+                      </div>
+                   </DialogContent>
+                </Dialog>
                 <StatusBadge status={cliente.status} />
-              </div>
+
             </div>
           </CardContent>
         </Card>
