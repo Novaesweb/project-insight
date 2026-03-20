@@ -16,8 +16,8 @@ serve(async (req) => {
   try {
     console.log("[Push Function] Initialization started...");
     const vapidPrivateKeyRaw = Deno.env.get("VAPID_PRIVATE_KEY");
-    const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:contato@novaesweb.com.br";
-    const vapidPublicKey = "BJnUoxTYpeAuhr2EhCR2KxQNW_qCA-IXt6yQKMpyZBT6odx_6jwRdiG0tZICJW50LQS-ujmwMgWeoMy28eya64I";
+    const vapidSubject = "mailto:camila.lucas2604@gmail.com";
+    const vapidPublicKey = "BF6pXzgJ2bcUFzQAUEsnkoSGoYaPsDXLuf47QJ2XgzWLVjrWO_LgbDFp4sOHe-q68kXkv3b3w7XAhDFzQKBKEuo";
 
     if (!vapidPrivateKeyRaw) {
       console.error("[Push Function] VAPID_PRIVATE_KEY is missing in Deno.env");
