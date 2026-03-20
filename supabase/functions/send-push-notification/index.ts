@@ -14,15 +14,19 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[Push Function] Initialization started...");
     const vapidPrivateKeyRaw = Deno.env.get("VAPID_PRIVATE_KEY");
     const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:contato@novaesweb.com.br";
     const vapidPublicKey = "BJnUoxTYpeAuhr2EhCR2KxQNW_qCA-IXt6yQKMpyZBT6odx_6jwRdiG0tZICJW50LQS-ujmwMgWeoMy28eya64I";
 
     if (!vapidPrivateKeyRaw) {
+      console.error("[Push Function] VAPID_PRIVATE_KEY is missing in Deno.env");
       return new Response(JSON.stringify({ error: "VAPID_PRIVATE_KEY secret not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("[Push Function] VAPID_PRIVATE_KEY found (length:", vapidPrivateKeyRaw.length, ")");
 
     // Build JWK from raw base64url private key or parse existing JWK
     let privateJWK: JsonWebKey;
