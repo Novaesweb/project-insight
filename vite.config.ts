@@ -18,13 +18,13 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      strategies: "injectManifest",
-      srcDir: "public",
-      filename: "sw.js",
-      injectManifest: {
+      filename: "pwa-sw.js",         // Different filename — never overwrites our sw.js
+      injectRegister: "auto",
+      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
+      workbox: {
+        navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Novaes Web — Painel Administrativo",
         short_name: "Novaes Web",

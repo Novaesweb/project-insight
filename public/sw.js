@@ -1,8 +1,4 @@
 // Service Worker for Push Notifications - NovaesWeb v2
-// Workbox precache manifest injected by VitePWA at build time
-self.__WB_MANIFEST;
-
-
 self.addEventListener('push', function(event) {
   let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-icon-192.png', url: '/' };
 
