@@ -36,9 +36,11 @@ export default function Leads() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [convertModal, setConvertModal] = useState<Lead | null>(null);
-  const [criarAcesso, setCriarAcesso] = useState(false);
+  const [convertForm, setConvertForm] = useState({ senha: "", valor: "" });
+  const [criarAcesso, setCriarAcesso] = useState(true);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
+  const [converting, setConverting] = useState(false);
 
   const fetchLeads = async () => {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
@@ -62,10 +64,53 @@ export default function Leads() {
 
   const handleConvert = async () => {
     if (!convertModal) return;
-    await updateStatus(convertModal, "convertido");
-    toast({ title: "Lead convertido em cliente!", description: criarAcesso ? "Acesso ao portal criado." : undefined });
-    setConvertModal(null);
-    setCriarAcesso(false);
+    setConverting(true);
+    
+    try {
+      // 1. Criar o Cliente
+      const avatar = convertModal.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+      const { data: cliente, error: cliError } = await supabase.from("clientes").insert({
+        nome: convertModal.nome,
+        email: convertModal.email,
+        telefone: convertModal.whatsapp,
+        documento: convertModal.documento,
+        cidade: convertModal.cidade,
+        estado: convertModal.estado,
+        status: "ativo",
+        avatar,
+        senha: criarAcesso ? convertForm.senha : null
+      }).select().single();
+
+      if (cliError) throw cliError;
+
+      // 2. Criar o Pedido Automático (Criação de Site)
+      const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      const { error: pedError } = await supabase.from("pedidos").insert({
+        codigo: codigoPed,
+        cliente_id: cliente.id,
+        tipo: "Criação de Site",
+        valor: Number(convertForm.valor) || 0,
+        data: new Date().toISOString().split("T")[0]
+      });
+
+      if (pedError) throw pedError;
+
+      // 3. Atualizar o Lead
+      await updateStatus(convertModal, "convertido");
+
+      toast({ 
+        title: "Sucesso!", 
+        description: `Lead convertido em cliente. Pedido ${codigoPed} gerado.` 
+      });
+      
+      setConvertModal(null);
+      setConvertForm({ senha: "", valor: "" });
+      setCriarAcesso(true);
+    } catch (error: any) {
+      toast({ title: "Erro na conversão", description: error.message, variant: "destructive" });
+    } finally {
+      setConverting(false);
+    }
   };
 
   const handlePerda = async () => {
@@ -244,17 +289,50 @@ export default function Leads() {
           {convertModal && (
             <div className="space-y-4 mt-2">
               <div className="bg-[rgba(255,255,255,0.04)] p-4 rounded-lg space-y-2">
-                <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))]">Nome:</span> {convertModal.nome}</p>
-                <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))]">E-mail:</span> {convertModal.email}</p>
-                <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))]">WhatsApp:</span> {convertModal.whatsapp}</p>
-                {convertModal.nome_negocio && <p className="text-sm"><span className="text-[hsl(var(--muted-foreground))]">Negócio:</span> {convertModal.nome_negocio}</p>}
+                <p className="text-xs"><span className="text-[hsl(var(--muted-foreground))]">Nome:</span> {convertModal.nome}</p>
+                <p className="text-xs"><span className="text-[hsl(var(--muted-foreground))]">E-mail:</span> {convertModal.email}</p>
+                <p className="text-xs"><span className="text-[hsl(var(--muted-foreground))]">Orçamento:</span> {convertModal.orcamento || "Não informado"}</p>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <Checkbox checked={criarAcesso} onCheckedChange={v => setCriarAcesso(!!v)} />
-                <span className="text-sm">Criar acesso ao portal do cliente agora</span>
-              </label>
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg" onClick={handleConvert}>
-                Confirmar conversão
+
+              <div className="space-y-4 pt-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Valor do Pedido (R$)</Label>
+                  <Input 
+                    type="number" 
+                    className="glass-input h-9 text-sm" 
+                    placeholder="Ex: 2500" 
+                    value={convertForm.valor}
+                    onChange={e => setConvertForm({...convertForm, valor: e.target.value})}
+                  />
+                </div>
+
+                <div className="p-3 rounded-lg bg-[rgba(255,255,255,0.02)] border border-white/5 space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <Checkbox checked={criarAcesso} onCheckedChange={v => setCriarAcesso(!!v)} />
+                    <span className="text-xs text-white">Criar acesso ao portal do cliente</span>
+                  </label>
+                  
+                  {criarAcesso && (
+                    <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                      <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">Senha de Acesso</Label>
+                      <Input 
+                        type="text" 
+                        className="glass-input h-8 text-xs" 
+                        placeholder="Mínimo 6 caracteres" 
+                        value={convertForm.senha}
+                        onChange={e => setConvertForm({...convertForm, senha: e.target.value})}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg mt-2" 
+                onClick={handleConvert}
+                disabled={converting || (criarAcesso && convertForm.senha.length < 6)}
+              >
+                {converting ? "Convertendo..." : "Confirmar Conversão"}
               </Button>
             </div>
           )}
