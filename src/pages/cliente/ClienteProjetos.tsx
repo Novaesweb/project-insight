@@ -11,28 +11,33 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transi
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const etapas = [
-  { label: "Briefing", desc: "Levantamento de requisitos e definição do escopo", icon: CalendarDays },
-  { label: "Desenvolvimento", desc: "Construção e programação do projeto", icon: Clock },
-  { label: "Revisão", desc: "Ajustes finais e aprovação do cliente", icon: Flag },
-  { label: "Entregue", desc: "Projeto finalizado e entregue", icon: CheckCircle2 },
+  { key: "briefing", label: "Briefing & Contrato", desc: "Definição de objetivos e assinatura do projeto", icon: CalendarDays },
+  { key: "design", label: "Design & Branding", desc: "Criação da identidade visual e protótipo", icon: Flag },
+  { key: "desenvolvimento", label: "Desenvolvimento", desc: "Construção do seu site com tecnologias de ponta", icon: Clock },
+  { key: "homologacao", label: "Testes & SEO", desc: "Revisão final, otimização e configuração de buscas", icon: CheckCircle2 },
+  { key: "concluido", label: "Lançamento Oficial", desc: "Site no ar e pronto para receber clientes!", icon: Flag },
 ];
 
-function getEtapaAtual(progresso: number) {
-  if (progresso >= 100) return 3;
-  if (progresso >= 70) return 2;
-  if (progresso >= 20) return 1;
-  return 0;
+function getEtapaAtual(status: string) {
+  const mapping: Record<string, number> = {
+    briefing: 0,
+    design: 1,
+    desenvolvimento: 2,
+    homologacao: 3,
+    concluido: 4,
+  };
+  return mapping[status] ?? 0;
 }
 
-function getEtapaDate(progresso: number, etapaIndex: number, createdAt: string, prazo: string | null) {
-  const etapaAtual = getEtapaAtual(progresso);
+function getEtapaDate(status: string, etapaIndex: number, createdAt: string, prazo: string | null) {
+  const etapaAtual = getEtapaAtual(status);
   if (etapaIndex > etapaAtual) return null;
   if (etapaIndex === 0) return new Date(createdAt);
-  if (etapaIndex === 3 && prazo && progresso >= 100) return new Date(prazo);
+  if (etapaIndex === 4 && prazo && getEtapaAtual(status) >= 4) return new Date(prazo);
   // Estimate intermediate dates
   const start = new Date(createdAt).getTime();
   const end = prazo ? new Date(prazo).getTime() : start + 30 * 24 * 60 * 60 * 1000;
-  const fraction = etapaIndex / 3;
+  const fraction = etapaIndex / 4;
   return new Date(start + (end - start) * fraction);
 }
 
@@ -64,7 +69,7 @@ export default function ClienteProjetos() {
 
   if (selected) {
     const progresso = selected.progresso || 0;
-    const etapaAtual = getEtapaAtual(progresso);
+    const etapaAtual = getEtapaAtual(selected.status);
 
     return (
       <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
@@ -110,7 +115,7 @@ export default function ClienteProjetos() {
                   const isCompleted = i < etapaAtual;
                   const isCurrent = i === etapaAtual;
                   const isPending = i > etapaAtual;
-                  const date = getEtapaDate(progresso, i, selected.created_at, selected.prazo);
+                  const date = getEtapaDate(selected.status, i, selected.created_at, selected.prazo);
                   const Icon = etapa.icon;
 
                   return (
@@ -277,7 +282,7 @@ export default function ClienteProjetos() {
       <div className="space-y-3">
         {projetos.map((p, i) => {
           const progresso = p.progresso || 0;
-          const etapaAtual = getEtapaAtual(progresso);
+          const etapaAtual = getEtapaAtual(p.status);
           return (
             <motion.div key={p.id} variants={fadeUp}>
               <Card

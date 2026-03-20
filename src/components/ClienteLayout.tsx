@@ -17,6 +17,7 @@ const menuItems = [
   { label: "Contratos", icon: FileText, path: "/cliente/contratos" },
   { label: "Faturas", icon: Receipt, path: "/cliente/faturas" },
   { label: "Reuniões", icon: CalendarDays, path: "/cliente/reunioes" },
+  { label: "Arquivos", icon: FileText, path: "/cliente/arquivos" },
   { label: "Suporte", icon: Headphones, path: "/cliente/suporte" },
   { label: "Meus Dados", icon: User, path: "/cliente/dados" },
 ];
