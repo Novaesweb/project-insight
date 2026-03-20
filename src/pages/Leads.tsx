@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, UserPlus, Phone, Eye, MessageCircle, X, CheckCircle, Clock, XCircle, Users } from "lucide-react";
+import { Search, UserPlus, Phone, Eye, MessageCircle, X, CheckCircle, Clock, XCircle, Users, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -116,8 +116,19 @@ export default function Leads() {
   const handlePerda = async () => {
     if (!perdaModal) return;
     await updateStatus(perdaModal, "perdido", { motivo_perda: motivoPerda });
-    setPerdaModal(null);
     setMotivoPerda("");
+  };
+
+  const handleDelete = async (leadId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.")) return;
+    const { error } = await supabase.from("leads").delete().eq("id", leadId);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Lead excluído com sucesso!" });
+      setSelectedLead(null);
+      fetchLeads();
+    }
   };
 
   const filtrados = leads.filter(l => {
@@ -270,6 +281,10 @@ export default function Leads() {
                       <XCircle className="w-4 h-4" /> Marcar como perdido
                     </Button>
                   )}
+                  <Button variant="ghost" className="w-full text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-lg gap-2 mt-2"
+                    onClick={() => handleDelete(selectedLead.id)}>
+                    <Trash2 className="w-4 h-4" /> Excluir Lead
+                  </Button>
                   <a href={`https://wa.me/${selectedLead.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="block">
                     <Button className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-lg gap-2">
                       <MessageCircle className="w-4 h-4" /> Abrir WhatsApp
