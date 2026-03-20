@@ -1,22 +1,117 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FileText, Image as ImageIcon, CheckCircle2, Circle, Upload, Info } from "lucide-react";
+import { FileText, Image as ImageIcon, CheckCircle2, Circle, Upload, Info, Download, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const assetsRequired = [
-  { id: 1, label: "Logotipo da Empresa", desc: "Preferencialmente em vetor (AI, EPS, SVG) ou fundo transparente (PNG).", icon: FileText, status: "recebido" },
-  { id: 2, label: "Fotos do Estabelecimento", desc: "Fotos de alta qualidade da fachada e interior para a galeria.", icon: ImageIcon, status: "pendente" },
-  { id: 3, label: "Textos das Páginas", desc: "Conteúdo institucional, descrição de serviços e história da marca.", icon: FileText, status: "pendente" },
-  { id: 4, label: "Paleta de Cores Preferida", desc: "Referência de cores que deseja utilizar no layout.", icon: ImageIcon, status: "recebido" },
+  { key: "logo", label: "Logotipo da Empresa", desc: "Preferencialmente em vetor (AI, EPS, SVG) ou fundo transparente (PNG).", icon: FileText },
+  { key: "fotos", label: "Fotos do Estabelecimento", desc: "Fotos de alta qualidade da fachada e interior para a galeria.", icon: ImageIcon },
+  { key: "textos", label: "Textos das Páginas", desc: "Conteúdo institucional, descrição de serviços e história da marca.", icon: FileText },
+  { key: "cores", label: "Paleta de Cores Preferida", desc: "Referência de cores que deseja utilizar no layout.", icon: ImageIcon },
 ];
 
 export default function ClienteArquivos() {
-  const [assets, setAssets] = useState(assetsRequired);
+  const { toast } = useToast();
+  const [projeto, setProjeto] = useState<any>(null);
+  const [arquivos, setArquivos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const loadData = async () => {
+    try {
+      const userStr = localStorage.getItem("cliente_user");
+      if (!userStr) return;
+      const user = JSON.parse(userStr);
+
+      // 1. Pegar o projeto ativo do cliente
+      const { data: proj, error: projError } = await supabase
+        .from("projetos")
+        .select("*")
+        .eq("cliente_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (projError && projError.code !== "PGRST116") throw projError;
+      setProjeto(proj);
+
+      if (proj) {
+        // 2. Pegar os arquivos do projeto
+        const { data: files, error: filesError } = await supabase
+          .from("projeto_arquivos")
+          .select("*")
+          .eq("projeto_id", proj.id);
+        
+        if (filesError) throw filesError;
+        setArquivos(files || []);
+      }
+    } catch (error: any) {
+      console.error("Erro ao carregar arquivos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const file = e.target.files?.[0];
+    if (!file || !projeto) return;
+
+    setUploading(key);
+    try {
+      const extension = file.name.split(".").pop();
+      const fileName = `${projeto.id}/${key}-${Date.now()}.${extension}`;
+      
+      // 1. Upload para Storage
+      const { error: storageError } = await supabase.storage
+        .from("projeto-arquivos")
+        .upload(fileName, file);
+
+      if (storageError) throw storageError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("projeto-arquivos")
+        .getPublicUrl(fileName);
+
+      // 2. Salvar metadados no DB
+      const { error: dbError } = await supabase.from("projeto_arquivos").insert({
+        projeto_id: projeto.id,
+        nome: file.name,
+        url: publicUrl,
+        tipo: key,
+        tamanho: file.size,
+        enviado_por: "cliente"
+      });
+
+      if (dbError) throw dbError;
+
+      toast({ title: "Arquivo enviado!", description: "O material já está disponível para a equipe." });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro no envio", description: error.message, variant: "destructive" });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const getStatus = (key: string) => {
+    return arquivos.some(a => a.tipo === key) ? 'recebido' : 'pendente';
+  };
+
+  if (loading) return <div className="flex items-center justify-center min-h-[400px] text-white">Carregando arquivos...</div>;
+  if (!projeto) return <div className="flex items-center justify-center min-h-[400px] text-white">Nenhum projeto ativo encontrado.</div>;
+
+  const recebidos = assetsRequired.filter(a => getStatus(a.key) === 'recebido').length;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6 ambient-glow min-h-screen pb-10">
@@ -26,47 +121,78 @@ export default function ClienteArquivos() {
           <p className="text-sm text-white/50">Gerencie os materiais necessários para a criação do seu site.</p>
         </div>
         <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary px-3 py-1 font-bold">
-          2 de {assets.length} Recebidos
+          {recebidos} de {assetsRequired.length} Recebidos
         </Badge>
       </motion.div>
 
       <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {assets.map((asset) => (
-          <Card key={asset.id} className="glass-card border-white/5 overflow-hidden group hover:border-white/10 transition-all">
-            <CardContent className="p-5 flex flex-col h-full">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform">
-                  <asset.icon className={`w-6 h-6 ${asset.status === 'recebido' ? 'text-emerald-400' : 'text-white/40'}`} />
+        {assetsRequired.map((asset) => {
+          const status = getStatus(asset.key);
+          const fileData = arquivos.find(a => a.tipo === asset.key);
+
+          return (
+            <Card key={asset.key} className="glass-card border-white/5 overflow-hidden group hover:border-white/10 transition-all">
+              <CardContent className="p-5 flex flex-col h-full">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform">
+                    <asset.icon className={`w-6 h-6 ${status === 'recebido' ? 'text-emerald-400' : 'text-white/40'}`} />
+                  </div>
+                  {status === 'recebido' ? (
+                    <Badge className="bg-emerald-500/10 text-emerald-400 border-0 flex items-center gap-1 text-[10px] uppercase font-bold">
+                      <CheckCircle2 className="w-3 h-3" /> Recebido
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/5 flex items-center gap-1 text-[10px] uppercase font-bold">
+                      <Circle className="w-3 h-3" /> Pendente
+                    </Badge>
+                  )}
                 </div>
-                {asset.status === 'recebido' ? (
-                  <Badge className="bg-emerald-500/10 text-emerald-400 border-0 flex items-center gap-1 text-[10px] uppercase font-bold">
-                    <CheckCircle2 className="w-3 h-3" /> Recebido
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/5 flex items-center gap-1 text-[10px] uppercase font-bold">
-                    <Circle className="w-3 h-3" /> Pendente
-                  </Badge>
-                )}
-              </div>
 
-              <div className="flex-1">
-                <h3 className="text-sm font-bold text-white mb-1">{asset.label}</h3>
-                <p className="text-[11px] text-white/40 leading-relaxed mb-6">{asset.desc}</p>
-              </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-white mb-1">{asset.label}</h3>
+                  <p className="text-[11px] text-white/40 leading-relaxed mb-6">{asset.desc}</p>
+                </div>
 
-              <div className="flex gap-2 mt-auto">
-                <Button variant="outline" className="flex-1 h-9 text-xs rounded-xl border-white/5 bg-white/5 hover:bg-white/10 text-white">
-                  {asset.status === 'recebido' ? 'Ver Arquivo' : 'Instruções'}
-                </Button>
-                {asset.status === 'pendente' && (
-                  <Button className="flex-1 h-9 text-xs rounded-xl gradient-primary text-white border-0 shadow-lg shadow-primary/20 hover:shadow-primary/40">
-                    <Upload className="w-3.5 h-3.5 mr-2" /> Enviar
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="flex gap-2 mt-auto">
+                  {status === 'recebido' ? (
+                    <Button 
+                      asChild
+                      variant="outline" 
+                      className="flex-1 h-9 text-xs rounded-xl border-white/5 bg-white/5 hover:bg-white/10 text-white"
+                    >
+                      <a href={fileData?.url} target="_blank" rel="noopener noreferrer">
+                        <Download className="w-3.5 h-3.5 mr-2 text-white/50" /> Ver/Baixar {fileData?.nome.slice(-10)}
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" className="flex-1 h-9 text-xs rounded-xl border-white/5 bg-primary/5 text-primary-foreground pointer-events-none">
+                      Aguardando Material
+                    </Button>
+                  )}
+                  
+                  <div className="flex-1 relative">
+                    <input 
+                      type="file" 
+                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                      onChange={(e) => handleUpload(e, asset.key)}
+                      disabled={!!uploading}
+                    />
+                    <Button 
+                      className={`w-full h-9 text-xs rounded-xl ${status === 'recebido' ? 'bg-white/5 hover:bg-white/10 text-white' : 'gradient-primary text-white'} border-0 shadow-lg`}
+                      disabled={!!uploading}
+                    >
+                      {uploading === asset.key ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <><Upload className="w-3.5 h-3.5 mr-2" /> {status === 'recebido' ? 'Substituir' : 'Enviar'}</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </motion.div>
 
       <motion.div variants={fadeUp}>
