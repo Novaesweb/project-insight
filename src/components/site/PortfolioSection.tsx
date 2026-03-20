@@ -14,6 +14,7 @@ const demos = [
     label: "🍕 Restaurante",
     nome: "Pizzaria Novaes",
     img: pizzariaDemo,
+    link: "https://pizzarianovaes.vercel.app/",
     descricao: "Site completo com cardápio digital, pedidos online e integração com WhatsApp. Seus clientes fazem pedidos sem sair do site.",
     recursos: ["Cardápio digital interativo", "Pedidos pelo WhatsApp", "Galeria de pratos", "Horário de funcionamento"],
     prazo: "até 5 dias",
@@ -24,6 +25,7 @@ const demos = [
     label: "✂️ Barbearia / Salão",
     nome: "Barbearia Urban",
     img: barbeariaDemo,
+    link: "https://barber00.vercel.app/",
     descricao: "Site moderno com agendamento online integrado. Seus clientes marcam horário 24h por dia, sem precisar ligar.",
     recursos: ["Agendamento online", "Galeria de cortes", "Equipe de profissionais", "Avaliações de clientes"],
     prazo: "até 5 dias",
@@ -34,6 +36,7 @@ const demos = [
     label: "🛍️ Loja / E-commerce",
     nome: "Açaí Premium",
     img: acaiDemo,
+    link: "https://demoacai.vercel.app/",
     descricao: "Loja virtual completa com catálogo, carrinho, checkout e pagamentos integrados (Pix, cartão, boleto).",
     recursos: ["Catálogo de produtos", "Carrinho de compras", "Pagamento online", "Controle de estoque"],
     prazo: "até 7 dias",
@@ -44,6 +47,7 @@ const demos = [
     label: "🍝 Alimentação",
     nome: "Bella Massa",
     img: bellaMassaDemo,
+    link: "https://bellamassa0.vercel.app/",
     descricao: "Site elegante para restaurantes com reservas online, cardápio interativo e integração com delivery.",
     recursos: ["Reserva de mesas", "Cardápio online", "Delivery integrado", "Programa de fidelidade"],
     prazo: "até 5 dias",
@@ -117,13 +121,18 @@ export default function PortfolioSection() {
             className="grid lg:grid-cols-2 gap-10 items-center"
           >
             {/* Browser mockup */}
-            <div className="group relative">
+            <a 
+              href={demo.link} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="group relative block"
+            >
               {/* Tag badge */}
-              <div className="absolute -top-3 -right-3 z-10 px-3 py-1 rounded-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-[10px] font-bold shadow-lg shadow-red-500/30">
+              <div className="absolute -top-3 -right-3 z-10 px-3 py-1 rounded-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-[10px] font-bold shadow-lg shadow-red-500/30 transition-transform group-hover:scale-110">
                 {demo.tag}
               </div>
 
-              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50 group-hover:border-white/20 transition-all group-hover:-translate-y-1 duration-500">
+              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50 group-hover:border-red-500/30 transition-all group-hover:-translate-y-1 duration-500">
                 {/* Browser chrome */}
                 <div className="flex items-center gap-2 px-4 py-3 bg-white/6 border-b border-white/8">
                   <div className="flex gap-1.5">
@@ -134,10 +143,10 @@ export default function PortfolioSection() {
                   <div className="flex-1 mx-3 h-6 rounded-md bg-white/6 flex items-center px-3 gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500/60" />
                     <span className="text-[10px] text-white/30 truncate">
-                      seu-negocio.novaesweb.com.br
+                      {demo.link.replace("https://", "").replace("/", "")}
                     </span>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-white/20" />
+                  <ExternalLink className="w-3.5 h-3.5 text-white/40 group-hover:text-red-400 transition-colors" />
                 </div>
                 {/* Screenshot */}
                 <div className="relative overflow-hidden h-72">
@@ -146,15 +155,21 @@ export default function PortfolioSection() {
                     alt={demo.nome}
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                   />
+                  {/* Hover overlay indicator */}
+                  <div className="absolute inset-0 bg-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-semibold flex items-center gap-2">
+                       Acessar demonstração <ExternalLink className="w-3 h-3" />
+                    </div>
+                  </div>
                   {/* Gradient overlay at bottom */}
                   <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-4 left-4 flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-xs text-white/80 font-medium">Site no ar — demo ao vivo</span>
+                    <span className="text-xs text-white/80 font-medium">Site no ar — Ver demonstração</span>
                   </div>
                 </div>
               </div>
-            </div>
+            </a>
 
             {/* Info panel */}
             <div className="space-y-6">
@@ -200,13 +215,13 @@ export default function PortfolioSection() {
                   </Button>
                 </Link>
                 <a
-                  href="https://wa.me/5551981964238?text=Olá! Vi o modelo de site e quero um igual para meu negócio!"
+                  href={demo.link}
                   target="_blank" rel="noopener noreferrer"
                   className="flex-1"
                 >
-                  <Button variant="outline" className="w-full h-12 rounded-xl border-white/15 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 gap-2">
-                    <ChevronRight className="w-4 h-4" />
-                    Falar no WhatsApp
+                  <Button variant="outline" className="w-full h-12 rounded-xl border-white/15 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 gap-2 group">
+                    <ExternalLink className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    Ver site ao vivo
                   </Button>
                 </a>
               </div>
