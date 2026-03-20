@@ -248,48 +248,16 @@ export default function Projetos() {
   const { toast } = useToast();
   const [view, setView] = useState<"lista" | "kanban">("kanban");
   const [projetos, setProjetos] = useState<any[]>([]);
-  const [clientes, setClientes] = useState<any[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [selectedProjeto, setSelectedProjeto] = useState<string | null>(null);
-  const [form, setForm] = useState({ titulo: "", descricao: "", cliente_id: "", responsavel: "", valor: "", prazo: "", inicio: "" });
 
   const load = async () => {
-    const [p, c] = await Promise.all([
+    const [p] = await Promise.all([
       supabase.from("projetos").select("*, clientes(nome)").order("created_at", { ascending: false }),
-      supabase.from("clientes").select("id, nome").eq("status", "ativo"),
     ]);
     setProjetos(p.data || []);
-    setClientes(c.data || []);
   };
 
   useEffect(() => { load(); }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    const { error } = await supabase.from("projetos").insert({
-      titulo: form.titulo,
-      descricao: form.descricao || null,
-      cliente_id: form.cliente_id || null,
-      responsavel: form.responsavel || null,
-      valor: Number(form.valor) || 0,
-      prazo: form.prazo || null,
-      inicio: form.inicio || null,
-      status: "briefing",
-      progresso: 20,
-    });
-    if (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Projeto criado!" });
-      if (form.cliente_id) sendPushToClient(form.cliente_id, "📋 Novo Projeto", `O projeto "${form.titulo}" foi criado.`, "/cliente/projetos");
-      setForm({ titulo: "", descricao: "", cliente_id: "", responsavel: "", valor: "", prazo: "", inicio: "" });
-      setDialogOpen(false);
-      load();
-    }
-    setSaving(false);
-  };
 
   if (selectedProjeto) {
     return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => { setSelectedProjeto(null); load(); }} />;
@@ -302,55 +270,6 @@ export default function Projetos() {
           <Button variant="ghost" size="sm" className={view === "lista" ? "gradient-primary text-white border-0" : "text-[hsl(var(--muted-foreground))]"} onClick={() => setView("lista")}><List className="w-4 h-4" /></Button>
           <Button variant="ghost" size="sm" className={view === "kanban" ? "gradient-primary text-white border-0" : "text-[hsl(var(--muted-foreground))]"} onClick={() => setView("kanban")}><LayoutGrid className="w-4 h-4" /></Button>
         </div>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Projeto</Button>
-          </DialogTrigger>
-          <DialogContent className="glass-card border-[0.5px] text-[hsl(var(--foreground))]">
-            <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Título *</Label>
-                <Input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} required className="glass-input border-[0.5px] mt-1" />
-              </div>
-              <div>
-                <Label className="text-xs text-[hsl(var(--muted-foreground))]">Descrição</Label>
-                <Textarea value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})} className="glass-input border-[0.5px] mt-1" rows={3} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cliente</Label>
-                  <Select value={form.cliente_id} onValueChange={v => setForm({...form, cliente_id: v})}>
-                    <SelectTrigger className="glass-input border-[0.5px] mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Responsável</Label>
-                  <Input value={form.responsavel} onChange={e => setForm({...form, responsavel: e.target.value})} className="glass-input border-[0.5px] mt-1" />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Valor (R$)</Label>
-                  <Input type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})} className="glass-input border-[0.5px] mt-1" />
-                </div>
-                <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Início</Label>
-                  <Input type="date" value={form.inicio} onChange={e => setForm({...form, inicio: e.target.value})} className="glass-input border-[0.5px] mt-1" />
-                </div>
-                <div>
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Prazo</Label>
-                  <Input type="date" value={form.prazo} onChange={e => setForm({...form, prazo: e.target.value})} className="glass-input border-[0.5px] mt-1" />
-                </div>
-              </div>
-              <Button type="submit" disabled={saving} className="w-full gradient-primary border-0 text-white">
-                {saving ? "Salvando..." : "Criar Projeto"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </motion.div>
 
       {view === "kanban" ? (
