@@ -56,10 +56,26 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   useEffect(() => { loadProjeto(); loadAtualizacoes(); }, [projetoId]);
 
   const updateStatus = async (newStatus: string) => {
-    const { error } = await supabase.from("projetos").update({ status: newStatus }).eq("id", projetoId);
+    const progressMap: Record<string, number> = {
+      briefing: 20,
+      design: 40,
+      desenvolvimento: 60,
+      homologacao: 85,
+      concluido: 100,
+      cancelado: 0
+    };
+
+    const newProgress = progressMap[newStatus] ?? projeto.progresso;
+    
+    const { error } = await supabase.from("projetos").update({ 
+      status: newStatus,
+      progresso: newProgress
+    }).eq("id", projetoId);
+
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    setProjeto((prev: any) => ({ ...prev, status: newStatus }));
-    toast({ title: "Status atualizado!" });
+    
+    setProjeto((prev: any) => ({ ...prev, status: newStatus, progresso: newProgress }));
+    toast({ title: "Status e progresso atualizados!" });
   };
 
   const handleProgressChange = (value: number[]) => {
@@ -261,6 +277,7 @@ export default function Projetos() {
       prazo: form.prazo || null,
       inicio: form.inicio || null,
       status: "briefing",
+      progresso: 20,
     });
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

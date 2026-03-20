@@ -58,6 +58,41 @@ export default function Pedidos() {
     }
     setSaving(false);
   };
+ 
+  const iniciarProjeto = async (pedido: any) => {
+    if (pedido.projeto_id) return;
+    
+    setSaving(true);
+    // 1. Criar o projeto
+    const { data: novoProjeto, error: errorProj } = await supabase.from("projetos").insert({
+      titulo: `Projeto: ${pedido.tipo.toUpperCase()} - ${pedido.clientes?.nome}`,
+      descricao: `Projeto gerado a partir do pedido ${pedido.codigo}`,
+      cliente_id: pedido.cliente_id,
+      valor: pedido.valor,
+      status: "briefing",
+      progresso: 20
+    }).select().single();
+
+    if (errorProj) {
+      toast({ title: "Erro ao criar projeto", description: errorProj.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+
+    // 2. Vincular o projeto ao pedido
+    const { error: errorPed } = await supabase.from("pedidos").update({
+      projeto_id: novoProjeto.id,
+      status: "entregue"
+    }).eq("id", pedido.id);
+
+    if (errorPed) {
+      toast({ title: "Erro ao vincular projeto", description: errorPed.message, variant: "destructive" });
+    } else {
+      toast({ title: "Projeto iniciado com sucesso!" });
+      load();
+    }
+    setSaving(false);
+  };
 
   const filtrados = filtro === "todos" ? pedidos : pedidos.filter(p => p.status === filtro);
 
@@ -135,7 +170,7 @@ export default function Pedidos() {
             <Table>
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Nº Pedido", "Cliente", "Tipo", "Valor", "Data", "Status"].map((h) => (
+                  {["Nº Pedido", "Cliente", "Tipo", "Valor", "Data", "Status", "Ações"].map((h) => (
                     <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
                   ))}
                 </TableRow>
@@ -151,6 +186,23 @@ export default function Pedidos() {
                     <TableCell className="text-sm text-white">R$ {Number(p.valor).toLocaleString("pt-BR")}</TableCell>
                     <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.data ? new Date(p.data).toLocaleDateString("pt-BR") : "—"}</TableCell>
                     <TableCell><StatusBadge status={p.status} /></TableCell>
+                    <TableCell>
+                      {p.projeto_id ? (
+                        <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 h-7 text-[10px]" onClick={() => window.location.href = `/admin/projetos`}>
+                          Ver Projeto
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 text-[10px] border-primary/20 text-primary hover:bg-primary/10" 
+                          disabled={saving}
+                          onClick={() => iniciarProjeto(p)}
+                        >
+                          Iniciar Projeto
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
