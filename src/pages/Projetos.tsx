@@ -19,15 +19,20 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 const kanbanColumns = [
-  { key: "em_aberto", label: "Em aberto", color: "border-amber-500/50" },
-  { key: "em_andamento", label: "Em andamento", color: "border-blue-500/50" },
-  { key: "em_revisao", label: "Em revisão", color: "border-violet-500/50" },
-  { key: "concluido", label: "Concluído", color: "border-emerald-500/50" },
-  { key: "cancelado", label: "Cancelado", color: "border-red-500/50" },
+  { key: "briefing", label: "📋 Briefing", color: "border-blue-500/50" },
+  { key: "design", label: "🎨 Design & Branding", color: "border-purple-500/50" },
+  { key: "desenvolvimento", label: "💻 Desenvolvimento", color: "border-amber-500/50" },
+  { key: "homologacao", label: "🧪 Testes & SEO", color: "border-violet-500/50" },
+  { key: "concluido", label: "🚀 Finalizado", color: "border-emerald-500/50" },
 ];
 
 const statusLabels: Record<string, string> = {
-  em_aberto: "Em aberto", em_andamento: "Em andamento", em_revisao: "Em revisão", concluido: "Concluído", cancelado: "Cancelado",
+  briefing: "Briefing",
+  design: "Design & Branding",
+  desenvolvimento: "Desenvolvimento",
+  homologacao: "Testes & SEO",
+  concluido: "Finalizado",
+  cancelado: "Cancelado",
 };
 
 function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () => void }) {
@@ -255,6 +260,7 @@ export default function Projetos() {
       valor: Number(form.valor) || 0,
       prazo: form.prazo || null,
       inicio: form.inicio || null,
+      status: "briefing",
     });
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -340,33 +346,56 @@ export default function Projetos() {
                   <span className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">{col.label}</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full glass-card text-[hsl(var(--muted-foreground))]">{items.length}</span>
                 </div>
-                {items.map((p) => (
-                  <Card key={p.id} className="glass-card border-[0.5px] hover:border-[rgba(255,255,255,0.15)] transition-all cursor-pointer" onClick={() => setSelectedProjeto(p.id)}>
-                    <CardContent className="p-4 space-y-3">
-                      <p className="font-semibold text-sm text-white">{p.titulo}</p>
-                      <p className="text-[11px] text-[hsl(var(--muted-foreground))] line-clamp-2">{p.descricao}</p>
-                      {/* Progress bar */}
-                      <div>
-                        <div className="flex justify-between text-[10px] text-[hsl(var(--muted-foreground))] mb-1">
-                          <span>Progresso</span>
-                          <span className="gradient-text font-semibold">{p.progresso}%</span>
+                {items.map((p) => {
+                  const isRestaurante = p.titulo.toLowerCase().includes("pizza") || p.descricao?.toLowerCase().includes("pizzaria") || p.descricao?.toLowerCase().includes("restaurante");
+                  const isBarbearia = p.titulo.toLowerCase().includes("barber") || p.titulo.toLowerCase().includes("barbearia") || p.descricao?.toLowerCase().includes("salao");
+                  const isLoja = p.titulo.toLowerCase().includes("loja") || p.titulo.toLowerCase().includes("acai") || p.descricao?.toLowerCase().includes("ecommerce");
+                  
+                  return (
+                    <Card key={p.id} className="glass-card border-white/5 hover:border-primary/30 transition-all cursor-pointer group info-card-hover" onClick={() => setSelectedProjeto(p.id)}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="font-bold text-sm text-white group-hover:text-primary transition-colors leading-snug">{p.titulo}</p>
+                          <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white/40 group-hover:text-primary group-hover:border-primary/20 transition-all">
+                            {isRestaurante ? "🍕" : isBarbearia ? "✂️" : isLoja ? "🛍️" : "🎨"}
+                          </div>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-[rgba(255,255,255,0.06)]">
-                          <div className="h-full rounded-full gradient-primary transition-all" style={{ width: `${p.progresso}%` }} />
+                        <p className="text-[11px] text-[hsl(var(--muted-foreground))] line-clamp-2 leading-relaxed">{p.descricao || "Sem descrição disponível para este projeto."}</p>
+                        
+                        {/* Progress bar Premium */}
+                        <div className="pt-1">
+                          <div className="flex justify-between text-[10px] text-[hsl(var(--muted-foreground))] mb-1.5">
+                            <span className="font-medium">Progresso</span>
+                            <span className="text-primary font-bold">{p.progresso}%</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-white/5 border border-white/5 overflow-hidden">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${p.progresso}%` }}
+                              className="h-full rounded-full gradient-primary shadow-[0_0_10px_rgba(232,51,74,0.3)]"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-[hsl(var(--muted-foreground))]">
-                        <User className="w-3 h-3" /> {p.clientes?.nome || "—"}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-[11px] text-[hsl(var(--muted-foreground))]">
-                          <Calendar className="w-3 h-3" /> {p.prazo ? new Date(p.prazo).toLocaleDateString("pt-BR") : "—"}
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+                          <div className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]">
+                            <User className="w-3 h-3 text-blue-400" /> {p.clientes?.nome || "—"}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]">
+                            <Calendar className="w-3 h-3 text-amber-400" /> {p.prazo ? new Date(p.prazo).toLocaleDateString("pt-BR") : "—"}
+                          </div>
                         </div>
-                        <span className="text-xs font-semibold gradient-text">R$ {(Number(p.valor) / 1000).toFixed(0)}k</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        
+                        <div className="flex items-center justify-between pt-1 border-t border-white/5 mt-1">
+                          <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                            R$ {(Number(p.valor)).toLocaleString("pt-BR")}
+                          </div>
+                          <ArrowLeft className="w-3 h-3 text-white/20 rotate-180" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
                 {items.length === 0 && (
                   <div className="border border-dashed border-[rgba(255,255,255,0.08)] rounded-xl p-8 text-center text-[11px] text-[hsl(var(--muted-foreground))]">Nenhum projeto</div>
                 )}

@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "react-router-dom";
-import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus, Sparkles, Calendar, BellRing } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus, Sparkles, Calendar, BellRing, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -104,24 +105,39 @@ export default function Dashboard() {
   const selectedExtra = catalogo.find(c => c.id === extraSel);
 
   return (
-    <motion.div className="space-y-6" initial="hidden" animate="show" variants={stagger}>
+    <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
+      {/* Header Premium */}
+      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            Dashboard <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/10">v2.4.8 Premium</Badge>
+          </h1>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">Bem-vindo de volta! Aqui está o resumo do seu negócio hoje.</p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-white/50">
+          <Clock className="w-3.5 h-3.5 text-emerald-400" />
+          Sistema Operacional • {new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </motion.div>
+
       {/* KPIs */}
       <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" variants={fadeUp}>
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className="glass-card border-[0.5px] overflow-hidden">
-            <CardContent className="p-5">
+          <Card key={kpi.label} className="glass-card border-white/5 overflow-hidden info-card-hover group relative">
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-10 blur-[40px] transition-opacity duration-500`} />
+            <CardContent className="p-5 relative z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))] font-medium">{kpi.label}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{kpi.value}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-semibold">{kpi.label}</p>
+                  <p className="text-3xl font-bold text-white mt-1.5 tracking-tight">{kpi.value}</p>
                   {kpi.change && (
-                    <p className={`text-xs mt-1 flex items-center gap-1 ${kpi.alert ? "text-amber-400" : "text-emerald-400"}`}>
+                    <p className={`text-[11px] mt-2 flex items-center gap-1 font-medium ${kpi.alert ? "text-amber-400" : "text-emerald-400"}`}>
                       {kpi.alert ? <AlertTriangle className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
                       {kpi.change}
                     </p>
                   )}
                 </div>
-                <div className={`p-2.5 rounded-xl bg-gradient-to-br ${kpi.color} shadow-lg`}>
+                <div className={`p-3 rounded-2xl bg-gradient-to-br ${kpi.color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform duration-500`}>
                   <kpi.icon className="w-5 h-5 text-white" />
                 </div>
               </div>
@@ -132,40 +148,46 @@ export default function Dashboard() {
 
 
       {/* Quick Actions Premium */}
-      <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
-        <Button className="h-14 px-6 rounded-2xl gradient-primary text-white shadow-xl shadow-[hsl(var(--primary))]/20 hover:shadow-[hsl(var(--primary))]/40 hover:-translate-y-1 transition-all duration-300 text-sm font-semibold border-0" onClick={openAddExtra}>
-          <Plus className="w-4 h-4 mr-2" /> Adicionar Extra
-        </Button>
-        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Link to="/admin/clientes">
-            <Users className="w-4 h-4 mr-2 text-blue-400" /> Novo Cliente
-          </Link>
-        </Button>
-        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Link to="/admin/financeiro">
-            <DollarSign className="w-4 h-4 mr-2 text-emerald-400" /> Nova Fatura
-          </Link>
-        </Button>
-        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Link to="/admin/projetos">
-            <FolderKanban className="w-4 h-4 mr-2 text-amber-400" /> Novo Projeto
-          </Link>
-        </Button>
-        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Link to="/admin/agenda">
-            <Calendar className="w-4 h-4 mr-2 text-red-400" /> Nova Reunião
-          </Link>
-        </Button>
-        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Link to="/admin/leads">
-            <Sparkles className="w-4 h-4 mr-2 text-purple-400" /> Capturar Leads
-          </Link>
-        </Button>
-        <Button asChild className="h-14 px-6 rounded-2xl bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.08)] shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
-          <Link to="/admin/suporte">
-            <Headphones className="w-4 h-4 mr-2 text-indigo-400" /> Suporte
-          </Link>
-        </Button>
+      <motion.div variants={fadeUp}>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <h2 className="text-sm font-bold text-white uppercase tracking-widest">Ações Rápidas</h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button className="h-14 px-6 rounded-2xl gradient-primary text-white shadow-xl shadow-[hsl(var(--primary))]/20 hover:shadow-[hsl(var(--primary))]/40 hover:-translate-y-1 transition-all duration-300 text-sm font-semibold border-0 group" onClick={openAddExtra}>
+            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" /> Adicionar Extra
+          </Button>
+          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+            <Link to="/admin/clientes">
+              <Users className="w-4 h-4 mr-2 text-blue-400" /> Novo Cliente
+            </Link>
+          </Button>
+          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+            <Link to="/admin/financeiro">
+              <DollarSign className="w-4 h-4 mr-2 text-emerald-400" /> Nova Fatura
+            </Link>
+          </Button>
+          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+            <Link to="/admin/projetos">
+              <FolderKanban className="w-4 h-4 mr-2 text-amber-400" /> Novo Projeto
+            </Link>
+          </Button>
+          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+            <Link to="/admin/agenda">
+              <Calendar className="w-4 h-4 mr-2 text-red-400" /> Nova Reunião
+            </Link>
+          </Button>
+          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+            <Link to="/admin/leads">
+              <Sparkles className="w-4 h-4 mr-2 text-purple-400" /> Capturar Leads
+            </Link>
+          </Button>
+          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+            <Link to="/admin/suporte">
+              <Headphones className="w-4 h-4 mr-2 text-indigo-400" /> Suporte
+            </Link>
+          </Button>
+        </div>
       </motion.div>
 
       {/* System Status Alert */}
