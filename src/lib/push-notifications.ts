@@ -78,7 +78,7 @@ export async function subscribeToPush(userType: string, userId: string): Promise
 
     const json = subscription.toJSON();
 
-    await supabase.from("push_subscriptions").upsert(
+    const { error: upsertError } = await supabase.from("push_subscriptions").upsert(
       {
         user_type: userType,
         user_id: userId,
@@ -88,6 +88,13 @@ export async function subscribeToPush(userType: string, userId: string): Promise
       },
       { onConflict: "endpoint" },
     );
+
+    if (upsertError) {
+      console.error("[Push] Failed to save subscription to DB:", upsertError);
+      // Even if DB save fails, the subscription is valid in the browser
+    } else {
+      console.log("[Push] Subscription saved to DB successfully");
+    }
 
     return true;
   } catch (e) {
