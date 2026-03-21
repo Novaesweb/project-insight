@@ -66,7 +66,7 @@ export default function FuncionalidadeExtraSection() {
   };
 
   const handleCustom = () => {
-    const msg = encodeURIComponent(`Olá! Tenho uma ideia de funcionalidade personalizada para o meu projeto e gostaria de um orçamento.`);
+    const msg = encodeURIComponent(`Quero meu site personalizado`);
     window.open(`https://wa.me/5511999999999?text=${msg}`, "_blank");
   };
 
@@ -118,10 +118,17 @@ export default function FuncionalidadeExtraSection() {
               <h2 className="text-4xl sm:text-6xl font-black text-white tracking-tighter uppercase">
                 Funcionalidades <span className="gradient-text">Estratégicas</span>
               </h2>
-              <p className="text-white/40 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+              <p className="text-white/40 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed mb-8">
                 Módulos de alto impacto desenvolvidos para impulsionar suas vendas e criar 
                 fidelidade absoluta de forma automatizada.
               </p>
+              
+              <button 
+                onClick={handleCustom}
+                className="mt-8 px-8 py-4 rounded-full bg-red-500 text-white text-xs sm:text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-xl shadow-red-500/30"
+              >
+                Quero meu site personalizado
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
