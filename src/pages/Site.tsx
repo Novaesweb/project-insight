@@ -14,12 +14,15 @@ import ResultadosSection from "@/components/site/ResultadosSection";
 import SiteModals from "@/components/site/SiteModals";
 import CtaSection from "@/components/site/CtaSection";
 import SiteFooter from "@/components/site/SiteFooter";
+import UrgencyBanner from "@/components/conversion/UrgencyBanner";
+import SocialProofPopup from "@/components/conversion/SocialProofPopup";
 
 export default function Site() {
   const [modalOpen, setModalOpen] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow">
+      <UrgencyBanner />
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ClientesSection />
@@ -37,6 +40,8 @@ export default function Site() {
       <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
       <CtaSection />
       <SiteFooter onOpenModal={setModalOpen} />
+      
+      <SocialProofPopup />
     </div>
   );
 }
