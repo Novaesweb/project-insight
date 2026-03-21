@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users } from "lucide-react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users, MousePointerClick } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -59,6 +59,10 @@ export default function Configuracoes() {
     pix_key: "",
     google_analytics_id: "",
     primary_color: "#e8334a",
+    urgency_active: "true",
+    urgency_text: "Oferta Especial por Tempo Limitado",
+    urgency_hours: "2",
+    social_proof_active: "true",
   });
 
   useEffect(() => {
@@ -69,7 +73,11 @@ export default function Configuracoes() {
       .then(({ count }) => setSubCount(count || 0));
 
     // Carregar tudo do Supabase app_config
-    const keys = ["nome", "cnpj", "email", "telefone", "endereco", "logo", "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color"];
+    const keys = [
+      "nome", "cnpj", "email", "telefone", "endereco", "logo", 
+      "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color",
+      "urgency_active", "urgency_text", "urgency_hours", "social_proof_active"
+    ];
     supabase.from("app_config").select("key, value")
       .in("key", keys)
       .then(({ data }) => {
@@ -184,6 +192,7 @@ export default function Configuracoes() {
               { value: "usuarios", label: "Usuários", icon: Users },
               { value: "permissoes", label: "Permissões", icon: Shield },
               { value: "integracoes", label: "Integrações", icon: LinkIcon },
+              { value: "gatilhos", label: "Gatilhos", icon: MousePointerClick },
               { value: "notificacoes", label: "Notificações", icon: Bell },
             ].map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 flex-1 min-w-[100px]">
@@ -340,6 +349,81 @@ export default function Configuracoes() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="gatilhos">
+            <div className="space-y-4">
+              <Card className="glass-card border-[0.5px]">
+                <CardHeader>
+                  <CardTitle className="text-sm text-white">Banner de Urgência (Topo do Site)</CardTitle>
+                  <CardDescription>Configure a barra de escassez com contagem regressiva</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                    <div>
+                      <p className="text-sm font-medium text-white">Exibir Banner de Urgência</p>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">Ative ou desative o banner no topo do site público.</p>
+                    </div>
+                    <Switch 
+                      checked={integValues.urgency_active === "true"} 
+                      onCheckedChange={(c) => {
+                        setIntegValues(prev => ({ ...prev, urgency_active: c ? "true" : "false" }));
+                        handleSaveInteg("urgency_active", c ? "true" : "false");
+                      }} 
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Texto Principal</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={integValues.urgency_text || ""} 
+                          onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_text: e.target.value }))}
+                          placeholder="Oferta Especial por Tempo Limitado"
+                          className="glass-input h-9 text-sm text-white min-w-0"
+                        />
+                        <Button size="sm" onClick={() => handleSaveInteg("urgency_text", integValues.urgency_text)} className="gradient-primary h-9 whitespace-nowrap">Salvar</Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Duração Inicial (Horas)</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="number"
+                          value={integValues.urgency_hours || "2"} 
+                          onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_hours: e.target.value }))}
+                          className="glass-input h-9 text-sm text-white min-w-0"
+                        />
+                        <Button size="sm" onClick={() => handleSaveInteg("urgency_hours", integValues.urgency_hours)} className="gradient-primary h-9 whitespace-nowrap">Salvar</Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card border-[0.5px]">
+                <CardHeader>
+                  <CardTitle className="text-sm text-white">Pop-ups de Prova Social</CardTitle>
+                  <CardDescription>Notificações flutuantes simulando compras recentes no canto da tela</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-white">Ativar Pop-ups Rotativos</p>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">Começa a exibir compras estratégicas a cada 25 segundos.</p>
+                    </div>
+                    <Switch 
+                      checked={integValues.social_proof_active === "true"} 
+                      onCheckedChange={(c) => {
+                        setIntegValues(prev => ({ ...prev, social_proof_active: c ? "true" : "false" }));
+                        handleSaveInteg("social_proof_active", c ? "true" : "false");
+                      }} 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

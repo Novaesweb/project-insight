@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Star, CheckCircle2, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Fake data for demonstration
 const fakePurchases = [
@@ -25,8 +26,24 @@ export default function SocialProofPopup({
 }) {
   const [currentPurchase, setCurrentPurchase] = useState<typeof fakePurchases[0] | null>(null);
   const [displayCount, setDisplayCount] = useState(0);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
+    // Check if active in Supabase config
+    supabase.from("app_config")
+      .select("value")
+      .eq("key", "social_proof_active")
+      .single()
+      .then(({ data }) => {
+        if (data && data.value === "false") {
+          setIsActive(false);
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!isActive) return;
+
     // Initial delay so it doesn't pop up immediately
     const initialDelay = setTimeout(() => {
       showRandomPurchase();
@@ -40,7 +57,7 @@ export default function SocialProofPopup({
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-  }, [displayCount, maxDisplays, intervalMs]);
+  }, [displayCount, maxDisplays, intervalMs, isActive]);
 
   const showRandomPurchase = () => {
     if (displayCount >= maxDisplays) return;
@@ -59,6 +76,8 @@ export default function SocialProofPopup({
       setCurrentPurchase(null);
     }, visibleMs);
   };
+
+  if (!isActive) return null;
 
   const positionClasses = position === "bottom-left" 
     ? "left-4 sm:left-6 bottom-4 sm:bottom-6" 
