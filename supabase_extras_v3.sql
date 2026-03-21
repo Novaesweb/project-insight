@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS public.pacote_itens (
 -- Adicionar pacote_id a extras_clientes para rastrear origem
 ALTER TABLE public.extras_clientes ADD COLUMN IF NOT EXISTS pacote_id uuid REFERENCES public.pacotes(id) ON DELETE SET NULL;
 
+-- Adicionar subcategoria ao catalogo
+ALTER TABLE public.extras_catalogo ADD COLUMN IF NOT EXISTS subcategoria text;
+
+-- Limpar catálogo para re-população (opcional, remova se quiser manter o que já tem)
+DELETE FROM public.extras_catalogo;
+
 -- 1. EXTRAS ÚNICOS (Categoria: fixo)
 INSERT INTO public.extras_catalogo (nome, descricao, categoria, subcategoria, preco_ativacao, preco_mensal, status) VALUES
 ('Botão WhatsApp', 'Botão flutuante para contato direto', 'fixo', 'Comunicação', 14.90, 0, 'ativo'),
