@@ -46,7 +46,7 @@ export default function Funcionalidades() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Prioritize the requested items
+    // Fetch ALL active modules, but prioritize these specific ones at the top
     const priorityNames = [
       'Cashback', 'Área VIP', 'Cupom desconto', 
       'Fidelidade pontos', 'Popup promoção', 'Banner promoções'
@@ -55,12 +55,17 @@ export default function Funcionalidades() {
     supabase.from("extras_catalogo")
       .select("*")
       .eq("status", "ativo")
-      .in("nome", priorityNames)
       .then(({ data }) => {
-        // Sort according to priorityNames order
-        const sortedData = data?.sort((a, b) => 
-          priorityNames.indexOf(a.nome) - priorityNames.indexOf(b.nome)
-        ) || [];
+        const sortedData = data?.sort((a, b) => {
+          const indexA = priorityNames.indexOf(a.nome);
+          const indexB = priorityNames.indexOf(b.nome);
+          
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB; // Both are priority
+          if (indexA !== -1) return -1; // Only A is priority
+          if (indexB !== -1) return 1;  // Only B is priority
+          return a.nome.localeCompare(b.nome); // Neither is priority, sort alphabetically
+        }) || [];
+        
         setExtras(sortedData);
         setLoading(false);
       });
