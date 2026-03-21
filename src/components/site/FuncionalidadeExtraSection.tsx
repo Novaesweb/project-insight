@@ -87,15 +87,15 @@ export default function FuncionalidadeExtraSection() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setIsRevealed(true)}
-            className="group relative flex items-center gap-8 glass-card rounded-[2.5rem] px-16 py-10 border border-white/10 hover:border-red-500/50 transition-all duration-500 shadow-2xl overflow-hidden"
+            className="group relative flex flex-col sm:flex-row items-center gap-6 sm:gap-8 glass-card rounded-[2.5rem] px-6 py-8 sm:px-16 sm:py-10 border border-white/10 hover:border-red-500/50 transition-all duration-500 shadow-2xl overflow-hidden w-full max-w-[90vw] sm:max-w-none text-center sm:text-left"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative w-20 h-20 rounded-[1.5rem] bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-red-500/20">
-              <Box className="w-10 h-10 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-red-500/20">
+              <Box className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse" />
             </div>
-            <div className="text-left">
-              <span className="block text-4xl font-black text-white tracking-tighter uppercase group-hover:text-red-500 transition-colors">Funcionalidades Estratégicas</span>
-              <span className="block text-sm text-white/40 uppercase tracking-[0.2em] font-black mt-2">Clique para explorar o ecossistema completo →</span>
+            <div>
+              <span className="block text-2xl sm:text-4xl font-black text-white tracking-tighter uppercase group-hover:text-red-500 transition-colors">Funcionalidades Estratégicas</span>
+              <span className="block text-xs sm:text-sm text-white/40 uppercase tracking-[0.1em] sm:tracking-[0.2em] font-black mt-2 sm:mt-2">Clique para explorar o ecossistema →</span>
             </div>
           </motion.button>
         ) : (
@@ -141,10 +141,10 @@ export default function FuncionalidadeExtraSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
-                            className="absolute inset-0 p-10 flex flex-col justify-center bg-[#0d0d12] z-20"
+                            className="absolute inset-0 p-8 sm:p-10 flex flex-col justify-center bg-[#0d0d12] z-20"
                           >
-                            <h4 className="text-red-500 text-xs font-black uppercase tracking-widest mb-4 italic">O segredo do sucesso:</h4>
-                            <p className="text-base text-white/70 leading-relaxed font-medium">
+                            <h4 className="text-red-500 text-[10px] sm:text-xs font-black uppercase tracking-widest mb-3 sm:mb-4 italic">O segredo do sucesso:</h4>
+                            <p className="text-sm sm:text-base text-white/70 leading-relaxed font-medium">
                                "{explanationMap[m.nome] || m.descricao}"
                             </p>
                             <button 
@@ -159,7 +159,7 @@ export default function FuncionalidadeExtraSection() {
                             key="main"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col h-full p-10"
+                            className="flex flex-col h-full p-8 sm:p-10"
                           >
                             <div className="flex items-start justify-between">
                               <div className="relative">
@@ -173,9 +173,9 @@ export default function FuncionalidadeExtraSection() {
                               </Badge>
                             </div>
                             
-                            <div className="mt-8">
-                              <h3 className="text-2xl font-black text-white group-hover:text-red-500 transition-colors uppercase tracking-tight leading-none">{m.nome}</h3>
-                              <p className="text-xs text-white/40 mt-4 line-clamp-2 leading-relaxed font-medium">{m.descricao}</p>
+                            <div className="mt-6 sm:mt-8">
+                              <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-red-500 transition-colors uppercase tracking-tight leading-none">{m.nome}</h3>
+                              <p className="text-[11px] sm:text-xs text-white/40 mt-3 sm:mt-4 line-clamp-2 leading-relaxed font-medium">{m.descricao}</p>
                             </div>
 
                             <div className="mt-auto flex flex-col gap-5">
@@ -206,13 +206,13 @@ export default function FuncionalidadeExtraSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="group relative h-80 rounded-[3rem] p-12 bg-gradient-to-br from-red-500/10 to-transparent border border-dashed border-red-500/20 hover:border-red-500/50 transition-all duration-500 flex flex-col justify-center text-center items-center shadow-xl shadow-red-500/5"
+                    className="group relative h-80 rounded-[3rem] px-8 py-10 sm:p-12 bg-gradient-to-br from-red-500/10 to-transparent border border-dashed border-red-500/20 hover:border-red-500/50 transition-all duration-500 flex flex-col justify-center text-center items-center shadow-xl shadow-red-500/5"
                   >
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <h3 className="text-2xl font-black text-white mb-4 tracking-tighter group-hover:scale-105 transition-transform duration-500 uppercase leading-none">
+                    <h3 className="text-xl sm:text-2xl font-black text-white mb-3 sm:mb-4 tracking-tighter group-hover:scale-105 transition-transform duration-500 uppercase leading-none">
                       Engenharia <br /><span className="text-red-500">Sob Medida</span>
                     </h3>
-                    <p className="text-xs text-white/40 max-w-[240px] leading-relaxed mb-10 font-medium">
+                    <p className="text-[11px] sm:text-xs text-white/40 max-w-[240px] leading-relaxed mb-8 sm:mb-10 font-medium">
                       Tem uma ideia única? Nossa equipe de engenharia desenvolve qualquer automação exclusiva para o seu fluxo.
                     </p>
                     <button 
