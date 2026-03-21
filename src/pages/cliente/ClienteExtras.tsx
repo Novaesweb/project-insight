@@ -6,8 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
-const catColors: Record<string, string> = { fixo: "#4ade80", intermediario: "#facc15", mensal: "#60a5fa" };
-const catLabels: Record<string, string> = { fixo: "Fixo", intermediario: "Intermediário", mensal: "Mensal" };
+const catConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  fixo: { label: "Único", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+  intermediario: { label: "Pro", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+  mensal: { label: "Assinatura", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+};
 
 export default function ClienteExtras() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
@@ -58,10 +61,10 @@ export default function ClienteExtras() {
                 </Badge>
               </div>
               <div className="flex items-center gap-4 text-[11px] text-white/40">
-                <Badge variant="outline" className="text-[9px] border-0 px-1.5" style={{ backgroundColor: catColors[e.categoria] + "22", color: catColors[e.categoria] }}>{catLabels[e.categoria]}</Badge>
-                <span>Ativação: R$ {Number(e.preco_ativacao).toFixed(2)}</span>
-                {Number(e.preco_mensal) > 0 && <span>Mensal: R$ {Number(e.preco_mensal).toFixed(2)}</span>}
-                <span>Desde: {e.data_ativacao}</span>
+                <Badge variant="outline" className={`text-[9px] border-0 px-1.5 ${catConfig[e.categoria]?.bg} ${catConfig[e.categoria]?.color}`}>{catConfig[e.categoria]?.label}</Badge>
+                {Number(e.preco_ativacao) > 0 && <span className="text-emerald-400">Ativação: R$ {Number(e.preco_ativacao).toFixed(2)}</span>}
+                {Number(e.preco_mensal) > 0 && <span className="text-amber-400">Mensal: R$ {Number(e.preco_mensal).toFixed(2)}/mês</span>}
+                <span>Início: {new Date(e.created_at).toLocaleDateString("pt-BR")}</span>
               </div>
             </CardContent>
           </Card>

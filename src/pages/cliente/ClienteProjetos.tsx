@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Circle, Clock, CalendarDays, Flag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
@@ -46,6 +47,7 @@ export default function ClienteProjetos() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [projetos, setProjetos] = useState<any[]>([]);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
+  const [extrasAtivos, setExtrasAtivos] = useState<any[]>([]);
 
   const loadProjetos = useCallback(() => {
     if (!cliente.id) return;
@@ -59,11 +61,19 @@ export default function ClienteProjetos() {
       .then(({ data }) => setAtualizacoes(data || []));
   }, [selectedId]);
 
+  const loadExtras = useCallback(() => {
+    if (!cliente.id) return;
+    supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", cliente.id).eq("status", "ativo")
+      .then(({ data }) => setExtrasAtivos(data || []));
+  }, [cliente.id]);
+
   useEffect(() => { loadProjetos(); }, [loadProjetos]);
   useEffect(() => { loadAtualizacoes(); }, [loadAtualizacoes]);
+  useEffect(() => { loadExtras(); }, [loadExtras]);
 
   useRealtimeSubscription("projetos", loadProjetos);
   useRealtimeSubscription("projeto_atualizacoes", loadAtualizacoes);
+  useRealtimeSubscription("extras_clientes", loadExtras);
 
   const selected = projetos.find(p => p.id === selectedId);
 
@@ -197,34 +207,33 @@ export default function ClienteProjetos() {
           </Card>
         </motion.div>
 
-        {/* Info cards */}
-        <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
+        {/* Extras / Features */}
+        <motion.div variants={fadeUp}>
           <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-            <CardContent className="p-4">
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">Início</p>
-              <p className="text-sm text-white font-medium mt-0.5">
-                {selected.inicio ? new Date(selected.inicio).toLocaleDateString("pt-BR") : new Date(selected.created_at).toLocaleDateString("pt-BR")}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-            <CardContent className="p-4">
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">Prazo</p>
-              <p className="text-sm text-white font-medium mt-0.5">
-                {selected.prazo ? new Date(selected.prazo).toLocaleDateString("pt-BR") : "—"}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-            <CardContent className="p-4">
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">Status</p>
-              <div className="mt-1"><StatusBadge status={selected.status} /></div>
-            </CardContent>
-          </Card>
-          <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-            <CardContent className="p-4">
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">Etapa atual</p>
-              <p className="text-sm font-medium mt-0.5 gradient-text">{etapas[etapaAtual].label}</p>
+            <CardContent className="p-5">
+              <h2 className="text-sm font-semibold text-white mb-4">Funcionalidades Ativas</h2>
+              {extrasAtivos.length === 0 ? (
+                <p className="text-xs text-white/40 text-center py-4">Nenhuma funcionalidade extra ativa</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {extrasAtivos.map(e => (
+                    <div key={e.id} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${e.categoria === 'fixo' ? 'bg-emerald-500/10 text-emerald-400' : e.categoria === 'intermediario' ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                        <Flag className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <p className="text-xs font-semibold text-white truncate">{(e as any).extras_catalogo?.nome}</p>
+                        <p className="text-[9px] text-white/40 truncate">{(e as any).extras_catalogo?.descricao || "Funcionalidade premium ativa"}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline" className={`text-[8px] px-1.5 ${e.categoria === 'fixo' ? 'border-emerald-500/20 text-emerald-400' : e.categoria === 'intermediario' ? 'border-amber-500/20 text-amber-400' : 'border-blue-500/20 text-blue-400'}`}>
+                          {e.categoria === 'fixo' ? 'Único' : e.categoria === 'intermediario' ? 'Pro' : 'Assinatura'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

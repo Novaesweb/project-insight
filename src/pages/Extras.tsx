@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2 } from "lucide-react";
+import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,27 +19,31 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transi
 const stagger = { show: { transition: { staggerChildren: 0.06 } } };
 
 const catConfig: Record<CategoriaExtra, { label: string; plural: string; subtitle: string; color: string; border: string; bg: string; icon: typeof Zap }> = {
-  fixo: { label: "Fixo", plural: "Extras Fixos", subtitle: "Paga uma vez, fica para sempre", color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10", icon: Zap },
-  intermediario: { label: "Intermediário", plural: "Intermediários", subtitle: "Ativação + mensalidade", color: "text-amber-400", border: "border-amber-500/30", bg: "bg-amber-500/10", icon: Star },
-  mensal: { label: "Mensal", plural: "Mensais", subtitle: "Renda fixa recorrente", color: "text-blue-400", border: "border-blue-500/30", bg: "bg-blue-500/10", icon: CalendarDays },
+  fixo: { label: "Único", plural: "Extras Únicos", subtitle: "Pagamento único, sem mensalidade", color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10", icon: Zap },
+  intermediario: { label: "Pro", plural: "Extras Pro", subtitle: "Ativação + mensalidade recorrente", color: "text-amber-400", border: "border-amber-500/30", bg: "bg-amber-500/10", icon: Star },
+  mensal: { label: "Assinatura", plural: "Assinaturas", subtitle: "Mensalidade de serviço fixo", color: "text-blue-400", border: "border-blue-500/30", bg: "bg-blue-500/10", icon: CalendarDays },
 };
 
 const subcategorias: Record<CategoriaExtra, string[]> = {
-  fixo: ["Comunicação", "Páginas e conteúdo", "Vendas e produtos", "Sistema e gestão", "Integrações"],
-  intermediario: ["Promoções", "Fidelização", "Avaliações", "Pedidos e vendas", "Comunicação avançada", "Relatórios"],
+  fixo: ["Comunicação", "Páginas e conteúdo", "Vendas e produtos", "Sistema e gestão", "Integrações", "Vendas e UI", "Produtos", "Pedidos", "Localização", "Sistema"],
+  intermediario: ["Promoções", "Fidelização", "Avaliações", "Pedidos e vendas", "Comunicação avançada", "Relatórios", "Marketing", "Vendas", "Cliente", "Automação", "Gestão"],
   mensal: ["Manutenção", "Crescimento", "Infraestrutura"],
 };
 
 export default function Extras() {
   const { toast } = useToast();
   const [extras, setExtras] = useState<any[]>([]);
+  const [pacotes, setPacotes] = useState<any[]>([]);
+  const [pacoteItens, setPacoteItens] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [extrasClientes, setExtrasClientes] = useState<any[]>([]);
-  const [categoriaSel, setCategoriaSel] = useState<CategoriaExtra>("fixo");
+  const [categoriaSel, setCategoriaSel] = useState<CategoriaExtra | "pacotes">("fixo");
   const [buscaGeral, setBuscaGeral] = useState("");
   const [buscaCategoria, setBuscaCategoria] = useState("");
 
-  // Modals
+  const [showNewPacote, setShowNewPacote] = useState(false);
+  const [pacoteForm, setPacoteForm] = useState({ nome: "", descricao: "", preco_total: "", itens: [] as string[] });
+
   const [showNew, setShowNew] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAtribuir, setShowAtribuir] = useState(false);
@@ -54,12 +58,17 @@ export default function Extras() {
   const [editForm, setEditForm] = useState({ ...emptyForm, id: "" });
 
   const fetchData = async () => {
-    const [extrasRes, clientesRes, ecRes] = await Promise.all([
+    // @ts-ignore
+    const [extrasRes, pacotesRes, piRes, clientesRes, ecRes] = await Promise.all([
       supabase.from("extras_catalogo").select("*").order("nome"),
+      (supabase.from as any)("pacotes").select("*").order("nome"),
+      (supabase.from as any)("pacote_itens").select("*"),
       supabase.from("clientes").select("id, nome, email").eq("status", "ativo").order("nome"),
       supabase.from("extras_clientes").select("extra_id").eq("status", "ativo"),
     ]);
     setExtras(extrasRes.data || []);
+    setPacotes(pacotesRes.data || []);
+    setPacoteItens(piRes.data || []);
     setClientes(clientesRes.data || []);
     setExtrasClientes(ecRes.data || []);
   };
@@ -84,11 +93,17 @@ export default function Extras() {
 
   // Filtered extras
   const filtrados = useMemo(() => {
+    if (categoriaSel === "pacotes") {
+      let list = [...pacotes];
+      if (buscaGeral) list = list.filter(p => p.nome.toLowerCase().includes(buscaGeral.toLowerCase()));
+      if (buscaCategoria) list = list.filter(p => p.nome.toLowerCase().includes(buscaCategoria.toLowerCase()));
+      return list;
+    }
     let list = extras.filter(e => e.categoria === categoriaSel);
     if (buscaGeral) list = list.filter(e => e.nome.toLowerCase().includes(buscaGeral.toLowerCase()));
     if (buscaCategoria) list = list.filter(e => e.nome.toLowerCase().includes(buscaCategoria.toLowerCase()));
     return list;
-  }, [extras, categoriaSel, buscaGeral, buscaCategoria]);
+  }, [extras, pacotes, categoriaSel, buscaGeral, buscaCategoria]);
 
   // Handlers
   const handleSave = async () => {
@@ -137,18 +152,32 @@ export default function Extras() {
     setShowAtribuir(true);
   };
 
-  const handleAtribuir = async () => {
-    if (!clienteSel || !extraSel) return;
+  const handleSavePacote = async () => {
+    if (!pacoteForm.nome) return;
     setSaving(true);
-    const { error } = await supabase.from("extras_clientes").insert({
-      cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
-      preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
-    });
+    const { data: pkg, error } = await (supabase.from as any)("pacotes").insert({
+      nome: pacoteForm.nome, descricao: pacoteForm.descricao, preco_total: Number(pacoteForm.preco_total) || 0
+    }).select().single();
+    
+    if (!error && pkg && pacoteForm.itens.length > 0) {
+      const links = pacoteForm.itens.map(id => ({ pacote_id: (pkg as any).id, extra_id: id }));
+      await (supabase.from as any)("pacote_itens").insert(links);
+    }
+    
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Extra atribuído!", description: `"${extraSel.nome}" adicionado ao cliente.` });
-    setShowAtribuir(false);
+    toast({ title: "Pacote criado!" });
+    setShowNewPacote(false);
+    setPacoteForm({ nome: "", descricao: "", preco_total: "", itens: [] });
     fetchData();
+  };
+
+  const deletePacote = async (id: string) => {
+    setSaving(true);
+    await (supabase.from as any)("pacotes").delete().eq("id", id);
+    setSaving(false);
+    fetchData();
+    toast({ title: "Pacote excluído" });
   };
 
   const handleDelete = async () => {
@@ -165,7 +194,40 @@ export default function Extras() {
     fetchData();
   };
 
-  const config = catConfig[categoriaSel];
+  const handleAtribuir = async () => {
+    if (!clienteSel || !extraSel) return;
+    setSaving(true);
+    
+    // Se extraSel tiver 'itens', é um pacote
+    if (extraSel.preco_total !== undefined) {
+      const items = pacoteItens.filter(pi => pi.pacote_id === extraSel.id);
+      const batch = items.map(pi => {
+        const fullExtra = extras.find(e => e.id === pi.extra_id);
+        return {
+          cliente_id: clienteSel, extra_id: pi.extra_id, pacote_id: extraSel.id,
+          categoria: (fullExtra?.categoria as any) || 'fixo',
+          preco_ativacao: fullExtra?.preco_ativacao || 0,
+          preco_mensal: fullExtra?.preco_mensal || 0,
+          observacao: observacao || null,
+        } as any;
+      });
+      await supabase.from("extras_clientes").insert(batch);
+    } else {
+      await supabase.from("extras_clientes").insert({
+        cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
+        preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
+      });
+    }
+    
+    setSaving(false);
+    fetchData();
+    setShowAtribuir(false);
+    toast({ title: "Extra(s) atribuídos!" });
+  };
+
+  const config = categoriaSel === "pacotes" 
+    ? { label: "Pacote", plural: "Pacotes Premium", color: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10", icon: Rocket }
+    : catConfig[categoriaSel as CategoriaExtra];
 
   return (
     <motion.div className="space-y-0 h-full" initial="hidden" animate="show" variants={stagger}>
@@ -195,6 +257,23 @@ export default function Extras() {
               </Card>
             );
           })}
+
+          <Card
+            className={`cursor-pointer transition-all border-[0.5px] ${categoriaSel === "pacotes" ? "border-purple-500/50 shadow-lg" : "border-purple-500/10"} hover:border-purple-500/30`}
+            style={{ background: categoriaSel === "pacotes" ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.04)" }}
+            onClick={() => setCategoriaSel("pacotes")}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-purple-500/10">
+                <Rocket className="w-5 h-5 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-purple-400">Pacotes Premium</h3>
+                <p className="text-[11px] text-white/40">Combos de funcionalidades</p>
+              </div>
+              <span className="text-xl font-bold text-purple-400">{pacotes.length}</span>
+            </CardContent>
+          </Card>
 
           {/* Search global */}
           <div className="relative">
@@ -254,15 +333,63 @@ export default function Extras() {
                   onChange={e => setBuscaCategoria(e.target.value)}
                 />
               </div>
-              <Button className="gradient-primary border-0 text-white text-xs h-9" onClick={() => { setForm({ ...emptyForm, categoria: categoriaSel }); setShowNew(true); }}>
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> Novo extra
+              <Button className="gradient-primary border-0 text-white text-xs h-9" onClick={() => { 
+                if (categoriaSel === "pacotes") {
+                  setShowNewPacote(true);
+                } else {
+                  setForm({ ...emptyForm, categoria: categoriaSel }); 
+                  setShowNew(true); 
+                }
+              }}>
+                <Plus className="w-3.5 h-3.5 mr-1.5" /> {categoriaSel === "pacotes" ? "Novo pacote" : "Novo extra"}
               </Button>
             </div>
           </div>
 
           {/* Cards grid */}
           {filtrados.length === 0 ? (
-            <p className="text-center text-sm text-white/40 py-16">Nenhum extra encontrado</p>
+            <p className="text-center text-sm text-white/40 py-16">Nenhum {categoriaSel === "pacotes" ? "pacote" : "extra"} encontrado</p>
+          ) : categoriaSel === "pacotes" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
+              {filtrados.map(pkg => {
+                const itensPkg = pacoteItens.filter(pi => pi.pacote_id === pkg.id);
+                return (
+                  <Card key={pkg.id} className="border-[0.5px] border-purple-500/30 hover:border-purple-500/50 transition-all bg-white/[0.04]">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="text-sm font-bold text-purple-400 leading-tight flex-1 pr-2">{pkg.nome}</h4>
+                        <Rocket className="w-4 h-4 text-purple-400/40" />
+                      </div>
+                      <p className="text-[11px] text-white/40 mb-3 line-clamp-2">{pkg.descricao}</p>
+                      
+                      <div className="space-y-1 mb-4">
+                        <p className="text-[10px] text-white/20 uppercase font-semibold">Itens inclusos:</p>
+                        <ul className="text-[10px] text-white/60 list-disc list-inside">
+                          {itensPkg.map(pi => {
+                            const ex = extras.find(e => e.id === pi.extra_id);
+                            return <li key={pi.id}>{ex?.nome}</li>;
+                          })}
+                        </ul>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm font-bold text-purple-400">R$ {Number(pkg.preco_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                        <Badge variant="outline" className="text-[9px] border-purple-500/20 text-purple-400 bg-purple-500/5">Pacote Econômico</Badge>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(pkg)}>
+                          <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar a Cliente
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => deletePacote(pkg.id)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
               {filtrados.map(extra => {
@@ -494,6 +621,55 @@ export default function Extras() {
               {saving ? "Excluindo..." : "Excluir"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL — Novo Pacote */}
+      <Dialog open={showNewPacote} onOpenChange={setShowNewPacote}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-lg overflow-y-auto max-h-[90vh]">
+          <DialogHeader><DialogTitle className="text-white">Criar Novo Pacote</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/50">Nome do Pacote</Label>
+              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={pacoteForm.nome} onChange={e => setPacoteForm({ ...pacoteForm, nome: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/50">Descrição</Label>
+              <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[50px]" value={pacoteForm.descricao} onChange={e => setPacoteForm({ ...pacoteForm, descricao: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/50">Preço Sugerido (R$)</Label>
+              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={pacoteForm.preco_total} onChange={e => setPacoteForm({ ...pacoteForm, preco_total: e.target.value })} />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-xs text-white/50 font-bold">Selecionar Itens inclusos</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 rounded bg-black/20 border border-white/5">
+                {extras.map(ex => {
+                  const isSelected = pacoteForm.itens.includes(ex.id);
+                  return (
+                    <div 
+                      key={ex.id}
+                      onClick={() => {
+                        const newItens = isSelected 
+                          ? pacoteForm.itens.filter(id => id !== ex.id)
+                          : [...pacoteForm.itens, ex.id];
+                        setPacoteForm({ ...pacoteForm, itens: newItens });
+                      }}
+                      className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all border ${isSelected ? "bg-purple-500/20 border-purple-500/50" : "bg-white/5 border-transparent hover:border-white/10"}`}
+                    >
+                      <div className={`w-3.5 h-3.5 rounded-sm border ${isSelected ? "bg-purple-500 border-purple-400" : "border-white/20"}`} />
+                      <span className="text-[10px] text-white/70 truncate">{ex.nome}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button className="gradient-primary border-0 text-white w-full rounded-lg" onClick={handleSavePacote} disabled={saving || !pacoteForm.nome}>
+              {saving ? "Criando..." : "Criar Pacote Premium"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </motion.div>
