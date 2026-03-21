@@ -1,0 +1,224 @@
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { 
+  LayoutDashboard, Users, UserPlus, DollarSign, Wallet, 
+  Settings, LogOut, Menu, X, ChevronRight, 
+  Bell, Search, HelpCircle, Package, Share2, ClipboardList
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useBranding } from "@/hooks/useBranding";
+import { cn } from "@/lib/utils";
+import GlobalSearch from "./GlobalSearch";
+import { motion } from "framer-motion";
+
+interface NavItem {
+  label: string;
+  icon: any;
+  path: string;
+  badge?: string;
+}
+
+const navItems: NavItem[] = [
+  { label: "Dashboard", icon: LayoutDashboard, path: "/revenda/dashboard" },
+  { label: "Minhas Indicações", icon: Users, path: "/revenda/indicacoes" },
+  { label: "Comissões", icon: DollarSign, path: "/revenda/comissoes" },
+  { label: "Materiais", icon: Package, path: "/revenda/materiais" },
+  { label: "Financeiro", icon: Wallet, path: "/revenda/financeiro" },
+  { label: "Suporte", icon: HelpCircle, path: "/revenda/suporte" },
+];
+
+export default function ResellerLayout({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const branding = useBranding();
+  
+  // Simular usuário logado (seria via context/localStorage no real)
+  const reseller = JSON.parse(localStorage.getItem("revendedorLogado") || "{}");
+
+  useEffect(() => {
+    // Se não houver revendedor logado, redirecionar (exemplo)
+    if (!reseller.id && !location.pathname.includes("login")) {
+      // navigate("/revenda/login");
+    }
+  }, [location, navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("revendedorLogado");
+    navigate("/revenda/login");
+  };
+
+  return (
+    <div className="min-h-screen bg-[#08080f] text-white flex overflow-hidden">
+      {/* Sidebar Desktop */}
+      <aside 
+        className={cn(
+          "hidden lg:flex flex-col bg-[#0c0c14] border-r border-white/5 transition-all duration-300 relative z-50",
+          isSidebarOpen ? "w-64" : "w-20"
+        )}
+      >
+        <div className="p-6 flex items-center gap-3">
+          <Link to="/revenda/dashboard" className="flex items-center gap-3 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/20">
+              <span className="text-white font-bold text-sm">NW</span>
+            </div>
+            {isSidebarOpen && (
+              <span className="font-bold text-lg tracking-tight whitespace-nowrap">
+                <span className="bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">Novaes</span>
+                <span className="text-white">Web</span>
+              </span>
+            )}
+          </Link>
+        </div>
+
+        <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative",
+                  isActive 
+                    ? "bg-white/5 text-white" 
+                    : "text-white/40 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                {isActive && (
+                  <div className="absolute left-0 w-1 h-6 bg-red-500 rounded-r-full" />
+                )}
+                <Icon className={cn("w-5 h-5", isActive ? "text-red-500" : "group-hover:text-red-400")} />
+                {isSidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
+                {isSidebarOpen && item.badge && (
+                  <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-[10px] bg-red-500/10 text-red-500 border-red-500/20">
+                    {item.badge}
+                  </Badge>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-white/5">
+          <Button 
+            variant="ghost" 
+            onClick={handleLogout}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/40 hover:bg-red-500/10 hover:text-red-500 transition-all",
+              !isSidebarOpen && "justify-center"
+            )}
+          >
+            <LogOut className="w-5 h-5" />
+            {isSidebarOpen && <span className="text-sm font-medium">Sair</span>}
+          </Button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        {/* Header */}
+        <header className="h-20 border-b border-white/5 bg-[#08080f]/80 backdrop-blur-md sticky top-0 z-40 px-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+             <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setSidebarOpen(!isSidebarOpen)} 
+              className="hidden lg:flex text-white/40 hover:text-white"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setMobileMenuOpen(true)} 
+              className="lg:hidden text-white/40 hover:text-white"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-medium text-white/40 uppercase tracking-wider">
+               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+               Painel de Revenda
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+             <GlobalSearch />
+             
+            <Button variant="ghost" size="icon" className="text-white/40 relative">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#03040b]" />
+            </Button>
+
+            <div className="h-8 w-px bg-white/5 mx-1" />
+
+            <div className="flex items-center gap-3 pl-2">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-medium text-white">{reseller.nome || "Revendedor"}</p>
+                <p className="text-[10px] text-white/40">Status: <span className="text-green-500">Ativo</span></p>
+              </div>
+              <Avatar className="h-10 w-10 border-2 border-white/5 shadow-xl ring-2 ring-red-500/20">
+                <AvatarImage src={reseller.avatar} />
+                <AvatarFallback className="bg-gradient-to-br from-red-500 to-pink-600 text-white font-bold">
+                  {(reseller.nome || "R").charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#08080f] p-4 lg:p-8">
+           <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+             {children}
+           </div>
+        </main>
+      </div>
+
+      {/* Mobile Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm lg:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <motion.div 
+            initial={{ x: "-100%" }} 
+            animate={{ x: 0 }} 
+            className="w-72 h-full bg-[#0c0c14] p-6 shadow-2xl" 
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-8">
+               <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center font-bold text-white">NW</div>
+                  <span className="font-bold text-white">NovaesWeb</span>
+               </div>
+               <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                 <X className="w-5 h-5" />
+               </Button>
+            </div>
+            
+            <nav className="space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                    location.pathname === item.path ? "bg-red-500 text-white" : "text-white/60 hover:bg-white/5"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+}

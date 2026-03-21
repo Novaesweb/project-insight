@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { href: "/admin/suporte", label: "Suporte", icon: Headphones },
   { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
+  { href: "/admin/revenda", label: "Revenda", icon: Users },
   { href: "/admin/contratos", label: "Contratos", icon: FileText },
 ];
 

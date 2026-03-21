@@ -24,6 +24,7 @@ import Leads from "./pages/Leads";
 import Configuracoes from "./pages/Configuracoes";
 import Agenda from "./pages/Agenda";
 import Contratos from "./pages/Contratos";
+import AdminRevenda from "./pages/admin/AdminRevenda";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
 import NichePage from "./pages/NichePage";
@@ -38,9 +39,33 @@ import ClienteReunioes from "./pages/cliente/ClienteReunioes";
 import ClienteSuporte from "./pages/cliente/ClienteSuporte";
 import ClienteDados from "./pages/cliente/ClienteDados";
 import ClienteArquivos from "./pages/cliente/ClienteArquivos";
+import ClienteReferral from "./pages/cliente/ClienteReferral";
+import ResellerLayout from "@/components/ResellerLayout";
+import ResellerDashboard from "./pages/reseller/ResellerDashboard";
+import ResellerIndicacoes from "./pages/reseller/ResellerIndicacoes";
+import ResellerFinanceiro from "./pages/reseller/ResellerFinanceiro";
+import ResellerMateriais from "./pages/reseller/ResellerMateriais";
 import NotFound from "./pages/NotFound";
 
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 const queryClient = new QueryClient();
+
+function ReferralTracker() {
+  const { search } = useLocation();
+  
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const ref = params.get("ref");
+    if (ref) {
+      localStorage.setItem("nv_referral_code", ref);
+      console.log("Referral code captured:", ref);
+    }
+  }, [search]);
+
+  return null;
+}
 
 function AdminWithSplash() {
   const [splashDone, setSplashDone] = useState(false);
@@ -65,6 +90,7 @@ function AdminWithSplash() {
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/revenda" element={<AdminRevenda />} />
           <Route path="/contratos" element={<Contratos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -79,6 +105,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ReferralTracker />
         <Routes>
           {/* Public Site */}
           <Route path="/" element={<Site />} />
@@ -99,7 +126,8 @@ const App = () => (
                 <Route path="contratos" element={<ClienteContratos />} />
                 <Route path="faturas" element={<ClienteFaturas />} />
                 <Route path="reunioes" element={<ClienteReunioes />} />
-                 <Route path="suporte" element={<ClienteSuporte />} />
+                <Route path="suporte" element={<ClienteSuporte />} />
+                <Route path="indique" element={<ClienteReferral />} />
                 <Route path="dados" element={<ClienteDados />} />
                 <Route path="arquivos" element={<ClienteArquivos />} />
               </Routes>
@@ -114,6 +142,20 @@ const App = () => (
             <ProtectedRoute>
               <AdminWithSplash />
             </ProtectedRoute>
+          } />
+
+          {/* Reseller Portal */}
+          <Route path="/revenda/*" element={
+            <ResellerLayout>
+              <Routes>
+                <Route path="dashboard" element={<ResellerDashboard />} />
+                <Route path="indicacoes" element={<ResellerIndicacoes />} />
+                <Route path="financeiro" element={<ResellerFinanceiro />} />
+                <Route path="materiais" element={<ResellerMateriais />} />
+                <Route path="suporte" element={<ClienteSuporte />} />
+                <Route path="*" element={<ResellerDashboard />} />
+              </Routes>
+            </ResellerLayout>
           } />
 
           <Route path="*" element={<NotFound />} />

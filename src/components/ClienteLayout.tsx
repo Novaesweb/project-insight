@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, FolderKanban, Plus, FileText, Receipt,
-  CalendarDays, Headphones, User, LogOut, Bell, Menu
+  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ const menuItems = [
   { label: "Faturas", icon: Receipt, path: "/cliente/faturas" },
   { label: "Reuniões", icon: CalendarDays, path: "/cliente/reunioes" },
   { label: "Arquivos", icon: FileText, path: "/cliente/arquivos" },
+  { label: "Indique e Ganhe", icon: Share2, path: "/cliente/indique" },
   { label: "Suporte", icon: Headphones, path: "/cliente/suporte" },
   { label: "Meus Dados", icon: User, path: "/cliente/dados" },
 ];

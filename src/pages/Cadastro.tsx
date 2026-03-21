@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
+import { cn } from "@/lib/utils";
 
 const segmentos = ["Restaurante", "Clínica", "Loja", "Escritório", "Outro"];
 const servicosOpcoes = ["Site", "Loja Virtual", "App", "Identidade Visual"];
@@ -85,8 +86,42 @@ export default function Cadastro() {
     return true;
   };
 
+  const [couponCode, setCouponCode] = useState(localStorage.getItem("nv_referral_code") || "");
+  const [couponValid, setCouponValid] = useState<boolean | null>(null);
+
+  const checkCoupon = async (code: string) => {
+    if (!code) { setCouponValid(null); return; }
+    
+    // Verificar em clientes
+    const { data: client } = await supabase.from("clientes").select("id").eq("referral_code", code).single();
+    if (client) { setCouponValid(true); return; }
+
+    // Verificar em revendedores
+    const { data: rev } = await supabase.from("revendedores" as any).select("id").eq("referral_code", code).single() as any;
+    if (rev) { setCouponValid(true); return; }
+
+    setCouponValid(false);
+  };
+
+  useEffect(() => {
+    if (couponCode) checkCoupon(couponCode);
+  }, []);
+
   const handleSubmit = async () => {
     setLoading(true);
+    
+    // Buscar ID do referenciador pelo código
+    let referredById = null;
+    if (couponValid && couponCode) {
+      const { data: c } = await supabase.from("clientes").select("id").eq("referral_code", couponCode).single();
+      if (c) referredById = c.id;
+      else {
+        const { data: r } = await supabase.from("revendedores" as any).select("id").eq("referral_code", couponCode).single() as any;
+        // Nota: se for revendedor, vinculamos por ID de revendedor (precisamos da coluna na tabela de leads)
+        // Por enquanto vamos focar na lógica de referral_code simples ou referred_by_id universal
+      }
+    }
+
     const { error } = await supabase.from("leads").insert({
       nome: form.nome.trim(), email: form.email.trim().toLowerCase(),
       whatsapp: form.whatsapp.replace(/\D/g, ""),
@@ -94,7 +129,9 @@ export default function Cadastro() {
       nome_negocio: form.nome_negocio || null, segmento: form.segmento || null,
       servicos: form.servicos, orcamento: form.orcamento || null,
       como_conheceu: form.como_conheceu || null, mensagem: form.mensagem || null,
-    });
+      coupon_code: couponCode || null
+    } as any);
+
     setLoading(false);
     if (error) {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
@@ -352,6 +389,27 @@ export default function Cadastro() {
                     </SelectTrigger>
                     <SelectContent>{origemOpcoes.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-white/50">Cupom de Indicação (opcional)</Label>
+                  <div className="relative">
+                    <Input 
+                      className={cn(inputClass(), couponValid === true && "border-green-500/50 focus:ring-green-500/40")} 
+                      value={couponCode} 
+                      onChange={e => {
+                        const val = e.target.value.toUpperCase();
+                        setCouponCode(val);
+                        checkCoupon(val);
+                      }} 
+                      placeholder="Ex: MARCOS10" 
+                    />
+                    {couponValid === true && (
+                      <div className="absolute right-3 top-2.5 flex items-center gap-1 text-[10px] text-green-400 font-medium">
+                        <Check className="w-3 h-3" /> Cupom Ativado
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
