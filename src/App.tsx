@@ -27,6 +27,7 @@ import Contratos from "./pages/Contratos";
 import AdminRevenda from "./pages/admin/AdminRevenda";
 import AgendarPublico from "./pages/AgendarPublico";
 import Cadastro from "./pages/Cadastro";
+import Funcionalidades from "./pages/Funcionalidades";
 import NichePage from "./pages/NichePage";
 import Instalar from "./pages/Instalar";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
@@ -113,6 +114,7 @@ const App = () => (
           <Route path="/nicho/:slug" element={<NichePage />} />
           <Route path="/agendar" element={<AgendarPublico />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/funcionalidades" element={<Funcionalidades />} />
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/cliente" element={<ClienteLogin />} />
 
