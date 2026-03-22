@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen text-[hsl(var(--foreground))] admin-layout-container font-sora selection:bg-primary/30">
-      <aside className="w-64 border-r border-white/5 bg-black/20 backdrop-blur-2xl py-4 hidden md:flex md:flex-col relative z-50">
+      <aside className="w-60 border-r border-white/5 bg-black/20 backdrop-blur-2xl py-3 hidden md:flex md:flex-col relative z-50">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
@@ -148,14 +148,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </SheetContent>
       </Sheet>
-      <main className="flex-1 p-6 relative overflow-auto">
+      <main className="flex-1 p-3 lg:p-4 relative overflow-auto custom-scrollbar">
         <TopProgressBar />
-        <header className="flex items-center justify-between mb-6 max-w-[1100px] mx-auto w-full sticky top-0 z-40 bg-transparent py-4 font-sora">
+        <header className="flex items-center justify-between mb-4 max-w-[1100px] mx-auto w-full sticky top-0 z-40 bg-transparent py-2 font-sora">
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
+              <h1 className="text-xl font-bold tracking-tight text-white drop-shadow-md">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
               {pageInfo[pathname as keyof typeof pageInfo]?.subtitulo && (
-                <p className="text-sm text-white/40 font-medium hidden lg:block">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
+                <p className="text-[10px] text-white/40 font-medium hidden lg:block uppercase tracking-wider">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
               )}
             </div>
           </div>

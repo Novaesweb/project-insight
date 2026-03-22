@@ -163,7 +163,7 @@ export default function Dashboard() {
   const selectedExtra = catalogo.find(c => c.id === extraSel);
 
   return (
-    <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
+    <motion.div className="space-y-4 ambient-glow min-h-screen pb-6" initial="hidden" animate="show" variants={stagger}>
       {/* Header Premium */}
       <motion.div variants={fadeUp} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
         <div>
@@ -183,23 +183,23 @@ export default function Dashboard() {
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="glass-card border-white/5 overflow-hidden info-card-hover group relative">
             <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-20 blur-[40px] transition-all duration-700 group-hover:scale-150`} />
-            <CardContent className="p-5 relative z-10">
+            <CardContent className="p-4 relative z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-1">{kpi.label}</p>
-                  <p className="text-3xl font-black text-white tracking-tighter leading-none">{kpi.value}</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-white/20 font-bold mb-0.5">{kpi.label}</p>
+                  <p className="text-2xl font-black text-white tracking-tighter leading-none">{kpi.value}</p>
                   {kpi.change && (
                     <div className={cn(
-                      "inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold mt-3 border",
+                      "inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] font-bold mt-2 border",
                       kpi.alert ? "text-red-400 bg-red-400/10 border-red-400/20" : "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
                     )}>
-                      {kpi.alert ? <AlertTriangle className="w-2.5 h-2.5" /> : <TrendingUp className="w-2.5 h-2.5" />}
+                      {kpi.alert ? <AlertTriangle className="w-2 h-2" /> : <TrendingUp className="w-2 h-2" />}
                       {kpi.change}
                     </div>
                   )}
                 </div>
-                <div className={`p-3.5 rounded-[18px] bg-gradient-to-br ${kpi.color} shadow-2xl shadow-black/40 group-hover:rotate-12 transition-all duration-500`}>
-                  <kpi.icon className="w-5 h-5 text-white" />
+                <div className={`p-2.5 rounded-[14px] bg-gradient-to-br ${kpi.color} shadow-2xl shadow-black/40 group-hover:rotate-12 transition-all duration-500`}>
+                  <kpi.icon className="w-4 h-4 text-white" />
                 </div>
               </div>
             </CardContent>
@@ -216,8 +216,8 @@ export default function Dashboard() {
               <TrendingUp className="w-4 h-4 text-primary" /> Visão Financeira (Últimos 6 Meses)
             </CardTitle>
           </CardHeader>
-          <CardContent className="pl-0 pb-2">
-            <div className="h-[250px] w-full">
+          <CardContent className="pl-0 pb-1">
+            <div className="h-[180px] w-full text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyRevenue} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
@@ -249,8 +249,8 @@ export default function Dashboard() {
               <Activity className="w-4 h-4 text-accent" /> Módulos Mais Vendidos
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center pt-0">
-            <div className="h-[220px] w-full">
+          <CardContent className="flex flex-col items-center justify-center pt-0 pb-2">
+            <div className="h-[160px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -296,22 +296,22 @@ export default function Dashboard() {
           <h2 className="text-sm font-bold text-white uppercase tracking-widest">Ações Rápidas</h2>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button className="h-14 px-6 rounded-2xl gradient-primary text-white shadow-xl shadow-[hsl(var(--primary))]/20 hover:shadow-[hsl(var(--primary))]/40 hover:-translate-y-1 transition-all duration-300 text-sm font-semibold border-0 group" onClick={openAddExtra}>
-            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" /> Adicionar Extra
+          <Button className="h-10 px-4 rounded-xl gradient-primary text-white shadow-lg shadow-[hsl(var(--primary))]/10 hover:shadow-[hsl(var(--primary))]/20 hover:-translate-y-0.5 transition-all duration-300 text-xs font-bold border-0 group" onClick={openAddExtra}>
+            <Plus className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-90 transition-transform" /> Adicionar Extra
           </Button>
-          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
             <Link to="/admin/clientes">
-              <Users className="w-4 h-4 mr-2 text-blue-400" /> Novo Cliente
+              <Users className="w-3.5 h-3.5 mr-1.5 text-blue-400" /> Novo Cliente
             </Link>
           </Button>
-          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
             <Link to="/admin/financeiro">
-              <DollarSign className="w-4 h-4 mr-2 text-emerald-400" /> Nova Fatura
+              <DollarSign className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> Nova Fatura
             </Link>
           </Button>
-          <Button asChild className="h-14 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-1 transition-all duration-300 text-sm font-medium">
+          <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
             <Link to="/admin/projetos">
-              <FolderKanban className="w-4 h-4 mr-2 text-amber-400" /> Novo Projeto
+              <FolderKanban className="w-3.5 h-3.5 mr-1.5 text-amber-400" /> Novo Projeto
             </Link>
           </Button>
         </div>
@@ -320,24 +320,24 @@ export default function Dashboard() {
       {/* Tables & Activity */}
       <motion.div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" variants={fadeUp}>
         <Card className="glass-card border-[0.5px] xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" /> Atividade Recente
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-white flex items-center gap-2 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-primary" /> Atividade Recente
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             {activity.length === 0 ? (
               <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-8">Sem atividades recentes</p>
             ) : (
               <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary/20 before:via-primary/5 before:to-transparent">
                 {activity.map((act) => (
                   <div key={act.id} className="relative flex items-center gap-4 group">
-                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
-                       <BellRing className="w-4 h-4" />
-                     </div>
-                     <div>
-                       <h4 className="text-sm font-semibold text-white leading-none">{act.title}</h4>
-                       <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 line-clamp-1">{act.body}</p>
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
+                        <BellRing className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold text-white leading-none">{act.title}</h4>
+                        <p className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-1">{act.body}</p>
                        <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter">
                          {new Date(act.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
                        </p>
@@ -364,9 +364,9 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                   {pedidos.map((p: any) => (
-                    <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)]">
-                      <TableCell className="text-sm text-white">{p.clientes?.nome || "—"}</TableCell>
-                      <TableCell><StatusBadge status={p.status} /></TableCell>
+                    <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)] h-10 hover:bg-white/5">
+                      <TableCell className="text-xs text-white py-2">{p.clientes?.nome || "—"}</TableCell>
+                      <TableCell className="py-2"><StatusBadge status={p.status} /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

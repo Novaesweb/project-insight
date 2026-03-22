@@ -139,8 +139,8 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-6 max-w-[1100px] mx-auto w-full pb-10">
+        <main className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-3 lg:p-4 max-w-[1100px] mx-auto w-full pb-6">
             {children}
           </div>
           <div className="py-2 px-4 mt-6" style={{ background: "hsl(var(--primary))" }}>

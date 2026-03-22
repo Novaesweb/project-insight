@@ -176,8 +176,8 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#08080f] p-4 lg:p-8">
-           <div className="max-w-[1100px] mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#08080f] p-3 lg:p-4">
+           <div className="max-w-[1100px] mx-auto space-y-4 animate-in fade-in duration-500 pb-6">
              {children}
            </div>
         </main>
