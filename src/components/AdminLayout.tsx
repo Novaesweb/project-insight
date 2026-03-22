@@ -41,7 +41,6 @@ const navItems: NavItem[] = [
   { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
   { href: "/admin/revenda", label: "Revenda", icon: Users },
   { href: "/admin/contratos", label: "Contratos", icon: FileText },
-  { href: "/admin/menu", label: "Cardápio", icon: UtensilsCrossed },
   { href: "/admin/depoimentos", label: "Depoimentos", icon: MessageSquareQuote },
 ];
 
