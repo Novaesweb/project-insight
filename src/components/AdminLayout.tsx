@@ -150,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </Sheet>
       <main className="flex-1 p-6 relative overflow-auto">
         <TopProgressBar />
-        <header className="flex items-center justify-between mb-8 max-w-[1280px] mx-auto w-full sticky top-0 z-40 bg-transparent py-4 font-sora">
+        <header className="flex items-center justify-between mb-6 max-w-[1100px] mx-auto w-full sticky top-0 z-40 bg-transparent py-4 font-sora">
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
               <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
@@ -176,7 +176,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
-            className="max-w-[1280px] mx-auto w-full"
+            className="max-w-[1100px] mx-auto w-full pb-10"
           >
             {children}
           </motion.div>

@@ -163,7 +163,7 @@ export default function Dashboard() {
   const selectedExtra = catalogo.find(c => c.id === extraSel);
 
   return (
-    <motion.div className="space-y-8 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
+    <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
       {/* Header Premium */}
       <motion.div variants={fadeUp} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
         <div>
@@ -183,23 +183,23 @@ export default function Dashboard() {
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="glass-card border-white/5 overflow-hidden info-card-hover group relative">
             <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-20 blur-[40px] transition-all duration-700 group-hover:scale-150`} />
-            <CardContent className="p-6 relative z-10">
+            <CardContent className="p-5 relative z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-1">{kpi.label}</p>
-                  <p className="text-4xl font-black text-white tracking-tighter leading-none">{kpi.value}</p>
+                  <p className="text-3xl font-black text-white tracking-tighter leading-none">{kpi.value}</p>
                   {kpi.change && (
                     <div className={cn(
-                      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold mt-4 border",
+                      "inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold mt-3 border",
                       kpi.alert ? "text-red-400 bg-red-400/10 border-red-400/20" : "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
                     )}>
-                      {kpi.alert ? <AlertTriangle className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+                      {kpi.alert ? <AlertTriangle className="w-2.5 h-2.5" /> : <TrendingUp className="w-2.5 h-2.5" />}
                       {kpi.change}
                     </div>
                   )}
                 </div>
-                <div className={`p-4 rounded-[20px] bg-gradient-to-br ${kpi.color} shadow-2xl shadow-black/40 group-hover:rotate-12 transition-all duration-500`}>
-                  <kpi.icon className="w-6 h-6 text-white" />
+                <div className={`p-3.5 rounded-[18px] bg-gradient-to-br ${kpi.color} shadow-2xl shadow-black/40 group-hover:rotate-12 transition-all duration-500`}>
+                  <kpi.icon className="w-5 h-5 text-white" />
                 </div>
               </div>
             </CardContent>
