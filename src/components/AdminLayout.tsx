@@ -61,7 +61,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen text-[hsl(var(--foreground))] admin-layout-container font-sora selection:bg-primary/30">
-      <ReloadPrompt />
       <aside className="w-64 border-r border-white/5 bg-black/20 backdrop-blur-2xl py-4 hidden md:flex md:flex-col relative z-50">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         <div className="px-6 pb-4">

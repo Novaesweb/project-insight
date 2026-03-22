@@ -54,7 +54,6 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="min-h-screen bg-[#08080f] text-white flex overflow-hidden">
-      <ReloadPrompt />
       {/* Sidebar Desktop */}
       <aside 
         className={cn(

@@ -113,7 +113,6 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="flex h-screen overflow-hidden text-[hsl(var(--foreground))] admin-layout-container font-sora">
-      <ReloadPrompt />
       <aside className="hidden lg:flex w-[220px] shrink-0 flex-col">
         <ClienteSidebar currentPath={location.pathname} />
       </aside>
