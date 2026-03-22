@@ -178,7 +178,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* KPIs */}
-      <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" variants={fadeUp}>
+      <motion.div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" variants={fadeUp}>
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="glass-card border-white/5 overflow-hidden info-card-hover group relative">
             <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-10 blur-[40px] transition-opacity duration-500`} />
@@ -204,8 +204,8 @@ export default function Dashboard() {
       </motion.div>
 
       {/* CHARTS ROW */}
-      <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-4" variants={fadeUp}>
-        <Card className="glass-card border-[0.5px] lg:col-span-2">
+      <motion.div className="grid grid-cols-1 xl:grid-cols-3 gap-4" variants={fadeUp}>
+        <Card className="glass-card border-[0.5px] xl:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-400" /> Visão Financeira (Últimos 6 Meses)
@@ -237,7 +237,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-[0.5px] lg:col-span-1">
+        <Card className="glass-card border-[0.5px] xl:col-span-1">
           <CardHeader>
             <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-400" /> Módulos Mais Vendidos
@@ -312,8 +312,8 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Tables & Activity */}
-      <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-4" variants={fadeUp}>
-        <Card className="glass-card border-[0.5px] lg:col-span-1">
+      <motion.div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" variants={fadeUp}>
+        <Card className="glass-card border-[0.5px] xl:col-span-1">
           <CardHeader>
             <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" /> Atividade Recente
@@ -343,7 +343,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-[0.5px] lg:col-span-1">
+        <Card className="glass-card border-[0.5px] xl:col-span-1">
           <CardHeader><CardTitle className="text-sm font-semibold text-white">Pedidos Recentes</CardTitle></CardHeader>
           <CardContent>
             {pedidos.length === 0 ? (
@@ -369,7 +369,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-[0.5px] lg:col-span-1">
+        <Card className="glass-card border-[0.5px] xl:col-span-1">
           <CardHeader>
             <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
               <Headphones className="w-4 h-4" /> Suporte

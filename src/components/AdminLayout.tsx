@@ -133,11 +133,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </Sheet>
       <main className="flex-1 p-6 relative overflow-auto">
         <TopProgressBar />
-        <header className="flex items-center justify-between mb-6">
+        <header className="flex items-center justify-between mb-6 max-w-[1400px] mx-auto w-full">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-semibold">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
             {pageInfo[pathname as keyof typeof pageInfo]?.subtitulo && (
-              <p className="text-sm text-[hsl(var(--muted-foreground))]">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] hidden lg:block">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
             )}
           </div>
           <div className="flex items-center gap-4">
@@ -156,6 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
+            className="max-w-[1400px] mx-auto w-full"
           >
             {children}
           </motion.div>
