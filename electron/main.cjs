@@ -11,6 +11,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
+  // Configuração essencial para notificações no Windows
+  app.setAppUserModelId('com.novaesweb.admin');
+
   app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();

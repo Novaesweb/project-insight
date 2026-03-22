@@ -8,6 +8,12 @@ export function NativeNotificationManager() {
     if (!isElectron) return;
 
     console.log("NativeNotificationManager: Iniciando escuta em tempo real para Desktop...");
+    
+    // Notificação de teste ao iniciar para confirmar que o Electron está ouvindo
+    (window as any).electron?.send('notify', {
+      title: '🔋 Sistema de Notificações Ativo',
+      body: 'Você receberá alertas em tempo real sobre novos leads e suporte.',
+    });
 
     // 1. Escutar Novos Leads
     const leadChannel = supabase.channel("native-leads")
