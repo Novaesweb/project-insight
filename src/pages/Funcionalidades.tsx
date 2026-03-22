@@ -66,7 +66,8 @@ export default function Funcionalidades() {
           return a.nome.localeCompare(b.nome); // Neither is priority, sort alphabetically
         }) || [];
         
-        setExtras(sortedData);
+        const slicedData = sortedData.slice(0, 6);
+        setExtras(slicedData);
         setLoading(false);
       });
   }, []);
