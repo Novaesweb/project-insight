@@ -61,6 +61,7 @@ import MenuInterativo from "@/pages/MenuInterativo";
 import ClientePedidosFome from "@/pages/cliente/ClientePedidosFome";
 import AdminDepoimentos from "@/pages/AdminDepoimentos";
 import { NativeNotificationManager } from "@/components/NativeNotificationManager";
+import { ReloadPrompt } from "@/components/ReloadPrompt";
 
 import { useLocation } from "react-router-dom";
 
@@ -136,6 +137,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <NativeNotificationManager />
+      <ReloadPrompt />
       <Toaster />
       <Sonner />
       <BrowserRouter>

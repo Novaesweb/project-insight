@@ -294,6 +294,14 @@
     pointer-events: none;
     z-index: 0;
   }
+
+  /* Novo fundo para painel logado */
+  .admin-layout-container {
+    background-image: linear-gradient(to bottom, rgba(5, 5, 5, 0.92), rgba(5, 5, 5, 0.88)), url('@/assets/admin-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
 }
 
 /* Skeleton shimmer */

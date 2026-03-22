@@ -14,6 +14,7 @@ if (!gotTheLock) {
   app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
       mainWindow.focus();
     }
   });
@@ -76,6 +77,11 @@ if (!gotTheLock) {
       }
       return false;
     });
+
+    // Logging de carregamento bem sucedido
+    mainWindow.webContents.on('did-finish-load', () => {
+      console.log('Main window finished loading');
+    });
   }
 
   function createTray() {
@@ -96,8 +102,10 @@ if (!gotTheLock) {
   }
 
   app.whenReady().then(() => {
+    console.log('App ready, creating window and tray...');
     createWindow();
     createTray();
+    console.log('Setup complete.');
   });
 
   app.on('window-all-closed', () => {

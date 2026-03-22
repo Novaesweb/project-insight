@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       // Use a completely different filename so VitePWA NEVER touches our push sw.js
       filename: "pwa-worker.js",
-      registerType: "autoUpdate",
+      registerType: "prompt",
       injectRegister: null,       // Do NOT inject any SW registration script into HTML
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {

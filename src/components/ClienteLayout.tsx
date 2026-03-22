@@ -108,7 +108,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))] ambient-glow">
+    <div className="flex h-screen overflow-hidden text-[hsl(var(--foreground))] admin-layout-container">
       <aside className="hidden lg:flex w-[200px] shrink-0 flex-col">
         <ClienteSidebar currentPath={location.pathname} />
       </aside>
