@@ -37,9 +37,11 @@ A plataforma é dividida nestes pilares:
 - Nunca limite dados estaticamente (hardcode) se for algo que a empresa queira controlar pelo backend.
 
 ## 6. Visão de Sócio (Estratégia de Crescimento)
-Como "sócio" da Novaesweb, o foco de toda nova funcionalidade deve ser **Conversão** e **Autoridade**.
+Como "sócio" da Novaesweb, o foco de toda nova funcionalidade deve ser **Conversão**, **Agilidade** e **Customização**.
+- **Nicho de Implementação Rápida**: Foco em Lanchonetes, Pizzarias, Dentistas e Comércio Local. O objetivo não é gastar horas em design artístico, mas sim em **ferramentas funcionais** que tragam dinheiro para o cliente.
+- **O Diferencial Interativo**: Nosso carro-chefe é o **Cardápio Virtual/Catálogo Interativo com Carrinho**. 
+  - *Diferença para os concorrentes*: Sites genéricos não permitem ajustes. O nosso é **100% adaptável**. O cliente pode acrescentar qualquer funcionalidade extra (Cashback, Fidelidade, etc.) de forma modular.
 - **Site Ativo, não Passivo**: O site deve ter ferramentas que "pesquem" o lead (Calculadoras de ROI, Iscas Digitais, Exit-Intent).
-- **Facilitação de Vendas no Admin**: O Admin deve ter ferramentas que ajudem a prospectar (Geradores de Auditoria, PDFs Automáticos, CRM simplificado).
-- **Ecossistema de Automação**: Sempre considere como integrar serviços de automação (parceiros) como módulos adicionais de alto valor agregado.
-- **Mentalidade High-Ticket**: O design e as funcionalidades devem justificar um preço premium para o cliente final.
+- **Facilitação de Vendas no Admin**: O Admin deve ter ferramentas que ajudem a prospectar (Geradores de Auditoria, PDFs Automáticos).
+
 
