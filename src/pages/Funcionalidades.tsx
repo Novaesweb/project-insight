@@ -114,13 +114,6 @@ export default function Funcionalidades() {
                 Módulos de alto impacto desenvolvidos para impulsionar suas vendas e criar 
                 fidelidade absoluta de forma automatizada.
               </p>
-              
-              <button 
-                onClick={handleCustom}
-                className="mt-8 px-8 py-4 rounded-full bg-red-500 text-white text-xs sm:text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-xl shadow-red-500/30"
-              >
-                Quero meu site personalizado
-              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
