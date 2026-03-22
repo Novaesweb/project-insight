@@ -27,13 +27,8 @@ export function ReloadPrompt() {
   };
 
   useEffect(() => {
-    // Só mostrar aviso se estiver em uma rota de painel (Admin, Cliente ou Revenda)
-    const isPanelRoute = 
-      location.pathname.startsWith('/admin') || 
-      location.pathname.startsWith('/cliente') || 
-      location.pathname.startsWith('/revenda');
-
-    if (needRefresh && isPanelRoute) {
+    if (needRefresh) {
+      // Registrar o toast apenas uma vez quando o estado de refresh for detectado
       toast('Nova atualização disponível!', {
         description: 'Clique no botão para carregar a versão mais recente e aproveitar as novas funcionalidades.',
         duration: Infinity,
@@ -55,21 +50,15 @@ export function ReloadPrompt() {
         ),
       });
     }
-  }, [needRefresh, updateServiceWorker, location.pathname]);
+  }, [needRefresh, updateServiceWorker]);
 
   useEffect(() => {
-    // Offline ready também apenas para painéis
-    const isPanelRoute = 
-      location.pathname.startsWith('/admin') || 
-      location.pathname.startsWith('/cliente') || 
-      location.pathname.startsWith('/revenda');
-
-    if (offlineReady && isPanelRoute) {
+    if (offlineReady) {
       toast('App pronto para uso offline', {
         description: 'Você pode acessar o painel mesmo sem internet.',
       });
     }
-  }, [offlineReady, location.pathname]);
+  }, [offlineReady]);
 
   return null;
 }
