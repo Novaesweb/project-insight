@@ -35,3 +35,11 @@ A plataforma é dividida nestes pilares:
 - Toda vez que criar um componente novo, garanta que ele possua os imports do `framer-motion` e que a entrada não seja "seca" (adicione um `initial={{ opacity: 0 }}` e `animate={{ opacity: 1 }}`).
 - Não altere as rotas do `App.tsx` sem extrema necessidade de negócio.
 - Nunca limite dados estaticamente (hardcode) se for algo que a empresa queira controlar pelo backend.
+
+## 6. Visão de Sócio (Estratégia de Crescimento)
+Como "sócio" da Novaesweb, o foco de toda nova funcionalidade deve ser **Conversão** e **Autoridade**.
+- **Site Ativo, não Passivo**: O site deve ter ferramentas que "pesquem" o lead (Calculadoras de ROI, Iscas Digitais, Exit-Intent).
+- **Facilitação de Vendas no Admin**: O Admin deve ter ferramentas que ajudem a prospectar (Geradores de Auditoria, PDFs Automáticos, CRM simplificado).
+- **Ecossistema de Automação**: Sempre considere como integrar serviços de automação (parceiros) como módulos adicionais de alto valor agregado.
+- **Mentalidade High-Ticket**: O design e as funcionalidades devem justificar um preço premium para o cliente final.
+
