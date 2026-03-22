@@ -60,9 +60,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="flex h-screen text-[hsl(var(--foreground))] admin-layout-container">
+    <div className="flex h-screen text-[hsl(var(--foreground))] admin-layout-container font-sora selection:bg-primary/30">
       <ReloadPrompt />
-      <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:flex md:flex-col">
+      <aside className="w-64 border-r border-white/5 bg-black/20 backdrop-blur-2xl py-4 hidden md:flex md:flex-col relative z-50">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
             {branding.logo ? (
@@ -77,11 +78,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
-              <Link key={item.href} to={item.href} className={cn("group flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all hover:bg-[hsl(var(--card))] hover:text-[hsl(var(--primary))]", isActive ? "bg-[hsl(var(--card))] text-[hsl(var(--primary))]" : "text-[hsl(var(--muted-foreground))]")}>
-                <item.icon className="w-4 h-4" />
+              <Link 
+                key={item.href} 
+                to={item.href} 
+                className={cn(
+                  "group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all relative overflow-hidden",
+                  isActive 
+                    ? "text-primary bg-primary/10" 
+                    : "text-white/40 hover:text-white/80 hover:bg-white/5"
+                )}
+              >
+                {isActive && (
+                  <motion.div 
+                    layoutId="activeNav"
+                    className="absolute left-0 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  />
+                )}
+                <item.icon className={cn("w-4.5 h-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-primary" : "text-white/30 group-hover:text-white/60")} />
                 <span>{item.label}</span>
                 {item.count !== undefined && item.count > 0 && (
-                  <span className="ml-auto w-5 h-5 flex items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white text-[0.6rem]">{leadCount}</span>
+                  <span className="ml-auto px-2 py-0.5 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold shadow-lg shadow-primary/20 animate-pulse">{leadCount}</span>
                 )}
               </Link>
             );
@@ -133,20 +151,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </Sheet>
       <main className="flex-1 p-6 relative overflow-auto">
         <TopProgressBar />
-        <header className="flex items-center justify-between mb-6 max-w-[1400px] mx-auto w-full">
+        <header className="flex items-center justify-between mb-8 max-w-[1400px] mx-auto w-full sticky top-0 z-40 bg-transparent py-4">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-semibold">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
-            {pageInfo[pathname as keyof typeof pageInfo]?.subtitulo && (
-              <p className="text-sm text-[hsl(var(--muted-foreground))] hidden lg:block">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
-            )}
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-md">{pageInfo[pathname as keyof typeof pageInfo]?.titulo}</h1>
+              {pageInfo[pathname as keyof typeof pageInfo]?.subtitulo && (
+                <p className="text-sm text-white/40 font-medium hidden lg:block">{pageInfo[pathname as keyof typeof pageInfo]?.subtitulo}</p>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-2xl">
             <GlobalSearch />
-            <Button variant="ghost" size="icon" onClick={toggle} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
+            <div className="h-6 w-px bg-white/10 mx-1" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10 rounded-xl transition-all" onClick={toggle} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
               {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
             <NotificationCenter userType="admin" userId="admin" />
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/configuracoes")}><Settings className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-white/50 hover:text-white hover:bg-white/10 rounded-xl transition-all" onClick={() => navigate("/admin/configuracoes")}><Settings className="w-5 h-5" /></Button>
           </div>
         </header>
         <AnimatePresence mode="wait">

@@ -58,10 +58,11 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
       {/* Sidebar Desktop */}
       <aside 
         className={cn(
-          "hidden lg:flex flex-col bg-[#0c0c14] border-r border-white/5 transition-all duration-300 relative z-50",
+          "hidden lg:flex flex-col bg-black/20 backdrop-blur-2xl border-r border-white/5 transition-all duration-300 relative z-50",
           isSidebarOpen ? "w-64" : "w-20"
         )}
       >
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         <div className="p-6 flex items-center gap-3">
           <Link to="/revenda/dashboard" className="flex items-center gap-3 overflow-hidden">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/20">
@@ -86,19 +87,19 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative overflow-hidden",
                   isActive 
-                    ? "bg-white/5 text-white" 
+                    ? "bg-primary/10 text-primary shadow-lg shadow-primary/5" 
                     : "text-white/40 hover:bg-white/5 hover:text-white"
                 )}
               >
                 {isActive && (
-                  <div className="absolute left-0 w-1 h-6 bg-red-500 rounded-r-full" />
+                  <div className="absolute left-0 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]" />
                 )}
-                <Icon className={cn("w-5 h-5", isActive ? "text-red-500" : "group-hover:text-red-400")} />
+                <Icon className={cn("w-5 h-5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-primary" : "text-white/20 group-hover:text-white/50")} />
                 {isSidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
                 {isSidebarOpen && item.badge && (
-                  <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-[10px] bg-red-500/10 text-red-500 border-red-500/20">
+                  <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-primary/20 animate-pulse">
                     {item.badge}
                   </Badge>
                 )}
@@ -123,9 +124,9 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative font-sora">
         {/* Header */}
-        <header className="h-20 border-b border-white/5 bg-[#08080f]/80 backdrop-blur-md sticky top-0 z-40 px-6 flex items-center justify-between">
+        <header className="h-20 bg-transparent sticky top-0 z-40 px-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
              <Button 
               variant="ghost" 
@@ -150,12 +151,12 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-2xl">
              <GlobalSearch />
-             
-            <Button variant="ghost" size="icon" className="text-white/40 relative">
+             <div className="h-6 w-px bg-white/10 mx-1" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-white/50 relative hover:text-white hover:bg-white/10 rounded-xl transition-all">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#03040b]" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-[#03040b]" />
             </Button>
 
             <div className="h-8 w-px bg-white/5 mx-1" />
@@ -163,11 +164,11 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             <div className="flex items-center gap-3 pl-2">
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium text-white">{reseller.nome || "Revendedor"}</p>
-                <p className="text-[10px] text-white/40">Status: <span className="text-green-500">Ativo</span></p>
+                <p className="text-[10px] text-white/40">Status: <span className="text-emerald-400 font-bold">Ativo</span></p>
               </div>
-              <Avatar className="h-10 w-10 border-2 border-white/5 shadow-xl ring-2 ring-red-500/20">
+              <Avatar className="h-10 w-10 border-2 border-white/10 shadow-xl ring-2 ring-primary/20 transition-transform hover:scale-110">
                 <AvatarImage src={reseller.avatar} />
-                <AvatarFallback className="bg-gradient-to-br from-red-500 to-pink-600 text-white font-bold">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white font-bold">
                   {(reseller.nome || "R").charAt(0)}
                 </AvatarFallback>
               </Avatar>

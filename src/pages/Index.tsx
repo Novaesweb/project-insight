@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import StatusBadge from "@/components/StatusBadge";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -162,7 +163,7 @@ export default function Dashboard() {
   const selectedExtra = catalogo.find(c => c.id === extraSel);
 
   return (
-    <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
+    <motion.div className="space-y-8 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
       {/* Header Premium */}
       <motion.div variants={fadeUp} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
         <div>
@@ -181,21 +182,24 @@ export default function Dashboard() {
       <motion.div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" variants={fadeUp}>
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="glass-card border-white/5 overflow-hidden info-card-hover group relative">
-            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-10 blur-[40px] transition-opacity duration-500`} />
-            <CardContent className="p-5 relative z-10">
+            <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-20 blur-[40px] transition-all duration-700 group-hover:scale-150`} />
+            <CardContent className="p-6 relative z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))] font-semibold">{kpi.label}</p>
-                  <p className="text-3xl font-bold text-white mt-1.5 tracking-tight">{kpi.value}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-1">{kpi.label}</p>
+                  <p className="text-4xl font-black text-white tracking-tighter leading-none">{kpi.value}</p>
                   {kpi.change && (
-                    <p className={`text-[11px] mt-2 flex items-center gap-1 font-medium ${kpi.alert ? "text-amber-400" : "text-emerald-400"}`}>
+                    <div className={cn(
+                      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold mt-4 border",
+                      kpi.alert ? "text-red-400 bg-red-400/10 border-red-400/20" : "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
+                    )}>
                       {kpi.alert ? <AlertTriangle className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
                       {kpi.change}
-                    </p>
+                    </div>
                   )}
                 </div>
-                <div className={`p-3 rounded-2xl bg-gradient-to-br ${kpi.color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform duration-500`}>
-                  <kpi.icon className="w-5 h-5 text-white" />
+                <div className={`p-4 rounded-[20px] bg-gradient-to-br ${kpi.color} shadow-2xl shadow-black/40 group-hover:rotate-12 transition-all duration-500`}>
+                  <kpi.icon className="w-6 h-6 text-white" />
                 </div>
               </div>
             </CardContent>
@@ -205,10 +209,11 @@ export default function Dashboard() {
 
       {/* CHARTS ROW */}
       <motion.div className="grid grid-cols-1 xl:grid-cols-3 gap-4" variants={fadeUp}>
-        <Card className="glass-card border-[0.5px] xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-400" /> Visão Financeira (Últimos 6 Meses)
+        <Card className="glass-card border-white/10 xl:col-span-2 overflow-hidden relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold text-white/50 uppercase tracking-[0.2em] flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" /> Visão Financeira (Últimos 6 Meses)
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-0 pb-2">
@@ -237,10 +242,11 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-[0.5px] xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-400" /> Módulos Mais Vendidos
+        <Card className="glass-card border-white/10 xl:col-span-1 overflow-hidden relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold text-white/50 uppercase tracking-[0.2em] flex items-center gap-2">
+              <Activity className="w-4 h-4 text-accent" /> Módulos Mais Vendidos
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center pt-0">
