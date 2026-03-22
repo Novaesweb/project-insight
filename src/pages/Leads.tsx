@@ -41,6 +41,7 @@ export default function Leads() {
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
   const [converting, setConverting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const fetchLeads = async () => {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
@@ -127,6 +128,21 @@ export default function Leads() {
     } else {
       toast({ title: "Lead excluído com sucesso!" });
       setSelectedLead(null);
+      setSelectedIds(prev => prev.filter(id => id !== leadId));
+      fetchLeads();
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Tem certeza que deseja excluir ${selectedIds.length} leads selecionados? Esta ação não pode ser desfeita.`)) return;
+    
+    const { error } = await supabase.from("leads").delete().in("id", selectedIds);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Leads excluídos com sucesso!" });
+      setSelectedIds([]);
       fetchLeads();
     }
   };
@@ -174,7 +190,13 @@ export default function Leads() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                 <Input placeholder="Buscar lead..." className="pl-9 glass-input border-0 text-white text-sm" value={busca} onChange={e => setBusca(e.target.value)} />
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap items-center">
+                {selectedIds.length > 0 && (
+                  <Button size="sm" variant="destructive" className="gap-2 animate-in fade-in zoom-in" onClick={handleBulkDelete}>
+                    <Trash2 className="w-4 h-4" /> Excluir ({selectedIds.length})
+                  </Button>
+                )}
+                <div className="h-4 w-px bg-white/10 mx-1 hidden sm:block" />
                 {["todos", "novo", "em_contato", "convertido", "perdido"].map(s => (
                   <Button key={s} size="sm"
                     className={filtroStatus === s ? "gradient-primary border-0 text-white" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white"}
@@ -189,7 +211,16 @@ export default function Leads() {
             <Table>
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Nome", "E-mail", "WhatsApp", "Segmento", "Serviços", "Orçamento", "Status", "Data"].map(h => (
+                  <TableHead className="w-[40px]">
+                    <Checkbox 
+                      checked={selectedIds.length === filtrados.length && filtrados.length > 0}
+                      onCheckedChange={(checked) => {
+                        if (checked) setSelectedIds(filtrados.map(l => l.id));
+                        else setSelectedIds([]);
+                      }}
+                    />
+                  </TableHead>
+                  {["Nome", "E-mail", "WhatsApp", "Segmento", "Serviços", "Orçamento", "Status", "Data", ""].map(h => (
                     <TableHead key={h} className={`text-[11px] text-[hsl(var(--muted-foreground))] ${["Segmento", "Orçamento"].includes(h) ? "hidden lg:table-cell" : ""} ${h === "Serviços" ? "hidden xl:table-cell" : ""}`}>{h}</TableHead>
                   ))}
                 </TableRow>
@@ -198,8 +229,17 @@ export default function Leads() {
                 {filtrados.map(l => {
                   const sc = statusConfig[l.status] || statusConfig.novo;
                   return (
-                    <TableRow key={l.id} className={`border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)] ${!l.visualizado ? "bg-red-500/[0.03]" : ""}`}
+                    <TableRow key={l.id} className={`border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)] ${!l.visualizado ? "bg-red-500/[0.03]" : ""} ${selectedIds.includes(l.id) ? "bg-primary/5" : ""}`}
                       onClick={() => { setSelectedLead(l); if (!l.visualizado) supabase.from("leads").update({ visualizado: true }).eq("id", l.id).then(() => fetchLeads()); }}>
+                      <TableCell className="w-[40px]" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox 
+                          checked={selectedIds.includes(l.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) setSelectedIds(prev => [...prev, l.id]);
+                            else setSelectedIds(prev => prev.filter(id => id !== l.id));
+                          }}
+                        />
+                      </TableCell>
                       <TableCell className="text-sm text-white font-medium">
                         <div className="flex items-center gap-2">
                           {!l.visualizado && <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />}
@@ -215,6 +255,11 @@ export default function Leads() {
                       <TableCell className="text-sm text-[hsl(var(--muted-foreground))] hidden lg:table-cell">{l.orcamento || "—"}</TableCell>
                       <TableCell><Badge variant="outline" className={`text-[10px] font-medium ${sc.color} ${sc.bg}`}>{sc.label}</Badge></TableCell>
                       <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{new Date(l.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500/50 hover:text-red-500 hover:bg-red-500/10" onClick={() => handleDelete(l.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
