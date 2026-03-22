@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Notification, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Notification, Tray, Menu, globalShortcut } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
@@ -105,7 +105,20 @@ if (!gotTheLock) {
     console.log('App ready, creating window and tray...');
     createWindow();
     createTray();
+
+    // Atalhos para recarregar (Bom para limpar cache)
+    globalShortcut.register('CommandOrControl+R', () => {
+      if (mainWindow) mainWindow.reload();
+    });
+    globalShortcut.register('F5', () => {
+      if (mainWindow) mainWindow.reload();
+    });
+
     console.log('Setup complete.');
+  });
+
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
   });
 
   app.on('window-all-closed', () => {
