@@ -137,10 +137,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <NativeNotificationManager />
-      <ReloadPrompt />
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
+        <ReloadPrompt />
+        <Toaster />
+        <Sonner />
         <DesktopNavigationHandler />
         <ReferralTracker />
         <Routes>
