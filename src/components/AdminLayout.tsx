@@ -63,17 +63,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen text-[hsl(var(--foreground))] admin-layout-container font-sora selection:bg-primary/30">
       <aside className="w-60 border-r border-white/5 bg-black/20 backdrop-blur-2xl py-3 hidden md:flex md:flex-col relative z-50">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-        <div className="px-6 pb-4">
+        <div className="px-6 pb-2">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">
             {branding.logo ? (
-              <img src={branding.logo} alt={branding.nome} className="w-8 h-8 rounded-lg object-cover" />
+              <img src={branding.logo} alt={branding.nome} className="w-6 h-6 rounded-lg object-cover" />
             ) : (
-              <img src={nwLogo} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover" />
+              <img src={nwLogo} alt="NovaesWeb" className="w-6 h-6 rounded-lg object-cover" />
             )}
-            <span>{branding.nome || "Painel Admin"}</span>
+            <span className="text-xs">{branding.nome || "Painel Admin"}</span>
           </Link>
         </div>
-        <nav className="space-y-0.5 flex-1">
+        <nav className="space-y-0 flex-1">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
@@ -81,7 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href} 
                 to={item.href} 
                 className={cn(
-                  "group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all relative overflow-hidden",
+                  "group flex items-center gap-3 px-6 py-1.5 text-[12px] font-medium transition-all relative overflow-hidden",
                   isActive 
                     ? "text-primary bg-primary/10" 
                     : "text-white/40 hover:text-white/80 hover:bg-white/5"
@@ -90,23 +90,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {isActive && (
                   <motion.div 
                     layoutId="activeNav"
-                    className="absolute left-0 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]"
+                    className="absolute left-0 w-1 h-4 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   />
                 )}
-                <item.icon className={cn("w-4.5 h-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-primary" : "text-white/30 group-hover:text-white/60")} />
+                <item.icon className={cn("w-4 h-4 transition-transform duration-300 group-hover:scale-110", isActive ? "text-primary" : "text-white/30 group-hover:text-white/60")} />
                 <span>{item.label}</span>
                 {item.count !== undefined && item.count > 0 && (
-                  <span className="ml-auto px-2 py-0.5 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold shadow-lg shadow-primary/20 animate-pulse">{leadCount}</span>
+                  <span className="ml-auto px-1.5 py-0.5 flex items-center justify-center rounded-full bg-primary text-white text-[9px] font-bold shadow-lg shadow-primary/20 animate-pulse">{leadCount}</span>
                 )}
               </Link>
             );
           })}
         </nav>
-        <div className="px-6 pt-2 border-t border-[hsl(var(--border))]">
-          <button onClick={handleLogout} className="flex items-center gap-2 px-0 py-3 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] transition-colors w-full">
-            <LogOut className="w-4 h-4" />
+        <div className="px-6 pt-1 border-t border-white/5">
+          <button onClick={handleLogout} className="flex items-center gap-2 px-0 py-2 text-xs font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] transition-colors w-full">
+            <LogOut className="w-3.5 h-3.5" />
             <span>Sair do Painel</span>
           </button>
         </div>

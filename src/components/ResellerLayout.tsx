@@ -62,13 +62,13 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         )}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-        <div className="p-6 flex items-center gap-3">
+        <div className="p-4 flex items-center gap-3">
           <Link to="/revenda/dashboard" className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/20">
-              <span className="text-white font-bold text-sm">NW</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/20">
+              <span className="text-white font-bold text-xs">NW</span>
             </div>
             {isSidebarOpen && (
-              <span className="font-bold text-lg tracking-tight whitespace-nowrap">
+              <span className="font-bold text-base tracking-tight whitespace-nowrap">
                 <span className="bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">Novaes</span>
                 <span className="text-white">Web</span>
               </span>
@@ -76,29 +76,29 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
           </Link>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 px-4 py-1 space-y-1 overflow-y-auto custom-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
             
             return (
-              <Link
+               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative overflow-hidden",
+                  "flex items-center gap-3 px-3 py-1.5 rounded-xl transition-all group relative overflow-hidden",
                   isActive 
                     ? "bg-primary/10 text-primary shadow-lg shadow-primary/5" 
                     : "text-white/40 hover:bg-white/5 hover:text-white"
                 )}
               >
                 {isActive && (
-                  <div className="absolute left-0 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]" />
+                  <div className="absolute left-0 w-1 h-4 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]" />
                 )}
-                <Icon className={cn("w-5 h-5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-primary" : "text-white/20 group-hover:text-white/50")} />
-                {isSidebarOpen && <span className="text-sm font-medium">{item.label}</span>}
+                <Icon className={cn("w-4 h-4 transition-transform duration-300 group-hover:scale-110", isActive ? "text-primary" : "text-white/20 group-hover:text-white/50")} />
+                {isSidebarOpen && <span className="text-xs font-medium">{item.label}</span>}
                 {isSidebarOpen && item.badge && (
-                  <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-primary/20 animate-pulse">
+                  <Badge variant="destructive" className="ml-auto h-4 px-1.5 text-[9px] bg-primary/10 text-primary border-primary/20 animate-pulse">
                     {item.badge}
                   </Badge>
                 )}
@@ -112,12 +112,12 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             variant="ghost" 
             onClick={handleLogout}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/40 hover:bg-red-500/10 hover:text-red-500 transition-all",
+              "w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-white/40 hover:bg-red-500/10 hover:text-red-500 transition-all",
               !isSidebarOpen && "justify-center"
             )}
           >
-            <LogOut className="w-5 h-5" />
-            {isSidebarOpen && <span className="text-sm font-medium">Sair</span>}
+            <LogOut className="w-4 h-4" />
+            {isSidebarOpen && <span className="text-xs font-medium">Sair</span>}
           </Button>
         </div>
       </aside>
@@ -125,7 +125,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative font-sora">
         {/* Header */}
-        <header className="h-20 bg-transparent sticky top-0 z-40 px-6 flex items-center justify-between">
+        <header className="h-14 bg-transparent sticky top-0 z-40 px-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
              <Button 
               variant="ghost" 
