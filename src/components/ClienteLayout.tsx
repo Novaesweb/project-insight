@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, FolderKanban, Plus, FileText, Receipt,
-  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2
+  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { useBranding } from "@/hooks/useBranding";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/cliente/dashboard" },
+  { label: "Pedidos (Fome)", icon: ShoppingCart, path: "/cliente/pedidos" },
   { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
   { label: "Meus Extras", icon: Plus, path: "/cliente/extras" },
   { label: "Contratos", icon: FileText, path: "/cliente/contratos" },

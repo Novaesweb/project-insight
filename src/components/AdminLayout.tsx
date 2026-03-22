@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
   Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck,
-  Sun, Moon, Puzzle, FileText
+  Sun, Moon, Puzzle, FileText, MessageSquareQuote, UtensilsCrossed
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
@@ -41,6 +41,8 @@ const navItems: NavItem[] = [
   { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
   { href: "/admin/revenda", label: "Revenda", icon: Users },
   { href: "/admin/contratos", label: "Contratos", icon: FileText },
+  { href: "/admin/menu", label: "Cardápio", icon: UtensilsCrossed },
+  { href: "/admin/depoimentos", label: "Depoimentos", icon: MessageSquareQuote },
 ];
 
 import { useBranding } from "@/hooks/useBranding";

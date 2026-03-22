@@ -2,13 +2,15 @@
   "name": "novaesweb",
   "description": "Painel Administrativo - Novaes Web com Lovable",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "lint": "eslint .",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "electron:dev": "concurrently \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:8080 && electron .\"",
+    "electron:build": "vite build && electron-builder",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -47,7 +49,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "date-fns": "^4.1.0",
+    "date-fns": "^3.6.0",
     "docx": "^9.6.1",
     "embla-carousel-react": "^8.6.0",
     "file-saver": "^2.0.5",
@@ -81,6 +83,9 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.1",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -92,6 +97,31 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.novaesweb.admin",
+    "productName": "NovaesWeb Admin",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/favicon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "NovaesWeb Admin"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ]
   }
 }

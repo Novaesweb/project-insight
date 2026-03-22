@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -126,9 +127,91 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                          </Button>
                       </div>
                    </div>
+                   <div className="flex-1 max-w-[200px]">
+                      <Label className="text-[10px] text-white/30 uppercase font-bold mb-1 block">Slug (URL Cardápio)</Label>
+                      <div className="flex gap-2">
+                         <Input 
+                           value={cliente.slug || ""} 
+                           onChange={e => setCliente({ ...cliente, slug: e.target.value.toLowerCase().replace(/ /g, '-') })}
+                           placeholder="pizzaria-joao"
+                           className="glass-input h-8 text-xs border-white/10"
+                         />
+                         <Button 
+                           size="sm" 
+                           variant="outline"
+                           className="h-8 border-white/10 text-[10px] px-3"
+                           onClick={async () => {
+                             const { error } = await supabase.from("clientes").update({ slug: cliente.slug } as any).eq("id", clienteId);
+                             if (error) toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+                             else toast({ title: "Slug atualizado!" });
+                           }}
+                         >
+                           OK
+                         </Button>
+                      </div>
+                   </div>
                    <div className="pt-4 sm:pt-0">
                       <p className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold mb-1">Localização</p>
                       <p className="text-xs text-white/60">{cliente.cidade}, {cliente.estado} · {cliente.documento}</p>
+                   </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 mt-6 p-4 rounded-2xl bg-white/5 border border-white/10">
+                   <div className="flex-1">
+                      <p className="text-[10px] text-white/40 uppercase font-bold mb-1">Status do Acesso / Trial</p>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="date"
+                          value={cliente.trial_ends_at ? new Date(cliente.trial_ends_at).toISOString().split('T')[0] : ""}
+                          onChange={e => setCliente({ ...cliente, trial_ends_at: e.target.value })}
+                          className="glass-input h-9 text-xs w-40"
+                        />
+                        {cliente.trial_ends_at && new Date(cliente.trial_ends_at) < new Date() ? (
+                          <Badge variant="outline" className="border-red-500/50 text-red-500 bg-red-500/10">EXPIRADO</Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-emerald-500/50 text-emerald-500 bg-emerald-500/10">ATIVO</Badge>
+                        )}
+                      </div>
+                   </div>
+                   <div className="flex items-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-9 border-white/10 hover:bg-white/5 text-[10px]"
+                        onClick={async () => {
+                          const newDate = new Date();
+                          newDate.setDate(newDate.getDate() + 7);
+                          const { error } = await supabase.from("clientes").update({ trial_ends_at: newDate.toISOString() } as any).eq("id", clienteId);
+                          if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+                          else { toast({ title: "Trial expandido!", description: "+7 dias concedidos." }); loadData(); }
+                        }}
+                      >
+                         Dar +7 Dias
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-9 border-red-500/20 text-red-500 hover:bg-red-500/10 text-[10px]"
+                        onClick={async () => {
+                          const newDate = new Date();
+                          newDate.setDate(newDate.getDate() - 1);
+                          const { error } = await supabase.from("clientes").update({ trial_ends_at: newDate.toISOString() } as any).eq("id", clienteId);
+                          if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+                          else { toast({ title: "Acesso Bloqueado!", variant: "destructive" }); loadData(); }
+                        }}
+                      >
+                         <Pause className="w-3 h-3 mr-1" /> Bloquear Agora
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="h-9 gradient-primary border-0 text-[10px]"
+                        onClick={async () => {
+                          const { error } = await supabase.from("clientes").update({ trial_ends_at: cliente.trial_ends_at } as any).eq("id", clienteId);
+                          if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+                          else toast({ title: "Data salva!" });
+                        }}
+                      >
+                         Salvar Data
+                      </Button>
                    </div>
                 </div>
               </div>

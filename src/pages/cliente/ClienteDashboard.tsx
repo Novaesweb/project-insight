@@ -137,8 +137,29 @@ export default function ClienteDashboard() {
     { label: "Tickets abertos", value: counts.tickets, icon: Headphones, color: "text-purple-400" },
   ];
 
+  const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
+
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6 ambient-glow min-h-screen pb-10">
+      {isTrialExpired && (
+        <Card className="bg-red-500/10 border-red-500/20 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-10"><Sparkles className="w-12 h-12" /></div>
+          <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center md:text-left">
+              <h2 className="text-xl font-bold text-white flex items-center justify-center md:justify-start gap-2">
+                 Período de Teste Finalizado! ⏳
+              </h2>
+              <p className="text-sm text-white/60 max-w-lg">
+                Seu acesso aos recursos premium expirou. Continue acelerando seu negócio assinando um de nossos planos.
+              </p>
+            </div>
+            <Button className="gradient-primary h-12 px-8 font-bold shadow-lg shadow-primary/20 whitespace-nowrap">
+               ESCOLHER MEU PLANO
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">

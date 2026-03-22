@@ -1,4 +1,13 @@
-import { useState } from "react";
+declare global {
+  interface Window {
+    electron: {
+      send: (channel: string, data: any) => void;
+      receive: (channel: string, func: (...args: any[]) => void) => void;
+    };
+  }
+}
+
+import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -46,9 +55,13 @@ import ResellerDashboard from "./pages/reseller/ResellerDashboard";
 import ResellerIndicacoes from "./pages/reseller/ResellerIndicacoes";
 import ResellerFinanceiro from "./pages/reseller/ResellerFinanceiro";
 import ResellerMateriais from "./pages/reseller/ResellerMateriais";
-import NotFound from "./pages/NotFound";
+import NotFound from "@/pages/NotFound";
+import AdminMenu from "@/pages/AdminMenu";
+import MenuInterativo from "@/pages/MenuInterativo";
+import ClientePedidosFome from "@/pages/cliente/ClientePedidosFome";
+import AdminDepoimentos from "@/pages/AdminDepoimentos";
+import { NativeNotificationManager } from "@/components/NativeNotificationManager";
 
-import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
@@ -93,6 +106,8 @@ function AdminWithSplash() {
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/revenda" element={<AdminRevenda />} />
           <Route path="/contratos" element={<Contratos />} />
+          <Route path="/menu" element={<AdminMenu />} />
+          <Route path="/depoimentos" element={<AdminDepoimentos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AdminLayout>
@@ -100,12 +115,31 @@ function AdminWithSplash() {
   );
 }
 
+import { useNavigate } from "react-router-dom";
+
+const DesktopNavigationHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (window.electron && window.electron.receive) {
+      window.electron.receive("navigate-to", (url: string) => {
+        console.log("Navigating to:", url);
+        navigate(url);
+      });
+    }
+  }, [navigate]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <NativeNotificationManager />
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <DesktopNavigationHandler />
         <ReferralTracker />
         <Routes>
           {/* Public Site */}
@@ -115,6 +149,7 @@ const App = () => (
           <Route path="/agendar" element={<AgendarPublico />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/funcionalidades" element={<Funcionalidades />} />
+          <Route path="/cardapio/:slug" element={<MenuInterativo />} />
           <Route path="/instalar" element={<Instalar />} />
           <Route path="/cliente" element={<ClienteLogin />} />
 
@@ -123,6 +158,7 @@ const App = () => (
             <ClienteLayout>
               <Routes>
                 <Route path="dashboard" element={<ClienteDashboard />} />
+                <Route path="pedidos" element={<ClientePedidosFome />} />
                 <Route path="projetos" element={<ClienteProjetos />} />
                 <Route path="extras" element={<ClienteExtras />} />
                 <Route path="contratos" element={<ClienteContratos />} />
