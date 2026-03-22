@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Lock, Mail, Eye, EyeOff, ShieldAlert, Timer, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Lock, Mail, Key, LogIn, ChevronRight, Sparkles, Timer, Eye, EyeOff, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-full.jpeg";
@@ -97,11 +98,23 @@ export default function AdminLogin() {
             >
               <Sparkles className="w-4 h-4 text-yellow-400" />
             </motion.div>
-            <Lock className="w-3 h-3 text-[hsl(var(--primary))]" />
-            <span className="text-[10px] font-semibold tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
-              Painel Administrativo
-            </span>
+            <div className="space-y-2 text-center">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              NovaesWeb Admin
+            </h1>
+            <div className="flex justify-center gap-2">
+              <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400 bg-emerald-500/5">
+                ● Versão Desktop Ativa
+              </Badge>
+              <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">
+                v2.4.9
+              </Badge>
+            </div>
+            <p className="text-[hsl(var(--muted-foreground))]">
+              Gerencie sua plataforma em tempo real.
+            </p>
           </div>
+        </div>
         </motion.div>
 
         {/* Form Card */}
