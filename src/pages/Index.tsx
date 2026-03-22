@@ -48,74 +48,113 @@ export default function Dashboard() {
 
   useEffect(() => {
     const load = async () => {
-      const [c, p, ped, t, fin, extrasCli, catFull] = await Promise.all([
-        supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
-        supabase.from("projetos").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
-        supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }).limit(5),
-        supabase.from("tickets").select("*, clientes(nome)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
-        supabase.from("financeiro").select("valor, created_at").eq("tipo", "entrada").eq("status", "pago"),
-        supabase.from("extras_clientes").select("extra_id"),
-        supabase.from("extras_catalogo").select("id, nome")
-      ]);
-      
-      const receita = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
-      setStats({ clientes: c.count || 0, projetos: p.count || 0, pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, receita });
-      setPedidos(ped.data || []);
-      setTickets(t.data || []);
-      setDbStatus(c.error || p.error || ped.error || t.error || fin.error ? "erro" : "conectado");
-
-      // Build Monthly Revenue Chart
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const currentMonthIndex = new Date().getMonth();
-      const revenueMap: Record<string, number> = {};
-      
-      // Initialize last 6 months to 0 to preserve order
-      for (let i = 5; i >= 0; i--) {
-        let mIdx = currentMonthIndex - i;
-        if (mIdx < 0) mIdx += 12;
-        revenueMap[months[mIdx]] = 0;
+      // Check for environment variables
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+        toast({
+          title: "Configuração Incompleta",
+          description: "As chaves do banco de dados não foram encontradas no ambiente atual.",
+          variant: "destructive"
+        });
+        setDbStatus("erro");
+        return;
       }
 
-      fin.data?.forEach((f: any) => {
-        const date = new Date(f.created_at);
-        const monthName = months[date.getMonth()];
-        if (revenueMap[monthName] !== undefined) {
-           revenueMap[monthName] += Number(f.valor);
-        }
-      });
-
-      const revData = Object.keys(revenueMap).map(k => ({ name: k, total: Number(revenueMap[k].toFixed(2)) }));
-      setMonthlyRevenue(revData);
-
-      // Build Top Modules Pie Chart
-      const moduleCounts: Record<string, number> = {};
-      extrasCli.data?.forEach((e: any) => {
-        if (!e.extra_id) return;
-        moduleCounts[e.extra_id] = (moduleCounts[e.extra_id] || 0) + 1;
-      });
-
-      const pieData = Object.keys(moduleCounts)
-        .map((id) => {
-          const cat = catFull.data?.find(c => c.id === id);
-          return { name: cat ? cat.nome : 'Outro', value: moduleCounts[id] };
-        })
-        .sort((a,b) => b.value - a.value)
-        .slice(0, 5); // Top 5
+      try {
+        const [c, p, ped, t, fin, extrasCli, catFull] = await Promise.all([
+          supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
+          supabase.from("projetos").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
+          supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }).limit(5),
+          supabase.from("tickets").select("*, clientes(nome)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
+          supabase.from("financeiro").select("valor, created_at").eq("tipo", "entrada").eq("status", "pago"),
+          supabase.from("extras_clientes").select("extra_id"),
+          supabase.from("extras_catalogo").select("id, nome")
+        ]);
         
-      if (pieData.length === 0) pieData.push({ name: 'Nenhum venda', value: 1 });
-      setTopModules(pieData);
+        const receita = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
+        setStats({ 
+          clientes: c.count || 0, 
+          projetos: p.count || 0, 
+          pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, 
+          receita 
+        });
+        setPedidos(ped.data || []);
+        setTickets(t.data || []);
 
-      // Subscriptions
-      supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
-        .then(({ count }) => setSubCount(count || 0));
+        // Error Reporting
+        const hasError = c.error || p.error || ped.error || t.error || fin.error;
+        if (hasError) {
+          console.error("Erro ao carregar dados do Dashboard:", { 
+            clientes: c.error, projetos: p.error, pedidos: ped.error, tickets: t.error, financeiro: fin.error 
+          });
+          toast({
+            title: "Erro de Sincronização",
+            description: "Alguns dados não puderam ser carregados do banco de dados.",
+            variant: "destructive"
+          });
+        }
 
-      // Recent Activity
-      const { data: acts } = await supabase.from("notifications")
-        .select("*")
-        .eq("user_type", "admin")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      setActivity(acts || []);
+        setDbStatus(hasError ? "erro" : "conectado");
+
+        // Build Monthly Revenue Chart
+        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const currentMonthIndex = new Date().getMonth();
+        const revenueMap: Record<string, number> = {};
+        
+        for (let i = 5; i >= 0; i--) {
+          let mIdx = currentMonthIndex - i;
+          if (mIdx < 0) mIdx += 12;
+          revenueMap[months[mIdx]] = 0;
+        }
+
+        fin.data?.forEach((f: any) => {
+          const date = new Date(f.created_at);
+          const monthName = months[date.getMonth()];
+          if (revenueMap[monthName] !== undefined) {
+             revenueMap[monthName] += Number(f.valor);
+          }
+        });
+
+        const revData = Object.keys(revenueMap).map(k => ({ name: k, total: Number(revenueMap[k].toFixed(2)) }));
+        setMonthlyRevenue(revData);
+
+        // Build Top Modules Pie Chart
+        const moduleCounts: Record<string, number> = {};
+        extrasCli.data?.forEach((e: any) => {
+          if (!e.extra_id) return;
+          moduleCounts[e.extra_id] = (moduleCounts[e.extra_id] || 0) + 1;
+        });
+
+        const pieData = Object.keys(moduleCounts)
+          .map((id) => {
+            const cat = catFull.data?.find(c => c.id === id);
+            return { name: cat ? cat.nome : 'Outro', value: moduleCounts[id] };
+          })
+          .sort((a,b) => b.value - a.value)
+          .slice(0, 5); 
+          
+        if (pieData.length === 0) pieData.push({ name: 'Nenhum venda', value: 1 });
+        setTopModules(pieData);
+
+        // Subscriptions
+        supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
+          .then(({ count }) => setSubCount(count || 0));
+
+        // Recent Activity
+        const { data: acts } = await supabase.from("notifications")
+          .select("*")
+          .eq("user_type", "admin")
+          .order("created_at", { ascending: false })
+          .limit(10);
+        setActivity(acts || []);
+      } catch (err: any) {
+        console.error("Falha fatal no dashboard:", err);
+        setDbStatus("erro");
+        toast({
+          title: "Falha Crítica",
+          description: "Não foi possível carregar o dashboard. Verifique o console.",
+          variant: "destructive"
+        });
+      }
     };
     load();
   }, []);
