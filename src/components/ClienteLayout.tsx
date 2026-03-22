@@ -140,7 +140,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         </header>
 
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-6 max-w-[1400px] mx-auto w-full">
+          <div className="p-4 lg:p-6 max-w-[1280px] mx-auto w-full">
             {children}
           </div>
           <div className="py-2 px-4 mt-6" style={{ background: "hsl(var(--primary))" }}>

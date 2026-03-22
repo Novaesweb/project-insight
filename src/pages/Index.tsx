@@ -179,7 +179,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* KPIs */}
-      <motion.div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" variants={fadeUp}>
+      <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" variants={fadeUp}>
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="glass-card border-white/5 overflow-hidden info-card-hover group relative">
             <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${kpi.color} opacity-0 group-hover:opacity-20 blur-[40px] transition-all duration-700 group-hover:scale-150`} />
@@ -208,8 +208,8 @@ export default function Dashboard() {
       </motion.div>
 
       {/* CHARTS ROW */}
-      <motion.div className="grid grid-cols-1 xl:grid-cols-3 gap-4" variants={fadeUp}>
-        <Card className="glass-card border-white/10 xl:col-span-2 overflow-hidden relative group">
+      <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-4" variants={fadeUp}>
+        <Card className="glass-card border-white/10 lg:col-span-2 overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-white/50 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -242,7 +242,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-white/10 xl:col-span-1 overflow-hidden relative group">
+        <Card className="glass-card border-white/10 lg:col-span-1 overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-white/50 uppercase tracking-[0.2em] flex items-center gap-2">
