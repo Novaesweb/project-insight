@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -17,34 +16,6 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
-      // Use a completely different filename so VitePWA NEVER touches our push sw.js
-      filename: "pwa-worker.js",
-      registerType: "prompt",
-      injectRegister: null,       // Do NOT inject any SW registration script into HTML
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
-      manifest: {
-        name: "Novaes Web — Painel Administrativo",
-        short_name: "Novaes Web",
-        description: "Gerencie clientes, projetos, financeiro e muito mais direto do seu celular.",
-        theme_color: "#6366f1",
-        background_color: "#0a0a12",
-        display: "standalone",
-        orientation: "portrait",
-        start_url: "/admin",
-        scope: "/",
-        icons: [
-          { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
-          { src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
-          { src: "pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-        ],
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallbackDenylist: [/^\/~oauth/],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
-      },
-    }),
   ].filter(Boolean),
   resolve: {
     alias: {

@@ -61,7 +61,7 @@ if (!gotTheLock) {
     // Se falhar ao carregar, avisar o motivo
     mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
       console.log('Failed to load:', errorCode, errorDescription);
-      const errorPage = `data:text/html,<html><body style="background:black;color:white;padding:40px;font-family:sans-serif">
+      const errorPage = `data:text/html;charset=utf-8,<html><body style="background:black;color:white;padding:40px;font-family:sans-serif">
         <h1 style="color:red">Erro de Conexão!</h1>
         <p>Não foi possível conectar ao servidor da <b>NovaesWeb</b>.</p>
         <p>Verifique sua conexão com a internet ou se o site está no ar.</p>
