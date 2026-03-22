@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationCenter from "@/components/NotificationCenter";
+import { ReloadPrompt } from "./ReloadPrompt";
 import nwLogo from "@/assets/novaesweb-logo-n.jpeg";
 import { useBranding } from "@/hooks/useBranding";
 
@@ -109,6 +110,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="flex h-screen overflow-hidden text-[hsl(var(--foreground))] admin-layout-container">
+      <ReloadPrompt />
       <aside className="hidden lg:flex w-[200px] shrink-0 flex-col">
         <ClienteSidebar currentPath={location.pathname} />
       </aside>

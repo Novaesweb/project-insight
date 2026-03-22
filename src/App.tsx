@@ -138,7 +138,6 @@ const App = () => (
     <TooltipProvider>
       <NativeNotificationManager />
       <BrowserRouter>
-        {/* <ReloadPrompt /> */}
         <Toaster />
         <Sonner />
         <DesktopNavigationHandler />

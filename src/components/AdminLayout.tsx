@@ -19,6 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import TopProgressBar from "@/components/TopProgressBar";
 import NotificationCenter from "@/components/NotificationCenter";
 import GlobalSearch from "@/components/GlobalSearch";
+import { ReloadPrompt } from "./ReloadPrompt";
 
 interface NavItem {
   href: string;
@@ -60,6 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen text-[hsl(var(--foreground))] admin-layout-container">
+      <ReloadPrompt />
       <aside className="w-64 border-r border-[hsl(var(--border))] py-4 hidden md:flex md:flex-col">
         <div className="px-6 pb-4">
           <Link to="/admin" className="flex items-center gap-2 font-semibold">

@@ -12,6 +12,7 @@ import { useBranding } from "@/hooks/useBranding";
 import { cn } from "@/lib/utils";
 import GlobalSearch from "./GlobalSearch";
 import { motion } from "framer-motion";
+import { ReloadPrompt } from "./ReloadPrompt";
 
 interface NavItem {
   label: string;
@@ -53,6 +54,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="min-h-screen bg-[#08080f] text-white flex overflow-hidden">
+      <ReloadPrompt />
       {/* Sidebar Desktop */}
       <aside 
         className={cn(
