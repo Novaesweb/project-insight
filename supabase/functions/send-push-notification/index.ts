@@ -11,7 +11,7 @@ const corsHeaders = {
 const VAPID_PUBLIC_KEY = "BF6pXzgJ2bcUFzQAUEsnkoSGoYaPsDXLuf47QJ2XgzWLVjrWO_LgbDFp4sOHe-q68kXkv3b3w7XAhDFzQKBKEuo";
 const VAPID_SUBJECT = "mailto:camila.lucas2604@gmail.com";
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
