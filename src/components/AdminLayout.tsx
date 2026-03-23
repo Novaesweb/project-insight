@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen bg-[#0a0a0c] text-white font-sora selection:bg-primary/30 overflow-hidden">
       {/* Sidebar Desktop */}
       <motion.aside 
-        animate={{ width: isCollapsed ? 68 : 260 }}
+        animate={{ width: isCollapsed ? 64 : 260 }}
         className="border-r border-white/5 bg-[#0a0a0c] hidden md:flex md:flex-col relative z-50 transition-all duration-300 ease-in-out shrink-0"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
