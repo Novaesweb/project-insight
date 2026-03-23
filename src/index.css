@@ -371,3 +371,46 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* --- Unified Ultra Premium Background System --- */
+
+/* Forçar transparência global em todas as seções e componentes do site público */
+.public-site-unified section, 
+.public-site-unified header, 
+.public-site-unified footer,
+.public-site-unified main,
+.public-site-unified .glass-panel-premium,
+.public-site-unified .glass-card {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Fundo Mesh Gradient Animado Ultra Premium */
+.ultra-premium-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: hsla(240, 15%, 2%, 1);
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(232, 85%, 34%, 0.15) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, hsla(335, 78%, 42%, 0.12) 0px, transparent 55%),
+    radial-gradient(at 100% 100%, hsla(232, 85%, 34%, 0.1) 0px, transparent 55%),
+    radial-gradient(at 0% 100%, hsla(335, 78%, 42%, 0.08) 0px, transparent 55%);
+  filter: blur(80px);
+  animation: mesh-float 20s ease-in-out infinite alternate;
+}
+
+@keyframes mesh-float {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1) translate(20px, 10px); }
+}
+
+/* Raios sutis para profundidade */
+.ambient-rays-unified {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 50%, hsla(var(--primary), 0.03) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.4;
+}
