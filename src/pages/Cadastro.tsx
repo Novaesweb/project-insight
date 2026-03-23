@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -8,15 +8,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Check, ArrowRight, ArrowLeft, MessageCircle, ChevronLeft,
-  AlertCircle, Loader2, Star, Rocket, Globe, ShieldCheck, Zap,
+  Check, MessageCircle, ChevronLeft,
+  AlertCircle, Loader2, Star, Rocket, Zap, Globe, ShieldCheck
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
 
-const segmentos = ["Pizzaria", "Açaí", "Loja", "Barbearia", "Escritório", "Outro"];
 const servicosOpcoes = ["Site", "Loja Online"];
 const orcamentoOpcoes = ["Até R$300", "R$300 a R$800", "R$800 a R$1.500", "Acima de R$1.500", "Não sei ainda"];
 const origemOpcoes = ["Instagram", "WhatsApp", "Indicação", "Google", "TikTok", "Outro"];
@@ -43,16 +42,17 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 0.8, ease: "easeOut" } 
+  }
 };
 
 export default function Cadastro() {
@@ -129,48 +129,39 @@ export default function Cadastro() {
 
   const labelClass = "text-[11px] font-black uppercase tracking-[0.2em] text-white/30 ml-1 mb-2 block";
 
-  // --- SUCCESS SCREEN ---
   if (enviado) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden ambient-glow scroll-smooth">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden ambient-glow">
         <div className="ultra-premium-bg" />
         <div className="ambient-rays-unified" />
         
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }} 
           animate={{ scale: 1, opacity: 1 }} 
-          className="text-center max-w-lg glass-panel-premium p-12 rounded-[2.5rem] border-white/5 relative z-10 shadow-[0_50px_100px_rgba(0,0,0,0.5)]"
+          className="text-center max-w-lg glass-panel-premium p-12 rounded-[2.5rem] border-white/5 relative z-10 shadow-2xl"
         >
           <motion.div
             initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
-            className="w-24 h-24 rounded-3xl gradient-primary mx-auto flex items-center justify-center mb-8 shadow-[0_20px_50px_rgba(255,51,102,0.4)] rotate-6"
+            className="w-24 h-24 rounded-3xl gradient-primary mx-auto flex items-center justify-center mb-8 shadow-xl"
           >
             <Check className="w-12 h-12 text-white stroke-[3px]" />
           </motion.div>
           
-          <motion.h1 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="text-4xl font-black text-white mb-6 tracking-tighter leading-tight"
-          >
+          <h1 className="text-4xl font-black text-white mb-6 tracking-tighter leading-tight">
             Cadastro enviado <br />
             <span className="gradient-text">com sucesso! 🚀</span>
-          </motion.h1>
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-            className="space-y-4 text-white/60 mb-10 text-lg font-medium leading-relaxed"
-          >
+          </h1>
+          <div className="space-y-4 text-white/60 mb-10 text-lg font-medium leading-relaxed">
             <p>Recebemos suas informações e já vamos analisar seu projeto com atenção.</p>
-            <p>Em breve entraremos em contato pelo WhatsApp para entender melhor o que você precisa e montar algo perfeito para o seu negócio.</p>
             <p className="text-primary font-black uppercase tracking-widest text-sm animate-pulse">👉 Fique atento, vamos te chamar em breve!</p>
-          </motion.div>
+          </div>
           
           <div className="flex flex-col gap-4">
-            <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site da NovaesWeb.`)}`} target="_blank" rel="noopener noreferrer">
-              <Button className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl h-14 text-base font-black gap-3 shadow-lg shadow-green-500/20 uppercase tracking-widest">
-                <MessageCircle className="w-6 h-6" /> Falar agora no WhatsApp
-              </Button>
-            </a>
+            <Button className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl h-14 text-base font-black gap-3 shadow-lg uppercase tracking-widest"
+              onClick={() => window.open(`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site da NovaesWeb.`)}`, "_blank")}>
+              <MessageCircle className="w-6 h-6" /> Falar agora no WhatsApp
+            </Button>
             <Link to="/">
               <Button variant="ghost" className="w-full text-white/40 hover:text-white font-bold h-12">
                 Voltar para a página inicial
@@ -183,18 +174,15 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex lg:flex-row flex-col relative overflow-hidden ambient-glow scroll-smooth">
+    <div className="min-h-screen bg-background flex lg:flex-row flex-col relative overflow-hidden ambient-glow">
       <div className="ultra-premium-bg" />
       <div className="ambient-rays-unified" />
 
-      {/* ── LEFT PANEL ───────────────────────────────── */}
+      {/* ── LEFT PANEL ── */}
       <div className="relative lg:w-5/12 flex flex-col justify-between p-8 lg:p-16 overflow-hidden lg:min-h-screen z-10">
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-3 mb-16 group">
-            <motion.div 
-              whileHover={{ rotate: 10, scale: 1.1 }}
-              className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-2xl shadow-primary/30"
-            >
+            <motion.div whileHover={{ rotate: 10, scale: 1.1 }} className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
               <Zap className="text-white w-5 h-5 fill-current" />
             </motion.div>
             <span className="text-xl font-black tracking-tighter">
@@ -203,7 +191,11 @@ export default function Cadastro() {
             </span>
           </Link>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
             <h1 className="text-4xl lg:text-7xl font-black text-white leading-[0.85] tracking-tighter mb-8">
               O início do <br />
               <span className="text-white/20">seu melhor </span> <br />
@@ -215,34 +207,27 @@ export default function Cadastro() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {beneficios.map((b, i) => (
-                <motion.div 
-                  key={b.text} 
-                  initial={{ opacity: 0, scale: 0.95 }} 
-                  animate={{ opacity: 1, scale: 1 }} 
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  className="glass-card rounded-[1.5rem] p-5 flex flex-col gap-4 border-white/5 hover:border-white/10 transition-colors group cursor-default"
-                >
+                <div key={b.text} className="glass-card rounded-[1.5rem] p-5 flex flex-col gap-4 border-white/5 hover:border-white/10 transition-colors group cursor-default">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                     <b.icon className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-white/70 text-xs font-bold uppercase tracking-wider leading-tight">{b.text}</span>
-                </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>
         </div>
 
         <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-          className="relative z-10 mt-16 lg:mt-0 p-8 rounded-[2rem] glass-panel-premium border-white/5 overflow-hidden group"
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.6 }}
+          className="relative z-10 mt-16 lg:mt-0 p-8 rounded-[2rem] glass-panel-premium border-white/5"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Star className="w-20 h-20 fill-white text-white rotate-12" />
-          </div>
           <div className="flex gap-1 mb-4">
             {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-primary text-primary" />)}
           </div>
-          <p className="text-white/80 text-lg leading-relaxed italic mb-4 font-medium relative z-10">
+          <p className="text-white/80 text-lg leading-relaxed italic mb-4 font-medium">
             "A NovaesWeb transformou nosso negócio. Site entregue em menos de uma semana e as vendas dobraram!"
           </p>
           <div className="flex items-center gap-3">
@@ -255,7 +240,7 @@ export default function Cadastro() {
         </motion.div>
       </div>
 
-      {/* ── RIGHT PANEL (form) ───────────────────────── */}
+      {/* ── RIGHT PANEL (form) ── */}
       <div className="flex-1 flex flex-col justify-center p-6 lg:p-12 xl:p-24 relative z-20">
         <div className="w-full max-w-xl mx-auto">
           <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/20 hover:text-primary transition-colors mb-12">
@@ -263,7 +248,9 @@ export default function Cadastro() {
           </Link>
 
           <motion.div 
-            variants={containerVariants} initial="hidden" animate="visible"
+            initial="hidden" 
+            animate="visible" 
+            variants={containerVariants}
             className="glass-panel-premium rounded-[3rem] p-8 sm:p-12 border-white/5 shadow-2xl relative overflow-hidden"
           >
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-[100px] rounded-full" />
@@ -281,7 +268,6 @@ export default function Cadastro() {
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">👤 Informações básicas</span>
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className={labelClass}>Seu nome <span className="text-primary">*</span></Label>
@@ -303,7 +289,6 @@ export default function Cadastro() {
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🏢 Sobre o negócio</span>
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className={labelClass}>Nome do negócio <span className="text-primary">*</span></Label>
@@ -325,7 +310,6 @@ export default function Cadastro() {
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">📊 Qualificação</span>
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
-
                 <div className="space-y-6">
                   <div className="space-y-4">
                     <Label className={labelClass}>O que você precisa? <span className="text-primary">*</span></Label>
@@ -333,37 +317,24 @@ export default function Cadastro() {
                       {servicosOpcoes.map(s => (
                         <label key={s} className={cn(
                           "flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all text-xs font-bold uppercase tracking-widest",
-                          form.servicos.includes(s) 
-                            ? "border-primary/50 bg-primary/10 text-white shadow-[0_0_20px_rgba(255,51,102,0.1)]" 
-                            : "border-white/5 bg-white/5 text-white/30 hover:border-white/10"
+                          form.servicos.includes(s) ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
                         )}>
-                          <Checkbox 
-                            checked={form.servicos.includes(s)} 
-                            onCheckedChange={() => toggleServico(s)} 
-                            className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary" 
-                          />
+                          <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} className="border-white/20" />
                           {s}
                         </label>
                       ))}
                     </div>
                     <FieldError field="servicos" />
                   </div>
-
                   <div className="space-y-4">
-                    <Label className={labelClass}>Investimento aproximado <span className="text-white/10 font-medium lowercase">(opcional)</span></Label>
+                    <Label className={labelClass}>Investimento aproximado</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {orcamentoOpcoes.map(o => (
-                        <label key={o} onClick={() => updateForm("orcamento", o)}
-                          className={cn(
-                            "flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all text-[10px] font-bold tracking-widest uppercase",
-                            form.orcamento === o 
-                              ? "border-primary/50 bg-primary/10 text-white" 
-                              : "border-white/5 bg-white/5 text-white/30 hover:border-white/10"
-                          )}>
-                          <div className={cn(
-                            "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all",
-                            form.orcamento === o ? "border-primary scale-110" : "border-white/20"
-                          )}>
+                        <label key={o} onClick={() => updateForm("orcamento", o)} className={cn(
+                          "flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all text-[10px] font-bold tracking-widest uppercase",
+                          form.orcamento === o ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
+                        )}>
+                          <div className={cn("w-4 h-4 rounded-full border-2 flex items-center justify-center", form.orcamento === o ? "border-primary" : "border-white/20")}>
                             {form.orcamento === o && <div className="w-2 h-2 rounded-full bg-primary" />}
                           </div>
                           {o}
@@ -378,55 +349,27 @@ export default function Cadastro() {
               <motion.div variants={itemVariants} className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🧠 Diferencial (importante)</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🧠 Diferencial</span>
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
-
                 <div className="space-y-2">
-                  <Label className={labelClass}>Descreva rapidamente o que você precisa <span className="text-white/10 font-medium lowercase">(opcional)</span></Label>
+                  <Label className={labelClass}>Descreva o que você precisa</Label>
                   <Textarea
-                    className="glass-input border-white/5 text-white rounded-[2rem] text-sm placeholder:text-white/20 min-h-[150px] p-8 focus:border-primary/30 font-medium leading-relaxed"
+                    className="glass-input border-white/5 text-white rounded-[2rem] text-sm min-h-[150px] p-8 focus:border-primary/30"
                     value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)}
-                    placeholder="Exemplo: “Quero um site para pedidos de açaí com cardápio e entrega”"
+                    placeholder="Ex: Quero um site para pedidos de açaí..."
                   />
                 </div>
               </motion.div>
 
-              {/* ─ MARKETING ─ */}
-              <motion.div variants={itemVariants} className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-px flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">📣 Marketing</span>
-                  <div className="h-px flex-1 bg-white/5" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className={labelClass}>Como você conheceu a Novaes Web? <span className="text-white/10 font-medium lowercase">(opcional)</span></Label>
-                  <Select value={form.como_conheceu} onValueChange={v => updateForm("como_conheceu", v)}>
-                    <SelectTrigger className={inputClass()}>
-                      <SelectValue placeholder="Selecione uma opção..." />
-                    </SelectTrigger>
-                    <SelectContent className="glass-panel-premium border-white/10 text-white">
-                      {origemOpcoes.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </motion.div>
-
               <motion.div variants={itemVariants} className="pt-8">
-                <Button
-                  className="w-full h-20 rounded-[1.5rem] gradient-primary text-white border-0 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden relative"
-                  onClick={handleSubmit} disabled={loading}
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                  {loading ? <><Loader2 className="w-6 h-6 animate-spin mr-3" />Enviando...</> : (
-                    <>👉 Enviar formulário <Rocket className="ml-3 w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>
-                  )}
+                <Button className="w-full h-20 rounded-[1.5rem] gradient-primary text-white border-0 font-black text-sm uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden relative"
+                  onClick={handleSubmit} disabled={loading}>
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>👉 Enviar formulário <Rocket className="ml-3 w-6 h-6" /></>}
                 </Button>
               </motion.div>
             </div>
           </motion.div>
-          <p className="text-center text-white/10 text-[10px] font-bold uppercase tracking-[0.4em] mt-12">NovaesWeb · Excellence in Design · 2026</p>
         </div>
       </div>
     </div>
