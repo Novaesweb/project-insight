@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck, Target, Users, Rocket, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -19,51 +20,50 @@ const solucoes = [
 ];
 
 export default function SolucoesSection() {
-  const [showAll, setShowAll] = useState(false);
-  const visible = showAll ? solucoes : solucoes.slice(0, 2);
 
   return (
     <motion.section id="solucoes" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-7xl mx-auto">
-        <motion.div variants={fade} className="max-w-2xl mb-16">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Soluções</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3 leading-tight">
-            Sistemas que podemos desenvolver para você
+        <motion.div variants={fade} className="max-w-3xl mb-24">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Catálogo de Possibilidades</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
+            Sistemas que <br />
+            <span className="text-white/20">podemos </span> <span className="gradient-text">desenvolver</span>
           </h2>
-          <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
-            Cada negócio tem suas necessidades. Desenvolvemos soluções personalizadas com tecnologia de ponta, sempre focando em usabilidade e resultados reais.
+          <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
+            De CRMs robustos a Dashboards analíticos, transformamos sua necessidade em uma ferramenta poderosa de gestão e escala.
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {visible.map((p, i) => (
-            <motion.div
-              key={p.titulo}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i >= 2 && showAll ? (i - 2) * 0.08 : i * 0.08 }}
-              className="glass-card rounded-2xl p-6 flex gap-4 items-start info-card-hover"
-            >
-              <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-lg shadow-[hsl(var(--primary))]/15">
-                <p.icon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-1">{p.titulo}</h3>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{p.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="text-center mt-8">
-          <Button
-            variant="outline"
-            onClick={() => setShowAll(!showAll)}
-            className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl px-8 h-11 hover:bg-[hsl(var(--muted))]"
-          >
-            {showAll ? "Ver menos" : `Ver todas as soluções (${solucoes.length - 2} mais)`}
-            <ChevronRight className={`w-4 h-4 ml-2 ${showAll ? "rotate-90" : ""}`} />
-          </Button>
+        {/* Mobile: Horizontal Scroll | Desktop: Masonry-style Grid */}
+        <div className="relative">
+          <div className="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto pb-8 lg:pb-0 no-scrollbar snap-x snap-mandatory lg:gap-8">
+            {solucoes.map((p, i) => (
+              <motion.div
+                key={p.titulo}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.05 }}
+                className={cn(
+                  "min-w-[280px] sm:min-w-[320px] lg:min-w-full snap-start",
+                  "glass-card rounded-[2.5rem] p-8 flex flex-col gap-6 info-card-hover border-white/5",
+                  i % 2 === 0 ? "lg:translate-y-6" : "lg:-translate-y-6"
+                )}
+              >
+                <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shrink-0 shadow-2xl shadow-primary/20 rotate-3 group-hover:rotate-12 transition-transform duration-500">
+                  <p.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-black text-white tracking-tight">{p.titulo}</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium line-clamp-4">{p.desc}</p>
+                </div>
+                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/60 group-hover:text-primary transition-colors">
+                  Ver Detalhes <ChevronRight className="w-3 h-3" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </motion.section>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 
 interface SiteNavbarProps {
@@ -44,12 +45,16 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4 py-4 sm:px-8">
-      <div className={`max-w-7xl mx-auto h-14 flex items-center justify-between transition-all duration-500 rounded-2xl px-6 ${
+    <nav className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out px-4 py-6 sm:px-8",
+      scrolled && "py-4"
+    )}>
+      <div className={cn(
+        "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border border-transparent",
         scrolled
-          ? "glass-panel-premium border-white/10 shadow-2xl shadow-black/60 translate-y-2"
-          : "bg-transparent border-transparent"
-      }`}>
+          ? "glass-panel-premium border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl translate-y-0"
+          : "bg-transparent"
+      )}>
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <motion.div 
@@ -64,16 +69,15 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           </span>
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-10">
           {navLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => scrollTo(link.href)}
-              className="text-[13px] text-muted-foreground hover:text-white transition-all font-semibold tracking-wide uppercase group relative"
+              className="text-[13px] text-white/40 hover:text-white transition-all font-bold tracking-[0.1em] uppercase group relative"
             >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+              <span className="relative z-10">{link.label}</span>
+              <span className="absolute -bottom-1.5 left-0 w-0 h-[3px] bg-gradient-to-r from-primary to-accent rounded-full group-hover:w-full transition-all duration-500 ease-out" />
             </button>
           ))}
         </div>
@@ -81,11 +85,10 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
         {/* Right actions */}
         <div className="flex items-center gap-4">
           <Link to="/cadastro" className="hidden sm:block">
-            <Button className="h-10 px-6 rounded-xl gradient-primary text-white text-[13px] font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 group overflow-hidden border-0">
-              <span className="relative z-10 flex items-center gap-2">
-                Começar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <Button className="h-11 px-8 rounded-2xl gradient-primary text-white text-[13px] font-black shadow-[0_10px_30px_rgba(255,51,102,0.3)] hover:shadow-[0_15px_40px_rgba(255,51,102,0.5)] group overflow-hidden border-0 transition-all hover:-translate-y-0.5 animate-shimmer bg-[linear-gradient(110deg,#ff3366,45%,#ff6699,55%,#ff3366)] bg-[length:200%_100%]">
+              <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
+                Acesse Já <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </span>
-              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             </Button>
           </Link>
           <button

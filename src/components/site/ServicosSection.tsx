@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Globe, ShoppingBag, Layers, Smartphone, Shield, Zap } from "lucide-react";
+import { Globe, ShoppingBag, Layers, Smartphone, Shield, Zap, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const fade = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.09 } } };
@@ -41,25 +42,50 @@ export default function ServicosSection() {
   return (
     <motion.section id="servicos" className="py-28 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-7xl mx-auto">
-        <motion.div variants={fade} className="max-w-2xl mb-16">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Serviços</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3 leading-tight">
-            Soluções digitais completas<br />para o seu negócio
+        <motion.div variants={fade} className="max-w-3xl mb-24">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Explore Nossas Expertise</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
+            Soluções digitais que <br />
+            <span className="text-white/20">escalam o seu </span> <span className="gradient-text">negócio</span>
           </h2>
-          <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
-            Do planejamento à entrega, cuidamos de cada etapa para garantir a melhor presença digital possível.
+          <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
+            Não entregamos apenas código. Entregamos vantagem competitiva através de design estratégico e engenharia de ponta.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
           {servicos.map((s, i) => (
-            <motion.div key={i} variants={fade}>
+            <motion.div 
+              key={i} 
+              variants={fade}
+              className={cn(
+                "md:col-span-6 lg:col-span-4",
+                i === 0 && "lg:col-span-8 lg:row-span-1",
+                i === 3 && "lg:col-span-7",
+                i === 4 && "lg:col-span-5",
+                i === 5 && "lg:col-span-12"
+              )}
+            >
               <Card3D>
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-5 shadow-lg group-hover:scale-105 transition-transform`}>
-                  <s.icon className="w-6 h-6 text-white" />
+                <div className="flex flex-col h-full">
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+                    <s.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className={cn(
+                    "font-black text-white mb-4 tracking-tight",
+                    (i === 0 || i === 5) ? "text-2xl sm:text-3xl" : "text-xl"
+                  )}>{s.titulo}</h3>
+                  <p className={cn(
+                    "text-white/40 leading-relaxed font-medium",
+                    (i === 0 || i === 5) ? "text-base max-w-2xl" : "text-sm"
+                  )}>{s.desc}</p>
+                  
+                  { (i === 0 || i === 5) && (
+                    <div className="mt-8 pt-6 border-t border-white/5 flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-primary">
+                      Saiba mais sobre este serviço <ArrowRight className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-3">{s.titulo}</h3>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{s.desc}</p>
               </Card3D>
             </motion.div>
           ))}

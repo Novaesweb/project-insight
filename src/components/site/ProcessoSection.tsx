@@ -15,26 +15,48 @@ export default function ProcessoSection() {
   return (
     <motion.section id="processo" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-7xl mx-auto">
-        <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Como funciona</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
-            Do briefing à entrega em 4 etapas
+        <motion.div variants={fade} className="max-w-3xl mb-24">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Metodologia Novaes</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
+            Do briefing à entrega <br />
+            <span className="text-white/20">em </span> <span className="gradient-text">4 etapas</span>
           </h2>
-          <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
+          <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
             Nosso processo é transparente e colaborativo. Você participa de cada etapa e acompanha tudo em tempo real pelo portal do cliente.
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="relative space-y-12 lg:space-y-0 lg:flex lg:gap-8">
+          {/* Decorative Progress Line (Desktop) */}
+          <div className="hidden lg:block absolute top-[44px] left-0 w-full h-0.5 bg-white/5 overflow-hidden">
+            <motion.div 
+              initial={{ width: 0 }}
+              whileInView={{ width: "100%" }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="h-full bg-gradient-to-r from-primary to-accent"
+            />
+          </div>
+
           {steps.map((step, i) => (
-            <motion.div key={i} variants={fade} className="relative">
-              <div className="glass-card rounded-2xl p-8 h-full info-card-hover">
-                <span className="text-4xl font-extrabold gradient-text opacity-30">{step.num}</span>
-                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">{step.titulo}</h3>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">{step.desc}</p>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-3 py-1 rounded-full">
-                  <Zap className="w-3 h-3" /> {step.detail}
-                </span>
+            <motion.div 
+              key={i} 
+              variants={fade} 
+              className="relative lg:flex-1"
+            >
+              {/* Step Marker */}
+              <div className="flex items-center gap-4 lg:flex-col lg:items-start lg:gap-8">
+                <div className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-[#09090b] border border-white/10 shadow-2xl group-hover:border-primary/50 transition-colors">
+                  <span className="text-2xl font-black gradient-text">{step.num}</span>
+                  <div className="absolute -inset-2 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">{step.titulo}</h3>
+                  <p className="text-sm text-white/40 leading-relaxed font-medium max-w-xs">{step.desc}</p>
+                  <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/5 border border-primary/10 px-4 py-1.5 rounded-full">
+                    <Zap className="w-3.5 h-3.5" /> {step.detail}
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}

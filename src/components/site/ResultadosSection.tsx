@@ -18,7 +18,7 @@ export default function ResultadosSection() {
   const empresas = useAnimatedCounter(36, 1500);
   const satisfacao = useAnimatedCounter(100, 1200);
   const prazo = useAnimatedCounter(7, 800);
-  const resposta = useAnimatedCounter(24, 1000);
+  const atendimento = useAnimatedCounter(24, 1000);
 
   return (
     <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
@@ -33,22 +33,22 @@ export default function ResultadosSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          <motion.div ref={empresas.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-2xl font-bold gradient-text">{empresas.count}+</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
+          <motion.div ref={empresas.ref} variants={fade} className="glass-card rounded-[2.5rem] p-8 text-center border-white/5 info-card-hover">
+            <p className="text-4xl font-black gradient-text mb-2">{empresas.count}+</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Empresas atendidas</p>
           </motion.div>
-          <motion.div ref={satisfacao.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-2xl font-bold gradient-text">{satisfacao.count}%</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Satisfação dos clientes</p>
+          <motion.div ref={satisfacao.ref} variants={fade} className="glass-card rounded-[2.5rem] p-8 text-center border-white/5 info-card-hover">
+            <p className="text-4xl font-black gradient-text mb-2">{satisfacao.count}%</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Satisfação</p>
           </motion.div>
-          <motion.div ref={prazo.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-2xl font-bold gradient-text">{prazo.count} dias</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Prazo médio de entrega</p>
+          <motion.div ref={prazo.ref} variants={fade} className="glass-card rounded-[2.5rem] p-8 text-center border-white/5 info-card-hover">
+            <p className="text-4xl font-black gradient-text mb-2">{prazo.count}d</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Prazo de entrega</p>
           </motion.div>
-          <motion.div ref={resposta.ref} variants={fade} className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-2xl font-bold gradient-text">{resposta.count}h</p>
-            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Tempo de resposta suporte</p>
+          <motion.div ref={resposta.ref} variants={fade} className="glass-card rounded-[2.5rem] p-8 text-center border-white/5 info-card-hover">
+            <p className="text-4xl font-black gradient-text mb-2">{atendimento.count}h</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Resposta Suporte</p>
           </motion.div>
         </div>
 
