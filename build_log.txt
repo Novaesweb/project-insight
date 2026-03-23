@@ -1,0 +1,27 @@
+[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 13 modules transformed.
+x Build failed in 1.51s
+error during build:
+[vite:esbuild] Transform failed with 1 error:
+C:/Users/lkazi/Documents/12/novaesweb-main/novaesweb-main/src/pages/Leads.tsx:261:13: ERROR: Expected ";" but found ")"
+file: C:/Users/lkazi/Documents/12/novaesweb-main/novaesweb-main/src/pages/Leads.tsx:261:13
+
+Expected ";" but found ")"
+259|                  </div>
+260|                </motion.div>
+261|              ))}
+   |               ^
+262|            </motion.div>
+263|          </AnimatePresence>
+
+    at failureErrorWithLog (C:\Users\lkazi\Documents\12\novaesweb-main\novaesweb-main\node_modules\esbuild\lib\main.js:1472:15)
+    at C:\Users\lkazi\Documents\12\novaesweb-main\novaesweb-main\node_modules\esbuild\lib\main.js:755:50
+    at responseCallbacks.<computed> (C:\Users\lkazi\Documents\12\novaesweb-main\novaesweb-main\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Users\lkazi\Documents\12\novaesweb-main\novaesweb-main\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Users\lkazi\Documents\12\novaesweb-main\novaesweb-main\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)

@@ -102,10 +102,13 @@ export default function Leads() {
 
       if (cliError) throw cliError;
 
+      const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
       await supabase.from("pedidos").insert({
+        codigo: codigoPed,
         cliente_id: cliente.id,
         tipo: "Criação de Site",
         valor: Number(convertForm.valor) || 0,
+        data: new Date().toISOString().split("T")[0],
         status: "pendente"
       });
 
@@ -258,7 +261,7 @@ export default function Leads() {
                   )}
                 </div>
               </motion.div>
-            ))}
+            )})}
           </motion.div>
         </AnimatePresence>
 
