@@ -10,21 +10,22 @@ export default function PlanosSection() {
   return (
     <motion.section id="planos" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-3xl mx-auto text-center">
-        <motion.div variants={fade}>
-          <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Planos</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
-            Planos flexíveis para cada tipo de negócio
+        <motion.div variants={fade} className="mb-16">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Investimento Estratégico</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
+            Planos feitos para <br />
+            <span className="gradient-text">escalar o seu negócio</span>
           </h2>
-          <p className="text-[hsl(var(--muted-foreground))] mt-4 leading-relaxed">
-            Escolha o plano ideal para o momento da sua empresa. Cada projeto pode evoluir conforme seu negócio cresce.
+          <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl mx-auto font-medium">
+            Escolha o plano ideal para o momento da sua empresa. Cada projeto pode evoluir conforme sua demanda cresce.
           </p>
         </motion.div>
 
         <motion.div variants={fade} className="mt-10">
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="gradient-primary border-0 text-white h-14 px-10 rounded-xl font-semibold text-lg shadow-lg shadow-[hsl(var(--primary))]/20">
-                Ver nossos planos <ArrowRight className="w-5 h-5 ml-2" />
+              <Button className="gradient-primary border-0 text-white h-16 px-12 rounded-[2rem] font-black text-xl uppercase tracking-widest shadow-[0_20px_40px_rgba(255,51,102,0.3)] hover:shadow-[0_25px_50px_rgba(255,51,102,0.5)] transition-all hover:-translate-y-1">
+                Explorar Planos <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-[hsl(var(--background))] border-[hsl(var(--border))] p-6">

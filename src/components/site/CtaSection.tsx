@@ -51,14 +51,12 @@ export default function CtaSection() {
           Resposta em até 2 horas
         </motion.div>
 
-        <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-6 leading-tight">
-          Pronto para transformar<br />
-          <span className="bg-gradient-to-r from-red-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-            o seu negócio?
-          </span>
+        <h2 className="text-5xl sm:text-7xl font-black text-white mb-8 leading-[0.9] tracking-tighter">
+          Pronto para <br />
+          <span className="gradient-text">escalar?</span>
         </h2>
-        <p className="text-white/50 mb-10 text-lg max-w-xl mx-auto leading-relaxed">
-          Preencha o cadastro e nossa equipe entra em contato para entender seu projeto. Sem compromisso — é só conversar.
+        <p className="text-xl text-white/40 mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
+          Preencha o cadastro e nossa equipe entra em contato em tempo recorde para entender seu projeto e traçar o melhor plano de ação.
         </p>
 
         {/* CTA buttons */}

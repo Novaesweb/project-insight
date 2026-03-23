@@ -23,13 +23,14 @@ export default function ResultadosSection() {
   return (
     <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-6xl mx-auto">
-        <motion.div variants={fade} className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Resultados</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[hsl(var(--foreground))] mt-3">
-            O que nossos clientes dizem
+        <motion.div variants={fade} className="text-left max-w-3xl mb-24">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Prova Social & Impacto</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
+            O que nossos <br />
+            <span className="text-white/20">parceiros </span> <span className="gradient-text">dizem</span>
           </h2>
-          <p className="text-[hsl(var(--muted-foreground))] mt-4">
-            Estamos em fase de crescimento, já atendendo cerca de 36 empresas com foco total em qualidade e satisfação. Cada projeto é tratado como único.
+          <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
+            Atendemos empresas que buscam excelência. Veja os números e depoimentos de quem já escalou com a NovaesWeb.
           </p>
         </motion.div>
 
@@ -46,7 +47,7 @@ export default function ResultadosSection() {
             <p className="text-4xl font-black gradient-text mb-2">{prazo.count}d</p>
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Prazo de entrega</p>
           </motion.div>
-          <motion.div ref={resposta.ref} variants={fade} className="glass-card rounded-[2.5rem] p-8 text-center border-white/5 info-card-hover">
+          <motion.div ref={atendimento.ref} variants={fade} className="glass-card rounded-[2.5rem] p-8 text-center border-white/5 info-card-hover">
             <p className="text-4xl font-black gradient-text mb-2">{atendimento.count}h</p>
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold">Resposta Suporte</p>
           </motion.div>
