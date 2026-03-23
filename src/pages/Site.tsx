@@ -40,7 +40,7 @@ export default function Site() {
       <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
       <CtaSection />
       <SiteFooter onOpenModal={setModalOpen} />
-      
+
       <SocialProofPopup />
     </div>
   );

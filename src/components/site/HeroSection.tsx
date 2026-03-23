@@ -32,65 +32,65 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
   return (
     <motion.section className="pt-28 pb-24 px-6" initial="hidden" animate="show" variants={stagger}>
       <div className="max-w-5xl mx-auto text-center">
-            <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
-              Tecnologia que{" "}
-              <span className="gradient-text fx-glintReveal">transforma</span>
-              {" "}seu{" "}
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={heroWord}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.4 }}
-                  className="inline-block gradient-text"
-                >
-                  {heroWord}
-                </motion.span>
-              </AnimatePresence>
-            </motion.h1>
-            <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg mx-auto">
-              Desenvolvemos sites, sistemas e aplicativos sob medida para empresas que buscam organização, presença digital e resultados reais.
-            </motion.p>
-            <motion.div variants={fade} className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
-              <Link to="/cadastro">
-                <Button className="gradient-primary border-0 text-white h-12 px-8 rounded-xl text-sm font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
-                  Começar meu projeto <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] h-12 px-8 rounded-xl text-sm hover:bg-[hsl(var(--muted))]">
-                  <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
-                </Button>
-              </a>
-              {onOpenDemo && (
-                <Button
-                  onClick={onOpenDemo}
-                  variant="outline"
-                  className="h-12 px-8 rounded-xl text-sm font-semibold border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all"
-                >
-                  🚀 Ver Demonstração
-                </Button>
-              )}
-            </motion.div>
-          <motion.div variants={fade} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
-            <div ref={empresas.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
-              <p className="text-2xl font-bold gradient-text">{empresas.count}+</p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
-            </div>
-            <div ref={entrega.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
-              <p className="text-2xl font-bold gradient-text">{entrega.count}</p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Dias de entrega</p>
-            </div>
-            <div ref={responsivo.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
-              <p className="text-2xl font-bold gradient-text">{responsivo.count}%</p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Responsivo</p>
-            </div>
-            <div ref={atendimento.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
-              <p className="text-2xl font-bold gradient-text">{atendimento.count}h</p>
-              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
-            </div>
-          </motion.div>
+        <motion.h1 variants={fade} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-[hsl(var(--foreground))] leading-[1.1] tracking-tight">
+          Tecnologia que{" "}
+          <span className="gradient-text fx-glintReveal">transforma</span>
+          {" "}seu{" "}
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={heroWord}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4 }}
+              className="inline-block gradient-text"
+            >
+              {heroWord}
+            </motion.span>
+          </AnimatePresence>
+        </motion.h1>
+        <motion.p variants={fade} className="text-base text-[hsl(var(--muted-foreground))] mt-6 leading-relaxed max-w-lg mx-auto">
+          Desenvolvemos sites, sistemas e aplicativos sob medida para empresas que buscam organização, presença digital e resultados reais.
+        </motion.p>
+        <motion.div variants={fade} className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
+          <Link to="/cadastro">
+            <Button className="gradient-primary border-0 text-white h-12 px-8 rounded-xl text-sm font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
+              Começar meu projeto <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+          <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="glass-card border-[hsl(var(--border))] text-[hsl(var(--foreground))] h-12 px-8 rounded-xl text-sm hover:bg-[hsl(var(--muted))]">
+              <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+            </Button>
+          </a>
+          {onOpenDemo && (
+            <Button
+              onClick={onOpenDemo}
+              variant="outline"
+              className="h-12 px-8 rounded-xl text-sm font-semibold border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all"
+            >
+              🚀 Ver Demonstração
+            </Button>
+          )}
+        </motion.div>
+        <motion.div variants={fade} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
+          <div ref={empresas.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
+            <p className="text-2xl font-bold gradient-text">{empresas.count}+</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Empresas atendidas</p>
+          </div>
+          <div ref={entrega.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
+            <p className="text-2xl font-bold gradient-text">{entrega.count}</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Dias de entrega</p>
+          </div>
+          <div ref={responsivo.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
+            <p className="text-2xl font-bold gradient-text">{responsivo.count}%</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Responsivo</p>
+          </div>
+          <div ref={atendimento.ref} className="glass-card rounded-2xl p-6 text-center info-card-hover cursor-default">
+            <p className="text-2xl font-bold gradient-text">{atendimento.count}h</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1 font-medium">Atendimento rápido</p>
+          </div>
+        </motion.div>
       </div>
     </motion.section>
   );

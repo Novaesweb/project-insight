@@ -44,52 +44,55 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled
-        ? "border-b border-white/8 bg-[#08080f]/80 backdrop-blur-2xl shadow-lg shadow-black/30"
-        : "border-b border-transparent bg-transparent backdrop-blur-none"
-    }`}>
-      <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-4 py-4 sm:px-8">
+      <div className={`max-w-7xl mx-auto h-14 flex items-center justify-between transition-all duration-500 rounded-2xl px-6 ${
+        scrolled
+          ? "glass-panel-premium border-white/10 shadow-2xl shadow-black/60 translate-y-2"
+          : "bg-transparent border-transparent"
+      }`}>
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative">
-            <img src={novaesSymbol} alt="NovaesWeb" className="w-9 h-9 rounded-xl object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
-          </div>
-          <span className="text-xl font-bold tracking-tight">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <motion.div 
+            whileHover={{ rotate: 10, scale: 1.1 }}
+            className="relative"
+          >
+            <img src={novaesSymbol} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
+          </motion.div>
+          <span className="text-lg font-bold tracking-tighter">
             <span className="gradient-text">Novaes</span>
-            <span className="text-[hsl(var(--foreground))]">Web</span>
+            <span className="text-white">Web</span>
           </span>
         </Link>
 
         {/* Desktop nav links */}
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => scrollTo(link.href)}
-              className="text-sm text-[hsl(var(--muted-foreground))] hover:text-white transition-colors font-medium"
+              className="text-[13px] text-muted-foreground hover:text-white transition-all font-semibold tracking-wide uppercase group relative"
             >
               {link.label}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </button>
           ))}
         </div>
 
         {/* Right actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link to="/cadastro" className="hidden sm:block">
-            <Button className="relative gradient-primary border-0 text-white text-sm h-10 px-6 rounded-xl font-semibold shadow-lg shadow-red-500/20 overflow-hidden group">
+            <Button className="h-10 px-6 rounded-xl gradient-primary text-white text-[13px] font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 group overflow-hidden border-0">
               <span className="relative z-10 flex items-center gap-2">
-                Solicitar orçamento <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                Começar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </span>
-              {/* Pulse ring */}
-              <span className="absolute inset-0 rounded-xl animate-ping bg-red-500/20 pointer-events-none" />
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             </Button>
           </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2.5 rounded-xl hover:bg-white/8 transition-colors text-[hsl(var(--foreground))]"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white lg:hidden"
           >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
@@ -98,35 +101,55 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-t border-white/8 bg-[#08080f]/95 backdrop-blur-2xl overflow-hidden"
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col p-8"
           >
-            <div className="px-6 py-5 flex flex-col gap-1">
-              {navLinks.map((link, i) => (
-                <button
-                  key={i}
-                  onClick={() => scrollTo(link.href, setMenuOpen)}
-                  className="text-left text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-white transition-colors py-3 border-b border-white/6 flex items-center justify-between"
-                >
-                  {link.label}
-                  <ChevronRight className="w-4 h-4 opacity-40" />
-                </button>
-              ))}
-              {modalLinks.map((link, i) => (
-                <button
-                  key={`modal-${i}`}
-                  onClick={() => { setMenuOpen(false); setTimeout(() => onOpenModal(link.id), 300); }}
-                  className="text-left text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-white transition-colors py-3 border-b border-white/6 last:border-0 flex items-center justify-between"
-                >
-                  {link.label}
-                  <ChevronRight className="w-4 h-4 opacity-40" />
-                </button>
-              ))}
-              <Link to="/cadastro" onClick={() => setMenuOpen(false)} className="mt-2">
-                <Button className="gradient-primary border-0 text-white text-sm h-10 rounded-xl w-full font-semibold">
-                  Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
+            <div className="flex justify-between items-center mb-12">
+              <div className="flex items-center gap-3">
+                <img src={novaesSymbol} alt="NovaesWeb" className="w-10 h-10 rounded-xl" />
+                <span className="text-2xl font-black gradient-text">Menu</span>
+              </div>
+              <button 
+                onClick={() => setMenuOpen(false)}
+                className="p-3 bg-white/5 rounded-2xl"
+              >
+                <X className="w-8 h-8 text-white" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {[...navLinks, ...modalLinks].map((link, i) => {
+                const isNavLink = 'href' in link;
+                return (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => {
+                      if (isNavLink) {
+                        scrollTo((link as any).href, setMenuOpen);
+                      } else {
+                        setMenuOpen(false);
+                        setTimeout(() => onOpenModal((link as any).id), 300);
+                      }
+                    }}
+                    className="text-left text-2xl font-bold text-white/70 hover:text-primary transition-colors py-4 border-b border-white/5 flex items-center justify-between group"
+                  >
+                    {link.label}
+                    <ArrowRight className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0" />
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <div className="mt-auto">
+              <Link to="/cadastro" onClick={() => setMenuOpen(false)}>
+                <Button className="h-16 rounded-2xl w-full gradient-primary text-xl font-bold">
+                  Impulsionar meu negócio
                 </Button>
               </Link>
             </div>
