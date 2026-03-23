@@ -108,7 +108,22 @@ export default function Configuracoes() {
     setIntegSaving(key);
     await supabase.from("app_config").upsert({ key, value }, { onConflict: "key" });
     setIntegSaving(null);
-    toast({ title: "Integração salva!" });
+    toast({ title: "Configuração salva!" });
+  };
+
+  const handleSaveGatilhos = async () => {
+    setLoading(true);
+    const keys = ["urgency_active", "urgency_text", "urgency_hours", "social_proof_active"];
+    const updates = keys.map(key => ({ key, value: (integValues as any)[key] }));
+    
+    const { error } = await supabase.from("app_config").upsert(updates, { onConflict: "key" });
+    setLoading(false);
+    
+    if (error) {
+      toast({ title: "Erro ao salvar gatilhos", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Gatilhos atualizados!", description: "As novas configurações já estão ativas no site público." });
+    }
   };
 
   const handleTogglePush = async () => {
@@ -369,7 +384,6 @@ export default function Configuracoes() {
                       checked={integValues.urgency_active === "true"} 
                       onCheckedChange={(c) => {
                         setIntegValues(prev => ({ ...prev, urgency_active: c ? "true" : "false" }));
-                        handleSaveInteg("urgency_active", c ? "true" : "false");
                       }} 
                     />
                   </div>
@@ -377,27 +391,21 @@ export default function Configuracoes() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Texto Principal</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={integValues.urgency_text || ""} 
-                          onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_text: e.target.value }))}
-                          placeholder="Oferta Especial por Tempo Limitado"
-                          className="glass-input h-9 text-sm text-white min-w-0"
-                        />
-                        <Button size="sm" onClick={() => handleSaveInteg("urgency_text", integValues.urgency_text)} className="gradient-primary h-9 whitespace-nowrap">Salvar</Button>
-                      </div>
+                      <Input 
+                        value={integValues.urgency_text || ""} 
+                        onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_text: e.target.value }))}
+                        placeholder="Oferta Especial por Tempo Limitado"
+                        className="glass-input h-9 text-sm text-white min-w-0"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Duração Inicial (Horas)</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          type="number"
-                          value={integValues.urgency_hours || "2"} 
-                          onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_hours: e.target.value }))}
-                          className="glass-input h-9 text-sm text-white min-w-0"
-                        />
-                        <Button size="sm" onClick={() => handleSaveInteg("urgency_hours", integValues.urgency_hours)} className="gradient-primary h-9 whitespace-nowrap">Salvar</Button>
-                      </div>
+                      <Input 
+                        type="number"
+                        value={integValues.urgency_hours || "2"} 
+                        onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_hours: e.target.value }))}
+                        className="glass-input h-9 text-sm text-white min-w-0"
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -418,12 +426,22 @@ export default function Configuracoes() {
                       checked={integValues.social_proof_active === "true"} 
                       onCheckedChange={(c) => {
                         setIntegValues(prev => ({ ...prev, social_proof_active: c ? "true" : "false" }));
-                        handleSaveInteg("social_proof_active", c ? "true" : "false");
                       }} 
                     />
                   </div>
                 </CardContent>
               </Card>
+
+              <div className="flex justify-end pt-2">
+                <Button 
+                  onClick={handleSaveGatilhos} 
+                  disabled={loading}
+                  className="gradient-primary border-0 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center gap-2"
+                >
+                  <MousePointerClick className="w-4 h-4" />
+                  {loading ? "Salvando..." : "Salvar Configurações de Gatilhos"}
+                </Button>
+              </div>
             </div>
           </TabsContent>
 
