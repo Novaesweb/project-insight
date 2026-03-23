@@ -1,5 +1,7 @@
-/// <reference lib="deno.ns" />
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+declare const Deno: any;
 
 Deno.serve(async (req: Request) => {
   const supabaseAdmin = createClient(
