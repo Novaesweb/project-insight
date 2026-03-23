@@ -88,9 +88,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </div>
             {!isCollapsed && (
-              <div className="flex flex-col">
+              <div className="flex flex-col items-center">
                 <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic leading-tight">NovaesWeb</span>
-                <span className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] -mt-0.5">Admin</span>
+                <span className="text-[8px] text-primary font-bold uppercase tracking-[0.1em] -mt-0.5 text-center">Painel CEO Lucas Alencar</span>
               </div>
             )}
           </Link>
@@ -161,9 +161,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="p-8">
              <Link to="/admin" className="flex items-center gap-3 mb-8" onClick={() => setOpen(false)}>
                <img src={branding.logo || nwLogo} className="w-8 h-8 rounded-lg" alt="" />
-               <div className="flex flex-col">
-                  <span className="text-sm font-bold tracking-tight italic">NovaesWeb</span>
-                  <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Admin</span>
+               <div className="flex flex-col items-center">
+                  <span className="text-sm font-bold tracking-tight italic text-center">NovaesWeb</span>
+                  <span className="text-[9px] text-primary font-bold uppercase tracking-widest text-center mt-0.5">Painel CEO Lucas Alencar</span>
                 </div>
              </Link>
              <nav className="space-y-1">
