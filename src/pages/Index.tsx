@@ -144,7 +144,7 @@ export default function Dashboard() {
           .select("*")
           .eq("user_type", "admin")
           .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(20);
         setActivity(acts || []);
       } catch (err: any) {
         console.error("Falha fatal no dashboard:", err);
@@ -356,21 +356,48 @@ export default function Dashboard() {
             {activity.length === 0 ? (
               <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-8">Sem atividades recentes</p>
             ) : (
-              <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary/20 before:via-primary/5 before:to-transparent">
-                {activity.map((act) => (
-                  <div key={act.id} className="relative flex items-center gap-4 group">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
-                        <BellRing className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-semibold text-white leading-none">{act.title}</h4>
-                        <p className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-1">{act.body}</p>
-                       <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter">
-                         {new Date(act.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
-                       </p>
-                     </div>
-                  </div>
-                ))}
+              <div className="space-y-4">
+                <div className={cn(
+                  "relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary/20 before:via-primary/5 before:to-transparent",
+                  visibleActs > 5 && "max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"
+                )}>
+                  {activity.slice(0, visibleActs).map((act) => (
+                    <div key={act.id} className="relative flex items-center gap-4 group">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
+                          <BellRing className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-semibold text-white leading-none">{act.title}</h4>
+                          <p className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-1">{act.body}</p>
+                         <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter">
+                           {new Date(act.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
+                         </p>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {activity.length > visibleActs && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-[10px] text-primary hover:text-primary/80 hover:bg-primary/5 uppercase tracking-widest font-bold h-8 border border-primary/20"
+                    onClick={() => setVisibleActs(visibleActs + 10)}
+                  >
+                    Mostrar mais (+10)
+                  </Button>
+                )}
+                
+                {visibleActs > 5 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-[10px] text-white/40 hover:text-white uppercase tracking-widest font-bold h-8"
+                    onClick={() => setVisibleActs(5)}
+                  >
+                    Recolher
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
