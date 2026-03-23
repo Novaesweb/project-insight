@@ -52,6 +52,8 @@
 
     --gradient-primary: linear-gradient(135deg, #ff3366, #ff00cc, #9900ff);
     --gradient-premium: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(153, 0, 255, 0.1));
+    --admin-bg: #0a0a0c;
+    --gold: 43 100% 50%;
   }
 
   .light {
@@ -401,6 +403,43 @@
 .public-site-unified .glass-card {
   background-color: transparent !important;
   background-image: none !important;
+}
+
+/* --- Admin Premium Layout --- */
+.ambient-glow {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 50% 50%, rgba(255,184,0,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gold-item {
+  color: hsl(var(--gold)) !important;
+  text-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
+}
+
+.sidebar-active-indicator {
+  background: linear-gradient(to bottom, hsl(var(--primary)), transparent);
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+}
+
+.sidebar-active-indicator-gold {
+  background: linear-gradient(to bottom, hsl(var(--gold)), transparent);
+  box-shadow: 0 0 15px rgba(255, 184, 0, 0.5);
+}
+
+@keyframes conic-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-conic {
+  animation: conic-spin 4s linear infinite;
 }
 
 /* Fundo Mesh Gradient Animado Ultra Premium */
