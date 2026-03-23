@@ -35,10 +35,25 @@ const formatWhatsApp = (value: string) => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 const validateWhatsApp = (w: string) => { const d = w.replace(/\D/g, ""); return d.length === 10 || d.length === 11; };
 
 type FieldErrors = { [key: string]: string };
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+};
 
 export default function Cadastro() {
   const { toast } = useToast();
@@ -83,7 +98,7 @@ export default function Cadastro() {
       nome: form.nome.trim(),
       whatsapp: form.whatsapp.replace(/\D/g, ""),
       nome_negocio: form.nome_negocio.trim(),
-      segmento: form.tipo_negocio.trim(), // Mapeando tipo_negocio para a coluna segmento existente
+      segmento: form.tipo_negocio.trim(), 
       servicos: form.servicos,
       orcamento: form.orcamento || null,
       como_conheceu: form.como_conheceu || null,
@@ -108,7 +123,8 @@ export default function Cadastro() {
   const inputClass = (field?: string) =>
     cn(
       "glass-input text-white h-12 sm:h-14 rounded-2xl text-base px-6 placeholder:text-white/20 transition-all font-medium",
-      field && errors[field] ? "border-primary/50 ring-1 ring-primary/20" : "border-white/5 focus:border-primary/30"
+      "focus:ring-2 focus:ring-primary/20",
+      field && errors[field] ? "border-primary/50 ring-1 ring-primary/20" : "border-white/5 focus:border-primary/30 shadow-[0_0_0_0_rgba(255,51,102,0)] focus:shadow-[0_0_20px_rgba(255,51,102,0.1)]"
     );
 
   const labelClass = "text-[11px] font-black uppercase tracking-[0.2em] text-white/30 ml-1 mb-2 block";
@@ -127,21 +143,27 @@ export default function Cadastro() {
         >
           <motion.div
             initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-            className="w-24 h-24 rounded-3xl gradient-primary mx-auto flex items-center justify-center mb-8 shadow-2xl shadow-primary/40 rotate-6"
+            transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
+            className="w-24 h-24 rounded-3xl gradient-primary mx-auto flex items-center justify-center mb-8 shadow-[0_20px_50px_rgba(255,51,102,0.4)] rotate-6"
           >
             <Check className="w-12 h-12 text-white stroke-[3px]" />
           </motion.div>
           
-          <h1 className="text-4xl font-black text-white mb-6 tracking-tighter leading-tight">
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+            className="text-4xl font-black text-white mb-6 tracking-tighter leading-tight"
+          >
             Cadastro enviado <br />
             <span className="gradient-text">com sucesso! 🚀</span>
-          </h1>
-          <div className="space-y-4 text-white/60 mb-10 text-lg font-medium leading-relaxed">
+          </motion.h1>
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+            className="space-y-4 text-white/60 mb-10 text-lg font-medium leading-relaxed"
+          >
             <p>Recebemos suas informações e já vamos analisar seu projeto com atenção.</p>
             <p>Em breve entraremos em contato pelo WhatsApp para entender melhor o que você precisa e montar algo perfeito para o seu negócio.</p>
-            <p className="text-primary font-black uppercase tracking-widest text-sm">👉 Fique atento, vamos te chamar em breve!</p>
-          </div>
+            <p className="text-primary font-black uppercase tracking-widest text-sm animate-pulse">👉 Fique atento, vamos te chamar em breve!</p>
+          </motion.div>
           
           <div className="flex flex-col gap-4">
             <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site da NovaesWeb.`)}`} target="_blank" rel="noopener noreferrer">
@@ -160,7 +182,6 @@ export default function Cadastro() {
     );
   }
 
-  // --- MAIN LAYOUT ---
   return (
     <div className="min-h-screen bg-background flex lg:flex-row flex-col relative overflow-hidden ambient-glow scroll-smooth">
       <div className="ultra-premium-bg" />
@@ -168,9 +189,7 @@ export default function Cadastro() {
 
       {/* ── LEFT PANEL ───────────────────────────────── */}
       <div className="relative lg:w-5/12 flex flex-col justify-between p-8 lg:p-16 overflow-hidden lg:min-h-screen z-10">
-        
         <div className="relative z-10">
-          {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-3 mb-16 group">
             <motion.div 
               whileHover={{ rotate: 10, scale: 1.1 }}
@@ -213,11 +232,8 @@ export default function Cadastro() {
           </motion.div>
         </div>
 
-        {/* Testimonial Bento-ish */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.6 }}
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
           className="relative z-10 mt-16 lg:mt-0 p-8 rounded-[2rem] glass-panel-premium border-white/5 overflow-hidden group"
         >
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -242,20 +258,24 @@ export default function Cadastro() {
       {/* ── RIGHT PANEL (form) ───────────────────────── */}
       <div className="flex-1 flex flex-col justify-center p-6 lg:p-12 xl:p-24 relative z-20">
         <div className="w-full max-w-xl mx-auto">
-          {/* Mobile back link */}
           <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/20 hover:text-primary transition-colors mb-12">
             <ChevronLeft className="w-5 h-5" /> Voltar ao site
           </Link>
 
-          <div className="glass-panel-premium rounded-[3rem] p-8 sm:p-12 border-white/5 shadow-2xl relative">
-            <div className="space-y-12">
-              <div>
+          <motion.div 
+            variants={containerVariants} initial="hidden" animate="visible"
+            className="glass-panel-premium rounded-[3rem] p-8 sm:p-12 border-white/5 shadow-2xl relative overflow-hidden"
+          >
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-[100px] rounded-full" />
+            
+            <div className="space-y-12 relative z-10">
+              <motion.div variants={itemVariants}>
                 <h2 className="text-4xl font-black text-white tracking-tighter mb-2">Crie seu site profissional agora</h2>
                 <p className="text-white/30 text-lg font-medium">Leva menos de 1 minuto 👇</p>
-              </div>
+              </motion.div>
 
               {/* ─ BASIC INFO ─ */}
-              <div className="space-y-8">
+              <motion.div variants={itemVariants} className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-white/5" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">👤 Informações básicas</span>
@@ -274,10 +294,10 @@ export default function Cadastro() {
                     <FieldError field="whatsapp" />
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* ─ BUSINESS INFO ─ */}
-              <div className="space-y-8">
+              <motion.div variants={itemVariants} className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-white/5" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🏢 Sobre o negócio</span>
@@ -296,10 +316,10 @@ export default function Cadastro() {
                     <FieldError field="tipo_negocio" />
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* ─ QUALIFICATION ─ */}
-              <div className="space-y-8">
+              <motion.div variants={itemVariants} className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-white/5" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">📊 Qualificação</span>
@@ -352,10 +372,10 @@ export default function Cadastro() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* ─ DIFFERENTIAL ─ */}
-              <div className="space-y-8">
+              <motion.div variants={itemVariants} className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-white/5" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🧠 Diferencial (importante)</span>
@@ -370,10 +390,10 @@ export default function Cadastro() {
                     placeholder="Exemplo: “Quero um site para pedidos de açaí com cardápio e entrega”"
                   />
                 </div>
-              </div>
+              </motion.div>
 
               {/* ─ MARKETING ─ */}
-              <div className="space-y-8">
+              <motion.div variants={itemVariants} className="space-y-8">
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-white/5" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">📣 Marketing</span>
@@ -391,20 +411,21 @@ export default function Cadastro() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="pt-8">
+              <motion.div variants={itemVariants} className="pt-8">
                 <Button
-                  className="w-full h-20 rounded-[1.5rem] gradient-primary text-white border-0 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all group"
+                  className="w-full h-20 rounded-[1.5rem] gradient-primary text-white border-0 font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden relative"
                   onClick={handleSubmit} disabled={loading}
                 >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   {loading ? <><Loader2 className="w-6 h-6 animate-spin mr-3" />Enviando...</> : (
                     <>👉 Enviar formulário <Rocket className="ml-3 w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>
                   )}
                 </Button>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
           <p className="text-center text-white/10 text-[10px] font-bold uppercase tracking-[0.4em] mt-12">NovaesWeb · Excellence in Design · 2026</p>
         </div>
       </div>
