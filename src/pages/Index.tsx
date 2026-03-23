@@ -202,20 +202,8 @@ export default function Dashboard() {
   const selectedExtra = catalogo.find(c => c.id === extraSel);
 
   return (
-    <motion.div className="space-y-4 ambient-glow min-h-screen pb-6" initial="hidden" animate="show" variants={stagger}>
-      {/* Header Premium */}
-      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            Dashboard <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/10">v2.4.8 Premium</Badge>
-          </h1>
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">Bem-vindo de volta! Aqui está o resumo do seu negócio hoje.</p>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-white/50">
-          <Clock className="w-3.5 h-3.5 text-emerald-400" />
-          Sistema Operacional • {new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
-        </div>
-      </motion.div>
+    <motion.div className="space-y-6 min-h-screen pb-10" initial="hidden" animate="show" variants={stagger}>
+      {/* O header global já é provido pelo AdminLayout */}
 
       {/* KPIs */}
       <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" variants={fadeUp}>

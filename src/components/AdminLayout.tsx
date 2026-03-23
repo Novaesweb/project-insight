@@ -189,12 +189,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <main className="flex-1 relative flex flex-col min-w-0">
         <TopProgressBar />
-        <header className="h-16 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-white/5">
+        <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col">
-              <h1 className="text-sm font-bold tracking-tight text-white/90">
-                {pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin"}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold tracking-tight text-white/90">
+                  {pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin"}
+                </h1>
+                <span className="px-1.5 py-0.5 rounded-full border border-primary/30 bg-primary/10 text-[8px] font-bold text-primary uppercase tracking-wider">v2.4.8 Premium</span>
+              </div>
               <p className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em]">NovaesWeb • Gestão Digital</p>
             </div>
           </div>
