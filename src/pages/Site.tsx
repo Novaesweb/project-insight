@@ -12,7 +12,7 @@ import PlanosSection from "@/components/site/PlanosSection";
 import FuncionalidadeExtraSection from "@/components/site/FuncionalidadeExtraSection";
 import ResultadosSection from "@/components/site/ResultadosSection";
 import SiteModals from "@/components/site/SiteModals";
-import CtaSection from "@/components/site/CtaSection";
+import CadastroPerfeitoSection from "@/components/site/CadastroPerfeitoSection";
 import SiteFooter from "@/components/site/SiteFooter";
 import UrgencyBanner from "@/components/conversion/UrgencyBanner";
 import SocialProofPopup from "@/components/conversion/SocialProofPopup";
@@ -21,7 +21,7 @@ export default function Site() {
   const [modalOpen, setModalOpen] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow">
+    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow font-sans antialiased">
       <UrgencyBanner />
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
@@ -37,8 +37,8 @@ export default function Site() {
       <PlanosSection />
       <FuncionalidadeExtraSection />
       <ResultadosSection />
+      <CadastroPerfeitoSection />
       <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
-      <CtaSection />
       <SiteFooter onOpenModal={setModalOpen} />
 
       <SocialProofPopup />

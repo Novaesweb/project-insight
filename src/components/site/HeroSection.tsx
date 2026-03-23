@@ -71,11 +71,11 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             </motion.p>
 
             <motion.div variants={fade} className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link to="/cadastro">
+              <a href="#cadastro">
                 <Button className="gradient-primary border-0 text-white h-14 px-10 rounded-2xl text-sm font-black uppercase tracking-widest shadow-[0_20px_40px_rgba(255,51,102,0.3)] hover:shadow-[0_25px_50px_rgba(255,51,102,0.5)] transition-all hover:-translate-y-1">
                   Iniciar Projeto <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-              </Link>
+              </a>
               <div className="flex items-center gap-4">
                 <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre a NovaesWeb." target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="glass-card border-white/10 text-white h-14 w-14 rounded-2xl p-0 hover:bg-white/5 transition-all">

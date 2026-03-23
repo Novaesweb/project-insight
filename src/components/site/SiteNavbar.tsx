@@ -84,13 +84,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
 
         {/* Right actions */}
         <div className="flex items-center gap-4">
-          <Link to="/cadastro" className="hidden sm:block">
+          <button onClick={() => scrollTo("#cadastro")} className="hidden sm:block">
             <Button className="h-11 px-8 rounded-2xl gradient-primary text-white text-[13px] font-black shadow-[0_10px_30px_rgba(255,51,102,0.3)] hover:shadow-[0_15px_40px_rgba(255,51,102,0.5)] group overflow-hidden border-0 transition-all hover:-translate-y-0.5 animate-shimmer bg-[linear-gradient(110deg,#ff3366,45%,#ff6699,55%,#ff3366)] bg-[length:200%_100%]">
               <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
                 Acesse Já <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </span>
             </Button>
-          </Link>
+          </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white lg:hidden"
@@ -150,11 +150,11 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             </div>
 
             <div className="mt-auto">
-              <Link to="/cadastro" onClick={() => setMenuOpen(false)}>
+              <button className="w-full" onClick={() => scrollTo("#cadastro", setMenuOpen)}>
                 <Button className="h-16 rounded-2xl w-full gradient-primary text-xl font-bold">
                   Impulsionar meu negócio
                 </Button>
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}
