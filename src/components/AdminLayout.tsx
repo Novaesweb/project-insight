@@ -77,18 +77,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
-              <Link 
-                key={item.href} 
-                to={item.href} 
+              <Link
+                key={item.href}
+                to={item.href}
                 className={cn(
                   "group flex items-center gap-3 px-6 py-1.5 text-[12px] font-medium transition-all relative overflow-hidden",
-                  isActive 
-                    ? "text-primary bg-primary/10" 
+                  isActive
+                    ? "text-primary bg-primary/10"
                     : "text-white/40 hover:text-white/80 hover:bg-white/5"
                 )}
               >
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="activeNav"
                     className="absolute left-0 w-1 h-4 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]"
                     initial={{ opacity: 0 }}

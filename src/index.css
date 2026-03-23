@@ -116,13 +116,16 @@
   ::-webkit-scrollbar {
     width: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
     background: hsl(240 6% 25%);
     border-radius: 3px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(240 6% 35%);
   }
@@ -132,12 +135,14 @@
   .gradient-primary {
     background: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
   }
+
   .gradient-text {
     background: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
   .glass-card {
     background: hsla(240, 10%, 7%, 0.6);
     backdrop-filter: blur(16px) saturate(180%);
@@ -145,20 +150,24 @@
     border: 0.5px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
+
   .glass-input {
     background: hsla(240, 10%, 12%, 0.4);
     backdrop-filter: blur(8px);
     border: 0.5px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
   }
+
   .glass-input:focus {
     background: hsla(240, 10%, 15%, 0.6);
     border-color: hsla(var(--primary), 0.5);
     box-shadow: 0 0 0 2px hsla(var(--primary), 0.2);
   }
+
   .info-card-hover {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
   .info-card-hover:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
@@ -171,6 +180,7 @@
     overflow: hidden;
     display: inline-block;
   }
+
   .fx-glintReveal::after {
     content: '';
     position: absolute;
@@ -178,21 +188,26 @@
     left: -100%;
     width: 60%;
     height: 100%;
-    background: linear-gradient(
-      105deg,
-      transparent 20%,
-      hsla(0, 0%, 100%, 0.15) 45%,
-      hsla(0, 0%, 100%, 0.35) 50%,
-      hsla(0, 0%, 100%, 0.15) 55%,
-      transparent 80%
-    );
+    background: linear-gradient(105deg,
+        transparent 20%,
+        hsla(0, 0%, 100%, 0.15) 45%,
+        hsla(0, 0%, 100%, 0.35) 50%,
+        hsla(0, 0%, 100%, 0.15) 55%,
+        transparent 80%);
     animation: glint-sweep 4s ease-in-out infinite;
     pointer-events: none;
   }
 
   @keyframes glint-sweep {
-    0%, 100% { left: -100%; }
-    50% { left: 150%; }
+
+    0%,
+    100% {
+      left: -100%;
+    }
+
+    50% {
+      left: 150%;
+    }
   }
 
   /* Ambient glow with animated rays */
@@ -200,6 +215,7 @@
     position: relative;
     overflow: hidden;
   }
+
   .ambient-glow::before {
     content: '';
     position: fixed;
@@ -208,8 +224,7 @@
     width: 800px;
     height: 800px;
     background:
-      conic-gradient(
-        from 0deg at 50% 50%,
+      conic-gradient(from 0deg at 50% 50%,
         transparent 0deg,
         hsla(346, 78%, 55%, 0.08) 30deg,
         transparent 60deg,
@@ -219,12 +234,12 @@
         transparent 240deg,
         hsla(330, 70%, 45%, 0.07) 300deg,
         transparent 330deg,
-        hsla(280, 60%, 38%, 0.04) 360deg
-      );
+        hsla(280, 60%, 38%, 0.04) 360deg);
     animation: ray-spin 25s linear infinite;
     pointer-events: none;
     z-index: 0;
   }
+
   .ambient-glow::after {
     content: '';
     position: fixed;
@@ -233,8 +248,7 @@
     width: 700px;
     height: 700px;
     background:
-      conic-gradient(
-        from 180deg at 50% 50%,
+      conic-gradient(from 180deg at 50% 50%,
         transparent 0deg,
         hsla(280, 60%, 38%, 0.07) 40deg,
         transparent 80deg,
@@ -243,8 +257,7 @@
         hsla(330, 70%, 45%, 0.06) 240deg,
         transparent 280deg,
         hsla(280, 60%, 38%, 0.04) 340deg,
-        transparent 360deg
-      );
+        transparent 360deg);
     animation: ray-spin 30s linear infinite reverse;
     pointer-events: none;
     z-index: 0;
@@ -255,6 +268,7 @@
     position: relative;
     overflow: hidden;
   }
+
   .login-rays::before {
     content: '';
     position: absolute;
@@ -263,8 +277,7 @@
     width: 200%;
     height: 200%;
     background:
-      conic-gradient(
-        from 0deg at 50% 50%,
+      conic-gradient(from 0deg at 50% 50%,
         transparent 0deg,
         hsla(346, 78%, 55%, 0.1) 15deg,
         transparent 30deg,
@@ -282,12 +295,12 @@
         transparent 300deg,
         hsla(280, 60%, 38%, 0.06) 330deg,
         transparent 345deg,
-        hsla(346, 78%, 55%, 0.04) 360deg
-      );
+        hsla(346, 78%, 55%, 0.04) 360deg);
     animation: ray-spin 20s linear infinite;
     pointer-events: none;
     z-index: 0;
   }
+
   .login-rays::after {
     content: '';
     position: absolute;
@@ -296,12 +309,10 @@
     width: 600px;
     height: 600px;
     transform: translate(-50%, -50%);
-    background: radial-gradient(
-      circle,
-      hsla(346, 78%, 55%, 0.12) 0%,
-      hsla(280, 60%, 38%, 0.06) 40%,
-      transparent 70%
-    );
+    background: radial-gradient(circle,
+        hsla(346, 78%, 55%, 0.12) 0%,
+        hsla(280, 60%, 38%, 0.06) 40%,
+        transparent 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -321,38 +332,35 @@
   position: relative;
   overflow: hidden;
 }
+
 .light .skeleton-shimmer {
   background: rgba(0, 0, 0, 0.06);
 }
+
 .skeleton-shimmer::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 100%);
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
 .light .skeleton-shimmer::after {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%);
 }
 
 /* Top bar shimmer */
 .shimmer-bar {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
   animation: shimmer 0.8s ease-in-out infinite;
 }
 
@@ -363,20 +371,30 @@
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes ray-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Unified Ultra Premium Background System --- */
 
 /* Forçar transparência global em todas as seções e componentes do site público */
-.public-site-unified section, 
-.public-site-unified header, 
+.public-site-unified section,
+.public-site-unified header,
 .public-site-unified footer,
 .public-site-unified main,
 .public-site-unified .glass-panel-premium,
@@ -391,7 +409,7 @@
   inset: 0;
   z-index: -1;
   background-color: hsla(240, 15%, 2%, 1);
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, hsla(232, 85%, 34%, 0.15) 0px, transparent 55%),
     radial-gradient(at 100% 0%, hsla(335, 78%, 42%, 0.12) 0px, transparent 55%),
     radial-gradient(at 100% 100%, hsla(232, 85%, 34%, 0.1) 0px, transparent 55%),
@@ -401,8 +419,13 @@
 }
 
 @keyframes mesh-float {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1) translate(20px, 10px); }
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.1) translate(20px, 10px);
+  }
 }
 
 /* Raios sutis para profundidade */

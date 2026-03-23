@@ -74,7 +74,7 @@ export default function Configuracoes() {
 
     // Carregar tudo do Supabase app_config
     const keys = [
-      "nome", "cnpj", "email", "telefone", "endereco", "logo", 
+      "nome", "cnpj", "email", "telefone", "endereco", "logo",
       "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color",
       "urgency_active", "urgency_text", "urgency_hours", "social_proof_active"
     ];
@@ -108,22 +108,7 @@ export default function Configuracoes() {
     setIntegSaving(key);
     await supabase.from("app_config").upsert({ key, value }, { onConflict: "key" });
     setIntegSaving(null);
-    toast({ title: "Configuração salva!" });
-  };
-
-  const handleSaveGatilhos = async () => {
-    setLoading(true);
-    const keys = ["urgency_active", "urgency_text", "urgency_hours", "social_proof_active"];
-    const updates = keys.map(key => ({ key, value: (integValues as any)[key] }));
-    
-    const { error } = await supabase.from("app_config").upsert(updates, { onConflict: "key" });
-    setLoading(false);
-    
-    if (error) {
-      toast({ title: "Erro ao salvar gatilhos", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Gatilhos atualizados!", description: "As novas configurações já estão ativas no site público." });
-    }
+    toast({ title: "Integração salva!" });
   };
 
   const handleTogglePush = async () => {
@@ -258,25 +243,25 @@ export default function Configuracoes() {
                   <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cor Primária do Sistema</Label>
                   <div className="flex flex-wrap gap-3">
                     {["#e8334a", "#c2185b", "#7b1fa2", "#1976d2", "#388e3c", "#f59e0b"].map((color) => (
-                      <button 
-                        key={color} 
+                      <button
+                        key={color}
                         onClick={() => handleSaveInteg("primary_color", color)}
                         className={cn(
                           "w-10 h-10 rounded-xl border-2 transition-all hover:scale-110",
                           integValues.primary_color === color ? "border-white shadow-lg shadow-white/20" : "border-transparent"
-                        )} 
-                        style={{ background: color }} 
+                        )}
+                        style={{ background: color }}
                       />
                     ))}
                     <div className="flex items-center gap-2 ml-2">
-                       <Input 
-                         type="color" 
-                         className="w-10 h-10 p-1 bg-white/5 border-white/10 rounded-xl cursor-pointer"
-                         value={integValues.primary_color || "#e8334a"}
-                         onChange={e => setIntegValues(prev => ({ ...prev, primary_color: e.target.value }))}
-                         onBlur={e => handleSaveInteg("primary_color", e.target.value)}
-                       />
-                       <span className="text-[10px] text-white/40 font-monouppercase">{integValues.primary_color || "#e8334a"}</span>
+                      <Input
+                        type="color"
+                        className="w-10 h-10 p-1 bg-white/5 border-white/10 rounded-xl cursor-pointer"
+                        value={integValues.primary_color || "#e8334a"}
+                        onChange={e => setIntegValues(prev => ({ ...prev, primary_color: e.target.value }))}
+                        onBlur={e => handleSaveInteg("primary_color", e.target.value)}
+                      />
+                      <span className="text-[10px] text-white/40 font-monouppercase">{integValues.primary_color || "#e8334a"}</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-white/30 italic">Esta cor será aplicada a botões, links e elementos de destaque em todo o sistema.</p>
@@ -380,32 +365,39 @@ export default function Configuracoes() {
                       <p className="text-sm font-medium text-white">Exibir Banner de Urgência</p>
                       <p className="text-xs text-[hsl(var(--muted-foreground))]">Ative ou desative o banner no topo do site público.</p>
                     </div>
-                    <Switch 
-                      checked={integValues.urgency_active === "true"} 
+                    <Switch
+                      checked={integValues.urgency_active === "true"}
                       onCheckedChange={(c) => {
                         setIntegValues(prev => ({ ...prev, urgency_active: c ? "true" : "false" }));
-                      }} 
+                        handleSaveInteg("urgency_active", c ? "true" : "false");
+                      }}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Texto Principal</Label>
-                      <Input 
-                        value={integValues.urgency_text || ""} 
-                        onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_text: e.target.value }))}
-                        placeholder="Oferta Especial por Tempo Limitado"
-                        className="glass-input h-9 text-sm text-white min-w-0"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          value={integValues.urgency_text || ""}
+                          onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_text: e.target.value }))}
+                          placeholder="Oferta Especial por Tempo Limitado"
+                          className="glass-input h-9 text-sm text-white min-w-0"
+                        />
+                        <Button size="sm" onClick={() => handleSaveInteg("urgency_text", integValues.urgency_text)} className="gradient-primary h-9 whitespace-nowrap">Salvar</Button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs text-[hsl(var(--muted-foreground))]">Duração Inicial (Horas)</Label>
-                      <Input 
-                        type="number"
-                        value={integValues.urgency_hours || "2"} 
-                        onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_hours: e.target.value }))}
-                        className="glass-input h-9 text-sm text-white min-w-0"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          value={integValues.urgency_hours || "2"}
+                          onChange={(e) => setIntegValues(prev => ({ ...prev, urgency_hours: e.target.value }))}
+                          className="glass-input h-9 text-sm text-white min-w-0"
+                        />
+                        <Button size="sm" onClick={() => handleSaveInteg("urgency_hours", integValues.urgency_hours)} className="gradient-primary h-9 whitespace-nowrap">Salvar</Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -422,26 +414,16 @@ export default function Configuracoes() {
                       <p className="text-sm font-medium text-white">Ativar Pop-ups Rotativos</p>
                       <p className="text-xs text-[hsl(var(--muted-foreground))]">Começa a exibir compras estratégicas a cada 25 segundos.</p>
                     </div>
-                    <Switch 
-                      checked={integValues.social_proof_active === "true"} 
+                    <Switch
+                      checked={integValues.social_proof_active === "true"}
                       onCheckedChange={(c) => {
                         setIntegValues(prev => ({ ...prev, social_proof_active: c ? "true" : "false" }));
-                      }} 
+                        handleSaveInteg("social_proof_active", c ? "true" : "false");
+                      }}
                     />
                   </div>
                 </CardContent>
               </Card>
-
-              <div className="flex justify-end pt-2">
-                <Button 
-                  onClick={handleSaveGatilhos} 
-                  disabled={loading}
-                  className="gradient-primary border-0 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center gap-2"
-                >
-                  <MousePointerClick className="w-4 h-4" />
-                  {loading ? "Salvando..." : "Salvar Configurações de Gatilhos"}
-                </Button>
-              </div>
             </div>
           </TabsContent>
 
