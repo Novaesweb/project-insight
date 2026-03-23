@@ -41,6 +41,7 @@ export default function Dashboard() {
   const [obs, setObs] = useState("");
   const [saving, setSaving] = useState(false);
   const [activity, setActivity] = useState<any[]>([]);
+  const [visibleActs, setVisibleActs] = useState(5);
 
   // Charts Data
   const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
