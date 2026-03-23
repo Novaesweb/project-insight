@@ -77,8 +77,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
 
-        <div className={cn("px-6 py-8 flex items-center gap-3", isCollapsed && "px-4 justify-center")}>
-          <Link to="/admin" className="flex items-center gap-2 group">
+        <div className={cn("py-8 flex items-center justify-center", isCollapsed ? "px-0" : "px-6")}>
+          <Link to="/admin" className={cn("flex items-center group", isCollapsed ? "gap-0" : "gap-3")}>
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
               {branding.logo ? (
@@ -106,12 +106,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href} 
                 to={item.href} 
                 className={cn(
-                  "group flex items-center gap-3 px-3 py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
+                  "group flex items-center px-3 py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
                   isActive 
                     ? (isGold ? "text-[hsl(var(--gold))] bg-white/5 shadow-[0_0_20px_rgba(255,184,0,0.1)]" : "text-primary bg-primary/10") 
                     : "text-white/40 hover:text-white/80 hover:bg-white/5",
                   isGold && !isActive && "gold-item opacity-80 hover:opacity-100",
-                  isCollapsed && "justify-center px-0"
+                  isCollapsed ? "justify-center gap-0" : "gap-3"
                 )}
               >
                 {isActive && (
@@ -141,8 +141,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button 
             onClick={handleLogout} 
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-white/40 hover:text-destructive hover:bg-destructive/5 transition-all w-full rounded-xl",
-              isCollapsed && "justify-center px-0"
+              "flex items-center px-3 py-2.5 text-xs font-medium text-white/40 hover:text-destructive hover:bg-destructive/5 transition-all w-full rounded-xl",
+              isCollapsed ? "justify-center gap-0" : "gap-3"
             )}
           >
             <LogOut className="w-4 h-4 shrink-0" />
