@@ -52,7 +52,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
           <div>
             <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider mb-3">Siga-nos</h4>
             <div className="flex gap-4">
-              <a href="https://instagram.com/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
+              <a href="https://www.instagram.com/novaesweb/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
                 <span className="text-[10px] font-bold">IG</span>
               </a>
               <a href="https://linkedin.com/company/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
