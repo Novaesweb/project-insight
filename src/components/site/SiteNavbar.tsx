@@ -56,14 +56,23 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           : "bg-transparent"
       )}>
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
+        <Link 
+          to="/" 
+          onClick={(e) => {
+            if (window.location.pathname === "/") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          className="flex items-center gap-2.5 group"
+        >
           <motion.div 
             whileHover={{ rotate: 10, scale: 1.1 }}
             className="relative"
           >
             <img src={novaesSymbol} alt="NovaesWeb" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
           </motion.div>
-          <span className="text-lg font-bold tracking-tighter">
+          <span className="text-lg font-bold tracking-tighter text-white">
             <span className="gradient-text">Novaes</span>
             <span className="text-white">Web</span>
           </span>
