@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -309,101 +309,131 @@ export default function Cadastro() {
                 </div>
               </div>
 
-              <div className="min-h-[300px] flex flex-col justify-center">
-                {currentStep === 1 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className={labelClass}>Seu nome <span className="text-primary">*</span></Label>
-                      <Input className={inputClass("nome")} value={form.nome} onChange={e => updateForm("nome", e.target.value)} placeholder="Nome completo" />
-                      <FieldError field="nome" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={labelClass}>E-mail / Gmail <span className="text-primary">*</span></Label>
-                      <Input type="email" className={inputClass("email")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@email.com" />
-                      <FieldError field="email" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={labelClass}>WhatsApp direto <span className="text-primary">*</span></Label>
-                      <Input className={inputClass("whatsapp")} placeholder="(00) 00000-0000" value={form.whatsapp} onChange={e => updateForm("whatsapp", formatWhatsApp(e.target.value))} />
-                      <FieldError field="whatsapp" />
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className={labelClass}>Nome do negócio <span className="text-primary">*</span></Label>
-                      <Input className={inputClass("nome_negocio")} value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} placeholder="Ex: Pizzaria do Zé" />
-                      <FieldError field="nome_negocio" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className={labelClass}>Tipo de negócio <span className="text-primary">*</span></Label>
-                      <Input className={inputClass("tipo_negocio")} value={form.tipo_negocio} onChange={e => updateForm("tipo_negocio", e.target.value)} placeholder="pizzaria, açaí, loja, barbearia…" />
-                      <FieldError field="tipo_negocio" />
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                    <div className="space-y-4">
-                      <Label className={labelClass}>O que você precisa? <span className="text-primary">*</span></Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {servicosOpcoes.map(s => (
-                          <label key={s} className={cn(
-                            "flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all text-xs font-bold uppercase tracking-widest",
-                            form.servicos.includes(s) ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
-                          )}>
-                            <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} className="border-white/20" />
-                            {s}
-                          </label>
-                        ))}
+              <div className="min-h-[300px] flex flex-col justify-center relative">
+                <AnimatePresence mode="wait">
+                  {currentStep === 1 && (
+                    <motion.div 
+                      key="step1"
+                      initial={{ opacity: 0, x: 20 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      exit={{ opacity: 0, x: -20 }} 
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
+                      <div className="space-y-2">
+                        <Label className={labelClass}>Seu nome <span className="text-primary">*</span></Label>
+                        <Input className={inputClass("nome")} value={form.nome} onChange={e => updateForm("nome", e.target.value)} placeholder="Nome completo" />
+                        <FieldError field="nome" />
                       </div>
-                      <FieldError field="servicos" />
-                    </div>
-                    <div className="space-y-4">
-                      <Label className={labelClass}>Investimento aproximado</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {orcamentoOpcoes.map(o => (
-                          <label key={o} onClick={() => updateForm("orcamento", o)} className={cn(
-                            "flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all text-[10px] font-bold tracking-widest uppercase",
-                            form.orcamento === o ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
-                          )}>
-                            <div className={cn("w-4 h-4 rounded-full border-2 flex items-center justify-center", form.orcamento === o ? "border-primary" : "border-white/20")}>
-                              {form.orcamento === o && <div className="w-2 h-2 rounded-full bg-primary" />}
-                            </div>
-                            {o}
-                          </label>
-                        ))}
+                      <div className="space-y-2">
+                        <Label className={labelClass}>E-mail / Gmail <span className="text-primary">*</span></Label>
+                        <Input type="email" className={inputClass("email")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@email.com" />
+                        <FieldError field="email" />
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                      <div className="space-y-2">
+                        <Label className={labelClass}>WhatsApp direto <span className="text-primary">*</span></Label>
+                        <Input className={inputClass("whatsapp")} placeholder="(00) 00000-0000" value={form.whatsapp} onChange={e => updateForm("whatsapp", formatWhatsApp(e.target.value))} />
+                        <FieldError field="whatsapp" />
+                      </div>
+                    </motion.div>
+                  )}
 
-                {currentStep === 4 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className={labelClass}>Fale mais sobre seu projeto</Label>
-                      <Textarea
-                        className="glass-input border-white/5 text-white rounded-[2rem] text-sm min-h-[150px] p-8 focus:border-primary/30"
-                        value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)}
-                        placeholder="Ex: Quero um site para pedidos de açaí..."
-                      />
-                    </div>
-                    <div className="space-y-4">
-                      <Label className={labelClass}>Como nos conheceu?</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {origemOpcoes.map(o => (
-                          <button key={o} onClick={() => updateForm("como_conheceu", o)} className={cn(
-                            "p-3 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all",
-                            form.como_conheceu === o ? "border-primary bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/20 hover:text-white/40"
-                          )}>{o}</button>
-                        ))}
+                  {currentStep === 2 && (
+                    <motion.div 
+                      key="step2"
+                      initial={{ opacity: 0, x: 20 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      exit={{ opacity: 0, x: -20 }} 
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
+                      <div className="space-y-2">
+                        <Label className={labelClass}>Nome do negócio <span className="text-primary">*</span></Label>
+                        <Input className={inputClass("nome_negocio")} value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} placeholder="Ex: Pizzaria do Zé" />
+                        <FieldError field="nome_negocio" />
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                      <div className="space-y-2">
+                        <Label className={labelClass}>Tipo de negócio <span className="text-primary">*</span></Label>
+                        <Input className={inputClass("tipo_negocio")} value={form.tipo_negocio} onChange={e => updateForm("tipo_negocio", e.target.value)} placeholder="pizzaria, açaí, loja, barbearia…" />
+                        <FieldError field="tipo_negocio" />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {currentStep === 3 && (
+                    <motion.div 
+                      key="step3"
+                      initial={{ opacity: 0, x: 20 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      exit={{ opacity: 0, x: -20 }} 
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
+                      <div className="space-y-4">
+                        <Label className={labelClass}>O que você precisa? <span className="text-primary">*</span></Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {servicosOpcoes.map(s => (
+                            <label key={s} className={cn(
+                              "flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all text-xs font-bold uppercase tracking-widest",
+                              form.servicos.includes(s) ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
+                            )}>
+                              <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} className="border-white/20" />
+                              {s}
+                            </label>
+                          ))}
+                        </div>
+                        <FieldError field="servicos" />
+                      </div>
+                      <div className="space-y-4">
+                        <Label className={labelClass}>Investimento aproximado</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {orcamentoOpcoes.map(o => (
+                            <label key={o} onClick={() => updateForm("orcamento", o)} className={cn(
+                              "flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all text-[10px] font-bold tracking-widest uppercase",
+                              form.orcamento === o ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
+                            )}>
+                              <div className={cn("w-4 h-4 rounded-full border-2 flex items-center justify-center", form.orcamento === o ? "border-primary" : "border-white/20")}>
+                                {form.orcamento === o && <div className="w-2 h-2 rounded-full bg-primary" />}
+                              </div>
+                              {o}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {currentStep === 4 && (
+                    <motion.div 
+                      key="step4"
+                      initial={{ opacity: 0, x: 20 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      exit={{ opacity: 0, x: -20 }} 
+                      transition={{ duration: 0.3 }}
+                      className="space-y-6"
+                    >
+                      <div className="space-y-2">
+                        <Label className={labelClass}>Fale mais sobre seu projeto</Label>
+                        <Textarea
+                          className="glass-input border-white/5 text-white rounded-[2rem] text-sm min-h-[150px] p-8 focus:border-primary/30"
+                          value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)}
+                          placeholder="Ex: Quero um site para pedidos de açaí..."
+                        />
+                      </div>
+                      <div className="space-y-4">
+                        <Label className={labelClass}>Como nos conheceu?</Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {origemOpcoes.map(o => (
+                            <button key={o} onClick={() => updateForm("como_conheceu", o)} className={cn(
+                              "p-3 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all",
+                              form.como_conheceu === o ? "border-primary bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/20 hover:text-white/40"
+                            )}>{o}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="flex gap-4 pt-4">
