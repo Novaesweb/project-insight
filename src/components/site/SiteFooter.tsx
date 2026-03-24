@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ShieldCheck, Star, Users, Target, Lock, FileText } from "lucide-react";
+import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
 import { scrollTo } from "./SiteNavbar";
 
@@ -51,7 +51,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
                 { label: "Demonstração", id: "demonstracao", icon: Zap },
               ].map((l, i) => (
                 <button key={i} onClick={() => onOpenModal(l.id)} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-all text-left flex items-center gap-2 group">
-                  <div className="w-1 h-1 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" /> {l.label}
+                  <l.icon className="w-3 h-3 text-primary/40 group-hover:text-primary transition-colors" /> {l.label}
                 </button>
               ))}
             </div>
@@ -122,6 +122,3 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
     </footer>
   );
 }
-
-// Helper mock to avoid import issue if Zap is missing
-const Zap = ({ className }: { className?: string }) => <span className={className}>⚡</span>;
