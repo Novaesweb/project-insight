@@ -5,28 +5,59 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Check, MessageCircle, ChevronLeft, Building, Store,
-  AlertCircle, Loader2, Star, Rocket, Zap, Globe, ShieldCheck, Mail
+  AlertCircle, Loader2, Star, Rocket, Zap, Globe, ShieldCheck, Mail,
+  Users, Layout, Target, Package, Instagram, Search, HelpCircle, Send, ArrowRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
 
-const servicosOpcoes = ["Site", "Loja Online"];
-const orcamentoOpcoes = ["Até R$300", "R$300 a R$800", "R$800 a R$1.500", "Acima de R$1.500", "Não sei ainda"];
-const origemOpcoes = ["Instagram", "WhatsApp", "Indicação", "Google", "TikTok", "Outro"];
-
-const beneficios = [
-  { icon: Rocket, text: "Entrega em tempo recorde" },
-  { icon: Globe, text: "Sites de alta performance" },
-  { icon: ShieldCheck, text: "Suporte dedicado 24/7" },
-  { icon: Zap, text: "Design moderno e responsivo" },
+// --- Opções de Seleção ---
+const SEGMENTOS = [
+  { id: "imobiliaria", label: "Imobiliária", icon: Building },
+  { id: "e-commerce", label: "E-commerce", icon: Store },
+  { id: "servicos", label: "Serviços", icon: Users },
+  { id: "tecnologia", label: "Tecnologia", icon: Zap },
+  { id: "varejo", label: "Varejo", icon: Package },
+  { id: "saude", label: "Saúde / Clínicas", icon: ShieldCheck },
+  { id: "outros", label: "Outros", icon: HelpCircle },
 ];
 
+const NECESSIDADES = [
+  { id: "site", label: "Site Profissional", icon: Globe },
+  { id: "loja", label: "Loja Virtual", icon: Store },
+  { id: "sistema", label: "Sistema Custom", icon: Layout },
+  { id: "marketing", label: "Marketing / Leads", icon: Target },
+  { id: "outros", label: "Outros", icon: MessageCircle },
+];
+
+const VOLUMES = [
+  { id: "baixa", label: "Até 50/mês" },
+  { id: "media", label: "50 a 500/mês" },
+  { id: "alta", label: "500 a 1.000/mês" },
+  { id: "expert", label: "Mais de 1.000/mês" },
+  { id: "nao_sei", label: "Não sei ainda" },
+];
+
+const ORIGENS = [
+  { id: "instagram", label: "Instagram", icon: Instagram },
+  { id: "google", label: "Google", icon: Search },
+  { id: "indicacao", label: "Indicação", icon: Users },
+  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { id: "tiktok", label: "TikTok", icon: Rocket },
+  { id: "outro", label: "Outro", icon: HelpCircle },
+];
+
+const STEPS_SIDEBAR = [
+  "Identificação", "E-mail / Gmail", "WhatsApp", "Seu Negócio",
+  "Segmento", "Necessidade", "Volume", "Origem", "Briefing"
+];
+
+// --- Utilitários ---
 const formatWhatsApp = (value: string) => {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 2) return digits;
@@ -34,426 +65,292 @@ const formatWhatsApp = (value: string) => {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-const validateWhatsApp = (w: string) => { const d = w.replace(/\D/g, ""); return d.length === 10 || d.length === 11; };
-
-type FieldErrors = { [key: string]: string };
-
-const containerVariants: any = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
-  }
-};
-
-const itemVariants: any = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.8, ease: "easeOut" } 
-  }
-};
+const validateWhatsApp = (w: string) => { const d = w.replace(/\D/g, ""); return d.length >= 10; };
 
 export default function Cadastro() {
   const { toast } = useToast();
-  const [enviado, setEnviado] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0); // 0 a 10
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
-    nome: "", email: "", whatsapp: "", nome_negocio: "", tipo_negocio: "",
-    servicos: [] as string[], orcamento: "", como_conheceu: "", mensagem: "",
+    nome: "", email: "", whatsapp: "", empresa: "", segmento: "",
+    necessidade: "", volume: "", origem: "", mensagem: ""
   });
 
-  const updateForm = (field: string, value: string | string[]) => {
+  const updateForm = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
   };
 
-  const toggleServico = (s: string) => setForm(prev => ({
-    ...prev, servicos: prev.servicos.includes(s) ? prev.servicos.filter(x => x !== s) : [...prev.servicos, s],
-  }));
-
   const validateStep = (step: number): boolean => {
-    const errs: FieldErrors = {};
-    
-    if (step === 1) {
-      if (!form.nome.trim()) errs.nome = "Nome é obrigatório";
-      if (!form.email.trim() || !form.email.includes("@")) errs.email = "E-mail inválido";
-      if (!form.whatsapp.trim() || !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
-    }
-    
-    if (step === 2) {
-      if (!form.nome_negocio.trim()) errs.nome_negocio = "Nome do negócio é obrigatório";
-      if (!form.tipo_negocio.trim()) errs.tipo_negocio = "Tipo de negócio é obrigatório";
-    }
-    
-    if (step === 3) {
-      if (form.servicos.length === 0) errs.servicos = "Selecione o que você precisa";
-    }
+    const errs: Record<string, string> = {};
+    if (step === 1 && !form.nome.trim()) errs.nome = "Campo obrigatório";
+    if (step === 2 && (!form.email.trim() || !form.email.includes("@"))) errs.email = "E-mail inválido";
+    if (step === 3 && !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
+    if (step === 4 && !form.empresa.trim()) errs.empresa = "Campo obrigatório";
+    if (step === 5 && !form.segmento) errs.segmento = "Selecione uma opção";
+    if (step === 6 && !form.necessidade) errs.necessidade = "Selecione uma opção";
+    if (step === 7 && !form.volume) errs.volume = "Selecione uma opção";
+    if (step === 8 && !form.origem) errs.origem = "Selecione uma opção";
+    if (step === 9 && !form.mensagem.trim()) errs.mensagem = "Conte-nos um pouco mais";
 
     setErrors(errs);
-    if (Object.keys(errs).length > 0) {
-      toast({ title: "Atenção", description: "Preencha os campos obrigatórios para continuar", variant: "destructive" });
-      return false;
-    }
-    return true;
+    return Object.keys(errs).length === 0;
   };
 
-  const nextStep = () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < totalSteps) setCurrentStep(prev => prev + 1);
-      else handleSubmit();
+  const handleNext = () => {
+    if (currentStep === 0 || validateStep(currentStep)) {
+      if (currentStep < 10) setCurrentStep(prev => prev + 1);
+      if (currentStep === 9) handleSubmit();
+    } else {
+      toast({ title: "Atenção", description: "Preencha o campo para continuar.", variant: "destructive" });
     }
   };
 
-  const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+  const handlePrev = () => {
+    if (currentStep > 0) setCurrentStep(prev => prev - 1);
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     const { error } = await supabase.from("leads").insert({
-      nome: form.nome.trim(),
+      nome: form.nome,
       email: form.email.trim(),
       whatsapp: form.whatsapp.replace(/\D/g, ""),
-      nome_negocio: form.nome_negocio.trim(),
-      segmento: form.tipo_negocio.trim(), 
-      servicos: form.servicos,
-      orcamento: form.orcamento || null,
-      como_conheceu: form.como_conheceu || null,
-      mensagem: form.mensagem || null,
+      nome_negocio: form.empresa,
+      segmento: form.segmento, 
+      servicos: [form.necessidade],
+      orcamento: form.volume,
+      como_conheceu: form.origem,
+      mensagem: form.mensagem,
     } as any);
 
     setLoading(false);
     if (error) {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
-      setEnviado(true);
-      
-      // Enviar e-mail via Edge Function
       supabase.functions.invoke("send-lead-email", {
-        body: { ...form, whatsapp: form.whatsapp.replace(/\D/g, "") }
+        body: { ...form, nome_negocio: form.empresa, tipo_negocio: form.segmento, servicos: [form.necessidade], orcamento: form.volume }
       });
-
-      sendPushToAdmins("🆕 Novo Cadastro Perfeito", `${form.nome} está interessado em ${form.servicos.join(", ")}`, "/admin/leads");
+      sendPushToAdmins("🆕 Novo Lead Premium", `${form.nome} (${form.empresa})`, "/admin/leads");
+      setCurrentStep(10);
     }
   };
 
-  const FieldError = ({ field }: { field: string }) => errors[field] ? (
-    <motion.p initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} className="text-[10px] text-primary flex items-center gap-1.5 mt-1.5 font-bold uppercase tracking-wider">
-      <AlertCircle className="w-3 h-3" /> {errors[field]}
-    </motion.p>
-  ) : null;
-
-  const inputClass = (field?: string) =>
-    cn(
-      "glass-input text-white h-12 sm:h-14 rounded-2xl text-base px-6 placeholder:text-white/20 transition-all font-medium",
-      "focus:ring-2 focus:ring-primary/20",
-      field && errors[field] ? "border-primary/50 ring-1 ring-primary/20" : "border-white/5 focus:border-primary/30 shadow-[0_0_0_0_rgba(255,51,102,0)] focus:shadow-[0_0_20px_rgba(255,51,102,0.1)]"
-    );
-
-  const labelClass = "text-[11px] font-black uppercase tracking-[0.2em] text-white/30 ml-1 mb-2 block";
-
-  if (enviado) {
+  const StepIndicator = ({ stepIdx }: { stepIdx: number }) => {
+    const isActive = currentStep === stepIdx + 1;
+    const isCompleted = currentStep > stepIdx + 1;
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden ambient-glow">
-        <div className="ultra-premium-bg" />
-        <div className="ambient-rays-unified" />
-        
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }} 
-          animate={{ scale: 1, opacity: 1 }} 
-          className="text-center max-w-lg glass-panel-premium p-12 rounded-[2.5rem] border-white/5 relative z-10 shadow-2xl"
-        >
-          <motion.div
-            initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
-            className="w-24 h-24 rounded-3xl gradient-primary mx-auto flex items-center justify-center mb-8 shadow-xl"
-          >
-            <Check className="w-12 h-12 text-white stroke-[3px]" />
-          </motion.div>
-          
-          <h1 className="text-4xl font-black text-white mb-6 tracking-tighter leading-tight">
-            Cadastro enviado <br />
-            <span className="gradient-text">com sucesso! 🚀</span>
-          </h1>
-          <div className="space-y-4 text-white/60 mb-10 text-lg font-medium leading-relaxed">
-            <p>Recebemos suas informações e já vamos analisar seu projeto com atenção.</p>
-            <p className="text-primary font-black uppercase tracking-widest text-sm animate-pulse">👉 Fique atento, vamos te chamar em breve!</p>
-          </div>
-          
-          <div className="flex flex-col gap-4">
-            <Button className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl h-14 text-base font-black gap-3 shadow-lg uppercase tracking-widest"
-              onClick={() => window.open(`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou ${form.nome}, acabei de me cadastrar no site da NovaesWeb.`)}`, "_blank")}>
-              <MessageCircle className="w-6 h-6" /> Falar agora no WhatsApp
-            </Button>
-            <Link to="/">
-              <Button variant="ghost" className="w-full text-white/40 hover:text-white font-bold h-12">
-                Voltar para a página inicial
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
+      <div className={cn("flex items-center gap-4 transition-all duration-300", 
+        isActive ? "opacity-100 translate-x-1" : isCompleted ? "opacity-60" : "opacity-30")}>
+        <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-black",
+          isActive ? "border-white bg-white text-secondary-novaes" : 
+          isCompleted ? "border-white bg-white text-secondary-novaes" : "border-white/20 text-white")}>
+          {isCompleted ? <Check className="w-3 h-3 stroke-[4px]" /> : stepIdx + 1}
+        </div>
+        <span className={cn("text-[11px] uppercase tracking-widest font-bold", isActive ? "text-white" : "text-white/70")}>
+          {STEPS_SIDEBAR[stepIdx]}
+        </span>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 lg:p-8 relative overflow-hidden ambient-glow">
-      <div className="ultra-premium-bg" />
-      <div className="ambient-rays-unified" />
-
-      <div className="w-full max-w-4xl relative z-10 flex flex-col items-center">
-        {/* HEADER / LOGO */}
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <Link to="/" className="inline-flex items-center gap-3 mb-2 group">
-            <motion.div whileHover={{ rotate: 10, scale: 1.1 }} className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg">
-              <Zap className="text-white w-6 h-6 fill-current" />
-            </motion.div>
-            <span className="text-2xl font-black tracking-tighter">
-              <span className="gradient-text">Novaes</span>
-              <span className="text-white">Web</span>
-            </span>
-          </Link>
-          <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter">
-              Plano de <span className="gradient-text">Aceleração</span>
-            </h1>
-            <p className="text-white/30 font-medium text-sm">Responda o briefing e receba seu orçamento em tempo recorde.</p>
+    <div className="min-h-screen bg-novaes-gradient flex items-center justify-center p-4 lg:p-0 font-sans text-white overflow-hidden">
+      <div className="w-full max-w-[940px] h-full lg:h-[620px] glass-card-novaes rounded-[2.5rem] flex flex-col lg:flex-row shadow-2xl overflow-hidden relative border border-white/10">
+        
+        {/* --- SIDEBAR ESQUERDA (DESKTOP) --- */}
+        <div className="hidden lg:flex w-[280px] sidebar-novaes-gradient p-10 flex-col justify-between relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+          <div className="z-10 relative">
+            <Link to="/" className="flex flex-col gap-1 mb-12 group">
+              <span className="text-2xl font-black tracking-tighter uppercase">Novaes Web</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 group-hover:opacity-100 transition-opacity">Cadastro rápido</span>
+            </Link>
+            
+            <div className="space-y-6">
+              {STEPS_SIDEBAR.map((_, i) => <StepIndicator key={i} stepIdx={i} />)}
+            </div>
+          </div>
+          
+          <div className="z-10 relative text-[10px] font-black uppercase tracking-widest opacity-40">
+            © 2025 Novaes Web
           </div>
         </div>
 
-        {/* WIZARD CARD */}
-        <motion.div 
-          initial="hidden" 
-          animate="visible" 
-          variants={containerVariants}
-          className="w-full glass-panel-premium rounded-[3.5rem] p-8 sm:p-16 border-white/5 shadow-2xl relative overflow-hidden"
-        >
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 blur-[120px] rounded-full" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-accent/10 blur-[120px] rounded-full" />
+        {/* --- CONTEÚDO PRINCIPAL --- */}
+        <div className="flex-1 flex flex-col relative bg-[#111116]/40">
           
-          <div className="space-y-12 relative z-10">
-            {/* ─ PROGRESS BAR ─ */}
-            <div className="flex flex-col gap-5">
-              <div className="flex justify-between items-end">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-primary animate-pulse flex items-center gap-2">
-                    <Rocket className="w-3 h-3" /> Jornada: Passo {currentStep} de {totalSteps}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Completo:</span>
-                  <span className="text-white text-sm font-black tracking-widest">{Math.round((currentStep / totalSteps) * 100)}%</span>
-                </div>
-              </div>
-              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-[2px] border border-white/5">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                  className="h-full gradient-primary rounded-full shadow-[0_0_20px_rgba(255,51,102,0.4)] relative"
-                >
-                   <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                </motion.div>
-              </div>
-            </div>
+          {/* Barra de Progresso Mobile */}
+          <div className="lg:hidden h-1.5 w-full bg-white/5 overflow-hidden">
+            <motion.div animate={{ width: `${(currentStep / 10) * 100}%` }} className="h-full sidebar-novaes-gradient" />
+          </div>
 
-            {/* ─ STEP CONTENT ─ */}
-            <div className="min-h-[350px] flex flex-col justify-start relative">
-              <AnimatePresence mode="wait">
-                {currentStep === 1 && (
-                  <motion.div 
-                    key="step1"
-                    initial={{ opacity: 0, scale: 0.98, y: 10 }} 
-                    animate={{ opacity: 1, scale: 1, y: 0 }} 
-                    exit={{ opacity: 0, scale: 1.02, y: -10 }} 
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-8"
-                  >
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <Label className={labelClass}>Seu nome completo <span className="text-primary">*</span></Label>
-                        <div className="relative">
-                          <Input className={inputClass("nome")} value={form.nome} onChange={e => updateForm("nome", e.target.value)} placeholder="Como podemos te chamar?" />
-                        </div>
-                        <FieldError field="nome" />
-                      </div>
-                      <div className="space-y-3">
-                        <Label className={labelClass}>E-mail / Gmail <span className="text-primary">*</span></Label>
-                        <div className="relative group">
-                          <Mail className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10 group-focus-within:text-primary transition-colors" />
-                          <Input type="email" className={cn(inputClass("email"), "pr-14")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@gmail.com" />
-                        </div>
-                        <FieldError field="email" />
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col justify-center gap-6">
-                      <div className="space-y-3">
-                        <Label className={labelClass}>WhatsApp Direto <span className="text-primary">*</span></Label>
-                        <div className="relative">
-                          <Input className={inputClass("whatsapp")} placeholder="(00) 00000-0000" value={form.whatsapp} onChange={e => updateForm("whatsapp", formatWhatsApp(e.target.value))} />
-                        </div>
-                        <FieldError field="whatsapp" />
-                      </div>
-                      <div className="p-4 rounded-3xl bg-primary/5 border border-primary/10">
-                        <p className="text-[10px] text-primary/60 font-medium leading-relaxed uppercase tracking-wider">
-                          <ShieldCheck className="w-4 h-4 inline mr-2" /> 
-                          Seus dados estão protegidos pela NovaesWeb Encryption.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div 
-                    key="step2"
-                    initial={{ opacity: 0, scale: 0.98, y: 10 }} 
-                    animate={{ opacity: 1, scale: 1, y: 0 }} 
-                    exit={{ opacity: 0, scale: 1.02, y: -10 }} 
-                    transition={{ duration: 0.4 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-8"
-                  >
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <Label className={labelClass}>Nome do negócio / Startup <span className="text-primary">*</span></Label>
-                        <Input className={inputClass("nome_negocio")} value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} placeholder="Ex: NovaesWeb Solutions" />
-                        <FieldError field="nome_negocio" />
-                      </div>
-                      <div className="space-y-3">
-                        <Label className={labelClass}>Segmento de Atuação <span className="text-primary">*</span></Label>
-                        <Input className={inputClass("tipo_negocio")} value={form.tipo_negocio} onChange={e => updateForm("tipo_negocio", e.target.value)} placeholder="Ex: Tecnologia, Varejo, Serviços..." />
-                        <FieldError field="tipo_negocio" />
-                      </div>
-                    </div>
-                    <div className="bg-white/5 rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4 border border-white/5">
-                      <Building className="w-16 h-16 text-white/10" />
-                      <p className="text-white/30 text-xs font-medium italic">"Conhecer seu nicho nos ajuda a aplicar as estratégias de conversão corretas."</p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div 
-                    key="step3"
-                    initial={{ opacity: 0, scale: 0.98, y: 10 }} 
-                    animate={{ opacity: 1, scale: 1, y: 0 }} 
-                    exit={{ opacity: 0, scale: 1.02, y: -10 }} 
-                    transition={{ duration: 0.4 }}
-                    className="space-y-10"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                      <div className="space-y-6">
-                        <Label className={labelClass}>O que você precisa hoje? <span className="text-primary">*</span></Label>
-                        <div className="grid grid-cols-1 gap-4">
-                          {servicosOpcoes.map(s => (
-                            <label key={s} className={cn(
-                              "flex items-center gap-4 p-6 rounded-[2rem] border-2 cursor-pointer transition-all text-sm font-black uppercase tracking-widest group",
-                              form.servicos.includes(s) ? "border-primary bg-primary/10 text-white shadow-xl shadow-primary/20" : "border-white/5 bg-white/5 text-white/20 hover:border-white/20"
-                            )}>
-                              <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} className="w-6 h-6 border-white/10 rounded-lg group-hover:scale-110 transition-transform" />
-                              <span className="flex-1">{s}</span>
-                              {s === "Loja Online" ? <Store className="w-5 h-5 opacity-20" /> : <Globe className="w-5 h-5 opacity-20" />}
-                            </label>
-                          ))}
-                        </div>
-                        <FieldError field="servicos" />
-                      </div>
-
-                      <div className="space-y-6">
-                        <Label className={labelClass}>Expectativa de Investimento</Label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {orcamentoOpcoes.map(o => (
-                            <button key={o} onClick={() => updateForm("orcamento", o)} className={cn(
-                              "p-4 rounded-2xl border transition-all text-[10px] font-black tracking-[0.2em] uppercase text-left",
-                              form.orcamento === o ? "border-primary bg-primary text-white shadow-lg shadow-primary/30" : "border-white/5 bg-white/5 text-white/30 hover:bg-white/10"
-                            )}>
-                              {o}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 4 && (
-                  <motion.div 
-                    key="step4"
-                    initial={{ opacity: 0, scale: 0.98, y: 10 }} 
-                    animate={{ opacity: 1, scale: 1, y: 0 }} 
-                    exit={{ opacity: 0, scale: 1.02, y: -10 }} 
-                    transition={{ duration: 0.4 }}
-                    className="space-y-8"
-                  >
-                    <div className="space-y-4">
-                      <Label className={labelClass}>Resumo do Projeto / Briefing</Label>
-                      <Textarea
-                        className="glass-input border-white/5 text-white rounded-[2.5rem] text-lg min-h-[180px] p-10 focus:border-primary/30 placeholder:text-white/10 leading-relaxed shadow-inner"
-                        value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)}
-                        placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-                      <div className="space-y-4">
-                        <Label className={labelClass}>Como nos conheceu?</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {origemOpcoes.map(o => (
-                            <button key={o} onClick={() => updateForm("como_conheceu", o)} className={cn(
-                              "px-5 py-3 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all",
-                              form.como_conheceu === o ? "border-primary bg-primary/20 text-white" : "border-white/5 bg-white/5 text-white/20 hover:text-white/40"
-                            )}>{o}</button>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex justify-end p-2">
-                        <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] flex items-center gap-3">
-                          <Zap className="w-4 h-4 text-primary animate-pulse" /> IA Analisando Dados em Real-time
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* ─ FOOTER / ACTIONS ─ */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-white/5">
-              <div className="flex-1 flex gap-3">
-                {currentStep > 1 && (
-                  <Button variant="ghost" className="h-16 px-10 rounded-2xl text-white/30 hover:text-white hover:bg-white/5 font-black uppercase tracking-[0.3em] text-xs transition-all flex items-center gap-3 group" onClick={prevStep}>
-                    <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Voltar
+          <div className="flex-1 p-8 lg:p-14 flex flex-col justify-center relative overflow-hidden">
+            <AnimatePresence mode="wait">
+              {/* STEP 0: BOAS-VINDAS */}
+              {currentStep === 0 && (
+                <motion.div key="s0" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="text-center lg:text-left space-y-8">
+                  <div className="w-20 h-20 rounded-3xl sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-xl mb-4">
+                    <Rocket className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="space-y-4">
+                    <h1 className="text-4xl lg:text-6xl font-black tracking-tighter font-space leading-[0.9]">VAMOS <br /> <span className="opacity-30">DECOLAR SEU</span> <br /> PROJETO?</h1>
+                    <p className="text-white/40 text-lg font-medium max-w-sm">Conte-nos sobre sua ideia e nossa equipe transformará em realidade digital.</p>
+                  </div>
+                  <Button onClick={handleNext} className="h-16 px-12 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-sm hover:scale-105 transition-all shadow-xl group">
+                    Começar agora <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
                   </Button>
-                )}
-              </div>
-              <Button className={cn("h-18 px-12 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] shadow-2xl transition-all group relative overflow-hidden flex items-center gap-4", currentStep === totalSteps ? "w-full sm:w-auto gradient-primary" : "w-full sm:w-80")} onClick={nextStep} disabled={loading}>
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                  currentStep === totalSteps ? (
-                    <>🚀 Enviar Briefing e Finalizar</>
-                  ) : (
-                    <>Continuar <Rocket className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>
-                  )
+                </motion.div>
+              )}
+
+              {/* STEPS 1-4: INPUTS */}
+              {[1, 2, 3, 4].includes(currentStep) && (
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                   <div className="space-y-2">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo {currentStep} de 9</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space tracking-tight">
+                      {currentStep === 1 && "Qual seu nome completo?"}
+                      {currentStep === 2 && "Qual seu melhor e-mail?"}
+                      {currentStep === 3 && "Seu WhatsApp direto?"}
+                      {currentStep === 4 && "Qual o nome do negócio?"}
+                    </h1>
+                  </div>
+                  <div className="relative group">
+                    {currentStep === 2 && <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-primary-novaes transition-colors" />}
+                    <Input 
+                      autoFocus
+                      className="h-20 lg:h-24 bg-white/5 border-white/5 rounded-3xl text-2xl lg:text-3xl font-bold px-8 focus:border-primary-novaes/50 transition-all placeholder:text-white/5"
+                      placeholder={currentStep === 1 ? "Nome da pessoa..." : currentStep === 2 ? "seu@gmail.com" : currentStep === 3 ? "(00) 00000-0000" : "Nome da startup/empresa"}
+                      value={currentStep === 1 ? form.nome : currentStep === 2 ? form.email : currentStep === 3 ? form.whatsapp : form.empresa}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (currentStep === 1) updateForm("nome", v);
+                        if (currentStep === 2) updateForm("email", v);
+                        if (currentStep === 3) updateForm("whatsapp", formatWhatsApp(v));
+                        if (currentStep === 4) updateForm("empresa", v);
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEPS 5, 6, 8: GRIDS COM ÍCONES */}
+              {[5, 6, 8].includes(currentStep) && (
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-8">
+                   <div className="space-y-2 text-center lg:text-left">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo {currentStep} de 9</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space">
+                      {currentStep === 5 && "O negócio é de qual segmento?"}
+                      {currentStep === 6 && "O que você precisa agora?"}
+                      {currentStep === 8 && "Como nos conheceu?"}
+                    </h1>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {(currentStep === 5 ? SEGMENTOS : currentStep === 6 ? NECESSIDADES : ORIGENS).map(opt => (
+                      <button 
+                        key={opt.id} 
+                        onClick={() => {
+                          updateForm(currentStep === 5 ? "segmento" : currentStep === 6 ? "necessidade" : "origem", opt.id);
+                          setTimeout(handleNext, 300);
+                        }}
+                        className={cn("flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all gap-3 group relative overflow-hidden",
+                          (currentStep === 5 ? form.segmento : currentStep === 6 ? form.necessidade : form.origem) === opt.id 
+                            ? "bg-white/10 border-primary-novaes shadow-lg shadow-primary-novaes/20" 
+                            : "bg-white/5 border-white/5 hover:border-white/20"
+                        )}
+                      >
+                        <opt.icon className={cn("w-8 h-8 transition-transform group-hover:scale-110", 
+                          (currentStep === 5 ? form.segmento : currentStep === 6 ? form.necessidade : form.origem) === opt.id ? "text-primary-novaes" : "text-white/20")} 
+                        />
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-tight">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 7: VOLUMES (TEXT ONLY) */}
+              {currentStep === 7 && (
+                <motion.div key="s7" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                   <div className="space-y-2">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo 7 de 9</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space">Qual seu volume atual de pedidos?</h1>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {VOLUMES.map(opt => (
+                      <button 
+                        key={opt.id} 
+                        onClick={() => {
+                          updateForm("volume", opt.id);
+                          setTimeout(handleNext, 300);
+                        }}
+                        className={cn("p-6 rounded-2xl border-2 text-left transition-all text-sm font-bold uppercase tracking-widest",
+                          form.volume === opt.id ? "bg-white/10 border-primary-novaes" : "bg-white/5 border-white/5 hover:bg-white/10"
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 9: DESCRIÇÃO */}
+              {currentStep === 9 && (
+                <motion.div key="s9" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+                   <div className="space-y-2">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo Final</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space">Fale um pouco mais sobre o projeto...</h1>
+                  </div>
+                  <Textarea 
+                    autoFocus
+                    className="min-h-[220px] bg-white/5 border-white/5 rounded-3xl p-8 text-lg font-medium focus:border-primary-novaes/50 transition-all placeholder:text-white/5 leading-relaxed"
+                    placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
+                    value={form.mensagem}
+                    onChange={(e) => updateForm("mensagem", e.target.value)}
+                  />
+                </motion.div>
+              )}
+
+              {/* STEP 10: SUCESSO */}
+              {currentStep === 10 && (
+                <motion.div key="s10" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-8 flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-4">
+                    <Check className="w-12 h-12 text-emerald-500 stroke-[3px]" />
+                  </div>
+                  <div className="space-y-4">
+                    <h1 className="text-5xl font-black font-space tracking-tight">ENVIADO COM <br /> <span className="text-primary-novaes italic">PERFEIÇÃO!</span></h1>
+                    <p className="text-white/50 text-xl font-medium max-w-sm mx-auto leading-relaxed">
+                      Um membro da nossa equipe já vai entrar em contato com você. Prepare-se! 🚀
+                    </p>
+                  </div>
+                  <Button onClick={() => window.location.href = "/"} className="h-16 px-12 rounded-2xl bg-white/5 border border-white/10 font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
+                    Recomeçar
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* RODAPÉ DE NAVEGAÇÃO */}
+          {currentStep > 0 && currentStep < 10 && (
+            <div className="p-8 lg:p-14 pt-0 flex items-center justify-between mt-auto">
+              <Button variant="ghost" className="h-12 text-white/30 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] p-0" onClick={handlePrev}>
+                ◄ Voltar
+              </Button>
+              <Button 
+                onClick={handleNext} 
+                disabled={loading}
+                className={cn("h-16 px-10 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-xs shadow-xl transition-all flex items-center gap-3",
+                  loading && "opacity-50")}
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  currentStep === 9 ? "Finalizar Agora" : "Próximo Passo ►"
                 )}
               </Button>
             </div>
-          </div>
-        </motion.div>
-
-        {/* FOOTER INFO */}
-        <div className="mt-8 flex flex-wrap justify-center gap-8 opacity-20 text-[9px] font-black uppercase tracking-[0.5em] text-white">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-3 h-3" /> SSL Seguro
-          </div>
-          <div className="flex items-center gap-2">
-             <Star className="w-3 h-3" /> Top Rated 2024
-          </div>
-          <div className="flex items-center gap-2">
-             <Check className="w-3 h-3" /> Privacidade Garantida
-          </div>
+          )}
         </div>
       </div>
     </div>

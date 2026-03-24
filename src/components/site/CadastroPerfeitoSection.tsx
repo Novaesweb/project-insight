@@ -1,555 +1,356 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Rocket, ArrowRight, ArrowLeft, MessageCircle, 
-  User, Phone, Building, Layout, Store, HelpCircle, 
-  Send, Instagram, Search, Users, CheckCircle2,
-  Package, Globe, Target, Sparkles, Zap, Mail
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Check, MessageCircle, Building, Store,
+  Loader2, Rocket, Zap, Globe, ShieldCheck, Mail,
+  Users, Layout, Target, Package, Instagram, Search, HelpCircle, ArrowRight
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
 
-// --- Componente Typewriter Interno ---
-function Typewriter({ text, className }: { text: string; className?: string }) {
-  const [displayedText, setDisplayedText] = useState("");
-  
-  useEffect(() => {
-    setDisplayedText("");
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < text.length) {
-        setDisplayedText(text.slice(0, i + 1));
-        i++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 50);
-    return () => clearInterval(interval);
-  }, [text]);
-
-  return <span className={className}>{displayedText}</span>;
-}
-
-// --- Tipos & Opções ---
+// --- Opções de Seleção ---
 const SEGMENTOS = [
-  { id: "imobiliaria", label: "Imobiliária", icon: Building, hint: "Setor em alta para automação de leads!" },
-  { id: "e-commerce", label: "E-commerce", icon: Store, hint: "Foco total em conversão e checkout fluido." },
-  { id: "servicos", label: "Serviços", icon: Users, hint: "Ideal para landing pages de alta performance." },
-  { id: "outros", label: "Outros", icon: HelpCircle, hint: "Construímos qualquer solução personalizada." },
+  { id: "imobiliaria", label: "Imobiliária", icon: Building },
+  { id: "e-commerce", label: "E-commerce", icon: Store },
+  { id: "servicos", label: "Serviços", icon: Users },
+  { id: "tecnologia", label: "Tecnologia", icon: Zap },
+  { id: "varejo", label: "Varejo", icon: Package },
+  { id: "saude", label: "Saúde / Clínicas", icon: ShieldCheck },
+  { id: "outros", label: "Outros", icon: HelpCircle },
 ];
 
 const NECESSIDADES = [
   { id: "site", label: "Site Profissional", icon: Globe },
   { id: "loja", label: "Loja Virtual", icon: Store },
-  { id: "sistema", label: "Sistema / Dashboard", icon: Layout },
+  { id: "sistema", label: "Sistema Custom", icon: Layout },
   { id: "marketing", label: "Marketing / Leads", icon: Target },
+  { id: "outros", label: "Outros", icon: MessageCircle },
 ];
 
 const VOLUMES = [
-  { id: "baixa", label: "Até 50/mês", icon: Package },
-  { id: "media", label: "50 a 500/mês", icon: Package },
-  { id: "alta", label: "Mais de 500/mês", icon: Package },
-  { id: "nao_sei", label: "Não sei ainda", icon: HelpCircle },
+  { id: "baixa", label: "Até 50/mês" },
+  { id: "media", label: "50 a 500/mês" },
+  { id: "alta", label: "500 a 1.000/mês" },
+  { id: "expert", label: "Mais de 1.000/mês" },
+  { id: "nao_sei", label: "Não sei ainda" },
 ];
 
 const ORIGENS = [
   { id: "instagram", label: "Instagram", icon: Instagram },
-  { id: "google", label: "Google / Pesquisa", icon: Search },
+  { id: "google", label: "Google", icon: Search },
   { id: "indicacao", label: "Indicação", icon: Users },
-  { id: "outro", label: "Outro Canal", icon: MessageCircle },
+  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { id: "tiktok", label: "TikTok", icon: Rocket },
+  { id: "outro", label: "Outro", icon: HelpCircle },
 ];
 
-// --- Máscara de WhatsApp ---
+const STEPS_SIDEBAR = [
+  "Identificação", "E-mail / Gmail", "WhatsApp", "Seu Negócio",
+  "Segmento", "Necessidade", "Volume", "Origem", "Briefing"
+];
+
+// --- Utilitários ---
 const formatWhatsApp = (value: string) => {
-  const v = value.replace(/\D/g, "");
-  if (v.length <= 11) {
-    if (v.length > 2) {
-      if (v.length <= 6) return `(${v.substring(0, 2)}) ${v.substring(2)}`;
-      if (v.length <= 10) return `(${v.substring(0, 2)}) ${v.substring(2, 6)}-${v.substring(6)}`;
-      return `(${v.substring(0, 2)}) ${v.substring(2, 7)}-${v.substring(7, 11)}`;
-    }
-    return v;
-  }
-  return v.substring(0, 11);
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
-export default function CadastroPerfeitoSection() {
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+const validateWhatsApp = (w: string) => { const d = w.replace(/\D/g, ""); return d.length >= 10; };
 
-  const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    whatsapp: "",
-    empresa: "",
-    segmento: "",
-    necessidade: "",
-    pedidos: "",
-    origem: "",
-    descricao: "",
+export default function CadastroPerfeitoSection() {
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0); // 0 a 10
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [form, setForm] = useState({
+    nome: "", email: "", whatsapp: "", empresa: "", segmento: "",
+    necessidade: "", volume: "", origem: "", mensagem: ""
   });
 
-  const nextStep = () => setStep(p => p + 1);
-  const prevStep = () => setStep(p => p - 1);
-
-  const isStepValid = () => {
-    if (step === 2) return formData.nome.trim().length >= 3;
-    if (step === 3) return formData.email.trim().includes("@") && formData.email.trim().length > 5;
-    if (step === 4) return formData.whatsapp.replace(/\D/g, "").length >= 10;
-    if (step === 5) return formData.empresa.trim().length >= 2;
-    if (step === 6) return !!formData.segmento;
-    if (step === 7) return !!formData.necessidade;
-    if (step === 8) return !!formData.pedidos;
-    if (step === 9) return !!formData.origem;
-    if (step === 10) return formData.descricao.trim().length >= 5;
-    return true;
+  const updateForm = (field: string, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
   };
 
-  const handleFinish = async () => {
-    setLoading(true);
-    const { error } = await supabase.from("leads").insert({
-      nome: formData.nome,
-      email: formData.email.trim(),
-      whatsapp: formData.whatsapp.replace(/\D/g, ""),
-      mensagem: `[QUIZ PREMIUM v2.7]
-Empresa: ${formData.empresa}
-Segmento: ${formData.segmento}
-Necessidade: ${formData.necessidade}
-Volume: ${formData.pedidos}
-Origem: ${formData.origem}
-Briefing: ${formData.descricao}`,
-      status: "novo",
-    });
+  const validateStep = (step: number): boolean => {
+    const errs: Record<string, string> = {};
+    if (step === 1 && !form.nome.trim()) errs.nome = "Campo obrigatório";
+    if (step === 2 && (!form.email.trim() || !form.email.includes("@"))) errs.email = "E-mail inválido";
+    if (step === 3 && !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
+    if (step === 4 && !form.empresa.trim()) errs.empresa = "Campo obrigatório";
+    if (step === 5 && !form.segmento) errs.segmento = "Selecione uma opção";
+    if (step === 6 && !form.necessidade) errs.necessidade = "Selecione uma opção";
+    if (step === 7 && !form.volume) errs.volume = "Selecione uma opção";
+    if (step === 8 && !form.origem) errs.origem = "Selecione uma opção";
+    if (step === 9 && !form.mensagem.trim()) errs.mensagem = "Conte-nos um pouco mais";
 
-    if (error) {
-      toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
-      setLoading(false);
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 0 || validateStep(currentStep)) {
+      if (currentStep < 10) setCurrentStep(prev => prev + 1);
+      if (currentStep === 9) handleSubmit();
     } else {
-      // Enviar e-mail via Edge Function
-      supabase.functions.invoke("send-lead-email", {
-        body: {
-          nome: formData.nome,
-          email: formData.email.trim(),
-          whatsapp: formData.whatsapp.replace(/\D/g, ""),
-          nome_negocio: formData.empresa,
-          tipo_negocio: formData.segmento,
-          servicos: [formData.necessidade],
-          orcamento: formData.pedidos,
-          mensagem: formData.descricao
-        }
-      });
-
-      sendPushToAdmins("🚀 Novo Cadastro Interativo", `${formData.nome} (${formData.empresa}) finalizou o quiz de projeto.`, "/admin/leads");
-      nextStep();
-      setLoading(false);
+      toast({ title: "Atenção", description: "Preencha o campo para continuar.", variant: "destructive" });
     }
   };
 
-  const progress = (step / 11) * 100;
-
-  const cardVariants: any = {
-    initial: { opacity: 0, x: 20, scale: 0.98 },
-    animate: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
-    exit: { opacity: 0, x: -20, scale: 0.98, transition: { duration: 0.3 } }
+  const handlePrev = () => {
+    if (currentStep > 0) setCurrentStep(prev => prev - 1);
   };
 
-  const nomeCurto = formData.nome.split(' ')[0];
+  const handleSubmit = async () => {
+    setLoading(true);
+    const { error } = await supabase.from("leads").insert({
+      nome: form.nome,
+      email: form.email.trim(),
+      whatsapp: form.whatsapp.replace(/\D/g, ""),
+      nome_negocio: form.empresa,
+      segmento: form.segmento, 
+      servicos: [form.necessidade],
+      orcamento: form.volume,
+      como_conheceu: form.origem,
+      mensagem: form.mensagem,
+    } as any);
+
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
+    } else {
+      supabase.functions.invoke("send-lead-email", {
+        body: { ...form, nome_negocio: form.empresa, tipo_negocio: form.segmento, servicos: [form.necessidade], orcamento: form.volume }
+      });
+      sendPushToAdmins("🆕 Novo Lead Interativo", `${form.nome} (${form.empresa})`, "/admin/leads");
+      setCurrentStep(10);
+    }
+  };
+
+  const StepIndicator = ({ stepIdx }: { stepIdx: number }) => {
+    const isActive = currentStep === stepIdx + 1;
+    const isCompleted = currentStep > stepIdx + 1;
+    return (
+      <div className={cn("flex items-center gap-4 transition-all duration-300", 
+        isActive ? "opacity-100 translate-x-1" : isCompleted ? "opacity-60" : "opacity-30")}>
+        <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-black",
+          isActive ? "border-white bg-white text-secondary-novaes" : 
+          isCompleted ? "border-white bg-white text-secondary-novaes" : "border-white/20 text-white")}>
+          {isCompleted ? <Check className="w-3 h-3 stroke-[4px]" /> : stepIdx + 1}
+        </div>
+        <span className={cn("text-[11px] uppercase tracking-widest font-bold", isActive ? "text-white" : "text-white/70")}>
+          {STEPS_SIDEBAR[stepIdx]}
+        </span>
+      </div>
+    );
+  };
 
   return (
-    <section id="cadastro" className="py-24 relative min-h-[900px] flex items-center justify-center overflow-hidden ambient-glow">
-      <div className="ultra-premium-bg" />
-      <div className="ambient-rays-unified opacity-40" />
-
-      <div className="container max-w-2xl relative z-10 px-4">
-        {/* Barra de Progresso Premium */}
-        <div className="mb-12 px-4">
-          <div className="flex justify-between items-end mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3 h-3 text-primary animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Análise de IA NovaesWeb</span>
+    <section id="cadastro" className="min-h-screen bg-novaes-gradient flex items-center justify-center p-4 lg:p-0 font-sans text-white overflow-hidden py-24 relative">
+      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+      
+      <div className="w-full max-w-[940px] h-full lg:h-[620px] glass-card-novaes rounded-[2.5rem] flex flex-col lg:flex-row shadow-2xl overflow-hidden relative border border-white/10 z-10">
+        
+        {/* --- SIDEBAR ESQUERDA (DESKTOP) --- */}
+        <div className="hidden lg:flex w-[280px] sidebar-novaes-gradient p-10 flex-col justify-between relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+          <div className="z-10 relative">
+            <div className="flex flex-col gap-1 mb-12">
+              <span className="text-2xl font-black tracking-tighter uppercase">Novaes Web</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Cadastro rápido</span>
             </div>
-            <span className="text-xs font-black text-primary bg-primary/10 px-3 py-1 rounded-full">{Math.round(progress)}%</span>
+            
+            <div className="space-y-6">
+              {STEPS_SIDEBAR.map((_, i) => <StepIndicator key={i} stepIdx={i} />)}
+            </div>
           </div>
-          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-[1px]">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              className="h-full gradient-primary rounded-full relative"
-            >
-              <div className="absolute inset-0 bg-white/20 animate-pulse" />
-            </motion.div>
+          
+          <div className="z-10 relative text-[10px] font-black uppercase tracking-widest opacity-40">
+            © 2025 Novaes Web
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {/* TELA 1: BOAS-VINDAS */}
-          {step === 1 && (
-            <motion.div key="step1" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-16 text-center border-white/5 shadow-2xl relative overflow-hidden group">
-              <div className="absolute -top-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] group-hover:bg-primary/20 transition-all" />
-              <div className="w-28 h-28 rounded-3xl gradient-primary mx-auto flex items-center justify-center mb-10 shadow-xl relative z-10">
-                <Rocket className="w-14 h-14 text-white animate-bounce" />
-              </div>
-              <h1 className="text-5xl font-black text-white mb-6 leading-[1.1] tracking-tighter relative z-10">
-                Pronto para <br />
-                <Typewriter text="decolar seu projeto?" className="gradient-text" />
-              </h1>
-              <p className="text-white/40 mb-12 text-xl font-medium leading-relaxed relative z-10">
-                Responda este quiz rápido e receba uma proposta exclusiva feita por nossos engenheiros.
-              </p>
-              <Button onClick={nextStep} className="h-18 px-16 rounded-[2rem] gradient-primary text-white font-black uppercase tracking-widest text-sm hover:scale-105 transition-all shadow-2xl group relative z-10">
-                Começar Jornada <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+        {/* --- CONTEÚDO PRINCIPAL --- */}
+        <div className="flex-1 flex flex-col relative bg-[#111116]/40">
+          
+          {/* Barra de Progresso Mobile */}
+          <div className="lg:hidden h-1.5 w-full bg-white/5 overflow-hidden">
+            <motion.div animate={{ width: `${(currentStep / 10) * 100}%` }} className="h-full sidebar-novaes-gradient" />
+          </div>
+
+          <div className="flex-1 p-8 lg:p-14 flex flex-col justify-center relative overflow-hidden">
+            <AnimatePresence mode="wait">
+              {/* STEP 0: BOAS-VINDAS */}
+              {currentStep === 0 && (
+                <motion.div key="s0" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="text-center lg:text-left space-y-8">
+                  <div className="w-20 h-20 rounded-3xl sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-xl mb-4">
+                    <Rocket className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="space-y-4">
+                    <h1 className="text-4xl lg:text-5xl font-black tracking-tighter font-space leading-[0.9]">PRONTO PARA <br /> <span className="opacity-30">DECOLAR SEU</span> <br /> PROJETO?</h1>
+                    <p className="text-white/40 text-lg font-medium max-w-sm">Este é o primeiro passo para sua ideia se tornar um produto de elite.</p>
+                  </div>
+                  <Button onClick={handleNext} className="h-16 px-12 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-sm hover:scale-105 transition-all shadow-xl group">
+                    Começar Jornada <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* STEPS 1-4: INPUTS */}
+              {[1, 2, 3, 4].includes(currentStep) && (
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                   <div className="space-y-2">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo {currentStep} de 9</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space tracking-tight">
+                      {currentStep === 1 && "Qual seu nome completo?"}
+                      {currentStep === 2 && "Qual seu melhor e-mail?"}
+                      {currentStep === 3 && "Seu WhatsApp direto?"}
+                      {currentStep === 4 && "Qual o nome do negócio?"}
+                    </h1>
+                  </div>
+                  <div className="relative group">
+                    {currentStep === 2 && <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-primary-novaes transition-colors" />}
+                    <Input 
+                      autoFocus
+                      className="h-20 lg:h-24 bg-white/5 border-white/5 rounded-3xl text-2xl lg:text-3xl font-bold px-8 focus:border-primary-novaes/50 transition-all placeholder:text-white/5"
+                      placeholder={currentStep === 1 ? "Seu nome..." : currentStep === 2 ? "seu@gmail.com" : currentStep === 3 ? "(00) 00000-0000" : "Nome da empresa"}
+                      value={currentStep === 1 ? form.nome : currentStep === 2 ? form.email : currentStep === 3 ? form.whatsapp : form.empresa}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (currentStep === 1) updateForm("nome", v);
+                        if (currentStep === 2) updateForm("email", v);
+                        if (currentStep === 3) updateForm("whatsapp", formatWhatsApp(v));
+                        if (currentStep === 4) updateForm("empresa", v);
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEPS 5, 6, 8: GRIDS COM ÍCONES */}
+              {[5, 6, 8].includes(currentStep) && (
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-8">
+                   <div className="space-y-2 text-center lg:text-left">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo {currentStep} de 9</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space">
+                      {currentStep === 5 && "Em qual segmento você atua?"}
+                      {currentStep === 6 && "Qual o foco da solução?"}
+                      {currentStep === 8 && "Como nos encontrou?"}
+                    </h1>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {(currentStep === 5 ? SEGMENTOS : currentStep === 6 ? NECESSIDADES : ORIGENS).map(opt => (
+                      <button 
+                        key={opt.id} 
+                        onClick={() => {
+                          updateForm(currentStep === 5 ? "segmento" : currentStep === 6 ? "necessidade" : "origem", opt.id);
+                          setTimeout(handleNext, 300);
+                        }}
+                        className={cn("flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all gap-3 group relative overflow-hidden",
+                          (currentStep === 5 ? form.segmento : currentStep === 6 ? form.necessidade : form.origem) === opt.id 
+                            ? "bg-white/10 border-primary-novaes shadow-lg shadow-primary-novaes/20" 
+                            : "bg-white/5 border-white/5 hover:border-white/20"
+                        )}
+                      >
+                        <opt.icon className={cn("w-8 h-8 transition-transform group-hover:scale-110", 
+                          (currentStep === 5 ? form.segmento : currentStep === 6 ? form.necessidade : form.origem) === opt.id ? "text-primary-novaes" : "text-white/20")} 
+                        />
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-tight">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 7: VOLUMES (TEXT ONLY) */}
+              {currentStep === 7 && (
+                <motion.div key="s7" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                   <div className="space-y-2">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo 7 de 9</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space">Qual seu volume atual de pedidos?</h1>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {VOLUMES.map(opt => (
+                      <button 
+                        key={opt.id} 
+                        onClick={() => {
+                          updateForm("volume", opt.id);
+                          setTimeout(handleNext, 300);
+                        }}
+                        className={cn("p-6 rounded-2xl border-2 text-left transition-all text-sm font-bold uppercase tracking-widest",
+                          form.volume === opt.id ? "bg-white/10 border-primary-novaes" : "bg-white/5 border-white/5 hover:bg-white/10"
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 9: DESCRIÇÃO */}
+              {currentStep === 9 && (
+                <motion.div key="s9" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+                   <div className="space-y-2">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo Final</h2>
+                    <h1 className="text-3xl lg:text-4xl font-black font-space">Fale um pouco mais sobre o projeto...</h1>
+                  </div>
+                  <Textarea 
+                    autoFocus
+                    className="min-h-[220px] bg-white/5 border-white/5 rounded-3xl p-8 text-lg font-medium focus:border-primary-novaes/50 transition-all placeholder:text-white/5 leading-relaxed"
+                    placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
+                    value={form.mensagem}
+                    onChange={(e) => updateForm("mensagem", e.target.value)}
+                  />
+                </motion.div>
+              )}
+
+              {/* STEP 10: SUCESSO */}
+              {currentStep === 10 && (
+                <motion.div key="s10" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-8 flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-4">
+                    <Check className="w-12 h-12 text-emerald-500 stroke-[3px]" />
+                  </div>
+                  <div className="space-y-4">
+                    <h1 className="text-5xl font-black font-space tracking-tight">ENVIADO COM <br /> <span className="text-primary-novaes italic">PERFEIÇÃO!</span></h1>
+                    <p className="text-white/50 text-xl font-medium max-w-sm mx-auto leading-relaxed">
+                      Um membro da nossa equipe já vai entrar em contato com você. Prepare-se para decolar! 🚀
+                    </p>
+                  </div>
+                  <Button onClick={() => setCurrentStep(0)} className="h-16 px-12 rounded-2xl bg-white/5 border border-white/10 font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
+                    Novo Cadastro
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* RODAPÉ DE NAVEGAÇÃO */}
+          {currentStep > 0 && currentStep < 10 && (
+            <div className="p-8 lg:p-14 pt-0 flex items-center justify-between mt-auto">
+              <Button variant="ghost" className="h-12 text-white/30 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] p-0" onClick={handlePrev}>
+                ◄ Voltar
               </Button>
-            </motion.div>
-          )}
-
-          {/* TELA 2: NOME */}
-          {step === 2 && (
-            <motion.div key="step2" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 01/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-8 leading-tight tracking-tighter">
-                Primeiro, como podemos <br />
-                <Typewriter text="te chamar?" className="gradient-text" />
-              </h1>
-              <div className="relative mb-12">
-                <User className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
-                <Input 
-                  autoFocus
-                  placeholder="Seu nome completo" 
-                  value={formData.nome}
-                  onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                  className="h-20 pl-20 pr-8 bg-white/5 border-white/5 rounded-[2rem] text-2xl font-bold text-white focus:border-primary/50 transition-all placeholder:text-white/10"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20 transition-all">Próximo</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 3: EMAIL */}
-          {step === 3 && (
-            <motion.div key="step3" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 02/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-4 leading-tight tracking-tighter">
-                Show de bola, {nomeCurto}! <br />
-                <Typewriter text="Qual seu melhor e-mail?" className="gradient-text" />
-              </h1>
-              <p className="text-white/30 mb-8 font-medium">Usaremos para enviar sua proposta personalizada.</p>
-              <div className="relative mb-12">
-                <Mail className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
-                <Input 
-                  autoFocus
-                  type="email"
-                  placeholder="seu@gmail.com" 
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="h-20 pl-20 pr-8 bg-white/5 border-white/5 rounded-[2rem] text-2xl font-bold text-white focus:border-primary/50 transition-all placeholder:text-white/10"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20 transition-all">Confirmar e-mail</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 4: WHATSAPP */}
-          {step === 4 && (
-            <motion.div key="step4" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 03/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-4 leading-tight tracking-tighter">
-                E o seu <br />
-                <Typewriter text="WhatsApp direto?" className="gradient-text" />
-              </h1>
-              <p className="text-white/30 mb-8 font-medium">Facilita nossa conversa rápida.</p>
-              <div className="relative mb-12">
-                <Phone className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
-                <Input 
-                  autoFocus
-                  type="tel"
-                  placeholder="(00) 00000-0000" 
-                  value={formData.whatsapp}
-                  onChange={(e) => setFormData({...formData, whatsapp: formatWhatsApp(e.target.value)})}
-                  className="h-20 pl-20 pr-8 bg-white/5 border-white/5 rounded-[2rem] text-3xl font-black text-white tracking-widest focus:border-primary/50 transition-all placeholder:text-white/10"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20 transition-all">Continuar</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 5: NEGÓCIO */}
-          {step === 5 && (
-            <motion.div key="step5" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 04/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-8 leading-tight tracking-tighter">
-                Qual é o nome da <br />
-                <Typewriter text="sua empresa?" className="gradient-text" />
-              </h1>
-              <div className="relative mb-12">
-                <Building className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
-                <Input 
-                  autoFocus
-                  placeholder="Ex: Minha Startup Premium" 
-                  value={formData.empresa}
-                  onChange={(e) => setFormData({...formData, empresa: e.target.value})}
-                  className="h-20 pl-20 pr-8 bg-white/5 border-white/5 rounded-[2rem] text-2xl font-bold text-white focus:border-primary/50 transition-all placeholder:text-white/10"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20 transition-all">Próximo</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 6: SEGMENTO */}
-          {step === 6 && (
-            <motion.div key="step6" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 05/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-10 leading-tight tracking-tighter">
-                Qual o <Typewriter text="segmento" className="gradient-text" /> da <br />
-                {formData.empresa}?
-              </h1>
-              <div className="grid grid-cols-2 gap-6 mb-12 text-xs text-center">
-                {SEGMENTOS.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setFormData({ ...formData, segmento: item.id });
-                      setTimeout(nextStep, 300);
-                    }}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group relative overflow-hidden",
-                      formData.segmento === item.id 
-                        ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
-                    )}
-                  >
-                    {formData.segmento === item.id && (
-                      <motion.div layoutId="seg-glow" className="absolute inset-0 bg-primary/5 blur-xl pointer-events-none" />
-                    )}
-                    <item.icon className={cn("w-10 h-10 transition-transform group-hover:rotate-6", formData.segmento === item.id ? "text-primary" : "text-white/10")} />
-                    <span className="font-black uppercase tracking-widest leading-tight">{item.label}</span>
-                    {formData.segmento === item.id && (
-                      <p className="text-[9px] text-primary/60 font-medium absolute bottom-3">{item.hint}</p>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 7: NECESSIDADE */}
-          {step === 7 && (
-            <motion.div key="step7" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 06/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-4 leading-tight tracking-tighter">
-                O que você <br />
-                <Typewriter text="quer construir?" className="gradient-text" />
-              </h1>
-              <div className="grid grid-cols-2 gap-6 mb-12 text-xs text-center">
-                {NECESSIDADES.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setFormData({ ...formData, necessidade: item.id });
-                      setTimeout(nextStep, 300);
-                    }}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group",
-                      formData.necessidade === item.id 
-                        ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
-                    )}
-                  >
-                    <item.icon className={cn("w-10 h-10 group-hover:animate-bounce", formData.necessidade === item.id ? "text-primary" : "text-white/10")} />
-                    <span className="font-black uppercase tracking-widest leading-tight">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 8: VOLUMES */}
-          {step === 8 && (
-            <motion.div key="step8" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 07/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-10 leading-tight tracking-tighter text-center">
-                Qual seu volume de <br />
-                <Typewriter text="pedidos atuais?" className="gradient-text" />
-              </h1>
-              <div className="grid grid-cols-2 gap-6 mb-12 text-xs text-center">
-                {VOLUMES.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setFormData({ ...formData, pedidos: item.id });
-                      setTimeout(nextStep, 300);
-                    }}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group",
-                      formData.pedidos === item.id 
-                        ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
-                    )}
-                  >
-                    <item.icon className={cn("w-10 h-10", formData.pedidos === item.id ? "text-primary" : "text-white/10")} />
-                    <span className="font-black uppercase tracking-widest">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 9: ORIGEM */}
-          {step === 9 && (
-            <motion.div key="step9" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative text-center">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center justify-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 08/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-10 leading-tight tracking-tighter">
-                Como você <br />
-                <Typewriter text="nos conheceu?" className="gradient-text" />
-              </h1>
-              <div className="grid grid-cols-2 gap-6 mb-12 text-xs">
-                {ORIGENS.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setFormData({ ...formData, origem: item.id });
-                      setTimeout(nextStep, 300);
-                    }}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group",
-                      formData.origem === item.id 
-                        ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
-                    )}
-                  >
-                    <item.icon className={cn("w-10 h-10", formData.origem === item.id ? "text-primary" : "text-white/10")} />
-                    <span className="font-black uppercase tracking-widest">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 10: DESCRIÇÃO */}
-          {step === 10 && (
-            <motion.div key="step10" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
-              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 09/10
-              </h2>
-              <h1 className="text-4xl font-black text-white mb-6 leading-tight tracking-tighter">
-                Fale um pouco mais <br />
-                <Typewriter text="sobre seu projeto:" className="gradient-text" />
-              </h1>
-              <p className="text-white/30 mb-8 font-medium italic">"Explique sua visão para superarmos suas expectativas."</p>
-              <div className="relative mb-12">
-                <Textarea 
-                  autoFocus
-                  placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?" 
-                  value={formData.descricao}
-                  onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                  className="min-h-[200px] p-8 bg-white/5 border-white/5 rounded-[2.5rem] text-xl font-medium text-white focus:border-primary/50 transition-all placeholder:text-white/10 leading-relaxed shadow-inner"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid() || loading} onClick={handleFinish} className="flex-1 h-16 rounded-3xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-2xl disabled:opacity-20 flex items-center justify-center gap-4 group hover:scale-[1.02] transition-all">
-                  {loading ? "🚀 Lançando seu Lead..." : <>Finalizar e Enviar <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>}
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* TELA 11: SUCESSO */}
-          {step === 11 && (
-            <motion.div key="step10" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-16 text-center border-white/5 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                <CheckCircle2 className="w-80 h-80 text-primary" />
-              </div>
-              
-              <motion.div 
-                initial={{ scale: 0, rotate: -45 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", damping: 10, stiffness: 100 }}
-                className="w-28 h-28 rounded-[2.5rem] gradient-primary mx-auto flex items-center justify-center mb-10 shadow-2xl relative z-10"
+              <Button 
+                onClick={handleNext} 
+                disabled={loading}
+                className={cn("h-16 px-10 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-xs shadow-xl transition-all flex items-center gap-3",
+                  loading && "opacity-50")}
               >
-                <Rocket className="w-14 h-14 text-white" />
-              </motion.div>
-              
-              <h1 className="text-5xl font-black text-white mb-6 leading-tight tracking-tighter relative z-10">
-                Lançamento <br />
-                <span className="gradient-text italic">confirmado!</span>
-              </h1>
-              
-              <div className="max-w-md mx-auto mb-12 space-y-6 relative z-10">
-                <p className="text-white/50 text-xl font-medium leading-relaxed">
-                  Nossa IA e especialistas já estão analisando seu briefing. Prepare-se para algo extraordinário.
-                </p>
-                <div className="flex flex-col gap-4 text-left p-6 bg-white/5 rounded-[2rem] border border-white/5">
-                  <div className="flex items-center gap-4 text-emerald-400">
-                    <CheckCircle2 className="w-5 h-5 shrink-0" />
-                    <span className="text-xs font-black uppercase tracking-widest">Lead Capturado com Sucesso</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-amber-400">
-                    <Zap className="w-5 h-5 shrink-0" />
-                    <span className="text-xs font-black uppercase tracking-widest">Análise de Prioridade Ativada</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex flex-col gap-4 max-w-sm mx-auto relative z-10">
-                <Button 
-                  onClick={() => window.open(`https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Acabei de completar o quiz do projeto para a ${formData.empresa}. Gostaria de acelerar o atendimento!`)}`, "_blank")}
-                  className="h-18 rounded-[2rem] bg-[#25D366] hover:bg-[#20bd5a] text-white font-black uppercase tracking-widest text-sm shadow-2xl flex items-center justify-center gap-4 group"
-                >
-                  <MessageCircle className="w-7 h-7" /> Acelerar no WhatsApp
-                </Button>
-                <Button variant="ghost" onClick={() => window.location.href = "/"} className="h-16 text-white/30 hover:text-white font-black uppercase tracking-widest text-[10px]">
-                  Retornar ao Porto Seguro
-                </Button>
-              </div>
-            </motion.div>
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  currentStep === 9 ? "Finalizar Agora" : "Próximo Passo ►"
+                )}
+              </Button>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </section>
   );

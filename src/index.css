@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -50,6 +50,15 @@
     --sidebar-border: 240 10% 15% / 0.3;
     --sidebar-ring: 346 84% 61%;
 
+    /* Novos Tokens Blueprint v3.0 */
+    --bg-novaes: 260 20% 8%;
+    --card-novaes: 260 18% 12% / 0.7;
+    --primary-novaes: 330 85% 60%;
+    --secondary-novaes: 270 60% 50%;
+    --accent-novaes: 350 80% 55%;
+    
+    --gradient-novaes: linear-gradient(135deg, hsl(330, 85%, 60%), hsl(270, 60%, 50%), hsl(350, 80%, 55%));
+    
     --gradient-primary: linear-gradient(135deg, #ff3366, #ff00cc, #9900ff);
     --gradient-premium: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(153, 0, 255, 0.1));
     --admin-bg: #0a0a0c;
@@ -325,6 +334,24 @@
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+  }
+
+  .font-space {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .bg-novaes-gradient {
+    background: radial-gradient(circle at center, hsla(260, 20%, 15%, 1) 0%, hsla(260, 20%, 8%, 1) 100%);
+  }
+
+  .sidebar-novaes-gradient {
+    background: linear-gradient(135deg, hsl(330, 85%, 60%), hsl(270, 60%, 50%), hsl(350, 80%, 55%));
+  }
+
+  .glass-card-novaes {
+    background: hsla(260, 18%, 12%, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 }
 
