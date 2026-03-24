@@ -59,6 +59,8 @@ export default function Cadastro() {
   const { toast } = useToast();
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
   const [errors, setErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     nome: "", email: "", whatsapp: "", nome_negocio: "", tipo_negocio: "",
@@ -74,26 +76,44 @@ export default function Cadastro() {
     ...prev, servicos: prev.servicos.includes(s) ? prev.servicos.filter(x => x !== s) : [...prev.servicos, s],
   }));
 
-  const validate = (): boolean => {
+  const validateStep = (step: number): boolean => {
     const errs: FieldErrors = {};
-    if (!form.nome.trim()) errs.nome = "Nome é obrigatório";
-    if (!form.email.trim() || !form.email.includes("@")) errs.email = "E-mail inválido";
-    if (!form.whatsapp.trim() || !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
-    if (!form.nome_negocio.trim()) errs.nome_negocio = "Nome do negócio é obrigatório";
-    if (!form.tipo_negocio.trim()) errs.tipo_negocio = "Tipo de negócio é obrigatório";
-    if (form.servicos.length === 0) errs.servicos = "Selecione o que você precisa";
     
+    if (step === 1) {
+      if (!form.nome.trim()) errs.nome = "Nome é obrigatório";
+      if (!form.email.trim() || !form.email.includes("@")) errs.email = "E-mail inválido";
+      if (!form.whatsapp.trim() || !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
+    }
+    
+    if (step === 2) {
+      if (!form.nome_negocio.trim()) errs.nome_negocio = "Nome do negócio é obrigatório";
+      if (!form.tipo_negocio.trim()) errs.tipo_negocio = "Tipo de negócio é obrigatório";
+    }
+    
+    if (step === 3) {
+      if (form.servicos.length === 0) errs.servicos = "Selecione o que você precisa";
+    }
+
     setErrors(errs);
-    if (Object.keys(errs).length > 0) { 
-      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" }); 
-      return false; 
+    if (Object.keys(errs).length > 0) {
+      toast({ title: "Atenção", description: "Preencha os campos obrigatórios para continuar", variant: "destructive" });
+      return false;
     }
     return true;
   };
 
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      if (currentStep < totalSteps) setCurrentStep(prev => prev + 1);
+      else handleSubmit();
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+  };
+
   const handleSubmit = async () => {
-    if (!validate()) return;
-    
     setLoading(true);
     const { error } = await supabase.from("leads").insert({
       nome: form.nome.trim(),
@@ -263,127 +283,145 @@ export default function Cadastro() {
           >
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 blur-[100px] rounded-full" />
             
-            <div className="space-y-12 relative z-10">
-              <motion.div variants={itemVariants}>
-                <h2 className="text-4xl font-black text-white tracking-tighter mb-2">Crie seu site profissional agora</h2>
-                <p className="text-white/30 text-lg font-medium">Leva menos de 1 minuto 👇</p>
-              </motion.div>
-
-              {/* ─ BASIC INFO ─ */}
-              <motion.div variants={itemVariants} className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-px flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">👤 Informações básicas</span>
-                  <div className="h-px flex-1 bg-white/5" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className={labelClass}>Seu nome <span className="text-primary">*</span></Label>
-                    <Input className={inputClass("nome")} value={form.nome} onChange={e => updateForm("nome", e.target.value)} placeholder="Nome completo" />
-                    <FieldError field="nome" />
+            <div className="space-y-8 relative z-10">
+              {/* ─ PROGRESS BAR ─ */}
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-end mb-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">
+                      Passo {currentStep} de {totalSteps}
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
+                      {currentStep === 1 && "Quem é você?"}
+                      {currentStep === 2 && "Qual sua empresa?"}
+                      {currentStep === 3 && "O que você precisa?"}
+                      {currentStep === 4 && "Mande um recado"}
+                    </h2>
                   </div>
-                  <div className="space-y-2">
-                    <Label className={labelClass}>E-mail / Gmail <span className="text-primary">*</span></Label>
-                    <Input type="email" className={inputClass("email")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@email.com" />
-                    <FieldError field="email" />
-                  </div>
+                  <span className="text-white/20 text-xs font-bold">{Math.round((currentStep / totalSteps) * 100)}%</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className={labelClass}>WhatsApp direto <span className="text-primary">*</span></Label>
-                    <Input className={inputClass("whatsapp")} placeholder="(00) 00000-0000" value={form.whatsapp} onChange={e => updateForm("whatsapp", formatWhatsApp(e.target.value))} />
-                    <FieldError field="whatsapp" />
-                  </div>
-                   <div className="hidden sm:block" />
-                </div>
-              </motion.div>
-
-              {/* ─ BUSINESS INFO ─ */}
-              <motion.div variants={itemVariants} className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-px flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🏢 Sobre o negócio</span>
-                  <div className="h-px flex-1 bg-white/5" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className={labelClass}>Nome do negócio <span className="text-primary">*</span></Label>
-                    <Input className={inputClass("nome_negocio")} value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} placeholder="Ex: Pizzaria do Zé" />
-                    <FieldError field="nome_negocio" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className={labelClass}>Tipo de negócio <span className="text-primary">*</span></Label>
-                    <Input className={inputClass("tipo_negocio")} value={form.tipo_negocio} onChange={e => updateForm("tipo_negocio", e.target.value)} placeholder="pizzaria, açaí, loja, barbearia…" />
-                    <FieldError field="tipo_negocio" />
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* ─ QUALIFICATION ─ */}
-              <motion.div variants={itemVariants} className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-px flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">📊 Qualificação</span>
-                  <div className="h-px flex-1 bg-white/5" />
-                </div>
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className={labelClass}>O que você precisa? <span className="text-primary">*</span></Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {servicosOpcoes.map(s => (
-                        <label key={s} className={cn(
-                          "flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all text-xs font-bold uppercase tracking-widest",
-                          form.servicos.includes(s) ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
-                        )}>
-                          <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} className="border-white/20" />
-                          {s}
-                        </label>
-                      ))}
-                    </div>
-                    <FieldError field="servicos" />
-                  </div>
-                  <div className="space-y-4">
-                    <Label className={labelClass}>Investimento aproximado</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {orcamentoOpcoes.map(o => (
-                        <label key={o} onClick={() => updateForm("orcamento", o)} className={cn(
-                          "flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all text-[10px] font-bold tracking-widest uppercase",
-                          form.orcamento === o ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
-                        )}>
-                          <div className={cn("w-4 h-4 rounded-full border-2 flex items-center justify-center", form.orcamento === o ? "border-primary" : "border-white/20")}>
-                            {form.orcamento === o && <div className="w-2 h-2 rounded-full bg-primary" />}
-                          </div>
-                          {o}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* ─ DIFFERENTIAL ─ */}
-              <motion.div variants={itemVariants} className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-px flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">🧠 Diferencial</span>
-                  <div className="h-px flex-1 bg-white/5" />
-                </div>
-                <div className="space-y-2">
-                  <Label className={labelClass}>Descreva o que você precisa</Label>
-                  <Textarea
-                    className="glass-input border-white/5 text-white rounded-[2rem] text-sm min-h-[150px] p-8 focus:border-primary/30"
-                    value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)}
-                    placeholder="Ex: Quero um site para pedidos de açaí..."
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[2px] border border-white/5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    className="h-full gradient-primary rounded-full shadow-[0_0_15px_rgba(255,51,102,0.5)]"
                   />
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div variants={itemVariants} className="pt-8">
-                <Button className="w-full h-20 rounded-[1.5rem] gradient-primary text-white border-0 font-black text-sm uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden relative"
-                  onClick={handleSubmit} disabled={loading}>
-                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>👉 Enviar formulário <Rocket className="ml-3 w-6 h-6" /></>}
+              <div className="min-h-[300px] flex flex-col justify-center">
+                {currentStep === 1 && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className={labelClass}>Seu nome <span className="text-primary">*</span></Label>
+                      <Input className={inputClass("nome")} value={form.nome} onChange={e => updateForm("nome", e.target.value)} placeholder="Nome completo" />
+                      <FieldError field="nome" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={labelClass}>E-mail / Gmail <span className="text-primary">*</span></Label>
+                      <Input type="email" className={inputClass("email")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@email.com" />
+                      <FieldError field="email" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={labelClass}>WhatsApp direto <span className="text-primary">*</span></Label>
+                      <Input className={inputClass("whatsapp")} placeholder="(00) 00000-0000" value={form.whatsapp} onChange={e => updateForm("whatsapp", formatWhatsApp(e.target.value))} />
+                      <FieldError field="whatsapp" />
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 2 && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className={labelClass}>Nome do negócio <span className="text-primary">*</span></Label>
+                      <Input className={inputClass("nome_negocio")} value={form.nome_negocio} onChange={e => updateForm("nome_negocio", e.target.value)} placeholder="Ex: Pizzaria do Zé" />
+                      <FieldError field="nome_negocio" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={labelClass}>Tipo de negócio <span className="text-primary">*</span></Label>
+                      <Input className={inputClass("tipo_negocio")} value={form.tipo_negocio} onChange={e => updateForm("tipo_negocio", e.target.value)} placeholder="pizzaria, açaí, loja, barbearia…" />
+                      <FieldError field="tipo_negocio" />
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 3 && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div className="space-y-4">
+                      <Label className={labelClass}>O que você precisa? <span className="text-primary">*</span></Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {servicosOpcoes.map(s => (
+                          <label key={s} className={cn(
+                            "flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all text-xs font-bold uppercase tracking-widest",
+                            form.servicos.includes(s) ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
+                          )}>
+                            <Checkbox checked={form.servicos.includes(s)} onCheckedChange={() => toggleServico(s)} className="border-white/20" />
+                            {s}
+                          </label>
+                        ))}
+                      </div>
+                      <FieldError field="servicos" />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className={labelClass}>Investimento aproximado</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {orcamentoOpcoes.map(o => (
+                          <label key={o} onClick={() => updateForm("orcamento", o)} className={cn(
+                            "flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all text-[10px] font-bold tracking-widest uppercase",
+                            form.orcamento === o ? "border-primary/50 bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/30"
+                          )}>
+                            <div className={cn("w-4 h-4 rounded-full border-2 flex items-center justify-center", form.orcamento === o ? "border-primary" : "border-white/20")}>
+                              {form.orcamento === o && <div className="w-2 h-2 rounded-full bg-primary" />}
+                            </div>
+                            {o}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 4 && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className={labelClass}>Fale mais sobre seu projeto</Label>
+                      <Textarea
+                        className="glass-input border-white/5 text-white rounded-[2rem] text-sm min-h-[150px] p-8 focus:border-primary/30"
+                        value={form.mensagem} onChange={e => updateForm("mensagem", e.target.value)}
+                        placeholder="Ex: Quero um site para pedidos de açaí..."
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className={labelClass}>Como nos conheceu?</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {origemOpcoes.map(o => (
+                          <button key={o} onClick={() => updateForm("como_conheceu", o)} className={cn(
+                            "p-3 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all",
+                            form.como_conheceu === o ? "border-primary bg-primary/10 text-white" : "border-white/5 bg-white/5 text-white/20 hover:text-white/40"
+                          )}>{o}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                {currentStep > 1 && (
+                  <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10 text-white/40 hover:text-white hover:bg-white/5 font-bold uppercase tracking-widest text-xs" onClick={prevStep}>
+                    Voltar
+                  </Button>
+                )}
+                <Button className={cn("rounded-2xl h-14 font-black text-sm uppercase tracking-[0.2em] shadow-2xl transition-all group overflow-hidden relative", currentStep === 1 ? "w-full" : "flex-[2] graphics-glow")} onClick={nextStep} disabled={loading}>
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                    currentStep === totalSteps ? (
+                      <>💎 Finalizar Proposta <Rocket className="ml-3 w-5 h-5" /></>
+                    ) : (
+                      <>Próximo passo <Rocket className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
+                    )
+                  )}
                 </Button>
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         </div>
