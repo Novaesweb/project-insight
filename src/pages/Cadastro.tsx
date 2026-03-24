@@ -159,23 +159,23 @@ export default function Cadastro() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-novaes/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent-novaes/5 rounded-full blur-[150px]" />
 
-      <div className="w-full max-w-7xl min-h-[700px] h-auto lg:h-[850px] bg-black/20 backdrop-blur-[40px] rounded-[32px] flex flex-col lg:flex-row shadow-[0_50px_100px_rgba(0,0,0,0.4)] overflow-hidden relative border border-white/5">
+      <div className="w-full max-w-5xl min-h-[600px] h-auto lg:h-[680px] bg-black/20 backdrop-blur-[40px] rounded-[32px] flex flex-col lg:flex-row shadow-[0_50px_100px_rgba(0,0,0,0.4)] overflow-hidden relative border border-white/5 z-10">
         
         {/* --- SIDEBAR ESQUERDA (DESKTOP) --- */}
-        <div className="hidden lg:flex w-[350px] sidebar-novaes-gradient p-12 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
+        <div className="hidden lg:flex w-[300px] sidebar-novaes-gradient p-10 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
           <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] pointer-events-none" />
           <div className="z-10 relative">
-            <Link to="/" className="flex items-center gap-4 mb-16 group hover:scale-105 transition-transform duration-500">
-              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-3 shadow-2xl">
+            <Link to="/" className="flex items-center gap-3 mb-12 group hover:scale-105 transition-transform duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center p-2.5 shadow-2xl">
                 <img src="/novaes-symbol.jpeg" alt="Logo" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-2xl font-black tracking-tighter leading-none">NOVAES<span className="text-white/40 font-light">WEB</span></span>
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity">Premium CRM</span>
+                <span className="text-xl font-black tracking-tighter leading-none">NOVAES<span className="text-white/40 font-light">WEB</span></span>
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity">Premium CRM</span>
               </div>
             </Link>
             
-            <div className="space-y-8">
+            <div className="space-y-6">
               {STEPS_SIDEBAR.map((_, i) => <StepIndicator key={i} stepIdx={i} />)}
             </div>
           </div>
@@ -193,30 +193,30 @@ export default function Cadastro() {
             <motion.div animate={{ width: `${(currentStep / 9) * 100}%` }} className="h-full sidebar-novaes-gradient shadow-[0_0_20px_rgba(255,51,102,0.5)]" />
           </div>
 
-          <div className="flex-1 p-8 lg:p-24 flex flex-col justify-center relative overflow-hidden">
+          <div className="flex-1 p-8 lg:p-14 flex flex-col justify-center relative overflow-hidden">
             <AnimatePresence mode="wait">
               {/* STEP 0: BOAS-VINDAS */}
               {currentStep === 0 && (
-                <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} className="text-center lg:text-left space-y-12">
-                  <div className="w-24 h-24 rounded-[2rem] sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-2xl mb-8 group overflow-hidden">
-                    <Rocket className="w-12 h-12 text-white group-hover:scale-110 transition-transform" />
+                <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} className="text-center lg:text-left space-y-8">
+                  <div className="w-20 h-20 rounded-[1.5rem] sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-2xl mb-6 group overflow-hidden">
+                    <Rocket className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="space-y-6">
-                    <h1 className="text-5xl lg:text-8xl font-black tracking-tighter font-space leading-[0.85]">VAMOS <br /> <span className="opacity-20 italic">DECOLAR SEU</span> <br /> PROJETO?</h1>
-                    <p className="text-white/40 text-xl font-medium max-w-md leading-relaxed">Sua jornada rumo ao topo do mercado digital começa com estas poucas perguntas.</p>
+                  <div className="space-y-4">
+                    <h1 className="text-4xl lg:text-6xl font-black tracking-tighter font-space leading-[0.85]">VAMOS <br /> <span className="opacity-20 italic">DECOLAR SEU</span> <br /> PROJETO?</h1>
+                    <p className="text-white/40 text-lg font-medium max-w-sm leading-relaxed">Sua jornada rumo ao topo do mercado digital começa com estas poucas perguntas.</p>
                   </div>
-                  <Button onClick={handleNext} className="h-20 px-16 rounded-3xl sidebar-novaes-gradient font-black uppercase tracking-widest text-base hover:scale-105 active:scale-95 transition-all shadow-2xl group flex items-center gap-4">
-                    COMEÇAR AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+                  <Button onClick={handleNext} className="h-16 px-12 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-2xl group flex items-center gap-4">
+                    COMEÇAR AGORA <ArrowRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" />
                   </Button>
                 </motion.div>
               )}
 
               {/* STEPS 1-4: INPUTS */}
               {[1, 2, 3, 4].includes(currentStep) && (
-                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-12 w-full max-w-3xl">
-                   <div className="space-y-6">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo {currentStep} de 8</h2>
-                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-8 w-full max-w-2xl">
+                   <div className="space-y-4">
+                    <h2 className="text-xs font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo {currentStep} de 8</h2>
+                    <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">
                       {currentStep === 1 && "Qual seu nome completo?"}
                       {currentStep === 2 && "Qual seu melhor e-mail?"}
                       {currentStep === 3 && "Seu WhatsApp direto?"}
@@ -224,10 +224,10 @@ export default function Cadastro() {
                     </h1>
                   </div>
                   <div className="relative group">
-                    {currentStep === 2 && <Mail className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 text-white/5 group-focus-within:text-primary-novaes/50 transition-colors" />}
+                    {currentStep === 2 && <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/5 group-focus-within:text-primary-novaes/50 transition-colors" />}
                     <Input 
                       autoFocus
-                      className="h-24 lg:h-32 bg-white/[0.02] border-white/5 rounded-[2rem] text-3xl lg:text-5xl font-black px-10 focus:border-primary-novaes/30 focus:bg-white/[0.05] transition-all placeholder:text-white/[0.02] shadow-inner"
+                      className="h-20 lg:h-24 bg-white/[0.02] border-white/5 rounded-2xl text-2xl lg:text-3xl font-black px-8 focus:border-primary-novaes/30 focus:bg-white/[0.05] transition-all placeholder:text-white/[0.02] shadow-inner"
                       placeholder={currentStep === 1 ? "Nome e Sobrenome" : currentStep === 2 ? "seu@email.com" : currentStep === 3 ? "(00) 00000-0000" : "Marca / Empresa"}
                       value={currentStep === 1 ? form.nome : currentStep === 2 ? form.email : currentStep === 3 ? form.whatsapp : form.empresa}
                       onChange={(e) => {
@@ -239,10 +239,9 @@ export default function Cadastro() {
                       }}
                       onKeyDown={(e) => e.key === "Enter" && handleNext()}
                     />
-                    <div className="absolute inset-0 rounded-[2rem] bg-primary-novaes/5 blur-[40px] -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   </div>
                   {errors[currentStep === 1 ? "nome" : currentStep === 2 ? "email" : currentStep === 3 ? "whatsapp" : "empresa"] && (
-                    <p className="text-red-400 text-sm font-black uppercase tracking-widest pl-6 animate-pulse">
+                    <p className="text-red-400 text-xs font-black uppercase tracking-widest pl-4 animate-pulse">
                       {errors[currentStep === 1 ? "nome" : currentStep === 2 ? "email" : currentStep === 3 ? "whatsapp" : "empresa"]}
                     </p>
                   )}
@@ -251,15 +250,15 @@ export default function Cadastro() {
 
               {/* STEPS 5, 7: GRIDS COM ÍCONES */}
               {[5, 7].includes(currentStep) && (
-                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="space-y-12 w-full">
-                   <div className="space-y-4">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80">Passo {currentStep} de 8</h2>
-                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="space-y-8 w-full">
+                   <div className="space-y-3">
+                    <h2 className="text-xs font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80">Passo {currentStep} de 8</h2>
+                    <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">
                       {currentStep === 5 && "O que você precisa agora?"}
                       {currentStep === 7 && "Como nos conheceu?"}
                     </h1>
                   </div>
-                  <div className="grid grid-cols-2 gap-6 lg:gap-8">
+                  <div className="grid grid-cols-2 gap-4 lg:gap-6">
                     {(currentStep === 5 ? NECESSIDADES : ORIGENS).map(opt => (
                       <button 
                         key={opt.id} 
@@ -285,12 +284,12 @@ export default function Cadastro() {
 
               {/* STEP 6: VOLUMES (TEXT ONLY) */}
               {currentStep === 6 && (
-                <motion.div key="s6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-12">
+                <motion.div key="s6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-8">
                    <div className="space-y-4">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo 6 de 8</h2>
-                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">Qual seu volume atual de pedidos?</h1>
+                    <h2 className="text-xs font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo 6 de 8</h2>
+                    <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">Qual seu volume atual de pedidos?</h1>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 lg:gap-6">
+                  <div className="grid grid-cols-1 gap-3 lg:gap-4">
                     {VOLUMES.map(opt => (
                       <button 
                         key={opt.id} 
@@ -298,7 +297,7 @@ export default function Cadastro() {
                           updateForm("volume", opt.id);
                           setTimeout(handleNext, 300);
                         }}
-                        className={cn("p-8 lg:p-10 rounded-3xl border-2 text-left transition-all text-xl lg:text-2xl font-black uppercase tracking-widest relative group overflow-hidden",
+                        className={cn("p-6 lg:p-8 rounded-2xl border-2 text-left transition-all text-lg lg:text-xl font-black uppercase tracking-widest relative group overflow-hidden",
                           form.volume === opt.id 
                             ? "bg-white/10 border-primary-novaes text-white" 
                             : "bg-white/[0.03] border-white/5 text-white/40 hover:bg-white/5 hover:border-white/20"
@@ -316,20 +315,19 @@ export default function Cadastro() {
 
               {/* STEP 8: DESCRIÇÃO */}
               {currentStep === 8 && (
-                <motion.div key="s8" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -40 }} className="space-y-12 w-full max-w-4xl">
+                <motion.div key="s8" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -40 }} className="space-y-8 w-full max-w-3xl">
                    <div className="space-y-4">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo Final</h2>
-                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">Fale um pouco mais sobre o projeto...</h1>
+                    <h2 className="text-xs font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo Final</h2>
+                    <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">Fale um pouco mais sobre o projeto...</h1>
                   </div>
                   <div className="relative group">
                     <Textarea 
                       autoFocus
-                      className="min-h-[300px] bg-white/[0.03] border-white/5 rounded-[2.5rem] p-12 text-2xl lg:text-3xl font-medium focus:border-primary-novaes/50 transition-all placeholder:text-white/5 leading-relaxed shadow-inner"
+                      className="min-h-[180px] lg:min-h-[220px] bg-white/[0.03] border-white/5 rounded-2xl p-8 text-xl lg:text-2xl font-medium focus:border-primary-novaes/50 transition-all placeholder:text-white/5 leading-relaxed shadow-inner"
                       placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
                       value={form.mensagem}
                       onChange={(e) => updateForm("mensagem", e.target.value)}
                     />
-                    <div className="absolute inset-0 rounded-[2.5rem] bg-primary-novaes/5 blur-[50px] -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   </div>
                 </motion.div>
               )}
@@ -356,17 +354,17 @@ export default function Cadastro() {
 
           {/* RODAPÉ DE NAVEGAÇÃO */}
           {currentStep > 0 && currentStep < 9 && (
-            <div className="p-8 lg:p-20 pt-0 flex items-center justify-between mt-auto">
-              <Button variant="ghost" className="h-12 text-white/30 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] p-0" onClick={handlePrev}>
+            <div className="p-8 lg:p-14 pt-0 flex items-center justify-between mt-auto">
+              <Button variant="ghost" className="h-10 text-white/30 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] p-0" onClick={handlePrev}>
                 ◄ Voltar
               </Button>
               <Button 
                 onClick={handleNext} 
                 disabled={loading}
-                className={cn("h-16 lg:h-20 px-10 lg:px-14 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-[11px] lg:text-xs shadow-2xl transition-all flex items-center gap-4 group hover:scale-[1.02] active:scale-[0.98]",
+                className={cn("h-14 lg:h-16 px-8 lg:px-10 rounded-xl sidebar-novaes-gradient font-black uppercase tracking-widest text-[10px] shadow-2xl transition-all flex items-center gap-3 group hover:scale-[1.02] active:scale-[0.98]",
                   loading && "opacity-50")}
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                   <>
                     {currentStep === 8 ? "Finalizar Agora" : "Próximo Passo"}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
@@ -377,6 +375,6 @@ export default function Cadastro() {
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
