@@ -7,7 +7,7 @@ import {
   AlertCircle, CheckCircle2, Clock, Zap,
   ArrowRight, UserPlus, Copy, RefreshCw, Pause
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Card, CardContent, CardHeader, CardTitle, 
   CardDescription 
@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
-import { sendPushToAdmins } from "@/lib/push";
+import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -473,7 +473,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
             <div className="flex justify-end"><Button className="gradient-primary h-9 text-xs" onClick={() => setShowAddExtra(true)}><Plus className="w-3.5 h-3.5 mr-2" /> Adicionar Recurso</Button></div>
             <div className="rounded-xl border border-white/5 overflow-hidden">
                <Table>
-                 <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Recurso", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableHeader>
+                 <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Recurso", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableRow></TableHeader>
                  <TableBody className="bg-white/[0.02]">
                    {extras.length === 0 ? (<TableRow><TableCell colSpan={2} className="text-center py-10 text-xs text-white/20 italic">Sem recursos ativos.</TableCell></TableRow>) : extras.map((e: any) => (
                      <TableRow key={e.id} className="border-white/5">
@@ -489,7 +489,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           <TabsContent value="projetos">
                <div className="rounded-xl border border-white/5 overflow-hidden">
                 <Table>
-                  <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Projeto", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableHeader>
+                  <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Projeto", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableRow></TableHeader>
                   <TableBody className="bg-white/[0.02]">
                     {projetos.length === 0 ? (<TableRow><TableCell colSpan={2} className="text-center py-10 text-xs text-white/20 italic">Sem projetos.</TableCell></TableRow>) : projetos.map((p: any) => (
                       <TableRow key={p.id} className="border-white/5">
