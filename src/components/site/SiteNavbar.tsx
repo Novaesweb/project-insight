@@ -24,11 +24,7 @@ const companyLinks = [
   { id: "diferenciais", label: "Diferenciais", icon: Target },
 ];
 
-const solutionStories = [
-  { id: "delivery", label: "Sistema Delivery", icon: "🍕" },
-  { id: "vitrine", label: "Site Vitrine", icon: "📱" },
-  { id: "automacao", label: "Automação WhatsApp", icon: "🤖" },
-];
+
 
 export function scrollTo(href: string, setMenuOpen?: (v: boolean) => void) {
   setMenuOpen?.(false);
@@ -126,36 +122,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             </button>
           ))}
 
-          {/* Dropdown Cases/Stories */}
-          <div className="relative" onMouseEnter={() => setActiveDropdown("solucoes")}>
-            <button className="flex items-center gap-1.5 text-[13px] text-primary hover:text-white transition-all font-bold tracking-[0.1em] uppercase group">
-              Stories <ChevronDown className={cn("w-4 h-4 transition-transform", activeDropdown === "solucoes" && "rotate-180")} />
-            </button>
-            <AnimatePresence>
-              {activeDropdown === "solucoes" && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full right-0 pt-4 w-64"
-                >
-                  <div className="glass-panel-premium border-white/10 p-4 rounded-3xl shadow-2xl overflow-hidden">
-                    <p className="text-[10px] text-white/20 uppercase tracking-widest mb-3 px-3">Cases de Sucesso</p>
-                    {solutionStories.map(story => (
-                      <button
-                        key={story.id}
-                        onClick={() => { onOpenModal(`story-${story.id}`); setActiveDropdown(null); }}
-                        className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-2xl transition-all text-left group/item"
-                      >
-                        <span className="text-lg">{story.icon}</span>
-                        <span className="text-xs font-bold text-white/70 group-hover/item:text-white">{story.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+
         </div>
 
         {/* Right actions */}
@@ -217,22 +184,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                 </div>
               </div>
 
-              {/* Seção Stories */}
-              <div>
-                <p className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold mb-4">Veja em Stories</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {solutionStories.map(story => (
-                    <button
-                      key={story.id}
-                      onClick={() => { setMenuOpen(false); setTimeout(() => onOpenModal(`story-${story.id}`), 300); }}
-                      className="flex items-center justify-between p-4 bg-primary/10 border border-primary/20 rounded-2xl text-white font-bold"
-                    >
-                      <span className="flex items-center gap-3 font-black"><span className="text-xl">{story.icon}</span> {story.label}</span>
-                      <Star className="w-4 h-4 text-primary fill-primary" />
-                    </button>
-                  ))}
-                </div>
-              </div>
+
 
               {/* Seção Navegação */}
               <div>
