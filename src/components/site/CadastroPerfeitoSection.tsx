@@ -21,12 +21,15 @@ function Typewriter({ text, className }: { text: string; className?: string }) {
   useEffect(() => {
     setDisplayedText("");
     let i = 0;
-    const timer = setInterval(() => {
-      setDisplayedText((prev) => prev + text.charAt(i));
-      i++;
-      if (i >= text.length) clearInterval(timer);
-    }, 30);
-    return () => clearInterval(timer);
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        setDisplayedText(text.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 50);
+    return () => clearInterval(interval);
   }, [text]);
 
   return <span className={className}>{displayedText}</span>;
@@ -134,7 +137,7 @@ Empresa: ${formData.empresa}`,
 
   const progress = (step / 10) * 100;
 
-  const cardVariants = {
+  const cardVariants: any = {
     initial: { opacity: 0, x: 20, scale: 0.98 },
     animate: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
     exit: { opacity: 0, x: -20, scale: 0.98, transition: { duration: 0.3 } }
@@ -252,8 +255,8 @@ Empresa: ${formData.empresa}`,
                 <div className="w-2 h-2 rounded-full bg-primary" /> Passo 03/09
               </h2>
               <h1 className="text-4xl font-black text-white mb-8 leading-tight tracking-tighter">
-                E o nome do seu <br />
-                <Typewriter text="negócio ou empresa?" className="gradient-text" />
+                Qual é o nome da <br />
+                <Typewriter text="sua empresa?" className="gradient-text" />
               </h1>
               <div className="relative mb-12">
                 <Building className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
@@ -429,7 +432,7 @@ Empresa: ${formData.empresa}`,
               <div className="relative mb-12">
                 <Textarea 
                   autoFocus
-                  placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?" 
+                  placeholder="Quais seus objetivos, desafios or sonhos para este projeto?" 
                   value={formData.descricao}
                   onChange={(e) => setFormData({...formData, descricao: e.target.value})}
                   className="min-h-[220px] p-10 bg-white/5 border-white/5 rounded-[2.5rem] text-xl font-medium text-white focus:border-primary/50 transition-all placeholder:text-white/10 leading-relaxed"
