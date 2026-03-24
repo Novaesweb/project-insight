@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
+import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
 
 // --- Opções de Seleção ---
 const NECESSIDADES = [
@@ -154,7 +155,7 @@ export default function Cadastro() {
           <div className="z-10 relative">
             <Link to="/" className="flex items-center gap-3 mb-12 group hover:scale-105 transition-transform duration-500">
               <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center p-2.5 shadow-2xl">
-                <img src="/novaes-symbol.jpeg" alt="Logo" className="w-full h-full object-contain" />
+                <img src={novaesSymbol} alt="Logo" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-xl font-black tracking-tighter leading-none">NOVAES<span className="text-white/40 font-light">WEB</span></span>
