@@ -54,7 +54,7 @@ const ORIGENS = [
 
 const STEPS_SIDEBAR = [
   "Identificação", "E-mail / Gmail", "WhatsApp", "Seu Negócio",
-  "Segmento", "Necessidade", "Volume", "Origem", "Briefing"
+  "Necessidade", "Volume", "Origem", "Briefing"
 ];
 
 // --- Utilitários ---
@@ -73,7 +73,7 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
-    nome: "", email: "", whatsapp: "", empresa: "", segmento: "",
+    nome: "", email: "", whatsapp: "", empresa: "",
     necessidade: "", volume: "", origem: "", mensagem: ""
   });
 
@@ -88,11 +88,10 @@ export default function Cadastro() {
     if (step === 2 && (!form.email.trim() || !form.email.includes("@"))) errs.email = "E-mail inválido";
     if (step === 3 && !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
     if (step === 4 && !form.empresa.trim()) errs.empresa = "Campo obrigatório";
-    if (step === 5 && !form.segmento) errs.segmento = "Selecione uma opção";
-    if (step === 6 && !form.necessidade) errs.necessidade = "Selecione uma opção";
-    if (step === 7 && !form.volume) errs.volume = "Selecione uma opção";
-    if (step === 8 && !form.origem) errs.origem = "Selecione uma opção";
-    if (step === 9 && !form.mensagem.trim()) errs.mensagem = "Conte-nos um pouco mais";
+    if (step === 5 && !form.necessidade) errs.necessidade = "Selecione uma opção";
+    if (step === 6 && !form.volume) errs.volume = "Selecione uma opção";
+    if (step === 7 && !form.origem) errs.origem = "Selecione uma opção";
+    if (step === 8 && !form.mensagem.trim()) errs.mensagem = "Conte-nos um pouco mais";
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -100,8 +99,8 @@ export default function Cadastro() {
 
   const handleNext = () => {
     if (currentStep === 0 || validateStep(currentStep)) {
-      if (currentStep < 10) setCurrentStep(prev => prev + 1);
-      if (currentStep === 9) handleSubmit();
+      if (currentStep < 9) setCurrentStep(prev => prev + 1);
+      if (currentStep === 8) handleSubmit();
     } else {
       toast({ title: "Atenção", description: "Preencha o campo para continuar.", variant: "destructive" });
     }
@@ -118,7 +117,6 @@ export default function Cadastro() {
       email: form.email.trim(),
       whatsapp: form.whatsapp.replace(/\D/g, ""),
       nome_negocio: form.empresa,
-      segmento: form.segmento, 
       servicos: [form.necessidade],
       orcamento: form.volume,
       como_conheceu: form.origem,
@@ -130,10 +128,10 @@ export default function Cadastro() {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
       supabase.functions.invoke("send-lead-email", {
-        body: { ...form, nome_negocio: form.empresa, tipo_negocio: form.segmento, servicos: [form.necessidade], orcamento: form.volume }
+        body: { ...form, nome_negocio: form.empresa, servicos: [form.necessidade], orcamento: form.volume }
       });
       sendPushToAdmins("🆕 Novo Lead Premium", `${form.nome} (${form.empresa})`, "/admin/leads");
-      setCurrentStep(10);
+      setCurrentStep(9);
     }
   };
 
@@ -156,60 +154,69 @@ export default function Cadastro() {
   };
 
   return (
-    <div className="min-h-screen bg-novaes-gradient flex items-center justify-center p-4 lg:p-0 font-sans text-white overflow-hidden">
-      <div className="w-full max-w-[940px] h-full lg:h-[620px] glass-card-novaes rounded-[2.5rem] flex flex-col lg:flex-row shadow-2xl overflow-hidden relative border border-white/10">
+    <div className="min-h-screen bg-novaes-bg flex items-center justify-center p-4 lg:p-8 font-inter text-white overflow-hidden relative">
+      {/* Luzes de Fundo para profundidad */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-novaes/5 rounded-full blur-[150px]" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent-novaes/5 rounded-full blur-[150px]" />
+
+      <div className="w-full max-w-7xl min-h-[700px] h-auto lg:h-[850px] bg-black/20 backdrop-blur-[40px] rounded-[32px] flex flex-col lg:flex-row shadow-[0_50px_100px_rgba(0,0,0,0.4)] overflow-hidden relative border border-white/5">
         
         {/* --- SIDEBAR ESQUERDA (DESKTOP) --- */}
-        <div className="hidden lg:flex w-[280px] sidebar-novaes-gradient p-10 flex-col justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+        <div className="hidden lg:flex w-[350px] sidebar-novaes-gradient p-12 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] pointer-events-none" />
           <div className="z-10 relative">
-            <Link to="/" className="flex flex-col gap-1 mb-12 group">
-              <span className="text-2xl font-black tracking-tighter uppercase">Novaes Web</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 group-hover:opacity-100 transition-opacity">Cadastro rápido</span>
+            <Link to="/" className="flex items-center gap-4 mb-16 group hover:scale-105 transition-transform duration-500">
+              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-3 shadow-2xl">
+                <img src="/novaes-symbol.jpeg" alt="Logo" className="w-full h-full object-contain" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-2xl font-black tracking-tighter leading-none">NOVAES<span className="text-white/40 font-light">WEB</span></span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity">Premium CRM</span>
+              </div>
             </Link>
             
-            <div className="space-y-6">
+            <div className="space-y-8">
               {STEPS_SIDEBAR.map((_, i) => <StepIndicator key={i} stepIdx={i} />)}
             </div>
           </div>
           
-          <div className="z-10 relative text-[10px] font-black uppercase tracking-widest opacity-40">
-            © 2025 Novaes Web
+          <div className="z-10 relative text-[10px] font-black uppercase tracking-[0.5em] opacity-30">
+            Design Version v3.3.0
           </div>
         </div>
 
         {/* --- CONTEÚDO PRINCIPAL --- */}
-        <div className="flex-1 flex flex-col relative bg-[#111116]/40">
+        <div className="flex-1 flex flex-col relative bg-[#0a0a0f]/40">
           
           {/* Barra de Progresso Mobile */}
-          <div className="lg:hidden h-1.5 w-full bg-white/5 overflow-hidden">
-            <motion.div animate={{ width: `${(currentStep / 10) * 100}%` }} className="h-full sidebar-novaes-gradient" />
+          <div className="lg:hidden h-2 w-full bg-white/5 overflow-hidden">
+            <motion.div animate={{ width: `${(currentStep / 9) * 100}%` }} className="h-full sidebar-novaes-gradient shadow-[0_0_20px_rgba(255,51,102,0.5)]" />
           </div>
 
-          <div className="flex-1 p-8 lg:p-14 flex flex-col justify-center relative overflow-hidden">
+          <div className="flex-1 p-8 lg:p-24 flex flex-col justify-center relative overflow-hidden">
             <AnimatePresence mode="wait">
               {/* STEP 0: BOAS-VINDAS */}
               {currentStep === 0 && (
-                <motion.div key="s0" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="text-center lg:text-left space-y-8">
-                  <div className="w-20 h-20 rounded-3xl sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-xl mb-4">
-                    <Rocket className="w-10 h-10 text-white" />
+                <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} className="text-center lg:text-left space-y-12">
+                  <div className="w-24 h-24 rounded-[2rem] sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-2xl mb-8 group overflow-hidden">
+                    <Rocket className="w-12 h-12 text-white group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="space-y-4">
-                    <h1 className="text-4xl lg:text-6xl font-black tracking-tighter font-space leading-[0.9]">VAMOS <br /> <span className="opacity-30">DECOLAR SEU</span> <br /> PROJETO?</h1>
-                    <p className="text-white/40 text-lg font-medium max-w-sm">Conte-nos sobre sua ideia e nossa equipe transformará em realidade digital.</p>
+                  <div className="space-y-6">
+                    <h1 className="text-5xl lg:text-8xl font-black tracking-tighter font-space leading-[0.85]">VAMOS <br /> <span className="opacity-20 italic">DECOLAR SEU</span> <br /> PROJETO?</h1>
+                    <p className="text-white/40 text-xl font-medium max-w-md leading-relaxed">Sua jornada rumo ao topo do mercado digital começa com estas poucas perguntas.</p>
                   </div>
-                  <Button onClick={handleNext} className="h-16 px-12 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-sm hover:scale-105 transition-all shadow-xl group">
-                    Começar agora <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                  <Button onClick={handleNext} className="h-20 px-16 rounded-3xl sidebar-novaes-gradient font-black uppercase tracking-widest text-base hover:scale-105 active:scale-95 transition-all shadow-2xl group flex items-center gap-4">
+                    COMEÇAR AGORA <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
                   </Button>
                 </motion.div>
               )}
 
               {/* STEPS 1-4: INPUTS */}
               {[1, 2, 3, 4].includes(currentStep) && (
-                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                   <div className="space-y-2">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo {currentStep} de 9</h2>
-                    <h1 className="text-3xl lg:text-4xl font-black font-space tracking-tight">
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-12 w-full max-w-3xl">
+                   <div className="space-y-6">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo {currentStep} de 8</h2>
+                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">
                       {currentStep === 1 && "Qual seu nome completo?"}
                       {currentStep === 2 && "Qual seu melhor e-mail?"}
                       {currentStep === 3 && "Seu WhatsApp direto?"}
@@ -217,11 +224,11 @@ export default function Cadastro() {
                     </h1>
                   </div>
                   <div className="relative group">
-                    {currentStep === 2 && <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-primary-novaes transition-colors" />}
+                    {currentStep === 2 && <Mail className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 text-white/5 group-focus-within:text-primary-novaes/50 transition-colors" />}
                     <Input 
                       autoFocus
-                      className="h-20 lg:h-24 bg-white/5 border-white/5 rounded-3xl text-2xl lg:text-3xl font-bold px-8 focus:border-primary-novaes/50 transition-all placeholder:text-white/5"
-                      placeholder={currentStep === 1 ? "Nome da pessoa..." : currentStep === 2 ? "seu@gmail.com" : currentStep === 3 ? "(00) 00000-0000" : "Nome da startup/empresa"}
+                      className="h-24 lg:h-32 bg-white/[0.02] border-white/5 rounded-[2rem] text-3xl lg:text-5xl font-black px-10 focus:border-primary-novaes/30 focus:bg-white/[0.05] transition-all placeholder:text-white/[0.02] shadow-inner"
+                      placeholder={currentStep === 1 ? "Nome e Sobrenome" : currentStep === 2 ? "seu@email.com" : currentStep === 3 ? "(00) 00000-0000" : "Marca / Empresa"}
                       value={currentStep === 1 ? form.nome : currentStep === 2 ? form.email : currentStep === 3 ? form.whatsapp : form.empresa}
                       onChange={(e) => {
                         const v = e.target.value;
@@ -230,38 +237,44 @@ export default function Cadastro() {
                         if (currentStep === 3) updateForm("whatsapp", formatWhatsApp(v));
                         if (currentStep === 4) updateForm("empresa", v);
                       }}
+                      onKeyDown={(e) => e.key === "Enter" && handleNext()}
                     />
+                    <div className="absolute inset-0 rounded-[2rem] bg-primary-novaes/5 blur-[40px] -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   </div>
+                  {errors[currentStep === 1 ? "nome" : currentStep === 2 ? "email" : currentStep === 3 ? "whatsapp" : "empresa"] && (
+                    <p className="text-red-400 text-sm font-black uppercase tracking-widest pl-6 animate-pulse">
+                      {errors[currentStep === 1 ? "nome" : currentStep === 2 ? "email" : currentStep === 3 ? "whatsapp" : "empresa"]}
+                    </p>
+                  )}
                 </motion.div>
               )}
 
-              {/* STEPS 5, 6, 8: GRIDS COM ÍCONES */}
-              {[5, 6, 8].includes(currentStep) && (
-                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-8">
-                   <div className="space-y-2 text-center lg:text-left">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo {currentStep} de 9</h2>
-                    <h1 className="text-3xl lg:text-4xl font-black font-space">
-                      {currentStep === 5 && "O negócio é de qual segmento?"}
-                      {currentStep === 6 && "O que você precisa agora?"}
-                      {currentStep === 8 && "Como nos conheceu?"}
+              {/* STEPS 5, 7: GRIDS COM ÍCONES */}
+              {[5, 7].includes(currentStep) && (
+                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="space-y-12 w-full">
+                   <div className="space-y-4">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80">Passo {currentStep} de 8</h2>
+                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">
+                      {currentStep === 5 && "O que você precisa agora?"}
+                      {currentStep === 7 && "Como nos conheceu?"}
                     </h1>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {(currentStep === 5 ? SEGMENTOS : currentStep === 6 ? NECESSIDADES : ORIGENS).map(opt => (
+                  <div className="grid grid-cols-2 gap-6 lg:gap-8">
+                    {(currentStep === 5 ? NECESSIDADES : ORIGENS).map(opt => (
                       <button 
                         key={opt.id} 
                         onClick={() => {
-                          updateForm(currentStep === 5 ? "segmento" : currentStep === 6 ? "necessidade" : "origem", opt.id);
+                          updateForm(currentStep === 5 ? "necessidade" : "origem", opt.id);
                           setTimeout(handleNext, 300);
                         }}
                         className={cn("flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all gap-3 group relative overflow-hidden",
-                          (currentStep === 5 ? form.segmento : currentStep === 6 ? form.necessidade : form.origem) === opt.id 
+                          (currentStep === 5 ? form.necessidade : form.origem) === opt.id 
                             ? "bg-white/10 border-primary-novaes shadow-lg shadow-primary-novaes/20" 
                             : "bg-white/5 border-white/5 hover:border-white/20"
                         )}
                       >
                         <opt.icon className={cn("w-8 h-8 transition-transform group-hover:scale-110", 
-                          (currentStep === 5 ? form.segmento : currentStep === 6 ? form.necessidade : form.origem) === opt.id ? "text-primary-novaes" : "text-white/20")} 
+                          (currentStep === 5 ? form.necessidade : form.origem) === opt.id ? "text-primary-novaes" : "text-white/20")} 
                         />
                         <span className="text-[10px] font-black uppercase tracking-widest leading-tight">{opt.label}</span>
                       </button>
@@ -270,14 +283,14 @@ export default function Cadastro() {
                 </motion.div>
               )}
 
-              {/* STEP 7: VOLUMES (TEXT ONLY) */}
-              {currentStep === 7 && (
-                <motion.div key="s7" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                   <div className="space-y-2">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo 7 de 9</h2>
-                    <h1 className="text-3xl lg:text-4xl font-black font-space">Qual seu volume atual de pedidos?</h1>
+              {/* STEP 6: VOLUMES (TEXT ONLY) */}
+              {currentStep === 6 && (
+                <motion.div key="s6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-12">
+                   <div className="space-y-4">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo 6 de 8</h2>
+                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">Qual seu volume atual de pedidos?</h1>
                   </div>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-4 lg:gap-6">
                     {VOLUMES.map(opt => (
                       <button 
                         key={opt.id} 
@@ -285,36 +298,44 @@ export default function Cadastro() {
                           updateForm("volume", opt.id);
                           setTimeout(handleNext, 300);
                         }}
-                        className={cn("p-6 rounded-2xl border-2 text-left transition-all text-sm font-bold uppercase tracking-widest",
-                          form.volume === opt.id ? "bg-white/10 border-primary-novaes" : "bg-white/5 border-white/5 hover:bg-white/10"
+                        className={cn("p-8 lg:p-10 rounded-3xl border-2 text-left transition-all text-xl lg:text-2xl font-black uppercase tracking-widest relative group overflow-hidden",
+                          form.volume === opt.id 
+                            ? "bg-white/10 border-primary-novaes text-white" 
+                            : "bg-white/[0.03] border-white/5 text-white/40 hover:bg-white/5 hover:border-white/20"
                         )}
                       >
-                        {opt.label}
+                        <span className="relative z-10">{opt.label}</span>
+                        {form.volume === opt.id && (
+                          <motion.div layoutId="vol-glow" className="absolute inset-0 bg-primary-novaes/10 blur-2xl -z-10" />
+                        )}
                       </button>
                     ))}
                   </div>
                 </motion.div>
               )}
 
-              {/* STEP 9: DESCRIÇÃO */}
-              {currentStep === 9 && (
-                <motion.div key="s9" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
-                   <div className="space-y-2">
-                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.3em]">Passo Final</h2>
-                    <h1 className="text-3xl lg:text-4xl font-black font-space">Fale um pouco mais sobre o projeto...</h1>
+              {/* STEP 8: DESCRIÇÃO */}
+              {currentStep === 8 && (
+                <motion.div key="s8" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -40 }} className="space-y-12 w-full max-w-4xl">
+                   <div className="space-y-4">
+                    <h2 className="text-sm font-black text-primary-novaes uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaes/50">Passo Final</h2>
+                    <h1 className="text-5xl lg:text-7xl font-black font-space tracking-tight leading-[0.9]">Fale um pouco mais sobre o projeto...</h1>
                   </div>
-                  <Textarea 
-                    autoFocus
-                    className="min-h-[220px] bg-white/5 border-white/5 rounded-3xl p-8 text-lg font-medium focus:border-primary-novaes/50 transition-all placeholder:text-white/5 leading-relaxed"
-                    placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
-                    value={form.mensagem}
-                    onChange={(e) => updateForm("mensagem", e.target.value)}
-                  />
+                  <div className="relative group">
+                    <Textarea 
+                      autoFocus
+                      className="min-h-[300px] bg-white/[0.03] border-white/5 rounded-[2.5rem] p-12 text-2xl lg:text-3xl font-medium focus:border-primary-novaes/50 transition-all placeholder:text-white/5 leading-relaxed shadow-inner"
+                      placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
+                      value={form.mensagem}
+                      onChange={(e) => updateForm("mensagem", e.target.value)}
+                    />
+                    <div className="absolute inset-0 rounded-[2.5rem] bg-primary-novaes/5 blur-[50px] -z-10 opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                  </div>
                 </motion.div>
               )}
 
-              {/* STEP 10: SUCESSO */}
-              {currentStep === 10 && (
+              {/* STEP 9: SUCESSO */}
+              {currentStep === 9 && (
                 <motion.div key="s10" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-8 flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-4">
                     <Check className="w-12 h-12 text-emerald-500 stroke-[3px]" />
@@ -334,19 +355,22 @@ export default function Cadastro() {
           </div>
 
           {/* RODAPÉ DE NAVEGAÇÃO */}
-          {currentStep > 0 && currentStep < 10 && (
-            <div className="p-8 lg:p-14 pt-0 flex items-center justify-between mt-auto">
+          {currentStep > 0 && currentStep < 9 && (
+            <div className="p-8 lg:p-20 pt-0 flex items-center justify-between mt-auto">
               <Button variant="ghost" className="h-12 text-white/30 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] p-0" onClick={handlePrev}>
                 ◄ Voltar
               </Button>
               <Button 
                 onClick={handleNext} 
                 disabled={loading}
-                className={cn("h-16 px-10 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-xs shadow-xl transition-all flex items-center gap-3",
+                className={cn("h-16 lg:h-20 px-10 lg:px-14 rounded-2xl sidebar-novaes-gradient font-black uppercase tracking-widest text-[11px] lg:text-xs shadow-2xl transition-all flex items-center gap-4 group hover:scale-[1.02] active:scale-[0.98]",
                   loading && "opacity-50")}
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                  currentStep === 9 ? "Finalizar Agora" : "Próximo Passo ►"
+                  <>
+                    {currentStep === 8 ? "Finalizar Agora" : "Próximo Passo"}
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                  </>
                 )}
               </Button>
             </div>
