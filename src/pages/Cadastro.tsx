@@ -17,16 +17,6 @@ import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
 
 // --- Opções de Seleção ---
-const SEGMENTOS = [
-  { id: "imobiliaria", label: "Imobiliária", icon: Building },
-  { id: "e-commerce", label: "E-commerce", icon: Store },
-  { id: "servicos", label: "Serviços", icon: Users },
-  { id: "tecnologia", label: "Tecnologia", icon: Zap },
-  { id: "varejo", label: "Varejo", icon: Package },
-  { id: "saude", label: "Saúde / Clínicas", icon: ShieldCheck },
-  { id: "outros", label: "Outros", icon: HelpCircle },
-];
-
 const NECESSIDADES = [
   { id: "site", label: "Site Profissional", icon: Globe },
   { id: "loja", label: "Loja Virtual", icon: Store },
@@ -155,13 +145,10 @@ export default function Cadastro() {
 
   return (
     <div className="min-h-screen bg-novaes-bg flex items-center justify-center p-4 lg:p-8 font-inter text-white overflow-hidden relative">
-      {/* Luzes de Fundo para profundidad */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-novaes/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent-novaes/5 rounded-full blur-[150px]" />
 
       <div className="w-full max-w-5xl min-h-[600px] h-auto lg:h-[680px] bg-black/20 backdrop-blur-[40px] rounded-[32px] flex flex-col lg:flex-row shadow-[0_50px_100px_rgba(0,0,0,0.4)] overflow-hidden relative border border-white/5 z-10">
-        
-        {/* --- SIDEBAR ESQUERDA (DESKTOP) --- */}
         <div className="hidden lg:flex w-[300px] sidebar-novaes-gradient p-10 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
           <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] pointer-events-none" />
           <div className="z-10 relative">
@@ -174,28 +161,22 @@ export default function Cadastro() {
                 <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity">Premium CRM</span>
               </div>
             </Link>
-            
             <div className="space-y-6">
               {STEPS_SIDEBAR.map((_, i) => <StepIndicator key={i} stepIdx={i} />)}
             </div>
           </div>
-          
           <div className="z-10 relative text-[10px] font-black uppercase tracking-[0.5em] opacity-30">
             Design Version v3.3.0
           </div>
         </div>
 
-        {/* --- CONTEÚDO PRINCIPAL --- */}
         <div className="flex-1 flex flex-col relative bg-[#0a0a0f]/40">
-          
-          {/* Barra de Progresso Mobile */}
           <div className="lg:hidden h-2 w-full bg-white/5 overflow-hidden">
             <motion.div animate={{ width: `${(currentStep / 9) * 100}%` }} className="h-full sidebar-novaes-gradient shadow-[0_0_20px_rgba(255,51,102,0.5)]" />
           </div>
 
           <div className="flex-1 p-8 lg:p-14 flex flex-col justify-center relative overflow-hidden">
             <AnimatePresence mode="wait">
-              {/* STEP 0: BOAS-VINDAS */}
               {currentStep === 0 && (
                 <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} className="text-center lg:text-left space-y-8">
                   <div className="w-20 h-20 rounded-[1.5rem] sidebar-novaes-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-2xl mb-6 group overflow-hidden">
@@ -211,7 +192,6 @@ export default function Cadastro() {
                 </motion.div>
               )}
 
-              {/* STEPS 1-4: INPUTS */}
               {[1, 2, 3, 4].includes(currentStep) && (
                 <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-8 w-full max-w-2xl">
                    <div className="space-y-4">
@@ -248,7 +228,6 @@ export default function Cadastro() {
                 </motion.div>
               )}
 
-              {/* STEPS 5, 7: GRIDS COM ÍCONES */}
               {[5, 7].includes(currentStep) && (
                 <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="space-y-8 w-full">
                    <div className="space-y-3">
@@ -282,7 +261,6 @@ export default function Cadastro() {
                 </motion.div>
               )}
 
-              {/* STEP 6: VOLUMES (TEXT ONLY) */}
               {currentStep === 6 && (
                 <motion.div key="s6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-8">
                    <div className="space-y-4">
@@ -313,7 +291,6 @@ export default function Cadastro() {
                 </motion.div>
               )}
 
-              {/* STEP 8: DESCRIÇÃO */}
               {currentStep === 8 && (
                 <motion.div key="s8" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -40 }} className="space-y-8 w-full max-w-3xl">
                    <div className="space-y-4">
@@ -332,7 +309,6 @@ export default function Cadastro() {
                 </motion.div>
               )}
 
-              {/* STEP 9: SUCESSO */}
               {currentStep === 9 && (
                 <motion.div key="s10" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-8 flex flex-col items-center">
                   <div className="w-24 h-24 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-4">
@@ -352,7 +328,6 @@ export default function Cadastro() {
             </AnimatePresence>
           </div>
 
-          {/* RODAPÉ DE NAVEGAÇÃO */}
           {currentStep > 0 && currentStep < 9 && (
             <div className="p-8 lg:p-14 pt-0 flex items-center justify-between mt-auto">
               <Button variant="ghost" className="h-10 text-white/30 hover:text-white font-black uppercase tracking-[0.3em] text-[10px] p-0" onClick={handlePrev}>
@@ -375,6 +350,6 @@ export default function Cadastro() {
           )}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
