@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus, Sparkles, Calendar, BellRing, Clock, Activity } from "lucide-react";
+import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus, Sparkles, Calendar, BellRing, Clock, Activity, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
@@ -46,6 +46,11 @@ export default function Dashboard() {
   // Charts Data
   const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
   const [topModules, setTopModules] = useState<any[]>([]);
+  const [funnelData, setFunnelData] = useState<any[]>([
+    { name: "Leads", value: 0 },
+    { name: "Clientes", value: 0 },
+    { name: "Projetos", value: 0 }
+  ]);
 
   useEffect(() => {
     const load = async () => {
@@ -70,13 +75,13 @@ export default function Dashboard() {
           supabase.from("extras_clientes").select("extra_id"),
           supabase.from("extras_catalogo").select("id, nome")
         ]);
-        
+
         const receita = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
-        setStats({ 
-          clientes: c.count || 0, 
-          projetos: p.count || 0, 
-          pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length, 
-          receita 
+        setStats({
+          clientes: c.count || 0,
+          projetos: p.count || 0,
+          pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length,
+          receita
         });
         setPedidos(ped.data || []);
         setTickets(t.data || []);
@@ -84,8 +89,8 @@ export default function Dashboard() {
         // Error Reporting
         const hasError = c.error || p.error || ped.error || t.error || fin.error;
         if (hasError) {
-          console.error("Erro ao carregar dados do Dashboard:", { 
-            clientes: c.error, projetos: p.error, pedidos: ped.error, tickets: t.error, financeiro: fin.error 
+          console.error("Erro ao carregar dados do Dashboard:", {
+            clientes: c.error, projetos: p.error, pedidos: ped.error, tickets: t.error, financeiro: fin.error
           });
           toast({
             title: "Erro de Sincronização",
@@ -100,7 +105,7 @@ export default function Dashboard() {
         const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const currentMonthIndex = new Date().getMonth();
         const revenueMap: Record<string, number> = {};
-        
+
         for (let i = 5; i >= 0; i--) {
           let mIdx = currentMonthIndex - i;
           if (mIdx < 0) mIdx += 12;
@@ -111,7 +116,7 @@ export default function Dashboard() {
           const date = new Date(f.created_at);
           const monthName = months[date.getMonth()];
           if (revenueMap[monthName] !== undefined) {
-             revenueMap[monthName] += Number(f.valor);
+            revenueMap[monthName] += Number(f.valor);
           }
         });
 
@@ -130,11 +135,22 @@ export default function Dashboard() {
             const cat = catFull.data?.find(c => c.id === id);
             return { name: cat ? cat.nome : 'Outro', value: moduleCounts[id] };
           })
-          .sort((a,b) => b.value - a.value)
-          .slice(0, 5); 
-          
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5);
+
         if (pieData.length === 0) pieData.push({ name: 'Nenhum venda', value: 1 });
         setTopModules(pieData);
+
+        // Funnel Data
+        const { count: leadsCount } = await supabase.from("leads").select("*", { count: "exact", head: true });
+        const { count: cliCount } = await supabase.from("clientes").select("*", { count: "exact", head: true });
+        const { count: projCount } = await supabase.from("projetos").select("*", { count: "exact", head: true });
+        
+        setFunnelData([
+          { name: "Leads", value: leadsCount || 0 },
+          { name: "Clientes", value: cliCount || 0 },
+          { name: "Projetos", value: projCount || 0 }
+        ]);
 
         // Subscriptions
         supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
@@ -250,14 +266,14 @@ export default function Dashboard() {
                 <AreaChart data={monthlyRevenue} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${value}`} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: '#09090b', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}
                     itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}
                     labelStyle={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase' }}
@@ -295,7 +311,7 @@ export default function Dashboard() {
                       <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: '#09090b', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}
                     itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}
                     formatter={(value: number) => [`${value} vendas`, 'Qtd']}
@@ -364,35 +380,35 @@ export default function Dashboard() {
                 )}>
                   {activity.slice(0, visibleActs).map((act) => (
                     <div key={act.id} className="relative flex items-center gap-4 group">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
-                          <BellRing className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-semibold text-white leading-none">{act.title}</h4>
-                          <p className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-1">{act.body}</p>
-                         <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter">
-                           {new Date(act.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
-                         </p>
-                       </div>
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-primary group-hover:scale-110 transition-transform">
+                        <BellRing className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold text-white leading-none">{act.title}</h4>
+                        <p className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5 line-clamp-1">{act.body}</p>
+                        <p className="text-[10px] text-white/20 mt-1 uppercase tracking-tighter">
+                          {new Date(act.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
-                
+
                 {activity.length > visibleActs && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full text-[10px] text-primary hover:text-primary/80 hover:bg-primary/5 uppercase tracking-widest font-bold h-8 border border-primary/20"
                     onClick={() => setVisibleActs(visibleActs + 10)}
                   >
                     Mostrar mais (+10)
                   </Button>
                 )}
-                
+
                 {visibleActs > 5 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full text-[10px] text-white/40 hover:text-white uppercase tracking-widest font-bold h-8"
                     onClick={() => setVisibleActs(5)}
                   >
@@ -440,17 +456,17 @@ export default function Dashboard() {
             {tickets.length === 0 ? (
               <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-8">Nenhum ticket aberto</p>
             ) : (
-               tickets.map((t: any) => (
-                 <div key={t.id} className="flex items-start justify-between p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)]">
-                   <div>
-                     <p className="text-sm font-medium text-white line-clamp-1">{t.titulo}</p>
-                     <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-0.5">{t.clientes?.nome || "—"}</p>
-                   </div>
-                   <div className="flex flex-col items-end gap-1">
-                     <StatusBadge status={t.status} />
-                   </div>
-                 </div>
-               ))
+              tickets.map((t: any) => (
+                <div key={t.id} className="flex items-start justify-between p-3 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)]">
+                  <div>
+                    <p className="text-sm font-medium text-white line-clamp-1">{t.titulo}</p>
+                    <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-0.5">{t.clientes?.nome || "—"}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <StatusBadge status={t.status} />
+                  </div>
+                </div>
+              ))
             )}
           </CardContent>
         </Card>
@@ -509,5 +525,24 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
     </motion.div>
+  );
+}
+
+function InsightAction({ icon: Icon, title, desc, action, link, color }: any) {
+  return (
+    <div className={cn("p-5 rounded-[2rem] bg-white/[0.02] border transition-all hover:bg-white/5 hover:border-white/10 group", color)}>
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <h4 className="text-xs font-black text-white mb-1 uppercase tracking-tighter">{title}</h4>
+          <p className="text-[10px] text-white/40 font-medium leading-relaxed mb-4">{desc}</p>
+          <Button asChild variant="ghost" className="h-8 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 border border-primary/10">
+            <Link to={link}>{action} <ArrowRight className="ml-2 w-3 h-3" /></Link>
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

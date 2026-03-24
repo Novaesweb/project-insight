@@ -8,11 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { 
-  Search, UserPlus, Phone, Eye, MessageCircle, 
+import { useNavigate } from "react-router-dom";
+import {
+  Search, UserPlus, Phone, Eye, MessageCircle,
   CheckCircle, Clock, XCircle, Users, Trash2,
-  Calendar, Building, Target, Zap, Layout, 
-  ArrowRight, Filter, MoreHorizontal
+  Calendar, Building, Target, Zap, Layout,
+  ArrowRight, Filter, MoreHorizontal, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -45,12 +46,13 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 
 export default function Leads() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [convertModal, setConvertModal] = useState<Lead | null>(null);
-  const [convertForm, setConvertForm] = useState({ senha: "", valor: "" });
+  const [convertForm, setConvertForm] = useState({ senha: "" });
   const [criarAcesso, setCriarAcesso] = useState(true);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
@@ -102,19 +104,16 @@ export default function Leads() {
 
       if (cliError) throw cliError;
 
-      const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-      await supabase.from("pedidos").insert({
-        codigo: codigoPed,
-        cliente_id: cliente.id,
-        tipo: "Criação de Site",
-        valor: Number(convertForm.valor) || 0,
-        data: new Date().toISOString().split("T")[0],
-        status: "pendente"
-      });
-
       await updateStatus(convertModal, "convertido");
+      
+      toast({ title: "💎 Cliente Criado!", description: "Redirecionando para o perfil..." });
+      
+      setTimeout(() => {
+        navigate("/admin/clientes", { state: { selectedId: cliente.id } });
+      }, 1500);
+
       setConvertModal(null);
-      setConvertForm({ senha: "", valor: "" });
+      setConvertForm({ senha: "" });
     } catch (error: any) {
       toast({ title: "Erro na conversão", description: error.message, variant: "destructive" });
     } finally {
@@ -123,9 +122,9 @@ export default function Leads() {
   };
 
   const filtrados = leads.filter(l => {
-    const matchBusca = l.nome.toLowerCase().includes(busca.toLowerCase()) || 
-                      l.email.toLowerCase().includes(busca.toLowerCase()) ||
-                      l.whatsapp.includes(busca);
+    const matchBusca = l.nome.toLowerCase().includes(busca.toLowerCase()) ||
+      l.email.toLowerCase().includes(busca.toLowerCase()) ||
+      l.whatsapp.includes(busca);
     const matchStatus = filtroStatus === "todos" || l.status === filtroStatus;
     return matchBusca && matchStatus;
   });
@@ -147,16 +146,16 @@ export default function Leads() {
         <div className="flex flex-wrap items-center gap-3 relative z-10">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
-            <Input 
-              placeholder="Buscar por nome ou contato..." 
+            <Input
+              placeholder="Buscar por nome ou contato..."
               className="h-12 pl-11 pr-6 bg-white/5 border-white/5 rounded-xl w-full sm:w-80 text-white font-medium focus:ring-1 focus:ring-primary/30 transition-all"
               value={busca}
               onChange={e => setBusca(e.target.value)}
             />
           </div>
-          
+
           <div className="h-10 w-px bg-white/10 mx-2 hidden lg:block" />
-          
+
           <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/5">
             {["todos", "novo", "em_contato", "convertido", "perdido"].map(s => (
               <button
@@ -164,8 +163,8 @@ export default function Leads() {
                 onClick={() => setFiltroStatus(s)}
                 className={cn(
                   "px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
-                  filtroStatus === s 
-                    ? "bg-white/10 text-white shadow-inner" 
+                  filtroStatus === s
+                    ? "bg-white/10 text-white shadow-inner"
                     : "text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
                 )}
               >
@@ -178,7 +177,7 @@ export default function Leads() {
 
       {/* Grid de Leads Premium */}
       <AnimatePresence mode="wait">
-        <motion.div 
+        <motion.div
           key={filtroStatus + busca}
           variants={container}
           initial="hidden"
@@ -188,8 +187,8 @@ export default function Leads() {
           {filtrados.map(lead => {
             const sc = statusConfig[lead.status] || statusConfig.novo;
             return (
-              <motion.div 
-                key={lead.id} 
+              <motion.div
+                key={lead.id}
                 variants={item}
                 whileHover={{ y: -5 }}
                 className="group h-full"
@@ -206,7 +205,7 @@ export default function Leads() {
                       {sc.label}
                     </Badge>
                     <span className="text-[10px] text-white/20 font-black uppercase tracking-widest flex items-center gap-2">
-                       {new Date(lead.created_at).toLocaleDateString("pt-BR")}
+                      {new Date(lead.created_at).toLocaleDateString("pt-BR")}
                     </span>
                   </div>
 
@@ -261,19 +260,20 @@ export default function Leads() {
                   )}
                 </div>
               </motion.div>
-            )})}
-          </motion.div>
-        </AnimatePresence>
+            )
+          })}
+        </motion.div>
+      </AnimatePresence>
 
-        {filtrados.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-40 glass-panel-premium rounded-[3rem] border-white/5">
-            <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
-              <Filter className="w-10 h-10 text-white/10" />
-            </div>
-            <h3 className="text-xl font-black text-white mb-2">Sem resultados encontrados</h3>
-            <p className="text-white/30 text-sm font-medium">Tente alterar seu termo de busca ou filtros.</p>
+      {filtrados.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-40 glass-panel-premium rounded-[3rem] border-white/5">
+          <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
+            <Filter className="w-10 h-10 text-white/10" />
           </div>
-        )}
+          <h3 className="text-xl font-black text-white mb-2">Sem resultados encontrados</h3>
+          <p className="text-white/30 text-sm font-medium">Tente alterar seu termo de busca ou filtros.</p>
+        </div>
+      )}
 
       {/* Profile Detail Sheet */}
       <Sheet open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
@@ -285,7 +285,7 @@ export default function Leads() {
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                   <Layout className="w-96 h-96 -right-20 -bottom-20 absolute" />
                 </div>
-                
+
                 <div className="relative z-10">
                   <div className="w-24 h-24 rounded-[2rem] bg-white/20 backdrop-blur-3xl flex items-center justify-center text-4xl font-black text-white mb-6 border border-white/20 shadow-2xl">
                     {selectedLead.nome[0]}
@@ -305,13 +305,13 @@ export default function Leads() {
 
               {/* Action Bar Quick */}
               <div className="px-10 py-6 grid grid-cols-2 gap-4 border-b border-white/5 bg-white/[0.02]">
-                <Button 
+                <Button
                   onClick={() => window.open(`https://wa.me/${selectedLead.whatsapp.replace(/\D/g, "")}`, "_blank")}
                   className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-black uppercase tracking-widest text-[10px] h-12 rounded-xl"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                 </Button>
-                <Button 
+                <Button
                   onClick={() => { setConvertModal(selectedLead); setSelectedLead(null); }}
                   className="gradient-primary text-white font-black uppercase tracking-widest text-[10px] h-12 rounded-xl"
                 >
@@ -370,8 +370,8 @@ export default function Leads() {
                 </div>
 
                 <div className="pt-10 flex border-t border-white/5">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="text-red-500/40 hover:text-red-500 hover:bg-red-500/10 font-black uppercase tracking-widest text-[10px] h-12 px-8 rounded-xl ml-auto"
                     onClick={() => handleDelete(selectedLead.id)}
                   >
@@ -388,56 +388,58 @@ export default function Leads() {
       <Dialog open={!!convertModal} onOpenChange={() => setConvertModal(null)}>
         <DialogContent className="glass-card border-white/5 rounded-[3rem] p-10 max-w-lg overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-            <Zap className="w-40 h-40 text-primary" />
+            <Sparkles className="w-40 h-40 text-primary animate-pulse" />
           </div>
           
-          <DialogHeader className="mb-8">
-            <DialogTitle className="text-3xl font-black text-white tracking-tighter">Converter Oportunidade</DialogTitle>
-            <p className="text-white/40 font-medium">Transformando lead em cliente oficial do sistema.</p>
+          <DialogHeader className="mb-8 relative z-10">
+            <DialogTitle className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
+              <Zap className="w-8 h-8 text-primary" /> Virar Cliente
+            </DialogTitle>
+            <p className="text-white/40 font-medium">Capture esta oportunidade para o seu time de sucesso.</p>
           </DialogHeader>
 
           {convertModal && (
             <div className="space-y-8 relative z-10">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-white/30">Valor do Fechamento (R$)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0.00"
-                    className="h-14 bg-white/5 border-white/5 rounded-2xl text-xl font-black text-white px-6 focus:ring-primary/40"
-                    value={convertForm.valor}
-                    onChange={e => setConvertForm({...convertForm, valor: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-white/30">Senha de Acesso</Label>
-                  <Input 
-                    type="text" 
-                    placeholder="Mín. 6 dígitos"
-                    className="h-14 bg-white/5 border-white/5 rounded-2xl text-xl font-black text-white px-6 focus:ring-primary/40"
-                    value={convertForm.senha}
-                    onChange={e => setConvertForm({...convertForm, senha: e.target.value})}
-                  />
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary font-black text-xl">
+                    {convertModal.nome[0]}
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white/30 uppercase tracking-widest">Lead Selecionado</p>
+                    <p className="text-lg font-bold text-white">{convertModal.nome}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                  <Zap className="w-5 h-5" />
+              <div className="space-y-4">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Defina uma senha de acesso</Label>
+                <Input 
+                  type="text" 
+                  placeholder="Mín. 6 dígitos (ex: 123456)"
+                  className="h-14 bg-white/5 border-white/10 rounded-2xl text-xl font-bold text-white px-6 focus:ring-primary/40 focus:border-primary/40 transition-all"
+                  value={convertForm.senha}
+                  onChange={e => setConvertForm({...convertForm, senha: e.target.value})}
+                />
+              </div>
+
+              <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                  <CheckCircle className="w-5 h-5" />
                 </div>
-                <p className="text-xs text-primary/80 font-bold leading-relaxed">
-                  Isso criará automaticamente o perfil do cliente e um novo pedido no status pendente.
+                <p className="text-[11px] text-emerald-500/80 font-bold leading-relaxed">
+                  Ao confirmar, o lead será migrado para a base de clientes e você poderá configurar o briefing completo.
                 </p>
               </div>
 
-              <div className="flex gap-4">
-                <Button variant="ghost" className="h-14 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs" onClick={() => setConvertModal(null)}>Cancelar</Button>
+              <div className="flex gap-4 p-2 bg-black/20 rounded-[2rem] border border-white/5">
+                <Button variant="ghost" className="h-14 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs" onClick={() => setConvertModal(null)}>Voltar</Button>
                 <Button 
                   className="flex-1 h-14 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20" 
                   onClick={handleConvert}
                   disabled={converting || convertForm.senha.length < 6}
                 >
-                  {converting ? "Finalizando..." : "Confirmar e Gerar Acesso"}
+                  {converting ? "Migrando..." : "Confirmar Conversão"}
                 </Button>
               </div>
             </div>

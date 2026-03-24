@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw, Link as LinkIcon, Copy, UserPlus } from "lucide-react";
+import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw, Link as LinkIcon, Copy, UserPlus, Sparkles, FileText, ArrowRight, Zap } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -276,9 +277,145 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
             <TabsTrigger value="extras" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
               <Package className="w-3.5 h-3.5" /> Extras ({extras.length})
             </TabsTrigger>
-            <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos</TabsTrigger>
-            <TabsTrigger value="pedidos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Pedidos</TabsTrigger>
+            <TabsTrigger value="briefing" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Configurar Projeto
+            </TabsTrigger>
+            <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos ({projetos.length})</TabsTrigger>
+            <TabsTrigger value="pedidos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Pedidos ({pedidos.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="briefing" className="space-y-6">
+            <Card className="glass-card border-[0.5px] overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+                <Sparkles className="w-40 h-40 text-primary" />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-sm font-bold text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" /> Tudo Sobre o Projeto
+                </CardTitle>
+                <p className="text-xs text-white/40">Preencha os detalhes para transformar este cliente em um projeto oficial no Kanban.</p>
+              </CardHeader>
+              <CardContent className="space-y-6 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-white/30">Título do Projeto</Label>
+                    <Input 
+                      className="glass-input h-12 text-sm" 
+                      placeholder="Ex: Site Institucional NovaesWeb" 
+                      value={cliente.projeto_titulo || ""}
+                      onChange={e => setCliente({ ...cliente, projeto_titulo: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-white/30">Investimento Estimado (R$)</Label>
+                    <Input 
+                      type="number"
+                      className="glass-input h-12 text-sm" 
+                      placeholder="5000.00" 
+                      value={cliente.projeto_valor || ""}
+                      onChange={e => setCliente({ ...cliente, projeto_valor: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-white/30">Prazo Estimado</Label>
+                    <Input 
+                      type="date"
+                      className="glass-input h-12 text-sm" 
+                      value={cliente.projeto_prazo || ""}
+                      onChange={e => setCliente({ ...cliente, projeto_prazo: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-white/30">Responsável</Label>
+                    <Input 
+                      className="glass-input h-12 text-sm" 
+                      placeholder="Nome do Dev/Designer" 
+                      value={cliente.projeto_responsavel || "Lucas"}
+                      onChange={e => setCliente({ ...cliente, projeto_responsavel: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-white/30">Briefing & Escopo</Label>
+                  <Textarea 
+                    className="glass-input min-h-[150px] text-sm leading-relaxed" 
+                    placeholder="Descreva aqui tudo o que o cliente deseja construir..." 
+                    value={cliente.projeto_briefing || ""}
+                    onChange={e => setCliente({ ...cliente, projeto_briefing: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-white/30">Referências & Links (um por linha)</Label>
+                  <Textarea 
+                    className="glass-input min-h-[80px] text-sm" 
+                    placeholder="https://referencia1.com" 
+                    value={cliente.projeto_referencias || ""}
+                    onChange={e => setCliente({ ...cliente, projeto_referencias: e.target.value })}
+                  />
+                </div>
+
+                <div className="pt-6 border-t border-white/5 flex justify-between items-center">
+                   <p className="text-[10px] text-white/30 italic max-w-xs">
+                     Certifique-se de salvar os dados antes de iniciar o projeto oficial.
+                   </p>
+                   <div className="flex gap-3">
+                      <Button 
+                        variant="ghost" 
+                        className="text-white/40 hover:text-white text-xs font-bold uppercase tracking-widest px-6"
+                        onClick={async () => {
+                           const { error } = await supabase.from("clientes").update({
+                             projeto_titulo: cliente.projeto_titulo,
+                             projeto_valor: cliente.projeto_valor,
+                             projeto_prazo: cliente.projeto_prazo,
+                             projeto_responsavel: cliente.projeto_responsavel,
+                             projeto_briefing: cliente.projeto_briefing,
+                             projeto_referencias: cliente.projeto_referencias
+                           } as any).eq("id", clienteId);
+                           if (!error) toast({ title: "Dados do Briefing salvos!" });
+                        }}
+                      >
+                        Salvar Rascunho
+                      </Button>
+                      <Button 
+                        className="gradient-primary text-white text-xs font-black uppercase tracking-widest h-12 px-8 rounded-xl shadow-xl shadow-primary/20"
+                        onClick={async () => {
+                          if (!cliente.projeto_titulo) return toast({ title: "Título do projeto é obrigatório", variant: "destructive" });
+                          setSavingExtra(true);
+                          
+                          // Create Project
+                          const { data: proj, error: projError } = await supabase.from("projetos").insert({
+                            titulo: cliente.projeto_titulo,
+                            cliente_id: clienteId,
+                            valor: Number(cliente.projeto_valor) || 0,
+                            prazo: cliente.projeto_prazo || null,
+                            responsavel: cliente.projeto_responsavel || "Admin",
+                            briefing: cliente.projeto_briefing || "",
+                            referencias: cliente.projeto_referencias || "",
+                            status: "briefing",
+                            progresso: 10
+                          }).select().single();
+
+                          if (projError) {
+                            toast({ title: "Erro ao criar projeto", description: projError.message, variant: "destructive" });
+                          } else {
+                            // Link Orders if needed
+                            toast({ title: "🚀 Projeto Oficial Iniciado!", description: "Redirecionando para o Kanban..." });
+                            setTimeout(() => {
+                              window.location.href = "/admin/projetos";
+                            }, 1500);
+                          }
+                          setSavingExtra(false);
+                        }}
+                      >
+                        <ArrowRight className="w-4 h-4 mr-2" /> Iniciar Projeto Oficial
+                      </Button>
+                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="extras" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -465,10 +602,17 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
 
 export default function Clientes() {
   const { toast } = useToast();
+  const location = useLocation();
   const [clientes, setClientes] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (location.state?.selectedId) {
+      setSelectedCliente(location.state.selectedId);
+    }
+  }, [location.state]);
   const [showNew, setShowNew] = useState(false);
   const [criarConta, setCriarConta] = useState(true);
   const [senhaCliente, setSenhaCliente] = useState("");
