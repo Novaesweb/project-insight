@@ -4,7 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, AlertTriangle, Plus, Sparkles, Calendar, BellRing, Clock, Activity, ArrowRight } from "lucide-react";
+import { 
+  Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, Calendar, 
+  CheckCircle2, Layout, BellRing, Sparkles, AlertTriangle, Activity, UserPlus, Zap, ArrowRight, Plus, Pencil, Trash2, Clock
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,8 @@ export default function Dashboard() {
     { name: "Clientes", value: 0 },
     { name: "Projetos", value: 0 }
   ]);
+  const [revenue, setRevenue] = useState({ paid: 0, pending: 0 });
+  const [pendingInvoices, setPendingInvoices] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -152,6 +157,16 @@ export default function Dashboard() {
           { name: "Projetos", value: projCount || 0 }
         ]);
 
+        // Revenue Data
+        const { data: pData } = await supabase.from("pedidos").select("valor, status, created_at");
+        if (pData) {
+          const totalPaid = pData.filter(p => p.status === "pago").reduce((s, p) => s + (p.valor || 0), 0);
+          const totalPending = pData.filter(p => p.status === "pendente").reduce((s, p) => s + (p.valor || 0), 0);
+          setRevenue({ paid: totalPaid, pending: totalPending });
+          
+          setPendingInvoices(pData.filter(p => p.status === "pendente").length);
+        }
+
         // Subscriptions
         supabase.from("push_subscriptions").select("id", { count: "exact", head: true })
           .then(({ count }) => setSubCount(count || 0));
@@ -231,14 +246,16 @@ export default function Dashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[9px] uppercase tracking-[0.2em] text-white/20 font-bold mb-0.5">{kpi.label}</p>
-                  <p className="text-2xl font-black text-white tracking-tighter leading-none">{kpi.value}</p>
+                  <p className="text-2xl font-black text-white tracking-tighter leading-none">
+                    {kpi.label === "Receita total" ? `R$ ${revenue.paid.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}` : kpi.value}
+                  </p>
                   {kpi.change && (
                     <div className={cn(
                       "inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] font-bold mt-2 border",
                       kpi.alert ? "text-red-400 bg-red-400/10 border-red-400/20" : "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
                     )}>
                       {kpi.alert ? <AlertTriangle className="w-2 h-2" /> : <TrendingUp className="w-2 h-2" />}
-                      {kpi.change}
+                      {kpi.label === "Receita total" ? `${((revenue.paid / (revenue.paid + revenue.pending || 1)) * 100).toFixed(0)}% Pago` : kpi.change}
                     </div>
                   )}
                 </div>
@@ -249,6 +266,46 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ))}
+      </motion.div>
+
+      {/* CABINE DE INTELIGÊNCIA */}
+      <motion.div variants={fadeUp} className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black text-white uppercase tracking-widest">Cabine de Inteligência</h2>
+            <p className="text-[10px] text-white/40 font-medium">Sugestões baseadas no estado atual do seu negócio.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <InsightAction 
+            icon={UserPlus} 
+            title="Novo Lead Pendente" 
+            desc={`Você tem ${funnelData[0].value} leads que ainda não viraram clientes. Inicie o fluxo de sucesso.`}
+            action="Ver Leads"
+            link="/admin/leads"
+            color="border-rose-500/20"
+          />
+          <InsightAction 
+            icon={DollarSign} 
+            title="Faturas Pendentes" 
+            desc={`Existem ${pendingInvoices} faturas aguardando pagamento. Envie um lembrete via WhatsApp.`}
+            action="Ver Financeiro"
+            link="/admin/pedidos"
+            color="border-amber-500/20"
+          />
+          <InsightAction 
+            icon={Zap} 
+            title="Sincronização" 
+            desc="Seu banco de dados foi atualizado com as últimas transações comerciais."
+            action="Ver Atividade"
+            link="#"
+            color="border-blue-500/20"
+          />
+        </div>
       </motion.div>
 
       {/* CHARTS ROW */}

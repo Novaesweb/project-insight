@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, ArrowRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowRight, DollarSign, FileText, Layout, Copy, Zap, Package } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -186,57 +186,98 @@ export default function Pedidos() {
         </Dialog>
       </motion.div>
 
-      <motion.div variants={fadeUp}>
-        <Card className="glass-card border-[0.5px]">
-          <CardContent className="pt-6">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Nº Pedido", "Cliente", "Tipo", "Valor", "Data", "Ações"].map((h) => (
-                    <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtrados.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum pedido</TableCell></TableRow>
-                ) : filtrados.map((p) => (
-                  <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)]">
-                    <TableCell className="text-sm font-mono font-medium gradient-text">{p.codigo}</TableCell>
-                    <TableCell className="text-sm text-white">{p.clientes?.nome || "—"}</TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.tipo}</TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.data ? new Date(p.data).toLocaleDateString("pt-BR") : new Date(p.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {p.projeto_id ? (
-                          <Button variant="ghost" size="sm" className="text-emerald-400 hover:text-emerald-300 h-8 gap-1.5 text-[10px]" onClick={() => window.location.href = `/admin/projetos`}>
-                            <ArrowRight className="w-3 h-3" /> Ver Projeto
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-8 text-[10px] border-primary/20 text-primary hover:bg-primary/10 gap-1.5" 
-                            disabled={saving}
-                            onClick={() => iniciarProjeto(p)}
-                          >
-                            <Plus className="w-3 h-3" /> Iniciar Projeto
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/50 hover:text-white" onClick={() => openEdit(p)}>
-                          <Pencil className="w-3 h-3" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500/50 hover:text-red-500" onClick={() => handleDelete(p.id)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filtrados.length === 0 ? (
+          <div className="col-span-full p-20 border border-dashed border-white/10 rounded-[3rem] text-center bg-white/[0.01]">
+             <Package className="w-12 h-12 text-white/10 mx-auto mb-4" />
+             <p className="text-sm text-white/40 font-medium italic">Nenhum faturamento encontrado nesta categoria.</p>
+          </div>
+        ) : filtrados.map((p) => (
+          <Card key={p.id} className="glass-card border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all overflow-hidden group relative">
+            <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none group-hover:scale-110 transition-transform">
+              <DollarSign className="w-24 h-24 text-primary" />
+            </div>
+            
+            <CardContent className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{p.codigo}</span>
+                    <StatusBadge status={p.status} />
+                  </div>
+                  <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors line-clamp-1">{p.tipo}</h3>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/40 shadow-inner">
+                  <FileText className="w-5 h-5" />
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex justify-between items-end border-b border-white/5 pb-4">
+                  <div>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Cliente</p>
+                    <p className="text-sm font-bold text-white/80">{p.clientes?.nome || "Excluido"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Vencimento</p>
+                    <p className="text-sm font-bold text-white/80">{p.data ? new Date(p.data).toLocaleDateString("pt-BR") : "N/D"}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                   <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Total da Fatura</p>
+                   <p className="text-3xl font-black text-white tracking-tighter">
+                     <span className="text-sm font-medium text-primary mr-1">R$</span>
+                     {(p.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                   </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                 <Button 
+                   variant="ghost" 
+                   className="h-12 border border-white/5 hover:border-primary/20 hover:bg-primary/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-primary rounded-2xl transition-all"
+                   onClick={() => {
+                      const text = `💎 *FATURA NOVAESWEB*\n\nNº: ${p.codigo}\nCliente: ${p.clientes?.nome}\nServiço: ${p.tipo}\nValor: R$ ${p.valor.toLocaleString("pt-BR")}\nStatus: ${p.status.toUpperCase()}\n\n_Acesse seu portal para mais detalhes._`;
+                      navigator.clipboard.writeText(text);
+                      toast({ title: "Pronto para WhatsApp!", description: "Dados copiados com sucesso." });
+                   }}
+                 >
+                   <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Dados
+                 </Button>
+                 
+                 {p.projeto_id ? (
+                   <Button 
+                     className="h-12 gradient-primary text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary/20"
+                     onClick={() => window.location.href = `/admin/projetos`}
+                   >
+                     <Layout className="w-3.5 h-3.5 mr-2" /> Ver Projeto
+                   </Button>
+                 ) : (
+                   <Button 
+                     variant="outline"
+                     className="h-12 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all"
+                     disabled={saving}
+                     onClick={() => iniciarProjeto(p)}
+                   >
+                     <Zap className="w-3.5 h-3.5 mr-2" /> Criar Projeto
+                   </Button>
+                 )}
+              </div>
+
+              <div className="absolute bottom-4 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg text-white/20 hover:text-white" onClick={() => openEdit(p)}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg text-rose-500/40 hover:text-rose-500" onClick={() => handleDelete(p.id)}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </motion.div>
     </motion.div>
   );

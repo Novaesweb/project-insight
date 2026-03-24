@@ -280,6 +280,9 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
             <TabsTrigger value="briefing" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> Configurar Projeto
             </TabsTrigger>
+            <TabsTrigger value="financeiro" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
+              <DollarSign className="w-3.5 h-3.5" /> Financeiro
+            </TabsTrigger>
             <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos ({projetos.length})</TabsTrigger>
             <TabsTrigger value="pedidos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Pedidos ({pedidos.length})</TabsTrigger>
           </TabsList>
@@ -417,6 +420,96 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
             </Card>
           </TabsContent>
 
+          <TabsContent value="financeiro" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+               <div>
+                  <h3 className="text-lg font-black text-white tracking-tight">Gestão Financeira</h3>
+                  <p className="text-xs text-white/40">Pedidos, faturas e controle de pagamentos.</p>
+               </div>
+               <Button 
+                className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-xl shadow-lg"
+                onClick={async () => {
+                  const valorSugerido = cliente.projeto_valor || "0";
+                  const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+                  
+                  const { error } = await supabase.from("pedidos").insert({
+                    codigo: codigoPed,
+                    cliente_id: clienteId,
+                    tipo: cliente.projeto_titulo || "Serviço Gerado",
+                    valor: Number(valorSugerido),
+                    status: "pendente",
+                    data: new Date().toISOString().split("T")[0]
+                  });
+
+                  if (!error) {
+                    toast({ title: "Faturamento Gerado!", description: `Pedido ${codigoPed} criado com o valor do briefing.` });
+                    loadData();
+                  }
+                }}
+               >
+                 <Plus className="w-3 h-3 mr-2" /> Gerar Faturamento Rápido
+               </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              {pedidos.length === 0 ? (
+                <div className="p-12 border border-dashed border-white/10 rounded-[2rem] text-center">
+                   <p className="text-sm text-white/20 italic">Nenhum pedido gerado para este cliente.</p>
+                </div>
+              ) : pedidos.map((p: any) => (
+                <Card key={p.id} className="glass-card border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all overflow-hidden group">
+                  <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shadow-inner">
+                        <DollarSign className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">{p.codigo}</span>
+                          <StatusBadge status={p.status} />
+                        </div>
+                        <h4 className="text-sm font-bold text-white group-hover:text-primary transition-colors">{p.tipo}</h4>
+                        <p className="text-[10px] text-white/30 font-medium">Vencimento: {p.data ? new Date(p.data).toLocaleDateString("pt-BR") : "Não definido"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-8">
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Total</p>
+                        <p className="text-xl font-black text-white">R$ {(p.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="flex gap-2">
+                         <Button 
+                           variant="ghost" 
+                           className="h-10 w-10 p-0 text-white/40 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl border border-transparent hover:border-primary/20"
+                           onClick={() => {
+                              const text = `💎 *FATURA NOVAESWEB*\n\nNº: ${p.codigo}\nServiço: ${p.tipo}\nValor: R$ ${p.valor.toLocaleString("pt-BR")}\nStatus: ${p.status.toUpperCase()}\n\n_Para pagar, acesse o painel ou fale com seu gerente._`;
+                              navigator.clipboard.writeText(text);
+                              toast({ title: "Copiado!", description: "Dados da fatura prontos para o WhatsApp." });
+                           }}
+                         >
+                           <Copy className="w-4 h-4" />
+                         </Button>
+                         <Button 
+                           className="h-10 px-6 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest border border-white/10 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all"
+                           onClick={async () => {
+                              const newStatus = p.status === "pago" ? "pendente" : "pago";
+                              const { error } = await supabase.from("pedidos").update({ status: newStatus }).eq("id", p.id);
+                              if (!error) {
+                                toast({ title: `Status alterado para ${newStatus}!` });
+                                loadData();
+                              }
+                           }}
+                         >
+                           {p.status === "pago" ? "Reabrir" : "Marcar Pago"}
+                         </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
           <TabsContent value="extras" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Card className="glass-card border-[0.5px]">
