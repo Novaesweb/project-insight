@@ -283,7 +283,7 @@ export default function Cadastro() {
                     <FieldError field="nome" />
                   </div>
                   <div className="space-y-2">
-                    <Label className={labelClass}>E-mail profissional <span className="text-primary">*</span></Label>
+                    <Label className={labelClass}>E-mail / Gmail <span className="text-primary">*</span></Label>
                     <Input type="email" className={inputClass("email")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@email.com" />
                     <FieldError field="email" />
                   </div>
