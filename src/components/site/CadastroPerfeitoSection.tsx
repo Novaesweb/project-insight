@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
-import novaesSymbol from "@/assets/novaesweb-symbol.jpeg";
+import novaesPremiumLogo from "@/assets/novaesweb-premium-logo.png";
 
 // --- Opções de Seleção ---
 const SEGMENTOS = [
@@ -163,13 +163,16 @@ export default function CadastroPerfeitoSection() {
         <div className="hidden lg:flex w-[300px] sidebar-novaes-gradient p-10 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
           <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] pointer-events-none" />
           <div className="z-10 relative">
-            <div className="flex items-center gap-3 mb-12 group">
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center p-2.5 shadow-2xl">
-                <img src={novaesSymbol} alt="Logo" className="w-full h-full object-contain" />
+            <div className="flex flex-col items-center justify-center mb-10 group pt-4">
+              <div className="relative group-hover:scale-110 transition-transform duration-500">
+                <div className="absolute inset-0 bg-primary-novaes/20 blur-[30px] rounded-full animate-pulse" />
+                <div className="w-28 h-28 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center p-1 shadow-2xl overflow-hidden relative backdrop-blur-xl">
+                  <img src={novaesPremiumLogo} alt="Logo Premium" className="w-full h-full object-cover" />
+                </div>
               </div>
-              <div className="flex flex-col text-left">
-                <span className="text-xl font-black tracking-tighter leading-none">NOVAES<span className="text-white/40 font-light">WEB</span></span>
-                <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40">Premium CRM</span>
+              <div className="mt-6 flex flex-col items-center text-center">
+                <span className="text-2xl font-black tracking-[0.2em] leading-none text-white">NOVAES<span className="text-primary-novaes">WEB</span></span>
+                <span className="text-[10px] font-black uppercase tracking-[0.6em] opacity-40 mt-2">Elite CRM</span>
               </div>
             </div>
             
