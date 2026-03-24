@@ -61,7 +61,7 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
-    nome: "", whatsapp: "", nome_negocio: "", tipo_negocio: "",
+    nome: "", email: "", whatsapp: "", nome_negocio: "", tipo_negocio: "",
     servicos: [] as string[], orcamento: "", como_conheceu: "", mensagem: "",
   });
 
@@ -77,6 +77,7 @@ export default function Cadastro() {
   const validate = (): boolean => {
     const errs: FieldErrors = {};
     if (!form.nome.trim()) errs.nome = "Nome é obrigatório";
+    if (!form.email.trim() || !form.email.includes("@")) errs.email = "E-mail inválido";
     if (!form.whatsapp.trim() || !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
     if (!form.nome_negocio.trim()) errs.nome_negocio = "Nome do negócio é obrigatório";
     if (!form.tipo_negocio.trim()) errs.tipo_negocio = "Tipo de negócio é obrigatório";
@@ -96,6 +97,7 @@ export default function Cadastro() {
     setLoading(true);
     const { error } = await supabase.from("leads").insert({
       nome: form.nome.trim(),
+      email: form.email.trim(),
       whatsapp: form.whatsapp.replace(/\D/g, ""),
       nome_negocio: form.nome_negocio.trim(),
       segmento: form.tipo_negocio.trim(), 
@@ -110,6 +112,12 @@ export default function Cadastro() {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
       setEnviado(true);
+      
+      // Enviar e-mail via Edge Function
+      supabase.functions.invoke("send-lead-email", {
+        body: { ...form, whatsapp: form.whatsapp.replace(/\D/g, "") }
+      });
+
       sendPushToAdmins("🆕 Novo Cadastro Perfeito", `${form.nome} está interessado em ${form.servicos.join(", ")}`, "/admin/leads");
     }
   };
@@ -275,10 +283,18 @@ export default function Cadastro() {
                     <FieldError field="nome" />
                   </div>
                   <div className="space-y-2">
+                    <Label className={labelClass}>E-mail profissional <span className="text-primary">*</span></Label>
+                    <Input type="email" className={inputClass("email")} value={form.email} onChange={e => updateForm("email", e.target.value)} placeholder="seu@email.com" />
+                    <FieldError field="email" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
                     <Label className={labelClass}>WhatsApp direto <span className="text-primary">*</span></Label>
                     <Input className={inputClass("whatsapp")} placeholder="(00) 00000-0000" value={form.whatsapp} onChange={e => updateForm("whatsapp", formatWhatsApp(e.target.value))} />
                     <FieldError field="whatsapp" />
                   </div>
+                   <div className="hidden sm:block" />
                 </div>
               </motion.div>
 

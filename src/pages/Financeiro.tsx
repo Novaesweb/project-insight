@@ -12,6 +12,7 @@ import { TrendingUp, AlertTriangle, DollarSign, Plus, FileDown, FileText, FileSp
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 
@@ -86,6 +87,14 @@ export default function Financeiro() {
     setShowForm(false);
     setForm(emptyForm);
     setEditingId(null);
+    load();
+  };
+
+  const toggleStatus = async (id: string, current: string) => {
+    const next = current === "pago" ? "pendente" : "pago";
+    const { error } = await supabase.from("financeiro").update({ status: next }).eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: `Status alterado para ${next.toUpperCase()}!` });
     load();
   };
 
@@ -216,36 +225,49 @@ export default function Financeiro() {
                     <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.clientes?.nome || "—"}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7 px-2">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
-                          <DropdownMenuItem onClick={() => openEdit(f)} className="text-xs gap-2 cursor-pointer">
-                            <Pencil className="w-3 h-3 text-blue-400" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/5" />
-                          <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
-                            <FileText className="w-3 h-3 text-red-400" /> PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer">
-                            <FileSpreadsheet className="w-3 h-3 text-blue-400" /> Word
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
-                            <FileDown className="w-3 h-3 text-green-400" /> CSV
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/5" />
-                          <DropdownMenuItem
-                            onClick={() => { if (confirm("Excluir este lançamento?")) handleDelete(f.id); }}
-                            className="text-xs gap-2 cursor-pointer text-red-400 focus:text-red-400"
-                            disabled={deletingId === f.id}
-                          >
-                            <Trash2 className="w-3 h-3" /> {deletingId === f.id ? "Excluindo..." : "Excluir"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className={cn(
+                            "h-7 px-2 text-[10px] uppercase font-bold border-white/10 transition-all",
+                            f.status === "pago" ? "hover:bg-amber-500/20 hover:text-amber-400" : "hover:bg-emerald-500/20 hover:text-emerald-400"
+                          )}
+                          onClick={() => toggleStatus(f.id, f.status)}
+                        >
+                          {f.status === "pago" ? "Pendente" : "Pagar"}
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7 px-2">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
+                            <DropdownMenuItem onClick={() => openEdit(f)} className="text-xs gap-2 cursor-pointer">
+                              <Pencil className="w-3 h-3 text-blue-400" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                            <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
+                              <FileText className="w-3 h-3 text-red-400" /> PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer">
+                              <FileSpreadsheet className="w-3 h-3 text-blue-400" /> Word
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
+                              <FileDown className="w-3 h-3 text-green-400" /> CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                            <DropdownMenuItem
+                              onClick={() => { if (confirm("Excluir este lançamento?")) handleDelete(f.id); }}
+                              className="text-xs gap-2 cursor-pointer text-red-400 focus:text-red-400"
+                              disabled={deletingId === f.id}
+                            >
+                              <Trash2 className="w-3 h-3" /> {deletingId === f.id ? "Excluindo..." : "Excluir"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, Calendar, 
@@ -28,6 +28,7 @@ const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 const CHART_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [stats, setStats] = useState({ clientes: 0, projetos: 0, pedidos: 0, receita: 0 });
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -492,7 +493,11 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                   {pedidos.map((p: any) => (
-                    <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)] h-10 hover:bg-white/5">
+                    <TableRow 
+                      key={p.id} 
+                      className="border-[rgba(255,255,255,0.04)] h-10 hover:bg-white/5 cursor-pointer"
+                      onClick={() => navigate("/admin/clientes", { state: { selectedId: p.cliente_id, tab: "financeiro" } })}
+                    >
                       <TableCell className="text-xs text-white py-2">{p.clientes?.nome || "—"}</TableCell>
                       <TableCell className="py-2"><StatusBadge status={p.status} /></TableCell>
                     </TableRow>

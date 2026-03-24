@@ -1,25 +1,78 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { 
+  Users, Plus, Search, Mail, Phone, MapPin, 
+  Trash2, Pencil, ExternalLink, ArrowLeft,
+  DollarSign, Package, Sparkles, FileText,
+  AlertCircle, CheckCircle2, Clock, Zap,
+  ArrowRight, UserPlus, Copy, RefreshCw, Pause
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { 
+  Card, CardContent, CardHeader, CardTitle, 
+  CardDescription 
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Table, TableBody, TableCell, TableHead, 
+  TableHeader, TableRow 
+} from "@/components/ui/table";
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger
+} from "@/components/ui/tabs";
+import { 
+  Dialog, DialogContent, DialogDescription, 
+  DialogHeader, DialogTitle, DialogTrigger 
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, ArrowLeft, Package, Pause, XCircle, DollarSign, RefreshCw, Link as LinkIcon, Copy, UserPlus, Sparkles, FileText, ArrowRight, Zap } from "lucide-react";
-import StatusBadge from "@/components/StatusBadge";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { sendPushToAdmins, sendPushToClient } from "@/lib/push-notifications";
+import { useLocation } from "react-router-dom";
+import { sendPushToAdmins } from "@/lib/push";
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
 
-const catColors: Record<string, string> = { fixo: "text-emerald-400", intermediario: "text-amber-400", mensal: "text-blue-400" };
-const catLabels: Record<string, string> = { fixo: "Fixo", intermediario: "Intermediário", mensal: "Mensal" };
+const catLabels: any = {
+  vendas: "Vendas / Social",
+  estratégia: "Estratégia",
+  conteúdo: "Conteúdo",
+  desenvolvimento: "Dev",
+  design: "Branding",
+  gestão: "Gestão"
+};
+
+const catColors: any = {
+  vendas: "text-blue-400",
+  estratégia: "text-purple-400",
+  conteúdo: "text-pêssego-400",
+  desenvolvimento: "text-emerald-400",
+  design: "text-pink-400",
+  gestão: "text-amber-400"
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const configs: any = {
+    ativo: { icon: CheckCircle2, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", label: "Ativo" },
+    inativo: { icon: AlertCircle, color: "text-red-400 bg-red-400/10 border-red-400/20", label: "Inativo" },
+    pago: { icon: CheckCircle2, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", label: "Pago" },
+    pendente: { icon: Clock, color: "text-amber-400 bg-amber-400/10 border-amber-400/20", label: "Pendente" },
+    briefing: { icon: Sparkles, color: "text-purple-400 bg-purple-400/10 border-purple-400/20", label: "Briefing" },
+    em_andamento: { icon: RefreshCw, color: "text-blue-400 bg-blue-400/10 border-blue-400/20", label: "Execução" }
+  };
+  const config = configs[status] || configs.ativo;
+  const Icon = config.icon;
+  return (
+    <Badge variant="outline" className={`${config.color} gap-1.5 py-1 px-3 border-[0.5px] rounded-full`}>
+      <Icon className="w-3 h-3" /> {config.label}
+    </Badge>
+  );
+};
+
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
   const [cliente, setCliente] = useState<any>(null);
@@ -33,62 +86,57 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const [savingExtra, setSavingExtra] = useState(false);
 
   const loadData = async () => {
-    const [c, e, p, ped, cat] = await Promise.all([
-      supabase.from("clientes").select("*").eq("id", clienteId).single(),
-      supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", clienteId),
-      supabase.from("projetos").select("*").eq("cliente_id", clienteId),
-      supabase.from("pedidos").select("*").eq("cliente_id", clienteId),
-      supabase.from("extras_catalogo").select("*").eq("status", "ativo"),
-    ]);
-    setCliente(c.data);
-    setExtras(e.data || []);
-    setProjetos(p.data || []);
-    setPedidos(ped.data || []);
-    setCatalogo(cat.data || []);
+    const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+    if (c) setCliente(c);
+
+    const { data: e } = await supabase.from("clientes_extras").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
+    if (e) setExtras(e);
+
+    const { data: p } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+    if (p) setProjetos(p);
+
+    const { data: ped } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+    if (ped) setPedidos(ped);
+
+    const { data: cat } = await supabase.from("extras_catalogo").select("*");
+    if (cat) setCatalogo(cat);
   };
 
   useEffect(() => { loadData(); }, [clienteId]);
 
   const handleAddExtra = async () => {
     if (!extraSelecionado) return;
-    const extra = catalogo.find(c => c.id === extraSelecionado);
-    if (!extra) return;
     setSavingExtra(true);
-    const { error } = await supabase.from("extras_clientes").insert({
+    const sel = catalogo.find(c => c.id === extraSelecionado);
+    const { error } = await supabase.from("clientes_extras").insert({
       cliente_id: clienteId,
-      extra_id: extra.id,
-      categoria: extra.categoria,
-      preco_ativacao: Number(extra.preco_ativacao) || 0,
-      preco_mensal: Number(extra.preco_mensal) || 0,
-      observacao: observacao || null,
+      extra_id: extraSelecionado,
+      categoria: sel?.categoria || "vendas",
+      preco_ativacao: sel?.preco_ativacao || 0,
+      preco_mensal: sel?.preco_mensal || 0,
+      observacao,
+      status: "pendente"
     });
+
+    if (error) {
+      toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Extra adicionado!", description: "Recurso vinculado ao cliente." });
+      loadData();
+      setShowAddExtra(false);
+      setExtraSelecionado("");
+      setObservacao("");
+    }
     setSavingExtra(false);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Extra adicionado!", description: `"${extra.nome}" foi vinculado ao cliente.` });
-
-    // Notify client
-    sendPushToClient(clienteId, "🆕 Novo extra adicionado", `"${extra.nome}" foi ativado no seu plano.`, "/cliente/extras");
-    supabase.from("notifications").insert({
-      title: "Novo extra adicionado",
-      body: `"${extra.nome}" foi ativado no seu plano.`,
-      user_id: clienteId,
-      user_type: "cliente",
-      url: "/cliente/extras",
-    }).then(() => {});
-
-    setShowAddExtra(false);
-    setExtraSelecionado("");
-    setObservacao("");
-    loadData();
   };
 
-  if (!cliente) return <p className="text-white">Carregando...</p>;
+  if (!cliente) return null;
 
-  const avatar = cliente.avatar || cliente.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-  const totalMensal = extras.filter((e: any) => e.status === "ativo" && e.preco_mensal > 0).reduce((s: number, e: any) => s + Number(e.preco_mensal), 0);
-  const totalAtivacoes = extras.filter((e: any) => e.preco_ativacao > 0).reduce((s: number, e: any) => s + Number(e.preco_ativacao), 0);
-  // Filter catalog to exclude already-added extras
-  const extrasDisponiveis = catalogo.filter(c => !extras.some(e => e.extra_id === c.id && e.status === "ativo"));
+  const totalMensal = extras.reduce((acc, curr) => acc + (Number(curr.preco_mensal) || 0), 0);
+  const totalAtivacoes = extras.reduce((acc, curr) => acc + (Number(curr.preco_ativacao) || 0), 0);
+  const avatar = cliente.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+
+  const extrasDisponiveis = catalogo.filter(c => !extras.some(e => e.extra_id === c.id));
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
@@ -151,10 +199,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                          </Button>
                       </div>
                    </div>
-                   <div className="pt-4 sm:pt-0">
-                      <p className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold mb-1">Localização</p>
-                      <p className="text-xs text-white/60">{cliente.cidade}, {cliente.estado} · {cliente.documento}</p>
-                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 mt-6 p-4 rounded-2xl bg-white/5 border border-white/10">
                    <div className="flex-1">
@@ -175,97 +219,60 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                    </div>
                    <div className="flex items-end gap-2">
                       <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="h-9 border-white/10 hover:bg-white/5 text-[10px]"
-                        onClick={async () => {
-                          const newDate = new Date();
-                          newDate.setDate(newDate.getDate() + 7);
-                          const { error } = await supabase.from("clientes").update({ trial_ends_at: newDate.toISOString() } as any).eq("id", clienteId);
-                          if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
-                          else { toast({ title: "Trial expandido!", description: "+7 dias concedidos." }); loadData(); }
-                        }}
+                         size="sm" 
+                         variant="outline" 
+                         className="h-9 border-white/10 hover:bg-white/5 text-[10px]"
+                         onClick={async () => {
+                           const newDate = new Date();
+                           newDate.setDate(newDate.getDate() + 7);
+                           const { error } = await supabase.from("clientes").update({ trial_ends_at: newDate.toISOString() } as any).eq("id", clienteId);
+                           if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+                           else { toast({ title: "Trial expandido!", description: "+7 dias concedidos." }); loadData(); }
+                         }}
                       >
                          Dar +7 Dias
                       </Button>
                       <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="h-9 border-red-500/20 text-red-500 hover:bg-red-500/10 text-[10px]"
-                        onClick={async () => {
-                          const newDate = new Date();
-                          newDate.setDate(newDate.getDate() - 1);
-                          const { error } = await supabase.from("clientes").update({ trial_ends_at: newDate.toISOString() } as any).eq("id", clienteId);
-                          if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
-                          else { toast({ title: "Acesso Bloqueado!", variant: "destructive" }); loadData(); }
-                        }}
+                         size="sm" 
+                         variant="outline" 
+                         className="h-9 border-red-500/20 text-red-500 hover:bg-red-500/10 text-[10px]"
+                         onClick={async () => {
+                           const newDate = new Date();
+                           newDate.setDate(newDate.getDate() - 1);
+                           const { error } = await supabase.from("clientes").update({ trial_ends_at: newDate.toISOString() } as any).eq("id", clienteId);
+                           if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+                           else { toast({ title: "Acesso Bloqueado!", variant: "destructive" }); loadData(); }
+                         }}
                       >
                          <Pause className="w-3 h-3 mr-1" /> Bloquear Agora
                       </Button>
                       <Button 
-                        size="sm" 
-                        className="h-9 gradient-primary border-0 text-[10px]"
-                        onClick={async () => {
-                          const { error } = await supabase.from("clientes").update({ trial_ends_at: cliente.trial_ends_at } as any).eq("id", clienteId);
-                          if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
-                          else toast({ title: "Data salva!" });
-                        }}
+                         size="sm" 
+                         className="h-9 gradient-primary border-0 text-[10px]"
+                         onClick={async () => {
+                           const { error } = await supabase.from("clientes").update({ trial_ends_at: cliente.trial_ends_at } as any).eq("id", clienteId);
+                           if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+                           else toast({ title: "Data salva!" });
+                         }}
                       >
                          Salvar Data
                       </Button>
                    </div>
                 </div>
               </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
-                  onClick={() => {
-                    const msg = `Olá ${cliente.nome}!\n\nSeu acesso ao Portal do Cliente NovaesWeb está pronto.\n\n🔗 Acesse aqui: ${window.location.origin}/cliente\n📧 E-mail: ${cliente.email}\n🔑 Senha: ${cliente.senha || "(sua senha cadastrada)"}\n\nLá você poderá acompanhar seus projetos, faturas e abrir chamados de suporte.`;
-                    navigator.clipboard.writeText(msg);
-                    toast({ title: "Convite copiado!", description: "A mensagem foi copiada para sua área de transferência." });
-                  }}
-                >
-                  <UserPlus className="w-3 h-3 mr-1" /> Convidar Acesso
-                </Button>
-                <Dialog>
-                   <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-[hsl(var(--muted-foreground))] hover:text-white text-xs">
-                         {cliente.senha ? "Alterar Senha" : "Definir Senha"}
-                      </Button>
-                   </DialogTrigger>
-                   <DialogContent className="glass-card border-white/10 text-white max-w-sm">
-                      <DialogHeader><DialogTitle className="text-white">Acesso do Cliente</DialogTitle></DialogHeader>
-                      <div className="space-y-4 mt-2">
-                         <div className="space-y-1.5">
-                            <Label className="text-xs text-white/50">Nova Senha de Acesso</Label>
-                            <Input 
-                              type="text" 
-                              className="glass-input h-9 text-sm" 
-                              placeholder="Mínimo 6 caracteres"
-                              value={cliente.senha || ""}
-                              onChange={e => setCliente({ ...cliente, senha: e.target.value })}
-                            />
-                         </div>
-                         <Button 
-                           className="w-full gradient-primary border-0"
-                           onClick={async () => {
-                             if (!cliente.senha || cliente.senha.length < 4) {
-                               toast({ title: "Senha muito curta", variant: "destructive" });
-                               return;
-                             }
-                             const { error } = await supabase.from("clientes").update({ senha: cliente.senha } as any).eq("id", clienteId);
-                             if (error) toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-                             else toast({ title: "Senha atualizada!" });
-                           }}
-                         >
-                           Salvar Senha
-                         </Button>
-                      </div>
-                   </DialogContent>
-                </Dialog>
-                <StatusBadge status={cliente.status} />
-
+              <div className="flex flex-col items-end gap-3">
+                 <Button
+                   className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-xl shadow-lg flex items-center gap-2"
+                   onClick={() => {
+                     localStorage.setItem("clienteLogado", JSON.stringify(cliente));
+                     window.open("/cliente/dashboard", "_blank");
+                     toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
+                   }}
+                 >
+                   <Zap className="w-3.5 h-3.5" /> Portal do Cliente
+                 </Button>
+                 <StatusBadge status={cliente.status} />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -278,413 +285,259 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <Package className="w-3.5 h-3.5" /> Extras ({extras.length})
             </TabsTrigger>
             <TabsTrigger value="briefing" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Configurar Projeto
+              <Sparkles className="w-3.5 h-3.5" /> Briefing
             </TabsTrigger>
             <TabsTrigger value="financeiro" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
               <DollarSign className="w-3.5 h-3.5" /> Financeiro
             </TabsTrigger>
             <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos ({projetos.length})</TabsTrigger>
-            <TabsTrigger value="pedidos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Pedidos ({pedidos.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="briefing" className="space-y-6">
-            <Card className="glass-card border-[0.5px] overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
-                <Sparkles className="w-40 h-40 text-primary" />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-sm font-bold text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" /> Tudo Sobre o Projeto
-                </CardTitle>
-                <p className="text-xs text-white/40">Preencha os detalhes para transformar este cliente em um projeto oficial no Kanban.</p>
-              </CardHeader>
-              <CardContent className="space-y-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-white/30">Título do Projeto</Label>
-                    <Input 
-                      className="glass-input h-12 text-sm" 
-                      placeholder="Ex: Site Institucional NovaesWeb" 
-                      value={cliente.projeto_titulo || ""}
-                      onChange={e => setCliente({ ...cliente, projeto_titulo: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-white/30">Investimento Estimado (R$)</Label>
-                    <Input 
-                      type="number"
-                      className="glass-input h-12 text-sm" 
-                      placeholder="5000.00" 
-                      value={cliente.projeto_valor || ""}
-                      onChange={e => setCliente({ ...cliente, projeto_valor: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-white/30">Prazo Estimado</Label>
-                    <Input 
-                      type="date"
-                      className="glass-input h-12 text-sm" 
-                      value={cliente.projeto_prazo || ""}
-                      onChange={e => setCliente({ ...cliente, projeto_prazo: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-white/30">Responsável</Label>
-                    <Input 
-                      className="glass-input h-12 text-sm" 
-                      placeholder="Nome do Dev/Designer" 
-                      value={cliente.projeto_responsavel || "Lucas"}
-                      onChange={e => setCliente({ ...cliente, projeto_responsavel: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-white/30">Briefing & Escopo</Label>
-                  <Textarea 
-                    className="glass-input min-h-[150px] text-sm leading-relaxed" 
-                    placeholder="Descreva aqui tudo o que o cliente deseja construir..." 
-                    value={cliente.projeto_briefing || ""}
-                    onChange={e => setCliente({ ...cliente, projeto_briefing: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-white/30">Referências & Links (um por linha)</Label>
-                  <Textarea 
-                    className="glass-input min-h-[80px] text-sm" 
-                    placeholder="https://referencia1.com" 
-                    value={cliente.projeto_referencias || ""}
-                    onChange={e => setCliente({ ...cliente, projeto_referencias: e.target.value })}
-                  />
-                </div>
-
-                <div className="pt-6 border-t border-white/5 flex justify-between items-center">
-                   <p className="text-[10px] text-white/30 italic max-w-xs">
-                     Certifique-se de salvar os dados antes de iniciar o projeto oficial.
-                   </p>
-                   <div className="flex gap-3">
-                      <Button 
-                        variant="ghost" 
-                        className="text-white/40 hover:text-white text-xs font-bold uppercase tracking-widest px-6"
-                        onClick={async () => {
-                           const { error } = await supabase.from("clientes").update({
-                             projeto_titulo: cliente.projeto_titulo,
-                             projeto_valor: cliente.projeto_valor,
-                             projeto_prazo: cliente.projeto_prazo,
-                             projeto_responsavel: cliente.projeto_responsavel,
-                             projeto_briefing: cliente.projeto_briefing,
-                             projeto_referencias: cliente.projeto_referencias
-                           } as any).eq("id", clienteId);
-                           if (!error) toast({ title: "Dados do Briefing salvos!" });
-                        }}
-                      >
-                        Salvar Rascunho
-                      </Button>
-                      <Button 
-                        className="gradient-primary text-white text-xs font-black uppercase tracking-widest h-12 px-8 rounded-xl shadow-xl shadow-primary/20"
-                        onClick={async () => {
-                          if (!cliente.projeto_titulo) return toast({ title: "Título do projeto é obrigatório", variant: "destructive" });
-                          setSavingExtra(true);
-                          
-                          // Create Project
-                          const { data: proj, error: projError } = await supabase.from("projetos").insert({
-                            titulo: cliente.projeto_titulo,
-                            cliente_id: clienteId,
-                            valor: Number(cliente.projeto_valor) || 0,
-                            prazo: cliente.projeto_prazo || null,
-                            responsavel: cliente.projeto_responsavel || "Admin",
-                            briefing: cliente.projeto_briefing || "",
-                            referencias: cliente.projeto_referencias || "",
-                            status: "briefing",
-                            progresso: 10
-                          }).select().single();
-
-                          if (projError) {
-                            toast({ title: "Erro ao criar projeto", description: projError.message, variant: "destructive" });
-                          } else {
-                            // Link Orders if needed
-                            toast({ title: "🚀 Projeto Oficial Iniciado!", description: "Redirecionando para o Kanban..." });
-                            setTimeout(() => {
-                              window.location.href = "/admin/projetos";
-                            }, 1500);
-                          }
-                          setSavingExtra(false);
-                        }}
-                      >
-                        <ArrowRight className="w-4 h-4 mr-2" /> Iniciar Projeto Oficial
-                      </Button>
-                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="financeiro" className="space-y-6">
-            <div className="flex justify-between items-center mb-4">
-               <div>
-                  <h3 className="text-lg font-black text-white tracking-tight">Gestão Financeira</h3>
-                  <p className="text-xs text-white/40">Pedidos, faturas e controle de pagamentos.</p>
-               </div>
-               <Button 
-                className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-xl shadow-lg"
-                onClick={async () => {
-                  const valorSugerido = cliente.projeto_valor || "0";
-                  const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-                  
-                  const { error } = await supabase.from("pedidos").insert({
-                    codigo: codigoPed,
-                    cliente_id: clienteId,
-                    tipo: cliente.projeto_titulo || "Serviço Gerado",
-                    valor: Number(valorSugerido),
-                    status: "pendente",
-                    data: new Date().toISOString().split("T")[0]
-                  });
-
-                  if (!error) {
-                    toast({ title: "Faturamento Gerado!", description: `Pedido ${codigoPed} criado com o valor do briefing.` });
-                    loadData();
-                  }
-                }}
-               >
-                 <Plus className="w-3 h-3 mr-2" /> Gerar Faturamento Rápido
-               </Button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {pedidos.length === 0 ? (
-                <div className="p-12 border border-dashed border-white/10 rounded-[2rem] text-center">
-                   <p className="text-sm text-white/20 italic">Nenhum pedido gerado para este cliente.</p>
-                </div>
-              ) : pedidos.map((p: any) => (
-                <Card key={p.id} className="glass-card border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all overflow-hidden group">
-                  <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-6">
-                      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-primary shadow-inner">
-                        <DollarSign className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">{p.codigo}</span>
-                          <StatusBadge status={p.status} />
-                        </div>
-                        <h4 className="text-sm font-bold text-white group-hover:text-primary transition-colors">{p.tipo}</h4>
-                        <p className="text-[10px] text-white/30 font-medium">Vencimento: {p.data ? new Date(p.data).toLocaleDateString("pt-BR") : "Não definido"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-8">
-                      <div className="text-right">
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Total</p>
-                        <p className="text-xl font-black text-white">R$ {(p.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                      </div>
-                      <div className="flex gap-2">
-                         <Button 
-                           variant="ghost" 
-                           className="h-10 w-10 p-0 text-white/40 hover:text-primary transition-colors hover:bg-primary/5 rounded-xl border border-transparent hover:border-primary/20"
-                           onClick={() => {
-                              const text = `💎 *FATURA NOVAESWEB*\n\nNº: ${p.codigo}\nServiço: ${p.tipo}\nValor: R$ ${p.valor.toLocaleString("pt-BR")}\nStatus: ${p.status.toUpperCase()}\n\n_Para pagar, acesse o painel ou fale com seu gerente._`;
-                              navigator.clipboard.writeText(text);
-                              toast({ title: "Copiado!", description: "Dados da fatura prontos para o WhatsApp." });
-                           }}
-                         >
-                           <Copy className="w-4 h-4" />
-                         </Button>
-                         <Button 
-                           className="h-10 px-6 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest border border-white/10 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all"
-                           onClick={async () => {
-                              const newStatus = p.status === "pago" ? "pendente" : "pago";
-                              const { error } = await supabase.from("pedidos").update({ status: newStatus }).eq("id", p.id);
-                              if (!error) {
-                                toast({ title: `Status alterado para ${newStatus}!` });
-                                loadData();
-                              }
-                           }}
-                         >
-                           {p.status === "pago" ? "Reabrir" : "Marcar Pago"}
-                         </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="extras" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="glass-card border-[0.5px]">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-blue-500/10"><RefreshCw className="w-4 h-4 text-blue-400" /></div>
-                  <div>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">Total Mensal Recorrente</p>
-                    <p className="text-lg font-bold text-blue-400">R$ {totalMensal.toFixed(2).replace(".", ",")}/mês</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card border-[0.5px]">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10"><DollarSign className="w-4 h-4 text-emerald-400" /></div>
-                  <div>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">Total em Ativações</p>
-                    <p className="text-lg font-bold text-emerald-400">R$ {totalAtivacoes.toFixed(2).replace(".", ",")}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="flex justify-end">
-              <Button className="gradient-primary border-0 text-white text-xs" onClick={() => setShowAddExtra(true)}>
-                <Plus className="w-3 h-3 mr-1.5" /> Adicionar Extra
-              </Button>
-            </div>
-
             <Card className="glass-card border-[0.5px]">
-              <CardContent className="pt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-[rgba(255,255,255,0.06)]">
-                      {["Extra", "Categoria", "Ativação", "Mensal", "Observação", "Status"].map(h => (
-                        <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {extras.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum extra contratado</TableCell></TableRow>
-                    ) : extras.map((e: any) => (
-                      <TableRow key={e.id} className="border-[rgba(255,255,255,0.04)]">
-                        <TableCell>
-                          <div>
-                            <p className="text-sm text-white font-medium">{e.extras_catalogo?.nome || "—"}</p>
-                            {e.extras_catalogo?.descricao && <p className="text-[10px] text-[hsl(var(--muted-foreground))] line-clamp-1">{e.extras_catalogo.descricao}</p>}
-                          </div>
-                        </TableCell>
-                        <TableCell className={`text-xs font-medium ${catColors[e.categoria] || ""}`}>{catLabels[e.categoria] || e.categoria}</TableCell>
-                        <TableCell className="text-sm text-white">{Number(e.preco_ativacao) > 0 ? `R$ ${Number(e.preco_ativacao).toFixed(2).replace(".", ",")}` : "—"}</TableCell>
-                        <TableCell className="text-sm text-white">{Number(e.preco_mensal) > 0 ? `R$ ${Number(e.preco_mensal).toFixed(2).replace(".", ",")}/mês` : "—"}</TableCell>
-                        <TableCell className="text-xs text-[hsl(var(--muted-foreground))] max-w-[150px] truncate">{e.observacao || "—"}</TableCell>
-                        <TableCell><StatusBadge status={e.status} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <CardHeader>
+                <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">Configuração do Projeto</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-white/30 uppercase font-black">Título</Label>
+                    <Input className="glass-input h-10" value={cliente.projeto_titulo || ""} onChange={e => setCliente({ ...cliente, projeto_titulo: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-white/30 uppercase font-black">Valor Estimado</Label>
+                    <Input type="number" className="glass-input h-10" value={cliente.projeto_valor || ""} onChange={e => setCliente({ ...cliente, projeto_valor: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] text-white/30 uppercase font-black">Escopo/Briefing</Label>
+                  <Textarea className="glass-input min-h-[120px]" value={cliente.projeto_briefing || ""} onChange={e => setCliente({ ...cliente, projeto_briefing: e.target.value })} />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" className="h-10 text-xs border-white/10" onClick={async () => {
+                    const { error } = await supabase.from("clientes").update({
+                      projeto_titulo: cliente.projeto_titulo,
+                      projeto_valor: cliente.projeto_valor,
+                      projeto_briefing: cliente.projeto_briefing
+                    } as any).eq("id", clienteId);
+                    if (!error) toast({ title: "Briefing salvo!" });
+                  }}>Salvar Rascunho</Button>
+                  <Button className="gradient-primary h-10 text-xs" onClick={async () => {
+                     const { error } = await supabase.from("projetos").insert({
+                       titulo: cliente.projeto_titulo,
+                       cliente_id: clienteId,
+                       valor: Number(cliente.projeto_valor) || 0,
+                       status: "briefing",
+                       progresso: 10
+                     });
+                     if (!error) toast({ title: "Projeto Criado!" });
+                  }}>Iniciar Projeto Oficial</Button>
+                </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="financeiro" className="space-y-4">
+             <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                   <DollarSign className="w-4 h-4 text-emerald-400" /> Histórico Financeiro
+                </h3>
+                <Button 
+                  className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-9 px-6 rounded-xl shadow-lg"
+                  onClick={async () => {
+                    const code = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+                    const { error } = await supabase.from("pedidos").insert({
+                      codigo: code,
+                      cliente_id: clienteId,
+                      tipo: cliente.projeto_titulo || "Serviço Avulso",
+                      valor: Number(cliente.projeto_valor || 0),
+                      status: "pendente",
+                      data: new Date().toISOString().split("T")[0]
+                    });
+                    if (!error) { toast({ title: "Fatura Gerada!" }); loadData(); }
+                  }}
+                >
+                   <Plus className="w-3 h-3 mr-2" /> Gerar Cobrança
+                </Button>
+             </div>
+
+             <div className="rounded-xl border border-white/5 overflow-hidden">
+                <Table>
+                   <TableHeader className="bg-white/5">
+                      <TableRow className="border-white/5">
+                         <TableHead className="text-[10px] text-white/50 uppercase font-black">Descrição</TableHead>
+                         <TableHead className="text-[10px] text-white/50 uppercase font-black text-right">Valor</TableHead>
+                         <TableHead className="text-[10px] text-white/50 uppercase font-black text-center">Data</TableHead>
+                         <TableHead className="text-[10px] text-white/50 uppercase font-black text-center">Status</TableHead>
+                         <TableHead className="text-[10px] text-white/50 uppercase font-black text-right">Ações</TableHead>
+                      </TableRow>
+                   </TableHeader>
+                   <TableBody className="bg-white/[0.02]">
+                      {pedidos.length === 0 ? (
+                         <TableRow><TableCell colSpan={5} className="text-center py-10 text-xs text-white/20 italic">Sem faturas.</TableCell></TableRow>
+                      ) : pedidos.map((p: any) => (
+                         <TableRow key={p.id} className="border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <TableCell className="py-4">
+                               <p className="text-xs font-bold text-white">{p.tipo || "Cobrança"}</p>
+                               <span className="text-[9px] text-white/30 font-mono uppercase tracking-tighter">{p.codigo}</span>
+                            </TableCell>
+                            <TableCell className="text-xs text-white/70 font-bold text-right">
+                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.valor || 0)}
+                            </TableCell>
+                            <TableCell className="text-[10px] text-white/40 text-center">
+                               {p.data ? new Date(p.data).toLocaleDateString() : "—"}
+                            </TableCell>
+                            <TableCell className="text-center"><StatusBadge status={p.status} /></TableCell>
+                            <TableCell>
+                               <div className="flex items-center justify-end gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className={`h-7 px-3 text-[9px] font-black uppercase rounded-lg border-white/10 ${p.status === 'pago' ? 'text-amber-400 hover:bg-amber-400/10' : 'text-emerald-400 hover:bg-emerald-400/10'}`}
+                                    onClick={async () => {
+                                       const next = p.status === "pago" ? "pendente" : "pago";
+                                       const { error } = await supabase.from("pedidos").update({ status: next }).eq("id", p.id);
+                                       if (!error) { toast({ title: "Status Alterado!" }); loadData(); }
+                                    }}
+                                  >
+                                     {p.status === "pago" ? "Marcar Pendente" : "Marcar Pago"}
+                                  </Button>
+                                  <Dialog>
+                                     <DialogTrigger asChild>
+                                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-white/20 hover:text-white hover:bg-white/5 rounded-lg">
+                                           <Pencil className="w-3 h-3" />
+                                        </Button>
+                                     </DialogTrigger>
+                                     <DialogContent className="glass-card border-white/10 text-white max-w-sm">
+                                        <DialogHeader><DialogTitle className="text-white text-sm">Editar Valor</DialogTitle></DialogHeader>
+                                        <div className="space-y-4 mt-4">
+                                           <div className="space-y-1.5">
+                                              <Label className="text-[10px] text-white/50 uppercase">Valor (R$)</Label>
+                                              <Input 
+                                                type="number" 
+                                                className="glass-input h-10" 
+                                                defaultValue={p.valor}
+                                                onBlur={async (e) => {
+                                                   const val = Number(e.target.value);
+                                                   if (val === p.valor) return;
+                                                   const { error } = await supabase.from("pedidos").update({ valor: val }).eq("id", p.id);
+                                                   if (!error) { toast({ title: "Valor Atualizado!" }); loadData(); }
+                                                }}
+                                              />
+                                           </div>
+                                        </div>
+                                     </DialogContent>
+                                  </Dialog>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-7 w-7 p-0 text-red-500/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                                    onClick={async () => {
+                                       if (!confirm("Excluir fatura?")) return;
+                                       const { error } = await supabase.from("pedidos").delete().eq("id", p.id);
+                                       if (!error) { toast({ title: "Fatura Excluída!" }); loadData(); }
+                                    }}
+                                  >
+                                     <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                               </div>
+                            </TableCell>
+                         </TableRow>
+                      ))}
+                   </TableBody>
+                </Table>
+             </div>
+          </TabsContent>
+
+          <TabsContent value="extras" className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <Card className="glass-card bg-blue-500/[0.05] border-blue-500/10">
+                  <CardContent className="p-4 flex items-center justify-between">
+                     <div>
+                        <p className="text-[10px] text-blue-400 uppercase font-black">Recorrência Mensal</p>
+                        <p className="text-xl font-black text-white">R$ {totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                     </div>
+                     <RefreshCw className="w-8 h-8 text-blue-500/20" />
+                  </CardContent>
+               </Card>
+               <Card className="glass-card bg-emerald-500/[0.05] border-emerald-500/10">
+                  <CardContent className="p-4 flex items-center justify-between">
+                     <div>
+                        <p className="text-[10px] text-emerald-400 uppercase font-black">Total Ativações</p>
+                        <p className="text-xl font-black text-white">R$ {totalAtivacoes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                     </div>
+                     <DollarSign className="w-8 h-8 text-emerald-500/20" />
+                  </CardContent>
+               </Card>
+            </div>
+            <div className="flex justify-end"><Button className="gradient-primary h-9 text-xs" onClick={() => setShowAddExtra(true)}><Plus className="w-3.5 h-3.5 mr-2" /> Adicionar Recurso</Button></div>
+            <div className="rounded-xl border border-white/5 overflow-hidden">
+               <Table>
+                 <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Recurso", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableHeader>
+                 <TableBody className="bg-white/[0.02]">
+                   {extras.length === 0 ? (<TableRow><TableCell colSpan={2} className="text-center py-10 text-xs text-white/20 italic">Sem recursos ativos.</TableCell></TableRow>) : extras.map((e: any) => (
+                     <TableRow key={e.id} className="border-white/5">
+                       <TableCell className="py-3 text-xs font-bold text-white">{e.extras_catalogo?.nome || "Serviço"}</TableCell>
+                       <TableCell><StatusBadge status={e.status} /></TableCell>
+                     </TableRow>
+                   ))}
+                 </TableBody>
+               </Table>
+            </div>
           </TabsContent>
 
           <TabsContent value="projetos">
-            <Card className="glass-card border-[0.5px]">
-              <CardContent className="pt-4">
+               <div className="rounded-xl border border-white/5 overflow-hidden">
                 <Table>
-                  <TableHeader>
-                    <TableRow className="border-[rgba(255,255,255,0.06)]">
-                      {["Título", "Responsável", "Prazo", "Valor", "Status"].map(h => (
-                        <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projetos.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum projeto</TableCell></TableRow>
-                    ) : projetos.map((p: any) => (
-                      <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)]">
-                        <TableCell className="text-sm text-white font-medium">{p.titulo}</TableCell>
-                        <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.responsavel}</TableCell>
-                        <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.prazo ? new Date(p.prazo).toLocaleDateString("pt-BR") : "—"}</TableCell>
-                        <TableCell className="text-sm text-white">R$ {Number(p.valor).toLocaleString("pt-BR")}</TableCell>
+                  <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Projeto", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableHeader>
+                  <TableBody className="bg-white/[0.02]">
+                    {projetos.length === 0 ? (<TableRow><TableCell colSpan={2} className="text-center py-10 text-xs text-white/20 italic">Sem projetos.</TableCell></TableRow>) : projetos.map((p: any) => (
+                      <TableRow key={p.id} className="border-white/5">
+                        <TableCell className="py-3 text-xs font-bold text-white">{p.titulo}</TableCell>
                         <TableCell><StatusBadge status={p.status} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="pedidos">
-            <Card className="glass-card border-[0.5px]">
-              <CardContent className="pt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-[rgba(255,255,255,0.06)]">
-                      {["Nº", "Tipo", "Valor", "Data", "Status"].map(h => (
-                        <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pedidos.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum pedido</TableCell></TableRow>
-                    ) : pedidos.map((p: any) => (
-                      <TableRow key={p.id} className="border-[rgba(255,255,255,0.04)]">
-                        <TableCell className="text-sm font-mono gradient-text">{p.codigo}</TableCell>
-                        <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.tipo}</TableCell>
-                        <TableCell className="text-sm text-white">R$ {Number(p.valor).toLocaleString("pt-BR")}</TableCell>
-                        <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{p.data ? new Date(p.data).toLocaleDateString("pt-BR") : "—"}</TableCell>
-                        <TableCell><StatusBadge status={p.status} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+               </div>
           </TabsContent>
         </Tabs>
       </motion.div>
 
-      {/* Dialog Adicionar Extra */}
       <Dialog open={showAddExtra} onOpenChange={setShowAddExtra}>
         <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
-          <DialogHeader><DialogTitle className="text-white">Adicionar Extra ao Cliente</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
+          <DialogHeader><DialogTitle className="text-white">Vincular Novo Recurso</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Selecionar Extra</Label>
+              <Label className="text-xs text-white/50">Cátalogo de Serviços</Label>
               <select
-                className="w-full h-9 rounded-lg glass-input border border-[rgba(255,255,255,0.1)] text-white text-sm px-3 bg-transparent"
+                className="w-full h-10 rounded-xl glass-input border border-white/10 text-white text-xs px-3 bg-transparent outline-none focus:border-primary/50 transition-colors"
                 value={extraSelecionado}
                 onChange={(e) => setExtraSelecionado(e.target.value)}
               >
-                <option value="">Escolha um extra...</option>
+                <option value="" className="bg-[#0f1117]">Selecione um item...</option>
                 {extrasDisponiveis.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome} — {catLabels[c.categoria] || c.categoria} {Number(c.preco_mensal) > 0 ? `(R$ ${Number(c.preco_mensal).toFixed(2).replace(".", ",")}/mês)` : ""} {Number(c.preco_ativacao) > 0 ? `(Ativ: R$ ${Number(c.preco_ativacao).toFixed(2).replace(".", ",")})` : ""}
+                  <option key={c.id} value={c.id} className="bg-[#0f1117]">
+                    {c.nome} — {catLabels[c.categoria] || c.categoria}
                   </option>
                 ))}
               </select>
             </div>
-
-            {extraSelecionado && (() => {
-              const sel = catalogo.find(c => c.id === extraSelecionado);
-              if (!sel) return null;
-              return (
-                <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
-                  <p className="text-sm font-medium text-white">{sel.nome}</p>
-                  {sel.descricao && <p className="text-[11px] text-[hsl(var(--muted-foreground))] mt-0.5">{sel.descricao}</p>}
-                  <div className="flex gap-3 mt-2 text-xs text-[hsl(var(--muted-foreground))]">
-                    <span className={catColors[sel.categoria]}>{catLabels[sel.categoria]}</span>
-                    {Number(sel.preco_ativacao) > 0 && <span>Ativação: R$ {Number(sel.preco_ativacao).toFixed(2).replace(".", ",")}</span>}
-                    {Number(sel.preco_mensal) > 0 && <span>Mensal: R$ {Number(sel.preco_mensal).toFixed(2).replace(".", ",")}</span>}
-                  </div>
-                </div>
-              );
-            })()}
-
             <div className="space-y-1.5">
-              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Observação (opcional)</Label>
+              <Label className="text-xs text-white/50">Notas Adicionais</Label>
               <Textarea
-                className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[60px]"
-                placeholder="Ex: Cortesia por 3 meses..."
+                className="glass-input border-white/10 text-white text-xs min-h-[80px]"
+                placeholder="Ex: Condições especiais, descontos..."
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
               />
             </div>
-
             <Button
-              className="gradient-primary border-0 text-white w-full rounded-lg"
+              className="gradient-primary text-white w-full rounded-xl h-11 font-black uppercase tracking-widest text-xs"
               onClick={handleAddExtra}
               disabled={!extraSelecionado || savingExtra}
             >
-              {savingExtra ? "Salvando..." : "Confirmar"}
+              {savingExtra ? "Processando..." : "Ativar Recurso"}
             </Button>
           </div>
         </DialogContent>
@@ -706,6 +559,7 @@ export default function Clientes() {
       setSelectedCliente(location.state.selectedId);
     }
   }, [location.state]);
+  
   const [showNew, setShowNew] = useState(false);
   const [criarConta, setCriarConta] = useState(true);
   const [senhaCliente, setSenhaCliente] = useState("");
@@ -752,6 +606,20 @@ export default function Clientes() {
     setSenhaCliente("");
     setCriarConta(true);
     setSaving(false);
+    fetchClientes();
+  };
+
+  const handleAcessarPortal = (cliente: any) => {
+    localStorage.setItem("clienteLogado", JSON.stringify(cliente));
+    window.open("/cliente/dashboard", "_blank");
+    toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
+  };
+
+  const handleDeleteCliente = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este cliente e todos os seus dados?")) return;
+    const { error } = await supabase.from("clientes").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Cliente excluído com sucesso!" });
     fetchClientes();
   };
 
@@ -836,8 +704,8 @@ export default function Clientes() {
                 ) : filtrados.map((c) => {
                   const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
                   return (
-                    <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]" onClick={() => setSelectedCliente(c.id)}>
-                      <TableCell>
+                    <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]">
+                      <TableCell onClick={() => setSelectedCliente(c.id)}>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
                             <span className="text-white text-[10px] font-bold">{avatar}</span>
@@ -845,12 +713,37 @@ export default function Clientes() {
                           <span className="text-sm font-medium text-white">{c.nome}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
-                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
-                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
-                      <TableCell><StatusBadge status={c.status} /></TableCell>
+                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
+                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
+                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
+                      <TableCell onClick={() => setSelectedCliente(c.id)}><StatusBadge status={c.status} /></TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm" className="text-[hsl(var(--muted-foreground))] hover:text-white text-xs">Ver</Button>
+                        <div className="flex items-center gap-2">
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="text-primary hover:bg-primary/10 text-xs gap-1"
+                             onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}
+                           >
+                             <Zap className="w-3 h-3" /> Portal
+                           </Button>
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="text-white/50 hover:text-white text-xs"
+                             onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}
+                           >
+                             Ver
+                           </Button>
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="text-red-400/50 hover:text-red-400 h-8 w-8 p-0"
+                             onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}
+                           >
+                              <Trash2 className="w-3.5 h-3.5" />
+                           </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
