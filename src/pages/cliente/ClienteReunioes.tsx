@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { CalendarDays, Clock, Video } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type TipoReuniao, type StatusReuniao } from "@/lib/mock-data";
+import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type TipoReuniao, type StatusReuniao } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 

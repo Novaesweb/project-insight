@@ -61,6 +61,7 @@ import MenuInterativo from "@/pages/MenuInterativo";
 import ClientePedidosFome from "@/pages/cliente/ClientePedidosFome";
 import AdminDepoimentos from "@/pages/AdminDepoimentos";
 import { NativeNotificationManager } from "@/components/NativeNotificationManager";
+import HttpsRedirect from "@/components/HttpsRedirect";
 
 import { useLocation } from "react-router-dom";
 
@@ -135,8 +136,9 @@ const DesktopNavigationHandler = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <NativeNotificationManager />
-      <BrowserRouter>
+      <HttpsRedirect>
+        <NativeNotificationManager />
+        <BrowserRouter>
         <Toaster />
         <Sonner />
         <DesktopNavigationHandler />
@@ -199,6 +201,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      </HttpsRedirect>
     </TooltipProvider>
   </QueryClientProvider>
 );

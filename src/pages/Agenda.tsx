@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { tipoReuniaoLabels, statusReuniaoLabels, statusReuniaoColors, type StatusReuniao, type TipoReuniao } from "@/lib/mock-data";
+import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, StatusReuniao, TipoReuniao } from "@/lib/constants";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";

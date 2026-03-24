@@ -158,12 +158,12 @@ export default function Extras() {
     const { data: pkg, error } = await (supabase.from as any)("pacotes").insert({
       nome: pacoteForm.nome, descricao: pacoteForm.descricao, preco_total: Number(pacoteForm.preco_total) || 0
     }).select().single();
-    
+
     if (!error && pkg && pacoteForm.itens.length > 0) {
       const links = pacoteForm.itens.map(id => ({ pacote_id: (pkg as any).id, extra_id: id }));
       await (supabase.from as any)("pacote_itens").insert(links);
     }
-    
+
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Pacote criado!" });
@@ -197,7 +197,7 @@ export default function Extras() {
   const handleAtribuir = async () => {
     if (!clienteSel || !extraSel) return;
     setSaving(true);
-    
+
     // Se extraSel tiver 'itens', é um pacote
     if (extraSel.preco_total !== undefined) {
       const items = pacoteItens.filter(pi => pi.pacote_id === extraSel.id);
@@ -218,14 +218,14 @@ export default function Extras() {
         preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
       });
     }
-    
+
     setSaving(false);
     fetchData();
     setShowAtribuir(false);
     toast({ title: "Extra(s) atribuídos!" });
   };
 
-  const config = categoriaSel === "pacotes" 
+  const config = categoriaSel === "pacotes"
     ? { label: "Pacote", plural: "Pacotes Premium", color: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10", icon: Rocket }
     : catConfig[categoriaSel as CategoriaExtra];
 
@@ -333,12 +333,12 @@ export default function Extras() {
                   onChange={e => setBuscaCategoria(e.target.value)}
                 />
               </div>
-              <Button className="gradient-primary border-0 text-white text-xs h-9" onClick={() => { 
+              <Button className="gradient-primary border-0 text-white text-xs h-9" onClick={() => {
                 if (categoriaSel === "pacotes") {
                   setShowNewPacote(true);
                 } else {
-                  setForm({ ...emptyForm, categoria: categoriaSel }); 
-                  setShowNew(true); 
+                  setForm({ ...emptyForm, categoria: categoriaSel });
+                  setShowNew(true);
                 }
               }}>
                 <Plus className="w-3.5 h-3.5 mr-1.5" /> {categoriaSel === "pacotes" ? "Novo pacote" : "Novo extra"}
@@ -361,7 +361,7 @@ export default function Extras() {
                         <Rocket className="w-4 h-4 text-purple-400/40" />
                       </div>
                       <p className="text-[11px] text-white/40 mb-3 line-clamp-2">{pkg.descricao}</p>
-                      
+
                       <div className="space-y-1 mb-4">
                         <p className="text-[10px] text-white/20 uppercase font-semibold">Itens inclusos:</p>
                         <ul className="text-[10px] text-white/60 list-disc list-inside">
@@ -641,17 +641,17 @@ export default function Extras() {
               <Label className="text-xs text-white/50">Preço Sugerido (R$)</Label>
               <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={pacoteForm.preco_total} onChange={e => setPacoteForm({ ...pacoteForm, preco_total: e.target.value })} />
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-xs text-white/50 font-bold">Selecionar Itens inclusos</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 rounded bg-black/20 border border-white/5">
                 {extras.map(ex => {
                   const isSelected = pacoteForm.itens.includes(ex.id);
                   return (
-                    <div 
+                    <div
                       key={ex.id}
                       onClick={() => {
-                        const newItens = isSelected 
+                        const newItens = isSelected
                           ? pacoteForm.itens.filter(id => id !== ex.id)
                           : [...pacoteForm.itens, ex.id];
                         setPacoteForm({ ...pacoteForm, itens: newItens });

@@ -33,7 +33,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
     <motion.section className="pt-32 pb-24 px-6 lg:px-8 overflow-hidden" initial="hidden" animate="show" variants={stagger}>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          
+
           {/* Left Column: Bold Typography & Main Message */}
           <div className="lg:col-span-7 space-y-8 text-left">
             <motion.div variants={fade} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
@@ -44,8 +44,8 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <span className="text-[10px] uppercase tracking-widest font-bold text-primary">v2.4.8 Premium Edition</span>
             </motion.div>
 
-            <motion.h1 
-              variants={fade} 
+            <motion.h1
+              variants={fade}
               className="text-5xl sm:text-6xl lg:text-[5rem] font-black text-white leading-[0.95] tracking-tighter"
             >
               Tecnologia que <br />
@@ -97,7 +97,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
 
           {/* Right Column: Bento Grid Stats */}
           <div className="lg:col-span-5 grid grid-cols-2 gap-4 h-full">
-            <motion.div 
+            <motion.div
               variants={fade}
               className="col-span-2 glass-card rounded-[32px] p-8 relative overflow-hidden group border-white/5 h-[180px] flex flex-col justify-end"
             >
@@ -108,7 +108,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <p className="text-xs uppercase tracking-[0.2em] text-white/40 font-bold">Performance & SEO</p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               variants={fade}
               className="col-span-1 glass-card rounded-[32px] p-8 border-white/5 h-[220px] flex flex-col justify-between group hover:border-primary/30 transition-colors"
             >
@@ -121,7 +121,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               variants={fade}
               className="col-span-1 glass-card rounded-[32px] p-8 border-white/5 h-[220px] flex flex-col justify-between bg-primary group hover:shadow-[0_20px_40px_rgba(255,51,102,0.3)] transition-all"
             >

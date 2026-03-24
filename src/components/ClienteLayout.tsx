@@ -57,7 +57,7 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
               key={item.path}
               to={item.path}
               onClick={onNavigate}
-               className={cn(
+              className={cn(
                 "flex items-center gap-3 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all relative overflow-hidden group",
                 isActive
                   ? "text-white bg-primary/20 shadow-lg shadow-primary/10"
@@ -117,7 +117,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         <ClienteSidebar currentPath={location.pathname} />
       </aside>
 
-       <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-14 shrink-0 flex items-center px-4 md:px-6 gap-4 sticky top-0 z-40 bg-transparent">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>

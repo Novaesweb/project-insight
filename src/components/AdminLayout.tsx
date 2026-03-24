@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { pageInfo } from "@/lib/mock-data";
+import { pageInfo } from "@/lib/constants";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import TopProgressBar from "@/components/TopProgressBar";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -63,14 +63,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen bg-[#0a0a0c] text-white font-sora selection:bg-primary/30 overflow-hidden">
       {/* Sidebar Desktop */}
-      <motion.aside 
+      <motion.aside
         animate={{ width: isCollapsed ? 64 : 260 }}
         className="border-r border-white/5 bg-[#0a0a0c] hidden md:flex md:flex-col relative z-50 transition-all duration-300 ease-in-out shrink-0"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-        
+
         {/* Toggle Button */}
-        <button 
+        <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="absolute -right-3 top-20 w-6 h-6 bg-[#1a1a1e] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:border-primary/50 transition-all z-50"
         >
@@ -100,22 +100,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const isGold = item.label === "Financeiro" || item.label === "Extras";
-            
+
             return (
-              <Link 
-                key={item.href} 
-                to={item.href} 
+              <Link
+                key={item.href}
+                to={item.href}
                 className={cn(
                   "group flex items-center px-3 py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
-                  isActive 
-                    ? (isGold ? "text-[hsl(var(--gold))] bg-white/5 shadow-[0_0_20px_rgba(255,184,0,0.1)]" : "text-primary bg-primary/10") 
+                  isActive
+                    ? (isGold ? "text-[hsl(var(--gold))] bg-white/5 shadow-[0_0_20px_rgba(255,184,0,0.1)]" : "text-primary bg-primary/10")
                     : "text-white/40 hover:text-white/80 hover:bg-white/5",
                   isGold && !isActive && "gold-item opacity-80 hover:opacity-100",
                   isCollapsed ? "justify-center gap-0" : "gap-3"
                 )}
               >
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="activeNav"
                     className={cn(
                       "absolute left-0 w-1 h-5 rounded-r-full",
@@ -124,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   />
                 )}
                 <item.icon className={cn(
-                  "w-4 h-4 transition-transform duration-300 group-hover:scale-110 shrink-0", 
+                  "w-4 h-4 transition-transform duration-300 group-hover:scale-110 shrink-0",
                   isActive ? (isGold ? "text-[hsl(var(--gold))]" : "text-primary") : "text-white/30 group-hover:text-white/60",
                   isGold && "text-[hsl(var(--gold))/40]"
                 )} />
@@ -138,8 +138,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className={cn("p-4 border-t border-white/5", isCollapsed && "px-2")}>
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             className={cn(
               "flex items-center px-3 py-2.5 text-xs font-medium text-white/40 hover:text-destructive hover:bg-destructive/5 transition-all w-full rounded-xl",
               isCollapsed ? "justify-center gap-0" : "gap-3"
@@ -159,29 +159,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SheetContent side="left" className="w-72 bg-[#0a0a0c] border-r border-white/10 p-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
           <div className="p-8">
-             <Link to="/admin" className="flex items-center gap-3 mb-8" onClick={() => setOpen(false)}>
-               <img src={branding.logo || nwLogo} className="w-8 h-8 rounded-lg" alt="" />
-               <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold tracking-tight italic text-center">NovaesWeb</span>
-                  <span className="text-[9px] text-primary font-bold uppercase tracking-widest text-center mt-0.5">Painel CEO Lucas Alencar</span>
-                </div>
-             </Link>
-             <nav className="space-y-1">
-               {navItems.map((item) => (
-                 <Link 
-                   key={item.href} 
-                   to={item.href} 
-                   onClick={() => setOpen(false)}
-                   className={cn(
-                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                     pathname.startsWith(item.href) ? "bg-primary/10 text-primary" : "text-white/40"
-                   )}
-                 >
-                   <item.icon className="w-4 h-4" />
-                   <span>{item.label}</span>
-                 </Link>
-               ))}
-             </nav>
+            <Link to="/admin" className="flex items-center gap-3 mb-8" onClick={() => setOpen(false)}>
+              <img src={branding.logo || nwLogo} className="w-8 h-8 rounded-lg" alt="" />
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-bold tracking-tight italic text-center">NovaesWeb</span>
+                <span className="text-[9px] text-primary font-bold uppercase tracking-widest text-center mt-0.5">Painel CEO Lucas Alencar</span>
+              </div>
+            </Link>
+            <nav className="space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                    pathname.startsWith(item.href) ? "bg-primary/10 text-primary" : "text-white/40"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
           </div>
         </SheetContent>
       </Sheet>

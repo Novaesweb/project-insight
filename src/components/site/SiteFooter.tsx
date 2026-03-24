@@ -50,11 +50,17 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider mb-3">Legal</h4>
-            <div className="flex flex-col gap-2">
-              <button onClick={() => onOpenModal("privacidade")} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">Política de Privacidade</button>
-              <button onClick={() => onOpenModal("termos")} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">Termos de Uso</button>
-              <button onClick={() => onOpenModal("cookies")} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">Política de Cookies</button>
+            <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider mb-3">Siga-nos</h4>
+            <div className="flex gap-4">
+              <a href="https://instagram.com/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
+                <span className="text-[10px] font-bold">IG</span>
+              </a>
+              <a href="https://linkedin.com/company/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
+                <span className="text-[10px] font-bold">IN</span>
+              </a>
+              <a href="https://facebook.com/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
+                <span className="text-[10px] font-bold">FB</span>
+              </a>
             </div>
           </div>
         </div>
