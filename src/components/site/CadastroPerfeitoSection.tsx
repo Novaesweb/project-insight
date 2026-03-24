@@ -4,7 +4,7 @@ import {
   Rocket, ArrowRight, ArrowLeft, MessageCircle, 
   User, Phone, Building, Layout, Store, HelpCircle, 
   Send, Instagram, Search, Users, CheckCircle2,
-  Package, Globe, Target, Sparkles, Zap
+  Package, Globe, Target, Sparkles, Zap, Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,6 +85,7 @@ export default function CadastroPerfeitoSection() {
 
   const [formData, setFormData] = useState({
     nome: "",
+    email: "",
     whatsapp: "",
     empresa: "",
     segmento: "",
@@ -99,13 +100,14 @@ export default function CadastroPerfeitoSection() {
 
   const isStepValid = () => {
     if (step === 2) return formData.nome.trim().length >= 3;
-    if (step === 3) return formData.whatsapp.replace(/\D/g, "").length >= 10;
-    if (step === 4) return formData.empresa.trim().length >= 2;
-    if (step === 5) return !!formData.segmento;
-    if (step === 6) return !!formData.necessidade;
-    if (step === 7) return !!formData.pedidos;
-    if (step === 8) return !!formData.origem;
-    if (step === 9) return formData.descricao.trim().length >= 5;
+    if (step === 3) return formData.email.trim().includes("@") && formData.email.trim().length > 5;
+    if (step === 4) return formData.whatsapp.replace(/\D/g, "").length >= 10;
+    if (step === 5) return formData.empresa.trim().length >= 2;
+    if (step === 6) return !!formData.segmento;
+    if (step === 7) return !!formData.necessidade;
+    if (step === 8) return !!formData.pedidos;
+    if (step === 9) return !!formData.origem;
+    if (step === 10) return formData.descricao.trim().length >= 5;
     return true;
   };
 
@@ -113,15 +115,15 @@ export default function CadastroPerfeitoSection() {
     setLoading(true);
     const { error } = await supabase.from("leads").insert({
       nome: formData.nome,
-      email: `${formData.nome.toLowerCase().replace(/\s/g, "")}@lead.novaesweb.com.br`,
+      email: formData.email.trim(),
       whatsapp: formData.whatsapp.replace(/\D/g, ""),
-      mensagem: `[MULTI-STEP QUIZ]
+      mensagem: `[QUIZ PREMIUM v2.7]
+Empresa: ${formData.empresa}
 Segmento: ${formData.segmento}
 Necessidade: ${formData.necessidade}
-Volume/Pedidos: ${formData.pedidos}
+Volume: ${formData.pedidos}
 Origem: ${formData.origem}
-Descrição: ${formData.descricao}
-Empresa: ${formData.empresa}`,
+Briefing: ${formData.descricao}`,
       status: "novo",
     });
 
@@ -129,13 +131,27 @@ Empresa: ${formData.empresa}`,
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
       setLoading(false);
     } else {
+      // Enviar e-mail via Edge Function
+      supabase.functions.invoke("send-lead-email", {
+        body: {
+          nome: formData.nome,
+          email: formData.email.trim(),
+          whatsapp: formData.whatsapp.replace(/\D/g, ""),
+          nome_negocio: formData.empresa,
+          tipo_negocio: formData.segmento,
+          servicos: [formData.necessidade],
+          orcamento: formData.pedidos,
+          mensagem: formData.descricao
+        }
+      });
+
       sendPushToAdmins("🚀 Novo Cadastro Interativo", `${formData.nome} (${formData.empresa}) finalizou o quiz de projeto.`, "/admin/leads");
       nextStep();
       setLoading(false);
     }
   };
 
-  const progress = (step / 10) * 100;
+  const progress = (step / 11) * 100;
 
   const cardVariants: any = {
     initial: { opacity: 0, x: 20, scale: 0.98 },
@@ -196,7 +212,7 @@ Empresa: ${formData.empresa}`,
           {step === 2 && (
             <motion.div key="step2" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 01/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 01/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-8 leading-tight tracking-tighter">
                 Primeiro, como podemos <br />
@@ -219,17 +235,46 @@ Empresa: ${formData.empresa}`,
             </motion.div>
           )}
 
-          {/* TELA 3: WHATSAPP */}
+          {/* TELA 3: EMAIL */}
           {step === 3 && (
             <motion.div key="step3" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 02/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 02/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-4 leading-tight tracking-tighter">
-                Prazer, {nomeCurto}! <br />
-                <Typewriter text="Qual seu WhatsApp?" className="gradient-text" />
+                Show de bola, {nomeCurto}! <br />
+                <Typewriter text="Qual seu melhor e-mail?" className="gradient-text" />
               </h1>
-              <p className="text-white/30 mb-8 font-medium">Prometemos não enviar spam, apenas o necessário.</p>
+              <p className="text-white/30 mb-8 font-medium">Usaremos para enviar sua proposta personalizada.</p>
+              <div className="relative mb-12">
+                <Mail className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
+                <Input 
+                  autoFocus
+                  type="email"
+                  placeholder="seu@gmail.com" 
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="h-20 pl-20 pr-8 bg-white/5 border-white/5 rounded-[2rem] text-2xl font-bold text-white focus:border-primary/50 transition-all placeholder:text-white/10"
+                />
+              </div>
+              <div className="flex gap-4">
+                <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
+                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20 transition-all">Confirmar e-mail</Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TELA 4: WHATSAPP */}
+          {step === 4 && (
+            <motion.div key="step4" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
+              <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 03/10
+              </h2>
+              <h1 className="text-4xl font-black text-white mb-4 leading-tight tracking-tighter">
+                E o seu <br />
+                <Typewriter text="WhatsApp direto?" className="gradient-text" />
+              </h1>
+              <p className="text-white/30 mb-8 font-medium">Facilita nossa conversa rápida.</p>
               <div className="relative mb-12">
                 <Phone className="absolute left-7 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20" />
                 <Input 
@@ -248,11 +293,11 @@ Empresa: ${formData.empresa}`,
             </motion.div>
           )}
 
-          {/* TELA 4: NEGÓCIO */}
-          {step === 4 && (
-            <motion.div key="step4" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
+          {/* TELA 5: NEGÓCIO */}
+          {step === 5 && (
+            <motion.div key="step5" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 03/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 04/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-8 leading-tight tracking-tighter">
                 Qual é o nome da <br />
@@ -275,11 +320,11 @@ Empresa: ${formData.empresa}`,
             </motion.div>
           )}
 
-          {/* TELA 5: SEGMENTO */}
-          {step === 5 && (
-            <motion.div key="step5" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
+          {/* TELA 6: SEGMENTO */}
+          {step === 6 && (
+            <motion.div key="step6" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 04/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 05/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-10 leading-tight tracking-tighter">
                 Qual o <Typewriter text="segmento" className="gradient-text" /> da <br />
@@ -289,18 +334,21 @@ Empresa: ${formData.empresa}`,
                 {SEGMENTOS.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setFormData({ ...formData, segmento: item.id })}
+                    onClick={() => {
+                      setFormData({ ...formData, segmento: item.id });
+                      setTimeout(nextStep, 300);
+                    }}
                     className={cn(
                       "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group relative overflow-hidden",
                       formData.segmento === item.id 
                         ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20"
+                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
                     )}
                   >
                     {formData.segmento === item.id && (
                       <motion.div layoutId="seg-glow" className="absolute inset-0 bg-primary/5 blur-xl pointer-events-none" />
                     )}
-                    <item.icon className={cn("w-10 h-10 transition-transform group-hover:scale-110", formData.segmento === item.id ? "text-primary" : "text-white/10")} />
+                    <item.icon className={cn("w-10 h-10 transition-transform group-hover:rotate-6", formData.segmento === item.id ? "text-primary" : "text-white/10")} />
                     <span className="font-black uppercase tracking-widest leading-tight">{item.label}</span>
                     {formData.segmento === item.id && (
                       <p className="text-[9px] text-primary/60 font-medium absolute bottom-3">{item.hint}</p>
@@ -310,51 +358,51 @@ Empresa: ${formData.empresa}`,
               </div>
               <div className="flex gap-4">
                 <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20">Continuar</Button>
               </div>
             </motion.div>
           )}
 
-          {/* TELA 6: NECESSIDADE */}
-          {step === 6 && (
-            <motion.div key="step6" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
+          {/* TELA 7: NECESSIDADE */}
+          {step === 7 && (
+            <motion.div key="step7" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 05/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 06/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-4 leading-tight tracking-tighter">
                 O que você <br />
                 <Typewriter text="quer construir?" className="gradient-text" />
               </h1>
-              <p className="text-white/30 mb-10 font-medium">Escolha a opção que melhor define sua prioridade atual.</p>
               <div className="grid grid-cols-2 gap-6 mb-12 text-xs text-center">
                 {NECESSIDADES.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setFormData({ ...formData, necessidade: item.id })}
+                    onClick={() => {
+                      setFormData({ ...formData, necessidade: item.id });
+                      setTimeout(nextStep, 300);
+                    }}
                     className={cn(
                       "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group",
                       formData.necessidade === item.id 
                         ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20"
+                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
                     )}
                   >
-                    <item.icon className={cn("w-10 h-10", formData.necessidade === item.id ? "text-primary" : "text-white/10")} />
+                    <item.icon className={cn("w-10 h-10 group-hover:animate-bounce", formData.necessidade === item.id ? "text-primary" : "text-white/10")} />
                     <span className="font-black uppercase tracking-widest leading-tight">{item.label}</span>
                   </button>
                 ))}
               </div>
               <div className="flex gap-4">
                 <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20">Próximo</Button>
               </div>
             </motion.div>
           )}
 
-          {/* TELA 7: VOLUMES */}
-          {step === 7 && (
-            <motion.div key="step7" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
+          {/* TELA 8: VOLUMES */}
+          {step === 8 && (
+            <motion.div key="step8" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 06/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 07/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-10 leading-tight tracking-tighter text-center">
                 Qual seu volume de <br />
@@ -364,12 +412,15 @@ Empresa: ${formData.empresa}`,
                 {VOLUMES.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setFormData({ ...formData, pedidos: item.id })}
+                    onClick={() => {
+                      setFormData({ ...formData, pedidos: item.id });
+                      setTimeout(nextStep, 300);
+                    }}
                     className={cn(
                       "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group",
                       formData.pedidos === item.id 
                         ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20"
+                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
                     )}
                   >
                     <item.icon className={cn("w-10 h-10", formData.pedidos === item.id ? "text-primary" : "text-white/10")} />
@@ -379,16 +430,15 @@ Empresa: ${formData.empresa}`,
               </div>
               <div className="flex gap-4">
                 <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20">Quase lá!</Button>
               </div>
             </motion.div>
           )}
 
-          {/* TELA 8: ORIGEM */}
-          {step === 8 && (
-            <motion.div key="step8" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative text-center">
+          {/* TELA 9: ORIGEM */}
+          {step === 9 && (
+            <motion.div key="step9" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative text-center">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center justify-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 07/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 08/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-10 leading-tight tracking-tighter">
                 Como você <br />
@@ -398,12 +448,15 @@ Empresa: ${formData.empresa}`,
                 {ORIGENS.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setFormData({ ...formData, origem: item.id })}
+                    onClick={() => {
+                      setFormData({ ...formData, origem: item.id });
+                      setTimeout(nextStep, 300);
+                    }}
                     className={cn(
                       "flex flex-col items-center justify-center p-8 rounded-[2rem] border-2 transition-all gap-5 group",
                       formData.origem === item.id 
                         ? "bg-primary/10 border-primary text-white shadow-xl shadow-primary/20" 
-                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20"
+                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:border-white/20 hover:scale-105"
                     )}
                   >
                     <item.icon className={cn("w-10 h-10", formData.origem === item.id ? "text-primary" : "text-white/10")} />
@@ -413,42 +466,41 @@ Empresa: ${formData.empresa}`,
               </div>
               <div className="flex gap-4">
                 <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid()} onClick={nextStep} className="flex-1 h-16 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-20">Última etapa!</Button>
               </div>
             </motion.div>
           )}
 
-          {/* TELA 9: DESCRIÇÃO */}
-          {step === 9 && (
-            <motion.div key="step9" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
+          {/* TELA 10: DESCRIÇÃO */}
+          {step === 10 && (
+            <motion.div key="step10" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-12 border-white/5 shadow-2xl relative">
               <h2 className="text-xs font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 08/09
+                <div className="w-2 h-2 rounded-full bg-primary" /> Passo 09/10
               </h2>
               <h1 className="text-4xl font-black text-white mb-6 leading-tight tracking-tighter">
                 Fale um pouco mais <br />
                 <Typewriter text="sobre seu projeto:" className="gradient-text" />
               </h1>
-              <p className="text-white/30 mb-8 font-medium italic">"Queremos entender sua visão em detalhes para superar expectativas."</p>
+              <p className="text-white/30 mb-8 font-medium italic">"Explique sua visão para superarmos suas expectativas."</p>
               <div className="relative mb-12">
                 <Textarea 
                   autoFocus
-                  placeholder="Quais seus objetivos, desafios or sonhos para este projeto?" 
+                  placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?" 
                   value={formData.descricao}
                   onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                  className="min-h-[220px] p-10 bg-white/5 border-white/5 rounded-[2.5rem] text-xl font-medium text-white focus:border-primary/50 transition-all placeholder:text-white/10 leading-relaxed"
+                  className="min-h-[200px] p-8 bg-white/5 border-white/5 rounded-[2.5rem] text-xl font-medium text-white focus:border-primary/50 transition-all placeholder:text-white/10 leading-relaxed shadow-inner"
                 />
               </div>
               <div className="flex gap-4">
                 <Button onClick={prevStep} variant="ghost" className="h-16 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs">Voltar</Button>
-                <Button disabled={!isStepValid() || loading} onClick={handleFinish} className="flex-1 h-16 rounded-3xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-2xl disabled:opacity-20 flex items-center justify-center gap-4 group">
-                  {loading ? "Processando seu Projeto..." : <>Finalizar e Enviar <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>}
+                <Button disabled={!isStepValid() || loading} onClick={handleFinish} className="flex-1 h-16 rounded-3xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-2xl disabled:opacity-20 flex items-center justify-center gap-4 group hover:scale-[1.02] transition-all">
+                  {loading ? "🚀 Lançando seu Lead..." : <>Finalizar e Enviar <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>}
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* TELA 10: SUCESSO */}
-          {step === 10 && (
+          {/* TELA 11: SUCESSO */}
+          {step === 11 && (
             <motion.div key="step10" variants={cardVariants} initial="initial" animate="animate" exit="exit" className="glass-panel-premium rounded-[3rem] p-16 text-center border-white/5 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                 <CheckCircle2 className="w-80 h-80 text-primary" />
@@ -465,7 +517,7 @@ Empresa: ${formData.empresa}`,
               
               <h1 className="text-5xl font-black text-white mb-6 leading-tight tracking-tighter relative z-10">
                 Lançamento <br />
-                <span className="gradient-text italic">confirmado, {nomeCurto}!</span>
+                <span className="gradient-text italic">confirmado!</span>
               </h1>
               
               <div className="max-w-md mx-auto mb-12 space-y-6 relative z-10">
