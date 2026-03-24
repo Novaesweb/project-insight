@@ -5,6 +5,7 @@ import bellaMassaDemo from "@/assets/bella-massa-demo.png";
 import barbeariaDemo from "@/assets/barbearia-demo.png";
 import pizzariaNovaesDemo from "@/assets/pizzaria-novaes-demo.png";
 import acaiDemo from "@/assets/acai-demo.png";
+import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
   modalOpen: string | null;
@@ -12,6 +13,12 @@ interface SiteModalsProps {
 }
 
 export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
+  // Se for um story, renderizamos o StoryViewer separadamente para manter a imersão
+  if (modalOpen?.startsWith("story-")) {
+    const storyId = modalOpen.replace("story-", "");
+    return <StoryViewer storyId={storyId} onClose={onClose} />;
+  }
+
   return (
     <AnimatePresence>
       {modalOpen && (
@@ -141,7 +148,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <p>A NovaesWeb valoriza a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos suas informações pessoais.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Coleta de dados:</strong> Coletamos informações fornecidas voluntariamente por você ao preencher formulários de contato, cadastro ou solicitação de orçamento, como nome, e-mail, telefone e dados do negócio.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Uso das informações:</strong> As informações são utilizadas exclusivamente para entrar em contato, fornecer orçamentos, desenvolver projetos e melhorar nossos serviços.</p>
-                  <p><strong className="text-[hsl(var(--foreground))]">Compartilhamento:</strong> Não vendemos, alugamos ou compartilhamos seus dados pessoais com terceiros, exceto quando necessário para a prestação do serviço contratado.</p>
+                  <p><strong className="text-[hsl(var(--foreground))]">Compartilhamento:</strong> No vendemos, alugamos ou compartilhamos seus dados pessoais com terceiros, exceto quando necessário para a prestação do serviço contratado.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Segurança:</strong> Utilizamos medidas de segurança adequadas para proteger suas informações contra acesso não autorizado, alteração ou destruição.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Seus direitos:</strong> Você pode solicitar a exclusão ou atualização dos seus dados a qualquer momento entrando em contato conosco.</p>
                 </div>

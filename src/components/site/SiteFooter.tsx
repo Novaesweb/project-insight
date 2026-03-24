@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Star, Users, Target, Lock, FileText } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
 import { scrollTo } from "./SiteNavbar";
 
@@ -10,84 +10,118 @@ interface SiteFooterProps {
 export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
   return (
     <footer className="border-t border-[hsl(var(--border))] bg-[hsl(var(--card))]">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-[10px]">NW</span>
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-12">
+          {/* Brand Col */}
+          <div className="col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+                <span className="text-white font-bold text-xs uppercase">NW</span>
               </div>
-              <span className="text-sm font-bold">
+              <span className="text-base font-bold">
                 <span className="gradient-text">Novaes</span>
                 <span className="text-[hsl(var(--foreground))]">Web</span>
               </span>
             </div>
-            <p className="text-[11px] text-[hsl(var(--muted-foreground))] leading-relaxed max-w-[200px]">
-              Soluções digitais para empresas que querem crescer na internet.
+            <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+              Transformando a presença digital de empresas locais com tecnologia de alta performance e design premium.
             </p>
           </div>
 
+          {/* Navegação Col */}
           <div>
-            <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider mb-3">Navegação</h4>
-            <div className="flex flex-col gap-2">
+            <h4 className="text-[10px] font-black text-[hsl(var(--foreground))] uppercase tracking-[0.2em] mb-6">Navegação</h4>
+            <div className="flex flex-col gap-3">
               {["Serviços", "Soluções", "Processo", "Planos", "Resultados", "Contato"].map((l, i) => (
-                <button key={i} onClick={() => scrollTo(`#${l.toLowerCase()}`)} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors text-left">
-                  {l}
+                <button key={i} onClick={() => scrollTo(`#${l.toLowerCase()}`)} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-all text-left flex items-center gap-2 group">
+                  <div className="w-1 h-1 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" /> {l}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Institucional Col */}
           <div>
-            <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider mb-3">Acesso</h4>
-            <div className="flex flex-col gap-2">
-              <Link to="/cadastro" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">Solicitar Orçamento</Link>
-              <Link to="/agendar" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">Agendar Reunião</Link>
-              <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da NovaesWeb." target="_blank" rel="noopener noreferrer" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
-                Falar pelo WhatsApp
-              </a>
+            <h4 className="text-[10px] font-black text-[hsl(var(--foreground))] uppercase tracking-[0.2em] mb-6">Institucional</h4>
+            <div className="flex flex-col gap-3">
+              {[
+                { label: "Sobre a NovaesWeb", id: "sobre", icon: Star },
+                { label: "Quem Somos", id: "quem-somos", icon: Users },
+                { label: "Diferenciais", id: "diferenciais", icon: Target },
+                { label: "Demonstração", id: "demonstracao", icon: Zap },
+              ].map((l, i) => (
+                <button key={i} onClick={() => onOpenModal(l.id)} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-all text-left flex items-center gap-2 group">
+                  <div className="w-1 h-1 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" /> {l.label}
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Suporte Col */}
           <div>
-            <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] uppercase tracking-wider mb-3">Siga-nos</h4>
-            <div className="flex gap-4">
-              <a href="https://www.instagram.com/novaesweb/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
-                <span className="text-[10px] font-bold">IG</span>
-              </a>
-              <a href="https://linkedin.com/company/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
-                <span className="text-[10px] font-bold">IN</span>
-              </a>
-              <a href="https://facebook.com/novaesweb" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-all">
-                <span className="text-[10px] font-bold">FB</span>
-              </a>
+            <h4 className="text-[10px] font-black text-[hsl(var(--foreground))] uppercase tracking-[0.2em] mb-6">Suporte & Legal</h4>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => onOpenModal("privacidade")} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-all text-left flex items-center gap-2 group">
+                <Lock className="w-3 h-3 text-primary/40 group-hover:text-primary transition-colors" /> Privacidade
+              </button>
+              <button onClick={() => onOpenModal("termos")} className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-all text-left flex items-center gap-2 group">
+                <FileText className="w-3 h-3 text-primary/40 group-hover:text-primary transition-colors" /> Termos de Uso
+              </button>
+              <Link to="/cadastro" className="text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-all flex items-center gap-2 group">
+                 <div className="w-1 h-1 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" /> Solicitar Orçamento
+              </Link>
+            </div>
+          </div>
+
+          {/* Social Col */}
+          <div>
+            <h4 className="text-[10px] font-black text-[hsl(var(--foreground))] uppercase tracking-[0.2em] mb-6">Siga-nos</h4>
+            <div className="flex gap-3">
+              {[
+                { name: "IG", url: "https://www.instagram.com/novaesweb/" },
+                { name: "IN", url: "https://linkedin.com/company/novaesweb" },
+                { name: "FB", url: "https://facebook.com/novaesweb" },
+              ].map((s, i) => (
+                <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-primary/20 hover:border-primary/20 transition-all font-bold text-[10px] text-white/50 hover:text-white">
+                  {s.name}
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-[hsl(var(--border))] pt-5 flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2">
-            <img src={codethioLogo} alt="Codethio" className="w-7 h-7 rounded-full object-cover" />
-            <p className="text-sm font-bold">
-              <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
-            </p>
-            <span className="text-[10px] text-[hsl(var(--muted-foreground))]">— Parceria em Automação Inteligente</span>
+        {/* Parceria */}
+        <div className="border-t border-[hsl(var(--border))] pt-8 mb-8 flex flex-col items-center">
+          <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/5 grayscale hover:grayscale-0 transition-all">
+            <img src={codethioLogo} alt="Codethio" className="w-8 h-8 rounded-full object-cover" />
+            <div className="flex flex-col">
+              <p className="text-xs font-bold leading-none">
+                <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
+              </p>
+              <span className="text-[9px] text-[hsl(var(--muted-foreground))] uppercase tracking-widest mt-1">Parceria Estratégica</span>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-[hsl(var(--border))] pt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Bottom Bar */}
+        <div className="border-t border-[hsl(var(--border))] pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
-            © {new Date().getFullYear()} NovaesWeb — Todos os direitos reservados
+            © {new Date().getFullYear()} <span className="font-bold text-[hsl(var(--foreground))]">NovaesWeb</span> — Todos os direitos reservados.
           </p>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+          
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-[11px] font-semibold text-emerald-400 tracking-wide">Ambiente 100% Seguro e Criptografado</span>
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Ambiente 100% Seguro</span>
           </div>
+
           <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
-            Desenvolvido por <span className="font-semibold gradient-text">NovaesWeb</span>
+            Desenvolvido com ❤️ por <span className="font-bold gradient-text">NovaesWeb</span>
           </p>
         </div>
       </div>
     </footer>
   );
 }
+
+// Helper mock to avoid import issue if Zap is missing
+const Zap = ({ className }: { className?: string }) => <span className={className}>⚡</span>;

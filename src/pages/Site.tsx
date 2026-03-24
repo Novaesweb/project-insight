@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
+import StoryHighlights from "@/components/site/StoryHighlights";
 import ClientesSection from "@/components/site/ClientesSection";
 import ServicosSection from "@/components/site/ServicosSection";
 import AutomacaoSection from "@/components/site/AutomacaoSection";
@@ -25,6 +26,9 @@ export default function Site() {
       <UrgencyBanner />
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
+
+      {/* Experiência de Stories Estratégica */}
+      <StoryHighlights onOpenStory={(id) => setModalOpen(`story-${id}`)} />
       <ClientesSection />
       <ServicosSection />
       <AutomacaoSection />
