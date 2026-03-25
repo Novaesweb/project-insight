@@ -84,8 +84,8 @@ export default function ComparisonSection() {
             {/* Execution column (The "Bad" way) */}
             <div className="md:col-span-4 p-8 relative overflow-hidden group border-b md:border-b-0 md:border-r border-white/5 bg-red-950/5">
               <div className="mb-12">
-                <span className="text-[10px] font-black uppercase text-red-500/50 mb-2 block tracking-widest italic">Eles entregam o comum</span>
-                <h4 className="text-2xl font-black text-white/50">Site Genérico</h4>
+                <span className="text-[10px] font-black uppercase text-red-500/50 mb-2 block tracking-widest italic">Eles criam</span>
+                <h4 className="text-2xl font-black text-white/50 lowercase tracking-tighter leading-none">Site Genérico</h4>
               </div>
               <div className="space-y-12">
                 {comparisonData.map((item, idx) => (
@@ -103,12 +103,12 @@ export default function ComparisonSection() {
             <div className="md:col-span-4 p-8 bg-gradient-to-br from-primary/10 to-transparent relative overflow-hidden">
                <div className="absolute top-0 right-0 p-4">
                   <div className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-full uppercase shadow-lg shadow-primary/40 animate-pulse">
-                    A Novidade
+                    Novidade
                   </div>
                </div>
               <div className="mb-12">
-                <span className="text-[10px] font-black uppercase text-primary mb-2 block tracking-widest italic">Nós entregamos o futuro</span>
-                <h4 className="text-2xl font-black text-white">Arquitetura de Novidade</h4>
+                <span className="text-[10px] font-black uppercase text-primary mb-2 block tracking-widest italic">Nós trazemos</span>
+                <h4 className="text-2xl font-black text-white italic tracking-tighter leading-none uppercase">Novidade Digital</h4>
               </div>
               <div className="space-y-12">
                 {comparisonData.map((item, idx) => (
