@@ -17,7 +17,6 @@ import ResultadosSection from "@/components/site/ResultadosSection";
 import SiteModals from "@/components/site/SiteModals";
 import CadastroPerfeitoSection from "@/components/site/CadastroPerfeitoSection";
 import SiteFooter from "@/components/site/SiteFooter";
-import UrgencyBanner from "@/components/conversion/UrgencyBanner";
 import SocialProofPopup from "@/components/conversion/SocialProofPopup";
 
 export default function Site() {
@@ -25,7 +24,6 @@ export default function Site() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow font-sans antialiased">
-      <UrgencyBanner />
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ExperienceSection />
