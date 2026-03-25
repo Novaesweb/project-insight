@@ -39,6 +39,20 @@ export const nicheData: NicheInfo[] = [
     ],
   },
   {
+    slug: "acai",
+    nome: "Açaí / Gelateria",
+    emoji: "🍧",
+    items: ["Cardápio com adicionais", "Pedido via WhatsApp", "Status aberto/fechado"],
+    slogan: "Seu açaí com sistema de pedidos profissional",
+    incluso: ["Cardápio com fotos e combos", "Opcionais e adicionais ilimitados", "Botão de pedido WhatsApp", "Localização e horários", "Status aberto/fechado", "Responsivo para celular"],
+    preco: "R$ 497",
+    faq: [
+      { q: "Posso colocar adicionais pagos?", a: "Sim! O cliente seleciona o açaí e escolhe os acompanhamentos com preços automáticos." },
+      { q: "O sistema avisa se a loja está fechada?", a: "Sim, há um indicador visual de status aberto/fechado em tempo real." },
+      { q: "O pedido chega organizado?", a: "Chega completo no seu WhatsApp: tamanho, adicionais, endereço e forma de pagamento." },
+    ],
+  },
+  {
     slug: "barbearia",
     nome: "Barbearia",
     emoji: "✂️",
@@ -137,20 +151,6 @@ export const nicheData: NicheInfo[] = [
     ],
   },
   {
-    slug: "imobiliaria",
-    nome: "Imobiliária",
-    emoji: "🏠",
-    items: ["Listagem de imóveis", "Falar com corretor", "Mapa de localização"],
-    slogan: "Site profissional para sua imobiliária",
-    incluso: ["Listagem de imóveis com filtros", "Contato direto com corretor via WhatsApp", "Mapa de localização dos imóveis", "Fotos e detalhes de cada imóvel", "Busca por tipo e região", "Responsivo para celular"],
-    preco: "R$ 797",
-    faq: [
-      { q: "O cliente filtra imóveis?", a: "Sim! Por tipo (casa, apto), quartos, faixa de preço e região." },
-      { q: "Tem mapa?", a: "Sim, cada imóvel pode ter mapa de localização integrado." },
-      { q: "O corretor recebe contato direto?", a: "Sim, o visitante fala direto com o corretor responsável pelo imóvel via WhatsApp." },
-    ],
-  },
-  {
     slug: "escola",
     nome: "Escola / Curso",
     emoji: "📚",
@@ -178,6 +178,7 @@ export const nicheData: NicheInfo[] = [
       { q: "Tem seção de FAQ?", a: "Sim, perguntas frequentes organizadas por tema para agilizar o atendimento." },
     ],
   },
+/*
   {
     slug: "mecanica",
     nome: "Mecânica",
@@ -192,6 +193,7 @@ export const nicheData: NicheInfo[] = [
       { q: "Dá para listar preços?", a: "Claro! Tabela de serviços com preços de referência." },
     ],
   },
+*/
   {
     slug: "confeitaria",
     nome: "Confeitaria / Doceria",

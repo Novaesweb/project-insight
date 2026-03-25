@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck, Target, Users, Rocket, ChevronRight } from "lucide-react";
+import { Car, UserCheck, UtensilsCrossed, Wrench, ShoppingBag, CalendarCheck, Target, Users, Rocket, ChevronRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +8,10 @@ const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transiti
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const solucoes = [
-  { icon: Car, titulo: "Controle de Aluguel", desc: "Gerencie aluguel de carros, motos ou imóveis com controle completo de contratos, pagamentos, vencimentos, multas e histórico de clientes." },
-  { icon: UserCheck, titulo: "CRM - Gestão de Clientes", desc: "Organize clientes, leads e oportunidades de negócio. Pipeline de vendas visual, histórico de interações, follow-ups automáticos e relatórios de conversão." },
-  { icon: UtensilsCrossed, titulo: "Pedidos para Restaurantes", desc: "Cardápio digital interativo, pedidos online com personalização, integração com delivery, controle de mesa e cozinha, e relatórios de vendas por período." },
-  { icon: Wrench, titulo: "Gestão para Oficinas", desc: "Ordens de serviço digitais, agendamentos, controle de estoque de peças, histórico de veículos, orçamentos automáticos e notificação para clientes." },
+  { icon: MessageCircle, titulo: "Automação WhatsApp GPT", desc: "Agente IA treinado no seu negócio que atende, vende e agenda horários 24h por dia, direto no WhatsApp oficial." },
+  { icon: UtensilsCrossed, titulo: "Pedidos Delivery (Pizzaria/Açaí)", desc: "Sistema completo de pedidos online com adicionais, cálculo de entrega por bairro e integração total com seu WhatsApp." },
+  { icon: UserCheck, titulo: "CRM & Gestão de Clientes", desc: "Organize leads e oportunidades. Pipeline visual, histórico de interações e follow-ups automáticos para nunca perder uma venda." },
+  { icon: ShoppingBag, titulo: "Site Vitrine & Catálogo", desc: "Apresentação profissional de produtos e serviços para Profissionais Liberais (Médicos, Advogados, Psicólogos) e Lojas." },
   { icon: ShoppingBag, titulo: "Catálogo de Produtos", desc: "Vitrine digital organizada com fotos, descrições, preços e categorias. Compartilhável por link ou WhatsApp. Ideal para quem vende pelo Instagram ou redes sociais." },
   { icon: CalendarCheck, titulo: "Agendamento Online", desc: "Sistema de agenda com horários disponíveis em tempo real, confirmação automática por WhatsApp/e-mail, gestão de profissionais e relatório de atendimentos." },
   { icon: Target, titulo: "Gestão Financeira", desc: "Controle de contas a pagar e receber, fluxo de caixa, emissão de boletos, relatórios financeiros detalhados e dashboards com indicadores em tempo real." },
