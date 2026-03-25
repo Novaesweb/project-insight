@@ -229,6 +229,43 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                 </div>
               </div>
             )}
+
+            {modalOpen === "conectividade" && (
+              <div className="p-8">
+                <div className="mb-6">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-primary">Inteligência & Automação</span>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2">Conectividade Estratégica</h2>
+                  <p className="text-sm text-white/40 mt-2 italic">A ponte entre sua empresa e o faturamento no piloto automático.</p>
+                </div>
+                <div className="space-y-6">
+                  <div className="glass-card rounded-2xl p-6 border-primary/20 bg-primary/5">
+                    <Zap className="w-8 h-8 text-primary mb-3 animate-pulse" />
+                    <h3 className="text-base font-bold text-white mb-2">Ecossistema de IA & WhatsApp</h3>
+                    <p className="text-sm text-white/60 leading-relaxed">
+                      Não é apenas um chat. É uma infraestrutura completa que utiliza IA para qualificar leads, responder dúvidas e fechar vendas 24h por dia diretamente no WhatsApp do seu cliente.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl border border-white/5 bg-white/2">
+                      <span className="text-xs font-bold text-white block mb-1">Qualificação Automática</span>
+                      <p className="text-[10px] text-white/40">Sua IA identifica se o cliente tem perfil antes de passar para o humano.</p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-white/5 bg-white/2">
+                      <span className="text-xs font-bold text-white block mb-1">Escalabilidade 24/7</span>
+                      <p className="text-[10px] text-white/40">Atenda 10 ou 10.000 pessoas simultaneamente com a mesma precisão.</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => window.open("https://wa.me/5511999999999?text=Quero%20saber%20mais%20sobre%20Conectividade%20Estratégica", "_blank")}
+                    className="w-full py-4 rounded-xl bg-primary text-white font-black uppercase tracking-widest text-xs hover:bg-primary/80 transition-all flex items-center justify-center gap-2 group"
+                  >
+                    Ativar minha Conectividade <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

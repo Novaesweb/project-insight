@@ -86,7 +86,7 @@ export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
                   
                   { (i === 0 || i === 5) && (
                     <button 
-                      onClick={() => onOpenModal("demonstracao")}
+                      onClick={() => onOpenModal(i === 5 ? "conectividade" : "demonstracao")}
                       className="mt-8 pt-6 border-t border-white/5 flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-primary hover:text-white transition-colors group/btn"
                     >
                       Saiba mais sobre este serviço 
