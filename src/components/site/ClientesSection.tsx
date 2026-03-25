@@ -10,11 +10,7 @@ const logos = [
 export default function ClientesSection() {
   return (
     <section className="py-12 overflow-hidden border-y border-white/5">
-      <div className="max-w-7xl mx-auto px-6 mb-12">
-        <p className="text-center text-[10px] font-bold uppercase tracking-[0.4em] text-white/20">
-          Tecnologias que impulsionam nossos projetos
-        </p>
-      </div>
+
 
       {/* Infinite scroll track */}
       <div className="relative">
