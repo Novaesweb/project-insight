@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileText, Plus, Eye, Save, Send, Download, ChevronLeft, Search, PenTool } from "lucide-react";
+import { FileText, Plus, Eye, Save, Send, Download, ChevronLeft, Search, PenTool, ShieldCheck, Lock, Shield, Vault } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -210,11 +210,11 @@ export default function Contratos() {
         <Tabs value={tab} onValueChange={setTab} className="space-y-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1">
-              <TabsTrigger value="lista" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
-                <FileText className="w-3.5 h-3.5" /> Contratos
+              <TabsTrigger value="lista" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4">
+                <ShieldCheck className="w-3.5 h-3.5" /> Ativos Blindados
               </TabsTrigger>
-              <TabsTrigger value="modelos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
-                <Plus className="w-3.5 h-3.5" /> Novo Contrato
+              <TabsTrigger value="modelos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4">
+                <Plus className="w-3.5 h-3.5" /> Nova Estrutura
               </TabsTrigger>
               {selectedTemplate && (
                 <TabsTrigger value="criar" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
@@ -230,8 +230,10 @@ export default function Contratos() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-sm text-[hsl(var(--foreground))]">Contratos</CardTitle>
-                    <CardDescription>{contratos.length} contrato(s)</CardDescription>
+                    <CardTitle className="text-sm text-white flex items-center gap-2">
+                       <Vault className="w-4 h-4 text-primary" /> Cofre de Ativos Digitais
+                    </CardTitle>
+                    <CardDescription className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Nível de Segurança: Máxima</CardDescription>
                   </div>
                   <div className="relative w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[hsl(var(--muted-foreground))]" />
@@ -248,20 +250,19 @@ export default function Contratos() {
                       <div>
                         <p className="text-sm font-medium text-[hsl(var(--foreground))]">{c.titulo}</p>
                         <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
-                          {(c.clientes as any)?.nome} • R$ {Number(c.valor).toLocaleString("pt-BR")} • {c.data_envio}
+                          {(c.clientes as any)?.nome} • Valor Pro de Ativo: R$ {Number(c.valor).toLocaleString("pt-BR")} • Sincronizado em {c.data_envio}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" className="text-[hsl(var(--muted-foreground))] text-xs h-7 px-2" title="Ver contrato" onClick={() => handleViewContrato(c)}>
-                        <Eye className="w-3 h-3" />
+                      <Button size="sm" variant="ghost" className="text-white/40 hover:text-white text-xs h-7 px-2" title="Descriptografar e Ver" onClick={() => handleViewContrato(c)}>
+                        <Lock className="w-3 h-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" className="text-[hsl(var(--muted-foreground))] text-xs h-7 px-2" title="Baixar PDF" onClick={() => handleDownloadPDF(c)}>
+                      <Button size="sm" variant="ghost" className="text-white/40 hover:text-white text-xs h-7 px-2" title="Exportar Ativo" onClick={() => handleDownloadPDF(c)}>
                         <Download className="w-3 h-3" />
                       </Button>
-                      <Badge variant="outline" className="text-[10px] border-0 px-2"
-                        style={{ backgroundColor: (statusColors[c.status] || "#94a3b8") + "22", color: statusColors[c.status] || "#94a3b8" }}>
-                        {statusLabels[c.status] || c.status}
+                      <Badge variant="outline" className="text-[9px] border-white/5 px-2 bg-white/5 text-white/60">
+                         {statusLabels[c.status] || c.status}
                       </Badge>
                     </div>
                   </div>
@@ -310,8 +311,8 @@ export default function Contratos() {
 
                 <Card className="glass-card border-[0.5px]">
                   <CardHeader>
-                    <CardTitle className="text-sm text-[hsl(var(--foreground))]">{selectedTemplate.nome}</CardTitle>
-                    <CardDescription>Preencha os campos para gerar o contrato</CardDescription>
+                    <CardTitle className="text-sm text-white">{selectedTemplate.nome}</CardTitle>
+                    <CardDescription className="text-xs text-white/40">Configure os parâmetros da nova blindagem de ativos</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Cliente selection */}

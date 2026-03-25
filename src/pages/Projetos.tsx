@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign } from "lucide-react";
+import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign, Target, BarChart3, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
@@ -213,6 +213,41 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
           <Card className="glass-card border-[0.5px]">
             <CardHeader><CardTitle className="text-sm font-semibold text-white">Descrição Interna</CardTitle></CardHeader>
             <CardContent><p className="text-xs text-white/60 leading-relaxed">{projeto.descricao || "Sem descrição."}</p></CardContent>
+          </Card>
+
+          <Card className="glass-card border-[0.5px] border-primary/20 bg-primary/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-3 opacity-20"><Target className="w-12 h-12 text-primary" /></div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-yellow-400" /> Blueprint de Escala (Upgrade Sugerido)
+              </CardTitle>
+              <CardDescription className="text-[10px] text-white/40">Engenharia preditiva baseada no ecossistema do cliente</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between group hover:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><BarChart3 className="w-4 h-4 text-primary" /></div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Otimização SEO Pro & Indexação</p>
+                      <p className="text-[10px] text-white/40">Aumentar visibilidade e autoridade orgânica</p>
+                    </div>
+                  </div>
+                  <Button size="sm" className="h-7 text-[9px] gradient-primary text-white font-bold px-3">Sugerir Upgrade</Button>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between group hover:border-primary/50 transition-colors opacity-60">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><Users className="w-4 h-4 text-blue-400" /></div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Integração CRM & Automação de Leads</p>
+                      <p className="text-[10px] text-white/40">Converter 3x mais com fluxos automáticos</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="ghost" className="h-7 text-[9px] text-white/40 border border-white/10 px-3">Planejado</Button>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
 

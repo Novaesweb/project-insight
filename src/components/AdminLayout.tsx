@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart, Plus,
-  BarChart3, DollarSign, Headphones, UserCog, Settings,
+  BarChart3, DollarSign, Headphones, UserCog, Settings, ShieldCheck,
   Menu, X, LogOut, Bell, Search, Download, CalendarDays, UserCheck,
   Sun, Moon, Puzzle, FileText, MessageSquareQuote, UtensilsCrossed,
   ChevronLeft, ChevronRight
@@ -43,7 +43,7 @@ const navItems: NavItem[] = [
   { href: "/admin/suporte", label: "Engenharia de Evolução", icon: Headphones },
   { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
   { href: "/admin/revenda", label: "Revenda", icon: Users },
-  { href: "/admin/contratos", label: "Contratos", icon: FileText },
+  { href: "/admin/contratos", label: "Blindagem de Ativos", icon: ShieldCheck },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

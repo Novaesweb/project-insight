@@ -42,5 +42,5 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/configuracoes": { titulo: "Engenharia do Sistema", subtitulo: "Configurações avançadas e parâmetros" },
   "/admin/agenda": { titulo: "Agenda Estratégica", subtitulo: "Gestão de reuniões e alinhamentos de valor" },
   "/admin/leads": { titulo: "Máquina de Leads", subtitulo: "Acompanhe e qualifique novas oportunidades" },
-  "/admin/contratos": { titulo: "Blindagem Jurídica", subtitulo: "Gestão de contratos e termos digitais" },
+  "/admin/contratos": { titulo: "Blindagem de Ativos", subtitulo: "Gestão de ativos jurídicos e blindagem contratual" },
 };

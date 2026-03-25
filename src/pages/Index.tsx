@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, FolderKanban, ShoppingCart, DollarSign, Headphones, TrendingUp, Calendar, 
-  CheckCircle2, Layout, BellRing, Sparkles, AlertTriangle, Activity, UserPlus, Zap, ArrowRight, Plus, Pencil, Trash2, Clock
+  CheckCircle2, Layout, BellRing, Sparkles, AlertTriangle, Activity, UserPlus, Zap, ArrowRight, Plus, Pencil, Trash2, Clock, ShieldCheck
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -399,11 +399,11 @@ export default function Dashboard() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Button className="h-10 px-4 rounded-xl gradient-primary text-white shadow-lg shadow-[hsl(var(--primary))]/10 hover:shadow-[hsl(var(--primary))]/20 hover:-translate-y-0.5 transition-all duration-300 text-xs font-bold border-0 group" onClick={openAddExtra}>
-            <Plus className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-90 transition-transform" /> Adicionar Extra
+            <Plus className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-90 transition-transform" /> Injetar Módulo
           </Button>
           <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
             <Link to="/admin/clientes">
-              <Users className="w-3.5 h-3.5 mr-1.5 text-blue-400" /> Novo Cliente
+              <Users className="w-3.5 h-3.5 mr-1.5 text-blue-400" /> Novo Ecossistema
             </Link>
           </Button>
           <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
@@ -413,7 +413,12 @@ export default function Dashboard() {
           </Button>
           <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
             <Link to="/admin/projetos">
-              <FolderKanban className="w-3.5 h-3.5 mr-1.5 text-amber-400" /> Novo Projeto
+              <FolderKanban className="w-3.5 h-3.5 mr-1.5 text-amber-400" /> Nova Solução
+            </Link>
+          </Button>
+          <Button asChild className="h-10 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-xs font-medium">
+            <Link to="/admin/contratos">
+              <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-purple-400" /> Nova Blindagem
             </Link>
           </Button>
         </div>
