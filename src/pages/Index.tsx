@@ -226,10 +226,10 @@ export default function Dashboard() {
   };
 
   const kpis = [
-    { label: "Clientes ativos", value: String(stats.clientes), change: "", icon: Users, color: "from-blue-500 to-blue-600" },
-    { label: "Projetos em andamento", value: String(stats.projetos), change: "", icon: FolderKanban, color: "from-emerald-500 to-emerald-600" },
-    { label: "Pedidos pendentes", value: String(stats.pedidos), change: stats.pedidos > 0 ? "Atenção" : "", icon: ShoppingCart, color: "from-amber-500 to-amber-600", alert: stats.pedidos > 0 },
-    { label: "Receita total", value: `R$ ${(stats.receita / 1000).toFixed(1)}k`, change: "", icon: DollarSign, color: "from-violet-500 to-violet-600" },
+    { label: "Ecossistemas em Operação", value: String(stats.clientes), change: "", icon: Users, color: "from-blue-500 to-blue-600" },
+    { label: "Engenharia de Soluções", value: String(stats.projetos), change: "", icon: FolderKanban, color: "from-emerald-500 to-emerald-600" },
+    { label: "Alertas de Conversão", value: String(stats.pedidos), change: stats.pedidos > 0 ? "Prioritário" : "", icon: ShoppingCart, color: "from-amber-500 to-amber-600", alert: stats.pedidos > 0 },
+    { label: "Impacto Financeiro Gerado", value: `R$ ${(stats.receita / 1000).toFixed(1)}k`, change: "", icon: DollarSign, color: "from-violet-500 to-violet-600" },
   ];
 
   const selectedExtra = catalogo.find(c => c.id === extraSel);
@@ -276,8 +276,8 @@ export default function Dashboard() {
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-sm font-black text-white uppercase tracking-widest">Cabine de Inteligência</h2>
-            <p className="text-[10px] text-white/40 font-medium">Sugestões baseadas no estado atual do seu negócio.</p>
+            <h2 className="text-sm font-black text-white uppercase tracking-widest">Central de Arquitetura Operacional</h2>
+            <p className="text-[10px] text-white/40 font-medium italic">Inteligência v9.0 • Otimizando a engenharia do seu sucesso.</p>
           </div>
         </div>
 
