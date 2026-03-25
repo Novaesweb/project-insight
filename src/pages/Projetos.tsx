@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink } from "lucide-react";
+import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,17 +58,17 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     const progressMap: Record<string, number> = { briefing: 20, design: 40, desenvolvimento: 60, homologacao: 85, concluido: 100 };
     const newProgress = progressMap[newStatus] ?? projeto.progresso;
     const { error } = await supabase.from("projetos").update({ status: newStatus, progresso: newProgress }).eq("id", projetoId);
-    if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+    if (error) { toast({ title: "Inconsistência Técnica", description: error.message, variant: "destructive" }); return; }
     else {
       setProjeto((prev: any) => ({ ...prev, status: newStatus, progresso: newProgress }));
-      toast({ title: "Status e progresso atualizados!" });
+      toast({ title: "Parâmetro de Evolução Sincronizado!" });
     }
   };
 
   const handleProgressChange = (value: number[]) => setProjeto((prev: any) => ({ ...prev, progresso: value[0] }));
   const saveProgresso = async (value: number[]) => {
     const { error } = await supabase.from("projetos").update({ progresso: value[0] }).eq("id", projetoId);
-    if (!error) toast({ title: `Progresso atualizado para ${value[0]}%` });
+    if (!error) toast({ title: `Engenharia de Solução em ${value[0]}%` });
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,9 +86,9 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
       });
 
       if (dbError) throw dbError;
-      toast({ title: "Arquivo enviado!" });
+      toast({ title: "Ativo Digital Processado!" });
       loadData();
-    } catch (error: any) { toast({ title: "Erro no envio", description: error.message, variant: "destructive" }); }
+    } catch (error: any) { toast({ title: "Falha na Engenharia do Ativo", description: error.message, variant: "destructive" }); }
     finally { setUploading(false); }
   };
 
@@ -98,9 +98,9 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
       const path = url.split("projeto-arquivos/").pop();
       if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
       await (supabase.from("projeto_arquivos" as any) as any).delete().eq("id", id);
-      toast({ title: "Arquivo excluído" });
+      toast({ title: "Ativo removido da arquitetura" });
       loadData();
-    } catch (error: any) { toast({ title: "Erro", description: error.message, variant: "destructive" }); }
+    } catch (error: any) { toast({ title: "Erro na remoção", description: error.message, variant: "destructive" }); }
   };
 
   const enviarAtualizacao = async () => {
@@ -108,7 +108,7 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     setSending(true);
     const { error } = await supabase.from("projeto_atualizacoes").insert({ projeto_id: projetoId, descricao: novaAtualizacao.trim(), visivel_cliente: visivelCliente });
     if (!error) {
-      toast({ title: "Atualização registrada!" });
+      toast({ title: "Evolução Registrada com Sucesso!" });
       if (visivelCliente && projeto?.cliente_id) {
         sendPushToClient(projeto.cliente_id, "🚀 Nova atualização em seu projeto", novaAtualizacao.trim().substring(0, 100) + "...", "/cliente/projetos");
       }
@@ -118,7 +118,7 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     setSending(false);
   };
 
-  if (!projeto) return <p className="text-white p-10">Carregando detalhes do projeto...</p>;
+  if (!projeto) return <p className="text-white p-10 font-bold animate-pulse">Sincronizando arquitetura da solução...</p>;
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
@@ -153,12 +153,27 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
         </TabsList>
 
         <TabsContent value="resumo" className="space-y-6">
-          <Card className="glass-card border-[0.5px]">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-3"><p className="text-sm font-semibold text-white">Progresso Real</p><span className="text-lg font-bold gradient-text">{projeto.progresso}%</span></div>
-              <Slider value={[projeto.progresso]} onValueChange={handleProgressChange} onValueCommit={saveProgresso} max={100} step={5} className="w-full" />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="glass-card border-[0.5px]">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3"><p className="text-sm font-semibold text-white">Engenharia de Solução</p><span className="text-lg font-bold gradient-text">{projeto.progresso}%</span></div>
+                <Slider value={[projeto.progresso]} onValueChange={handleProgressChange} onValueCommit={saveProgresso} max={100} step={5} className="w-full" />
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card border-[0.5px] relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Valor de Ativo Estimado</p>
+                  <p className="text-2xl font-black text-white italic tracking-tighter">R$ {((projeto.progresso * 250) + 1500).toLocaleString('pt-BR')},00</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="glass-card border-[0.5px]">
@@ -270,7 +285,7 @@ export default function Projetos() {
   return (
     <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Projetos</h1>
+        <h1 className="text-2xl font-black text-white tracking-tighter uppercase italic">Engenharia de Soluções</h1>
         <div className="flex gap-1 p-1 rounded-lg glass-card border-[0.5px]">
           <Button variant="ghost" size="sm" className={view === "lista" ? "gradient-primary text-white" : "text-white/40"} onClick={() => setView("lista")}><List className="w-4 h-4" /></Button>
           <Button variant="ghost" size="sm" className={view === "kanban" ? "gradient-primary text-white" : "text-white/40"} onClick={() => setView("kanban")}><LayoutGrid className="w-4 h-4" /></Button>

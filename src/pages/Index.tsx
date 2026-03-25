@@ -218,7 +218,7 @@ export default function Dashboard() {
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     const clienteNome = clientes.find(c => c.id === clienteSel)?.nome;
-    toast({ title: "Extra adicionado!", description: `"${extra.nome}" vinculado a ${clienteNome}.` });
+    toast({ title: "Módulo Adicionado!", description: `"${extra.nome}" vinculado a ${clienteNome}.` });
     setShowAddExtra(false);
     setClienteSel("");
     setExtraSel("");

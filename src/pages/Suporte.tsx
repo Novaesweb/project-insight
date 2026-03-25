@@ -66,21 +66,21 @@ export default function Suporte() {
     const { data, error } = await supabase.from("ticket_mensagens").insert({
       ticket_id: selectedTicket,
       remetente: "admin",
-      nome: "Suporte NovaesWeb",
+      nome: "Engenharia NovaesWeb",
       texto: texto.trim(),
     }).select().single();
     setSending(false);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast({ title: "Inconsistência Técnica", description: error.message, variant: "destructive" }); return; }
     if (data) setMensagens(prev => [...prev, data]);
     setTexto("");
 
     // Notify client via push + in-app notification
     const clienteId = ticket?.cliente_id;
     if (clienteId) {
-      sendPushToClient(clienteId, "💬 Nova resposta no suporte", `Ticket ${ticket.codigo}: ${texto.trim().slice(0, 60)}`, "/cliente/suporte");
+      sendPushToClient(clienteId, "⚙️ Evolução Tecnológica", `Dossiê ${ticket.codigo}: ${texto.trim().slice(0, 60)}`, "/cliente/suporte");
       supabase.from("notifications").insert({
-        title: "Nova resposta no suporte",
-        body: `Ticket ${ticket.codigo}: ${texto.trim().slice(0, 80)}`,
+        title: "Evolução Tecnológica",
+        body: `Dossiê ${ticket.codigo}: ${texto.trim().slice(0, 80)}`,
         user_id: clienteId,
         user_type: "cliente",
         url: "/cliente/suporte",
@@ -110,9 +110,9 @@ export default function Suporte() {
   const changeStatus = async (newStatus: string) => {
     if (!selectedTicket) return;
     const { error } = await supabase.from("tickets").update({ status: newStatus }).eq("id", selectedTicket);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast({ title: "Falha na Sincronização", description: error.message, variant: "destructive" }); return; }
     setTickets(prev => prev.map(t => t.id === selectedTicket ? { ...t, status: newStatus } : t));
-    toast({ title: "Status atualizado!" });
+    toast({ title: "Parâmetro de Evolução Atualizado!" });
   };
 
   const filtrados = tickets.filter(t => {
@@ -158,7 +158,7 @@ export default function Suporte() {
                         }
                       }}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Resolver Ticket
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Finalizar Otimização
                     </Button>
                   )}
                 </div>
@@ -237,9 +237,9 @@ export default function Suporte() {
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum ticket</TableCell></TableRow>
                 ) : filtrados.map((t) => (
                   <TableRow key={t.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.03)]" onClick={() => setSelectedTicket(t.id)}>
-                    <TableCell className="text-sm font-mono gradient-text">{t.codigo}</TableCell>
+                    <TableCell className="text-sm font-mono text-primary italic font-bold tracking-tighter">{t.codigo}</TableCell>
                     <TableCell className="text-sm text-white flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-[hsl(var(--muted-foreground))]" /> {t.titulo}
+                      <MessageSquare className="w-4 h-4 text-primary" /> {t.titulo}
                     </TableCell>
                     <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{t.clientes?.nome || "—"}</TableCell>
                     <TableCell><StatusBadge status={t.prioridade} /></TableCell>

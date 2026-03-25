@@ -7,10 +7,10 @@ export type StatusReuniao = "agendada" | "confirmada" | "realizada" | "cancelada
 export type TipoReuniao = "apresentacao" | "alinhamento" | "suporte" | "fechamento";
 
 export const tipoReuniaoLabels: Record<TipoReuniao, string> = {
-  apresentacao: "Apresentação",
-  alinhamento: "Alinhamento",
-  suporte: "Suporte",
-  fechamento: "Fechamento",
+  apresentacao: "Proposta de Arquitetura",
+  alinhamento: "Sincronização de Ativos",
+  suporte: "Engenharia de Evolução",
+  fechamento: "Consolidação de Solução",
 };
 
 export const statusReuniaoLabels: Record<StatusReuniao, string> = {
@@ -35,9 +35,9 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/projetos": { titulo: "Engenharia de Soluções", subtitulo: "Desenvolvimento e escala de ativos digitais" },
   "/admin/pedidos": { titulo: "Fluxos de Venda", subtitulo: "Controle de conversões e solicitações" },
   "/admin/extras": { titulo: "Módulos & Upgrades", subtitulo: "Expansão de funcionalidades e serviços premium" },
-  "/admin/relatórios": { titulo: "Análise de Dados", subtitulo: "Gere e exporte indicadores de performance" },
-  "/admin/financeiro": { titulo: "Gestão Financeira", subtitulo: "Visão de impacto e saúde do negócio" },
-  "/admin/suporte": { titulo: "Central de Suporte", subtitulo: "Gestão de tickets e experiência do parceiro" },
+  "/admin/relatorios": { titulo: "Dossiês de Performance & ROI", subtitulo: "Análise estratégica de impacto e rentabilidade" },
+  "/admin/financeiro": { titulo: "Engenharia Financeira", subtitulo: "Gestão de fluxos de valor e saúde do negócio" },
+  "/admin/suporte": { titulo: "Engenharia de Evolução", subtitulo: "Otimização de ativos e experiência do parceiro" },
   "/admin/usuarios": { titulo: "Equipe Interna", subtitulo: "Gestão de acessos e colaboradores" },
   "/admin/configuracoes": { titulo: "Engenharia do Sistema", subtitulo: "Configurações avançadas e parâmetros" },
   "/admin/agenda": { titulo: "Agenda Estratégica", subtitulo: "Gestão de reuniões e alinhamentos de valor" },
