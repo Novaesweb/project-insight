@@ -61,7 +61,7 @@ export default function AdminLogin() {
         });
       }
     } else {
-      toast({ title: "Login realizado!", description: "Bem-vindo ao painel administrativo." });
+      toast({ title: "Sessão Iniciada!", description: "Bem-vindo à Cabine de Comando, Arquiteto." });
       navigate("/admin");
     }
     setLoading(false);
@@ -99,19 +99,19 @@ export default function AdminLogin() {
               <Sparkles className="w-4 h-4 text-yellow-400" />
             </motion.div>
             <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              NovaesWeb Admin
+            <h1 className="text-3xl font-black tracking-tighter text-white sm:text-4xl uppercase">
+              Cabine de Comando
             </h1>
             <div className="flex justify-center gap-2">
-              <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400 bg-emerald-500/5">
-                ● Versão Desktop Ativa
+              <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5 font-black uppercase tracking-widest">
+                ● Acesso Restrito
               </Badge>
-              <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">
-                v2.4.9
+              <Badge variant="outline" className="text-[10px] border-white/10 text-white/40 font-bold">
+                v9.0 ARCHITECT PREMIUM
               </Badge>
             </div>
-            <p className="text-[hsl(var(--muted-foreground))]">
-              Gerencie sua plataforma em tempo real.
+            <p className="text-[hsl(var(--muted-foreground))] text-xs font-medium uppercase tracking-[0.2em] opacity-40">
+              Autenticação de Segurança Avançada
             </p>
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function AdminLogin() {
                 : "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] cursor-not-allowed opacity-50"
             }`}
           >
-            {loading ? "Entrando..." : lockTime > 0 ? "Aguarde..." : "Entrar no Painel"}
+            {loading ? "Sincronizando..." : lockTime > 0 ? "Aguarde..." : "Iniciar Sessão Arquitetural"}
           </Button>
 
           {failedAttempts > 0 && lockTime === 0 && (
