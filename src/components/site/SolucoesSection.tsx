@@ -62,12 +62,7 @@ export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
                   <h3 className="text-xl font-black text-white tracking-tight">{p.titulo}</h3>
                   <p className="text-sm text-white/40 leading-relaxed font-medium line-clamp-4">{p.desc}</p>
                 </div>
-                <button 
-                  onClick={() => onOpenModal("detalhes-sistema:" + p.titulo)}
-                  className="mt-auto pt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors group/btn"
-                >
-                  Ver Detalhes <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-                </button>
+
               </motion.div>
             ))}
           </div>
