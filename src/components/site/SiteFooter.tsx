@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
+import sealImg from "@/assets/novaesweb-seal-v9.png";
 import { scrollTo } from "./SiteNavbar";
 
 interface SiteFooterProps {
@@ -108,9 +109,17 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
             © {new Date().getFullYear()} <span className="font-bold text-[hsl(var(--foreground))]">NovaesWeb</span> — Todos os direitos reservados.
           </p>
           
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Ambiente 100% Seguro</span>
+          <div className="flex flex-col md:flex-row items-center gap-6 px-6 py-3 rounded-2xl border border-primary/20 bg-primary/5 shadow-2xl shadow-primary/10">
+            <img src={sealImg} alt="Engenharia Certificada v9.0" className="w-12 h-12 object-contain" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Engenharia Certificada</span>
+              <span className="text-[9px] text-white/40 uppercase tracking-tighter">v9.0 Architect Pro • NovaesWeb</span>
+            </div>
+            <div className="h-4 w-px bg-white/10 hidden md:block" />
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Ambiente 100% Seguro</span>
+            </div>
           </div>
 
           <p className="text-[10px] text-[hsl(var(--muted-foreground))]">
