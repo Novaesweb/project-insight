@@ -183,7 +183,7 @@ export default function AdminLogin() {
             disabled={loading || !isFormValid}
             className={`w-full h-11 border-0 text-[hsl(var(--primary-foreground))] font-semibold text-sm shadow-lg transition-all duration-300 ${
               isFormValid 
-                ? "gradient-primary shadow-[hsl(var(--primary))]/25 hover:shadow-[hsl(var(--primary))]/40" 
+                ? "bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] shadow-[0_0_20px_rgba(232,51,74,0.3)] hover:shadow-[0_0_30px_rgba(232,51,74,0.4)]" 
                 : "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] cursor-not-allowed opacity-50"
             }`}
           >

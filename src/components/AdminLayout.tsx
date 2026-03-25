@@ -108,7 +108,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={cn(
                   "group flex items-center px-3 py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
                   isActive
-                    ? (isGold ? "text-[hsl(var(--gold))] bg-white/5 shadow-[0_0_20px_rgba(255,184,0,0.1)]" : "text-primary bg-primary/10")
+                    ? (isGold ? "text-[hsl(var(--gold))] bg-white/5 shadow-[0_0_20px_rgba(255,184,0,0.1)]" : "text-white bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] shadow-[0_0_20px_rgba(232,51,74,0.3)]")
                     : "text-white/40 hover:text-white/80 hover:bg-white/5",
                   isGold && !isActive && "gold-item opacity-80 hover:opacity-100",
                   isCollapsed ? "justify-center gap-0" : "gap-3"
@@ -125,8 +125,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
                 <item.icon className={cn(
                   "w-4 h-4 transition-transform duration-300 group-hover:scale-110 shrink-0",
-                  isActive ? (isGold ? "text-[hsl(var(--gold))]" : "text-primary") : "text-white/30 group-hover:text-white/60",
-                  isGold && "text-[hsl(var(--gold))/40]"
+                  isActive ? (isGold ? "text-[hsl(var(--gold))]" : "text-white") : "text-white/30 group-hover:text-white/60",
+                  isGold && !isActive && "text-[hsl(var(--gold))/40]"
                 )} />
                 {!isCollapsed && <span>{item.label}</span>}
                 {!isCollapsed && item.count !== undefined && item.count > 0 && (
@@ -196,7 +196,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <h1 className="text-lg font-bold tracking-tight text-white/90">
                   {pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin"}
                 </h1>
-                <span className="px-2 py-0.5 rounded-full border border-primary/30 bg-primary/15 text-[9px] font-black text-primary uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] anim-pulse-slow">v9.0 ARCHITECT PREMIUM</span>
+                <span className="px-2 py-0.5 rounded-full border border-white/10 bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] text-[9px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(232,51,74,0.4)] anim-pulse-slow">v9.0 ARCHITECT PREMIUM</span>
               </div>
               <p className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em]">NovaesWeb • Gestão Digital</p>
             </div>

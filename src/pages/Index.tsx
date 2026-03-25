@@ -226,10 +226,10 @@ export default function Dashboard() {
   };
 
   const kpis = [
-    { label: "Ecossistemas em Operação", value: String(stats.clientes), change: "", icon: Users, color: "from-blue-500 to-blue-600" },
-    { label: "Engenharia de Soluções", value: String(stats.projetos), change: "", icon: FolderKanban, color: "from-emerald-500 to-emerald-600" },
-    { label: "Alertas de Conversão", value: String(stats.pedidos), change: stats.pedidos > 0 ? "Prioritário" : "", icon: ShoppingCart, color: "from-amber-500 to-amber-600", alert: stats.pedidos > 0 },
-    { label: "Impacto Financeiro Gerado", value: `R$ ${(stats.receita / 1000).toFixed(1)}k`, change: "", icon: DollarSign, color: "from-violet-500 to-violet-600" },
+    { label: "Ecossistemas em Operação", value: String(stats.clientes), change: "", icon: Users, color: "from-[#7b1fa2] to-[#c2185b]" },
+    { label: "Engenharia de Soluções", value: String(stats.projetos), change: "", icon: FolderKanban, color: "from-[#c2185b] to-[#e8334a]" },
+    { label: "Alertas de Conversão", value: String(stats.pedidos), change: stats.pedidos > 0 ? "Prioritário" : "", icon: ShoppingCart, color: "from-[#e8334a] to-[#7b1fa2]", alert: stats.pedidos > 0 },
+    { label: "Impacto Financeiro Gerado", value: `R$ ${(stats.receita / 1000).toFixed(1)}k`, change: "", icon: DollarSign, color: "from-[#7b1fa2] via-[#c2185b] to-[#e8334a]" },
   ];
 
   const selectedExtra = catalogo.find(c => c.id === extraSel);
