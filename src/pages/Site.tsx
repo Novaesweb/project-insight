@@ -2,6 +2,7 @@ import { useState } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
 import ExperienceSection from "@/components/site/ExperienceSection";
+import ComparisonSection from "@/components/site/ComparisonSection";
 
 import ClientesSection from "@/components/site/ClientesSection";
 import ServicosSection from "@/components/site/ServicosSection";
@@ -28,6 +29,7 @@ export default function Site() {
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ExperienceSection />
+      <ComparisonSection />
 
       <ClientesSection />
       <ServicosSection />
