@@ -15,7 +15,7 @@ import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aberto: "#60a5fa", em_atendimento: "#facc15", resolvido: "#4ade80" };
-const statusLabels: Record<string, string> = { aberto: "Aberto", em_atendimento: "Em atendimento", resolvido: "Resolvido" };
+const statusLabels: Record<string, string> = { aberto: "Análise Inicial", em_atendimento: "Em Otimização", resolvido: "Solução Consolidada" };
 
 interface Msg { id: string; ticket_id: string; remetente: string; nome: string; texto: string; created_at: string; }
 
@@ -123,7 +123,7 @@ export default function ClienteSuporte() {
           <div>
             <Button variant="ghost" size="sm" className="text-white/50 text-xs mb-1" onClick={() => setSelectedTicket(null)}>← Voltar</Button>
             <h2 className="text-sm font-bold text-white">{ticketAtivo.titulo}</h2>
-            <p className="text-[11px] text-white/40">{ticketAtivo.codigo}</p>
+            <p className="text-[11px] text-white/40">Dossiê de Evolução: {ticketAtivo.codigo}</p>
           </div>
           <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: statusColors[ticketAtivo.status] + "33", color: statusColors[ticketAtivo.status] }}>
             {statusLabels[ticketAtivo.status]}
@@ -156,9 +156,9 @@ export default function ClienteSuporte() {
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-white">Suporte</h1>
+        <h1 className="text-lg font-bold text-white">Engenharia de Evolução</h1>
         <Button className="border-0 text-white text-xs" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={() => setShowNovoTicket(true)}>
-          <Plus className="w-3 h-3 mr-1" /> Novo atendimento
+          <Plus className="w-3 h-3 mr-1" /> Solicitar Otimização
         </Button>
       </div>
 
@@ -186,7 +186,7 @@ export default function ClienteSuporte() {
 
       <Dialog open={showNovoTicket} onOpenChange={setShowNovoTicket}>
         <DialogContent className="text-white max-w-md" style={{ background: "#0d0d14", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-          <DialogHeader><DialogTitle>Novo Atendimento</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Solicitar Otimização Técnica</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label className="text-xs text-white/50">Título</Label>
@@ -197,7 +197,7 @@ export default function ClienteSuporte() {
               <Textarea value={novoDescricao} onChange={e => setNovoDescricao(e.target.value)} placeholder="Descreva detalhadamente..." className="border-0 text-white placeholder:text-white/30 min-h-[100px]" style={{ background: "rgba(255,255,255,0.06)" }} />
             </div>
             <Button className="w-full border-0 text-white" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={criarTicket}>
-              Abrir ticket
+              Abrir Dossiê de Evolução
             </Button>
           </div>
         </DialogContent>

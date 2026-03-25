@@ -12,11 +12,11 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transi
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const etapas = [
-  { key: "briefing", label: "Briefing & Contrato", desc: "Definição de objetivos e assinatura do projeto", icon: CalendarDays },
-  { key: "design", label: "Design & Branding", desc: "Criação da identidade visual e protótipo", icon: Flag },
-  { key: "desenvolvimento", label: "Desenvolvimento", desc: "Construção do seu site com tecnologias de ponta", icon: Clock },
-  { key: "homologacao", label: "Testes & SEO", desc: "Revisão final, otimização e configuração de buscas", icon: CheckCircle2 },
-  { key: "concluido", label: "Lançamento Oficial", desc: "Site no ar e pronto para receber clientes!", icon: Flag },
+  { key: "briefing", label: "Mapeamento & Ativos", desc: "Definição de objetivos e blindagem do projeto", icon: CalendarDays },
+  { key: "design", label: "Arquitetura Visual", desc: "Criação da interface e prototipagem de alta fidelidade", icon: Flag },
+  { key: "desenvolvimento", label: "Construção de Infraestrutura", desc: "Desenvolvimento do motor e lógica do ecossistema", icon: Clock },
+  { key: "homologacao", label: "Otimização & QA", desc: "Refinamento técnico, SEO de infraestrutura e testes de estresse", icon: CheckCircle2 },
+  { key: "concluido", label: "Entrega de Ativo Pró", desc: "Solução consolidada e operando em nível Arquiteto", icon: Flag },
 ];
 
 function getEtapaAtual(status: string) {
@@ -287,7 +287,7 @@ export default function ClienteProjetos() {
   // Project list
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
-      <motion.h1 variants={fadeUp} className="text-lg font-bold text-white">Meus Projetos</motion.h1>
+      <motion.h1 variants={fadeUp} className="text-lg font-bold text-white">Engenharia de Soluções</motion.h1>
       <div className="space-y-3">
         {projetos.map((p, i) => {
           const progresso = p.progresso || 0;

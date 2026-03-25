@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, FolderKanban, Plus, FileText, Receipt,
-  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart
+  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart, ShieldCheck, Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,17 +13,14 @@ import nwLogo from "@/assets/novaesweb-logo-n.jpeg";
 import { useBranding } from "@/hooks/useBranding";
 
 const menuItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/cliente/dashboard" },
-  { label: "Pedidos (Fome)", icon: ShoppingCart, path: "/cliente/pedidos" },
-  { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
-  { label: "Meus Extras", icon: Plus, path: "/cliente/extras" },
-  { label: "Contratos", icon: FileText, path: "/cliente/contratos" },
-  { label: "Faturas", icon: Receipt, path: "/cliente/faturas" },
-  { label: "Reuniões", icon: CalendarDays, path: "/cliente/reunioes" },
-  { label: "Arquivos", icon: FileText, path: "/cliente/arquivos" },
-  { label: "Indique e Ganhe", icon: Share2, path: "/cliente/indique" },
-  { label: "Suporte", icon: Headphones, path: "/cliente/suporte" },
-  { label: "Meus Dados", icon: User, path: "/cliente/dados" },
+  { label: "Painel de Ativos", icon: LayoutDashboard, path: "/cliente/dashboard" },
+  { label: "Engenharia de Soluções", icon: FolderKanban, path: "/cliente/projetos" },
+  { label: "Módulos Injetados", icon: Zap, path: "/cliente/extras" },
+  { label: "Blindagem de Ativos", icon: ShieldCheck, path: "/cliente/contratos" },
+  { label: "Fluxo de Valor", icon: Receipt, path: "/cliente/faturas" },
+  { label: "Agendas & Reuniões", icon: CalendarDays, path: "/cliente/reunioes" },
+  { label: "Engenharia de Evolução", icon: Headphones, path: "/cliente/suporte" },
+  { label: "Meus Parâmetros", icon: User, path: "/cliente/dados" },
 ];
 
 function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
@@ -87,7 +84,7 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
       </div>
 
       <div className="py-2 px-4" style={{ background: "hsl(var(--primary))" }}>
-        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">{branding.nome} © 2025 — v2.4.8 Premium</p>
+        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">{branding.nome} © 2026 — v9.0 Architect Pro</p>
       </div>
     </div>
   );
@@ -144,7 +141,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
             {children}
           </div>
           <div className="py-2 px-4 mt-6" style={{ background: "hsl(var(--primary))" }}>
-            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">{branding.nome} © 2025 — v2.4.8 Premium</p>
+            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">{branding.nome} © 2026 — v9.0 Architect Pro</p>
           </div>
         </main>
       </div>

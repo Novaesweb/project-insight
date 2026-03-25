@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock, Sparkles } from "lucide-react";
+import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, BarChart3, Vault, LayoutDashboard } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -131,10 +131,10 @@ export default function ClienteDashboard() {
   useRealtimeSubscription("projeto_atualizacoes", load);
 
   const kpis = [
-    { label: "Projetos ativos", value: counts.projetos, icon: FolderKanban, color: "text-blue-400" },
-    { label: "Extras contratados", value: counts.extras, icon: Plus, color: "text-green-400" },
-    { label: "Faturas pendentes", value: counts.faturas, icon: Receipt, color: counts.faturas > 0 ? "text-yellow-400" : "text-green-400" },
-    { label: "Tickets abertos", value: counts.tickets, icon: Headphones, color: "text-purple-400" },
+    { label: "Soluções Ativas", value: counts.projetos, icon: FolderKanban, color: "text-blue-400" },
+    { label: "Módulos Injetados", value: counts.extras, icon: Plus, color: "text-green-400" },
+    { label: "Fluxo de Valor", value: counts.faturas, icon: Receipt, color: counts.faturas > 0 ? "text-yellow-400" : "text-green-400" },
+    { label: "Dossiês de Evolução", value: counts.tickets, icon: Headphones, color: "text-purple-400" },
   ];
 
   const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
@@ -165,11 +165,10 @@ export default function ClienteDashboard() {
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
             Olá, {cliente.nome?.split(" ")[0]}! <motion.span animate={{ rotate: [0, 20, 0] }} transition={{ repeat: Infinity, duration: 2 }}>👋</motion.span>
           </h1>
-          <p className="text-sm text-white/50">Seu projeto está evoluindo! Veja o que há de novo.</p>
+          <p className="text-sm text-white/50">Seu Ecossistema Digital está sendo potencializado.</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] text-white/50">
-          <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 text-[9px] uppercase font-bold">Portal Premium</Badge>
-          Suporte prioritário ativo
+        <div className="flex items-center gap-3">
+           <span className="px-3 py-1 rounded-full border border-primary/20 bg-primary/10 text-[9px] font-black text-white uppercase tracking-[0.2em]">v9.0 ARCHITECT PRO CLIENT</span>
         </div>
       </div>
 
@@ -194,10 +193,10 @@ export default function ClienteDashboard() {
         <h2 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold px-1">Atalhos rápidos</h2>
         <motion.div variants={stagger} className="flex gap-3 overflow-x-auto pb-4 scrollbar-none">
           {[
-            { to: "/cliente/suporte", label: "Suporte", icon: Headphones, color: "blue" },
-            { to: "/cliente/faturas", label: "Faturas", icon: Receipt, color: "emerald" },
-            { to: "/cliente/projetos", label: "Projetos", icon: FolderKanban, color: "purple" },
-            { to: "/cliente/reunioes", label: "Reuniões", icon: CalendarDays, color: "amber" },
+            { to: "/cliente/suporte", label: "Engenharia de Evolução", icon: Headphones, color: "blue" },
+            { to: "/cliente/faturas", label: "Fluxo de Valor", icon: Receipt, color: "emerald" },
+            { to: "/cliente/projetos", label: "Engenharia de Soluções", icon: FolderKanban, color: "purple" },
+            { to: "/cliente/contratos", label: "Blindagem de Ativos", icon: ShieldCheck, color: "amber" },
           ].map((item, idx) => (
             <Button key={idx} asChild className="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center">
               <Link to={item.to}>
@@ -266,17 +265,56 @@ export default function ClienteDashboard() {
             </CardContent>
           </Card>
 
+          <Card className="glass-card border-white/5 overflow-hidden border-primary/20 bg-primary/5">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary" /> Blueprint de Escala Técnica
+                </h2>
+                <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px] font-bold">PLANILHA ESTRATÉGICA ATIVA</Badge>
+              </div>
+              
+              <div className="space-y-4">
+                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/50 transition-all">
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><LayoutDashboard className="w-4 h-4 text-primary" /></div>
+                          <div>
+                             <p className="text-xs font-bold text-white">Arquitetura PWA & App Nativo</p>
+                             <p className="text-[10px] text-white/40">Transformar site em Ativo de Instalação Direta</p>
+                          </div>
+                       </div>
+                       <Badge variant="outline" className="text-[9px] border-white/10 text-white/60">Disponível</Badge>
+                    </div>
+                 </div>
+
+                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/50 transition-all opacity-60">
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><Vault className="w-4 h-4 text-blue-400" /></div>
+                          <div>
+                             <p className="text-xs font-bold text-white">Blindagem WAF & Segurança Militar</p>
+                             <p className="text-[10px] text-white/40">Proteção avançada de infraestrutura contra ataques</p>
+                          </div>
+                       </div>
+                       <Badge variant="outline" className="text-[9px] border-white/10 text-white/60">Agendado</Badge>
+                    </div>
+                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="glass-card border-white/5 overflow-hidden">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" /> Histórico de Evolução
+                  <Clock className="w-4 h-4 text-primary" /> Timeline de Acompanhamento Técnico
                 </h2>
-                <StatusBadge status="em_andamento" />
+                <Badge variant="outline" className="text-[9px] border-white/10 text-emerald-400 bg-emerald-500/5">SISTEMA OPERACIONAL</Badge>
               </div>
               
               {atualizacoes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center border-t border-white/5 mt-4">
                   <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
                     <Clock className="w-6 h-6 text-white/20" />
                   </div>

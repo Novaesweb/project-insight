@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileText, Download, PenTool } from "lucide-react";
+import { FileText, Download, PenTool, ShieldCheck, Vault, Lock, Unlock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import jsPDF from "jspdf";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aguardando: "#facc15", assinado: "#4ade80", cancelado: "#ef4444" };
-const statusLabels: Record<string, string> = { aguardando: "Aguardando assinatura", assinado: "Assinado", cancelado: "Cancelado" };
+const statusLabels: Record<string, string> = { aguardando: "Pendente de Criptografia", assinado: "Protegido no Cofre", cancelado: "Estrutura Revogada" };
 
 function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, assinaturaCliente?: string) {
   const doc = new jsPDF();
@@ -106,15 +106,23 @@ export default function ClienteContratos() {
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
-      <h1 className="text-lg font-bold text-white">Meus Contratos</h1>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+          <Vault className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-white">Blindagem de Ativos</h1>
+          <p className="text-xs text-white/40 uppercase tracking-widest font-mono">Digital Vault v9.0 Pro</p>
+        </div>
+      </div>
       <div className="space-y-3">
         {contratos.map(c => (
           <Card key={c.id} className={`border-[0.5px] ${c.status === "aguardando" ? "border-yellow-500/30" : "border-white/[0.08]"}`} style={{ background: "rgba(255,255,255,0.04)" }}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleView(c)}>
-                  <FileText className="w-4 h-4 text-white/40" />
-                  <span className="text-sm font-medium text-white">{c.titulo}</span>
+                <div className="flex items-center gap-2 cursor-pointer group" onClick={() => handleView(c)}>
+                  {c.status === "assinado" ? <ShieldCheck className="w-4 h-4 text-emerald-400" /> : <Lock className="w-4 h-4 text-amber-400" />}
+                  <span className="text-sm font-bold text-white group-hover:text-primary transition-colors">{c.titulo}</span>
                 </div>
                 <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: statusColors[c.status] + "22", color: statusColors[c.status] }}>
                   {statusLabels[c.status]}
@@ -129,12 +137,12 @@ export default function ClienteContratos() {
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7" onClick={() => handleDownload(c)}>
-                    <Download className="w-3 h-3 mr-1" /> PDF
+                    <Download className="w-3 h-3 mr-1" /> Dossiê PDF
                   </Button>
                   {c.status === "aguardando" && (
-                    <Button size="sm" className="text-[10px] h-7 border-0 text-white gap-1" style={{ background: "linear-gradient(135deg, #e8334a, #7b1fa2)" }}
+                    <Button size="sm" className="text-[10px] h-7 border-0 text-white gap-1 px-4 shadow-lg shadow-primary/20" style={{ background: "linear-gradient(135deg, #e8334a, #7b1fa2)" }}
                       onClick={() => handleSign(c)}>
-                      <PenTool className="w-3 h-3" /> Assinar agora
+                      <Unlock className="w-3 h-3" /> Criptografar Assinatura
                     </Button>
                   )}
                 </div>
