@@ -17,7 +17,7 @@ export default function PlanosSection() {
             <span className="gradient-text">escalar o seu negócio</span>
           </h2>
           <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl mx-auto font-medium">
-            Escolha o plano ideal para o momento da sua empresa. Cada projeto pode evoluir conforme sua demanda cresce.
+            Escolha a arquitetura ideal para o momento da sua empresa. Cada ativo digital é projetado para evoluir conforme sua demanda escala.
           </p>
         </motion.div>
 
@@ -42,11 +42,11 @@ export default function PlanosSection() {
                     </div>
                     <div>
                       <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Express</span>
-                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Site Express</h3>
+                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Arquitetura Express</h3>
                     </div>
                   </div>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-3">
-                    Aproveite o Plano Site Express com uma promoção exclusiva só este mês!
+                    A estrutura ágil para quem precisa de presença digital imediata e profissional.
                   </p>
                   <div className="flex items-center gap-4 mb-3">
                     <div className="text-center">
@@ -70,8 +70,8 @@ export default function PlanosSection() {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-emerald-400/80 italic mb-3">⚡ Não perca essa oportunidade!</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, vi a promoção do Plano Site Express da NovaesWeb e gostaria de aproveitar! Valor inicial R$180 e mensalidade R$60." target="_blank" rel="noopener noreferrer">
+                  <p className="text-xs text-emerald-400/80 italic mb-3">⚡ A base perfeita para sua transformação digital.</p>
+                  <a href="https://wa.me/5551981964238?text=Olá, vi a arquitetura Express da NovaesWeb e gostaria de estruturar minha presença digital!" target="_blank" rel="noopener noreferrer">
                     <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                       Aproveitar promoção <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -91,11 +91,11 @@ export default function PlanosSection() {
                     </div>
                     <div>
                       <span className="text-[10px] uppercase tracking-wider font-bold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-0.5 rounded-full">Pro</span>
-                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Gestão Pro</h3>
+                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Arquitetura de Gestão</h3>
                     </div>
                   </div>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                    Indicado para empresas que precisam organizar clientes, pedidos e informações do negócio.
+                    O ecossistema completo para empresas que buscam estruturar sua operação e escalar resultados.
                   </p>
                   <ul className="space-y-2 mb-4 flex-1">
                     {["Site profissional completo", "Painel administrativo", "Cadastro de clientes", "Recebimento de pedidos", "Sistema de notificações", "Controle financeiro básico", "Histórico de informações"].map((item, i) => (
@@ -105,10 +105,10 @@ export default function PlanosSection() {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-3">💡 Ideal para empresas que querem mais controle e organização.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Gestão Pro." target="_blank" rel="noopener noreferrer">
+                  <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-3">💡 Ideal para quem busca controle total e escala operacional.</p>
+                  <a href="https://wa.me/5551981964238?text=Olá, gostaria de saber mais sobre a Arquitetura de Gestão da NovaesWeb." target="_blank" rel="noopener noreferrer">
                     <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
-                      Falar com especialista <MessageCircle className="w-4 h-4 ml-2" />
+                      Falar com Arquiteto <MessageCircle className="w-4 h-4 ml-2" />
                     </Button>
                   </a>
                 </div>
@@ -121,11 +121,11 @@ export default function PlanosSection() {
                     </div>
                     <div>
                       <span className="text-[10px] uppercase tracking-wider font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Sob Medida</span>
-                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Sistema Sob Medida</h3>
+                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Arquitetura sob Medida</h3>
                     </div>
                   </div>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                    Para empresas que precisam de um sistema totalmente personalizado, desenvolvido sob demanda.
+                    Transformação sob demanda para projetos complexos que exigem engenharia dedicada.
                   </p>
                   <ul className="space-y-2 mb-4 flex-1">
                     {["Sistemas de gestão", "Plataformas internas", "Portais para clientes", "Sistemas de pedidos", "Dashboards administrativos", "E muito mais..."].map((item, i) => (
@@ -135,10 +135,10 @@ export default function PlanosSection() {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-purple-400/80 italic mb-3">💡 Cada projeto é planejado conforme a necessidade da empresa.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, vi os planos da NovaesWeb e gostaria de receber um orçamento para o Plano Sistema Sob Medida." target="_blank" rel="noopener noreferrer">
+                  <p className="text-xs text-purple-400/80 italic mb-3">💡 Engenharia estratégica focada na sua necessidade específica.</p>
+                  <a href="https://wa.me/5551981964238?text=Olá, gostaria de um orçamento para uma Arquitetura Digital sob Medida." target="_blank" rel="noopener noreferrer">
                     <Button className="w-full bg-purple-600 hover:bg-purple-700 border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-purple-600/20">
-                      Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
+                      Solicitar Diagnóstico <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </a>
                 </div>
