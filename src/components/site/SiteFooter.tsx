@@ -24,7 +24,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
               </span>
             </div>
             <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
-              Transformando a presença digital de empresas locais com tecnologia de alta performance e design premium.
+              Transformando a presença digital de empresas locais com soluções inteligentes e design premium.
             </p>
           </div>
 

@@ -18,16 +18,7 @@ export default function HeroSection({ onOpenDemo, onOpenStory }: HeroSectionProp
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8"
-          >
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-            <span className="text-[10px] font-bold text-white/80 uppercase tracking-[0.2em]">Especialistas em Alta Performance Digital</span>
-          </motion.div>
+
 
           {/* Main Title */}
           <motion.h1
