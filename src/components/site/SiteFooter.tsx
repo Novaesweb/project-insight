@@ -90,15 +90,14 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
           </div>
         </div>
 
-        {/* Parceria */}
         <div className="border-t border-[hsl(var(--border))] pt-8 mb-8 flex flex-col items-center">
-          <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/5 grayscale hover:grayscale-0 transition-all">
-            <img src={codethioLogo} alt="Codethio" className="w-8 h-8 rounded-full object-cover" />
+          <div className="flex items-center gap-4 px-8 py-4 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 transition-all shadow-lg shadow-emerald-500/10 scale-105">
+            <img src={codethioLogo} alt="Codethio" className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500/30" />
             <div className="flex flex-col">
-              <p className="text-xs font-bold leading-none">
-                <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
+              <p className="text-xl font-black leading-none tracking-tighter">
+                <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-emerald-500">thio</span>
               </p>
-              <span className="text-[9px] text-[hsl(var(--muted-foreground))] uppercase tracking-widest mt-1">Parceria Estratégica</span>
+              <span className="text-[10px] text-emerald-500/60 uppercase font-black tracking-[0.2em] mt-2">Parceria Estratégica</span>
             </div>
           </div>
         </div>
