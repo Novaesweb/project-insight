@@ -24,6 +24,8 @@ interface SolucoesSectionProps {
 }
 
 export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
+  const [showAll, setShowAll] = useState(false);
+  const displayedSolucoes = showAll ? solucoes : solucoes.slice(0, 4);
 
   return (
     <motion.section id="solucoes" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
@@ -41,8 +43,8 @@ export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
 
         {/* Mobile: Horizontal Scroll | Desktop: Masonry-style Grid */}
         <div className="relative">
-          <div className="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto pb-8 lg:pb-0 no-scrollbar snap-x snap-mandatory lg:gap-8">
-            {solucoes.map((p, i) => (
+          <div className="flex lg:grid lg:grid-cols-2 xl:grid-cols-4 gap-6 overflow-x-auto pb-8 lg:pb-0 no-scrollbar snap-x snap-mandatory lg:gap-8">
+            {displayedSolucoes.map((p, i) => (
               <motion.div
                 key={p.titulo}
                 initial={{ opacity: 0, y: 20 }}
@@ -52,7 +54,7 @@ export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
                 className={cn(
                   "min-w-[280px] sm:min-w-[320px] lg:min-w-full snap-start",
                   "glass-card rounded-[2.5rem] p-8 flex flex-col gap-6 info-card-hover border-white/5",
-                  i % 2 === 0 ? "lg:translate-y-6" : "lg:-translate-y-6"
+                  i % 2 === 0 ? "lg:translate-y-4" : "lg:-translate-y-4"
                 )}
               >
                 <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shrink-0 shadow-2xl shadow-primary/20 rotate-3 group-hover:rotate-12 transition-transform duration-500">
@@ -66,6 +68,38 @@ export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
               </motion.div>
             ))}
           </div>
+          
+          {/* Botão Expandir */}
+          {!showAll && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-12 flex justify-center"
+            >
+              <Button 
+                onClick={() => setShowAll(true)}
+                className="h-14 px-10 rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:shadow-2xl transition-all duration-300 group"
+              >
+                <span className="text-sm font-black uppercase tracking-widest mr-2">Ver Catálogo Completo</span>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </motion.div>
+          )}
+
+          {showAll && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-12 flex justify-center"
+            >
+              <Button 
+                onClick={() => setShowAll(false)}
+                className="h-10 px-6 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+              >
+                Recolher Catálogo
+              </Button>
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.section>
