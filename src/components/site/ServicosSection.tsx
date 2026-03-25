@@ -7,12 +7,12 @@ const fade = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transiti
 const stagger = { show: { transition: { staggerChildren: 0.09 } } };
 
 const servicos = [
-  { icon: Globe, titulo: "Sites Profissionais", desc: "Sites rápidos, modernos e otimizados para SEO. Design responsivo, domínio, SSL, hospedagem e painel de gestão incluso.", color: "from-blue-500 to-cyan-500" },
-  { icon: ShoppingBag, titulo: "Lojas Virtuais", desc: "E-commerce completo com catálogo, carrinho, checkout seguro e integração com Pix, cartão e boleto. Controle de estoque incluso.", color: "from-purple-500 to-pink-500" },
-  { icon: Layers, titulo: "Sistemas Web", desc: "Sistemas sob medida para clientes, pedidos, agendamentos, financeiro e relatórios. 100% na nuvem, acesso de qualquer lugar.", color: "from-orange-500 to-red-500" },
-  { icon: Smartphone, titulo: "Landing Pages", desc: "Páginas de alta conversão para campanhas de marketing. Design focado em capturar leads com formulários inteligentes.", color: "from-emerald-500 to-teal-500" },
-  { icon: Shield, titulo: "Manutenção e Suporte", desc: "Suporte técnico contínuo, atualizações de segurança, backups automáticos e monitoramento 24h.", color: "from-yellow-500 to-orange-500" },
-  { icon: Zap, titulo: "Automação e Integrações", desc: "Conecte seu site ao WhatsApp, e-mail marketing, redes sociais, Google Analytics e outras ferramentas que potencializam resultados.", color: "from-red-500 to-pink-500" },
+  { icon: Globe, titulo: "Arquitetura de Presença", desc: "Estruturamos portais de alta fidelidade que posicionam sua marca no topo. Mais que um site, uma base sólida para sua autoridade digital.", color: "from-blue-500 to-cyan-500" },
+  { icon: ShoppingBag, titulo: "Ecossistemas de Vendas", desc: "Lojas inteligentes projetadas para escala. Integramos todo o fluxo de conversão, estoque e pagamentos em um único ativo gerador de lucro.", color: "from-purple-500 to-pink-500" },
+  { icon: Layers, titulo: "Engenharia de Operação", desc: "Sistemas web sob medida que automatizam sua rotina. Transformamos processos complexos em fluxos simples e lucrativos na nuvem.", color: "from-orange-500 to-red-500" },
+  { icon: Smartphone, titulo: "Máquinas de Leads", desc: "Landing Pages de altíssima conversão. Estruturamos o funil perfeito para capturar e converter visitantes em clientes reais.", color: "from-emerald-500 to-teal-500" },
+  { icon: Shield, titulo: "Blindagem & Evolução", desc: "Segurança total e monitoramento contínuo. Garantimos que sua estrutura digital continue evoluindo e performando 24h por dia.", color: "from-yellow-500 to-orange-500" },
+  { icon: Zap, titulo: "Conectividade Estratégica", desc: "Integramos seu ecossistema ao WhatsApp e IA. Criamos pontes inteligentes que automatizam o atendimento e multiplicam resultados.", color: "from-red-500 to-pink-500" },
 ];
 
 function Card3D({ children }: { children: React.ReactNode }) {

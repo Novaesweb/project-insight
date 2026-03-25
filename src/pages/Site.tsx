@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
+import ExperienceSection from "@/components/site/ExperienceSection";
 
 import ClientesSection from "@/components/site/ClientesSection";
 import ServicosSection from "@/components/site/ServicosSection";
@@ -25,8 +26,8 @@ export default function Site() {
     <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow font-sans antialiased">
       <UrgencyBanner />
       <SiteNavbar onOpenModal={setModalOpen} />
-      <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
-
+      <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} onOpenStory={(id) => setModalOpen(`story-${id}`)} />
+      <ExperienceSection />
 
       <ClientesSection />
       <ServicosSection />

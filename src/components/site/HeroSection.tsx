@@ -38,7 +38,7 @@ export default function HeroSection({ onOpenDemo, onOpenStory }: HeroSectionProp
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed"
           >
-            Desenvolvemos sites, sistemas e automações inteligentes que transformam a operação e multiplicam os resultados do seu negócio local.
+            Não entregamos apenas código. Estruturamos a base digital que escala o seu lucro e transforma sua operação em um ativo de alto valor.
           </motion.p>
 
           {/* Actions */}
