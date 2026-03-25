@@ -2,6 +2,8 @@ import { useState } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
 import ExperienceSection from "@/components/site/ExperienceSection";
+import TrustedBySection from "@/components/site/TrustedBySection";
+import FaqSection from "@/components/site/FaqSection";
 
 import ServicosSection from "@/components/site/ServicosSection";
 import AutomacaoSection from "@/components/site/AutomacaoSection";
@@ -27,6 +29,7 @@ export default function Site() {
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ExperienceSection />
+      <TrustedBySection />
 
       <ServicosSection onOpenModal={setModalOpen} />
       <AutomacaoSection />
@@ -40,6 +43,7 @@ export default function Site() {
       <FuncionalidadeExtraSection />
       <ResultadosSection />
       <CadastroPerfeitoSection />
+      <FaqSection />
       <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
       <SiteFooter onOpenModal={setModalOpen} />
 
