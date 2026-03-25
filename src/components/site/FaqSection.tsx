@@ -13,8 +13,8 @@ const faqs = [
     a: "Eles chegam 100% organizados com itens, adicionais escolhidos, endereço de entrega e forma de pagamento, prontos para a produção."
   },
   {
-    q: "O site vira um aplicativo?",
-    a: "Sim! Usamos tecnologia PWA nativa, permitindo que seu cliente instale um atalho direto na tela inicial do celular dele, sem ocupar espaço de app comum."
+    q: "O App no iPhone funciona sem barra de navegador?",
+    a: "Com certeza! Ao adicionar à tela inicial, o sistema abre em modo 'Standalone' (Tela Cheia). O usuário nem percebe que é um site; ele navega como se fosse um aplicativo baixado na Apple Store."
   },
   {
     q: "Tem limite de produtos ou pedidos?",
@@ -43,8 +43,8 @@ export default function FaqSection() {
 
         <div className="space-y-4">
           {faqs.map((faq, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className={cn(
                 "rounded-[2rem] border transition-all duration-300 overflow-hidden",
                 openIndex === i ? "bg-white/[0.03] border-white/10" : "bg-transparent border-white/5 hover:border-white/10"
@@ -62,7 +62,7 @@ export default function FaqSection() {
                   openIndex === i && "rotate-180 text-primary"
                 )} />
               </button>
-              
+
               <AnimatePresence>
                 {openIndex === i && (
                   <motion.div
