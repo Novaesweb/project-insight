@@ -26,7 +26,7 @@ export default function Site() {
     <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow font-sans antialiased">
       <UrgencyBanner />
       <SiteNavbar onOpenModal={setModalOpen} />
-      <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} onOpenStory={(id) => setModalOpen(`story-${id}`)} />
+      <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ExperienceSection />
 
       <ClientesSection />

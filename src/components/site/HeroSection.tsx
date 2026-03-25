@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 
 interface HeroSectionProps {
   onOpenDemo: () => void;
-  onOpenStory: (id: string) => void;
 }
 
-export default function HeroSection({ onOpenDemo, onOpenStory }: HeroSectionProps) {
+export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
   return (
     <section id="home" className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20 pb-12">
       {/* Background Effects */}
@@ -55,16 +54,7 @@ export default function HeroSection({ onOpenDemo, onOpenStory }: HeroSectionProp
               Solicitar Demonstração <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
             </Button>
 
-            <Button 
-              variant="outline"
-              onClick={() => onOpenStory("geral")}
-              className="h-16 px-10 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-white text-lg font-bold backdrop-blur-md transition-all group"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
-                <Play className="w-4 h-4 text-primary fill-primary ml-0.5" />
-              </div>
-              Veja nossa história
-            </Button>
+
           </motion.div>
 
           {/* Trust Elements */}
