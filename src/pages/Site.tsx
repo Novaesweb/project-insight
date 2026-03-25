@@ -28,7 +28,7 @@ export default function Site() {
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ExperienceSection />
 
-      <ServicosSection />
+      <ServicosSection onOpenModal={setModalOpen} />
       <AutomacaoSection />
       <SolucoesSection />
       <section id="segmentos" className="py-8">

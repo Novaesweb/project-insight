@@ -38,7 +38,11 @@ function Card3D({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function ServicosSection() {
+interface ServicosSectionProps {
+  onOpenModal: (id: string) => void;
+}
+
+export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
   return (
     <motion.section id="servicos" className="py-28 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-7xl mx-auto">
@@ -81,9 +85,13 @@ export default function ServicosSection() {
                   )}>{s.desc}</p>
                   
                   { (i === 0 || i === 5) && (
-                    <div className="mt-8 pt-6 border-t border-white/5 flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-primary">
-                      Saiba mais sobre este serviço <ArrowRight className="w-4 h-4" />
-                    </div>
+                    <button 
+                      onClick={() => onOpenModal("demonstracao")}
+                      className="mt-8 pt-6 border-t border-white/5 flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-primary hover:text-white transition-colors group/btn"
+                    >
+                      Saiba mais sobre este serviço 
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
                   )}
                 </div>
               </Card3D>
