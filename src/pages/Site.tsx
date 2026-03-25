@@ -12,7 +12,6 @@ import ProcessoSection from "@/components/site/ProcessoSection";
 import PlanosSection from "@/components/site/PlanosSection";
 import FuncionalidadeExtraSection from "@/components/site/FuncionalidadeExtraSection";
 import ResultadosSection from "@/components/site/ResultadosSection";
-import InfrastructureBadgeSection from "@/components/site/InfrastructureBadgeSection";
 import SiteModals from "@/components/site/SiteModals";
 import CadastroPerfeitoSection from "@/components/site/CadastroPerfeitoSection";
 import SiteFooter from "@/components/site/SiteFooter";
@@ -40,7 +39,6 @@ export default function Site() {
       <PlanosSection />
       <FuncionalidadeExtraSection />
       <ResultadosSection />
-      <InfrastructureBadgeSection />
       <CadastroPerfeitoSection />
       <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
       <SiteFooter onOpenModal={setModalOpen} />
