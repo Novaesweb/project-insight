@@ -38,6 +38,7 @@ export default function Dashboard() {
 
   // Modal Extras
   const [showAddExtra, setShowAddExtra] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
   const [clientes, setClientes] = useState<any[]>([]);
   const [catalogo, setCatalogo] = useState<any[]>([]);
   const [clienteSel, setClienteSel] = useState("");
@@ -421,8 +422,39 @@ export default function Dashboard() {
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-purple-400" /> Nova Blindagem
             </Link>
           </Button>
+          <Button variant="ghost" className="h-10 px-4 rounded-xl text-primary hover:bg-primary/5 text-xs font-bold uppercase tracking-widest border border-dashed border-primary/20" onClick={() => setShowPricing(true)}>
+            <DollarSign className="w-3.5 h-3.5 mr-1.5" /> Ver Catálogo de Preços
+          </Button>
         </div>
       </motion.div>
+
+      {/* Pricing Catalogue Layout */}
+      <Dialog open={showPricing} onOpenChange={setShowPricing}>
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" /> Catálogo de Planos & Engenharia v9.0
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <PlanCard title="V9 BASE" price="R$ 497" monthly="R$ 49" items={["Site Vitrine v9.0", "Botão WhatsApp", "Suporte Padrão"]} color="border-blue-500/20" />
+            <PlanCard title="V9 PLUS" price="R$ 997" monthly="R$ 99" items={["Delivery Completo", "PWA Nativo", "Painel Architect"]} color="border-primary/20" featured />
+            <PlanCard title="V9 PRO" price="R$ 1.997" monthly="R$ 199" items={["Tudo + IA GPT", "CRM Architect", "Prioridade Zero"]} color="border-purple-500/20" />
+          </div>
+
+          <div className="mt-8 space-y-4">
+            <h3 className="text-xs font-black uppercase tracking-widest text-white/40">Extras e Upgrades Individuais</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <ExtraItem label="IA Sales GPT" setup="R$ 500" monthly="R$ 50" />
+              <ExtraItem label="Fidelidade Digital" setup="R$ 300" monthly="R$ 30" />
+              <ExtraItem label="Multi-Store" setup="R$ 400" monthly="R$ 40" />
+              <ExtraItem label="Dossiê Performance" setup="—" monthly="R$ 200" />
+              <ExtraItem label="Blindagem (Cofre)" setup="R$ 150" monthly="—" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Tables & Activity */}
       <motion.div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" variants={fadeUp}>
@@ -610,6 +642,47 @@ function InsightAction({ icon: Icon, title, desc, action, link, color }: any) {
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PlanCard({ title, price, monthly, items, color, featured }: any) {
+  return (
+    <div className={cn(
+      "p-6 rounded-[2rem] bg-white/[0.02] border transition-all h-full flex flex-col",
+      color,
+      featured && "bg-primary/5 border-primary/40 shadow-2xl shadow-primary/10 scale-105"
+    )}>
+      <div className="mb-6">
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">{title}</h4>
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-black text-white">{price}</span>
+          <span className="text-[10px] text-white/40 font-bold">SETUP</span>
+        </div>
+        <div className="text-primary font-black text-sm mt-1">{monthly}/mês</div>
+      </div>
+      <ul className="space-y-2 mb-8 flex-1">
+        {items.map((it: string) => (
+          <li key={it} className="flex items-center gap-2 text-[10px] font-medium text-white/60">
+            <CheckCircle2 className="w-3 h-3 text-primary" /> {it}
+          </li>
+        ))}
+      </ul>
+      <Button className={cn("w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", featured ? "gradient-primary border-0" : "bg-white/5 border border-white/10 hover:bg-white/10")}>
+        Selecionar
+      </Button>
+    </div>
+  );
+}
+
+function ExtraItem({ label, setup, monthly }: any) {
+  return (
+    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all">
+      <div>
+        <h5 className="text-[10px] font-black text-white uppercase tracking-tighter">{label}</h5>
+        <p className="text-[9px] text-white/40 font-medium">{setup} setup • {monthly}/mês</p>
+      </div>
+      <Plus className="w-3 h-3 text-white/20 group-hover:text-primary transition-colors" />
     </div>
   );
 }
