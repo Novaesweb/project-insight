@@ -30,7 +30,7 @@ export default function Site() {
 
       <ServicosSection onOpenModal={setModalOpen} />
       <AutomacaoSection />
-      <SolucoesSection />
+      <SolucoesSection onOpenModal={setModalOpen} />
       <section id="segmentos" className="py-8">
         <NicheCarousel />
       </section>

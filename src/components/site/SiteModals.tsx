@@ -19,6 +19,10 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
     return <StoryViewer storyId={storyId} onClose={onClose} />;
   }
 
+  // Lógica para detalhes dinâmicos de sistemas
+  const isDetailsModal = modalOpen?.startsWith("detalhes-sistema:");
+  const systemTitle = isDetailsModal ? modalOpen.split(":")[1] : null;
+
   return (
     <AnimatePresence>
       {modalOpen && (
@@ -230,6 +234,57 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
               </div>
             )}
 
+            {isDetailsModal && (
+              <div className="p-8">
+                <div className="mb-6">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-primary">Soluções Personalizadas</span>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2">{systemTitle}</h2>
+                  <p className="text-sm text-white/40 mt-4 leading-relaxed">
+                    Este é um dos sistemas que a <span className="text-white">NovaesWeb</span> projeta com foco total em automação e escalabilidade. 
+                    Nossa engenharia permite que você gerencie cada detalhe da sua operação de forma digital e centralizada.
+                  </p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="p-6 rounded-2xl border border-white/5 bg-white/2 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Zap className="w-12 h-12 text-primary" />
+                    </div>
+                    <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-tighter">O que está incluso:</h3>
+                    <ul className="space-y-3">
+                      {[
+                        "Interface Intuitiva e Premium",
+                        "Segurança de Dados em Nuvem (Supabase)",
+                        "Relatórios e Dashboards em Tempo Real",
+                        "Integração com WhatsApp para Notificações",
+                        "Suporte Técnico e Evolução Contínua"
+                      ].map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-3 text-xs text-white/60">
+                          <div className="w-1 h-1 rounded-full bg-primary" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                    <button 
+                      onClick={() => window.open("https://wa.me/5511999999999?text=Quero%20um%20orçamento%20para: " + systemTitle, "_blank")}
+                      className="flex-1 py-4 rounded-xl bg-primary text-white font-black uppercase tracking-widest text-[10px] hover:bg-primary/80 transition-all shadow-lg shadow-primary/20"
+                    >
+                      Solicitar Orçamento
+                    </button>
+                    <button 
+                      onClick={onClose}
+                      className="flex-1 py-4 rounded-xl border border-white/10 text-white/60 font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {modalOpen === "conectividade" && (
               <div className="p-8">
                 <div className="mb-6">

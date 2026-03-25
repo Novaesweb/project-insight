@@ -19,7 +19,11 @@ const solucoes = [
   { icon: Rocket, titulo: "Painel Administrativo", desc: "Dashboard completo para gerenciar toda sua operação: clientes, pedidos, financeiro, equipe, relatórios e KPIs do negócio em um só lugar." },
 ];
 
-export default function SolucoesSection() {
+interface SolucoesSectionProps {
+  onOpenModal: (id: string) => void;
+}
+
+export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
 
   return (
     <motion.section id="solucoes" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
@@ -58,9 +62,12 @@ export default function SolucoesSection() {
                   <h3 className="text-xl font-black text-white tracking-tight">{p.titulo}</h3>
                   <p className="text-sm text-white/40 leading-relaxed font-medium line-clamp-4">{p.desc}</p>
                 </div>
-                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/60 group-hover:text-primary transition-colors">
-                  Ver Detalhes <ChevronRight className="w-3 h-3" />
-                </div>
+                <button 
+                  onClick={() => onOpenModal("detalhes-sistema:" + p.titulo)}
+                  className="mt-auto pt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors group/btn"
+                >
+                  Ver Detalhes <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                </button>
               </motion.div>
             ))}
           </div>
