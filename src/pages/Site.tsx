@@ -3,7 +3,6 @@ import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
 import ExperienceSection from "@/components/site/ExperienceSection";
 
-import ClientesSection from "@/components/site/ClientesSection";
 import ServicosSection from "@/components/site/ServicosSection";
 import AutomacaoSection from "@/components/site/AutomacaoSection";
 import SolucoesSection from "@/components/site/SolucoesSection";
@@ -29,7 +28,6 @@ export default function Site() {
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       <ExperienceSection />
 
-      <ClientesSection />
       <ServicosSection />
       <AutomacaoSection />
       <SolucoesSection />
