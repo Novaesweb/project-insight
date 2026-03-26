@@ -1,8 +1,8 @@
 {
   "rewrites": [
-    {
-      "source": "/((?!robots\\.txt|sitemap\\.xml|favicon\\.ico|assets/|sw\\.js|google.*\\.html).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/((?!api|assets|static|favicon.ico|sw.js).*)", "destination": "/index.html" }
   ]
 }
