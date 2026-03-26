@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Bot, MessageCircle, Zap, Target, ArrowRight, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import codethioLogo from "@/assets/codethio-logo.jpeg";
+import codethioLogo from "@/assets/codethio-logo.png";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
