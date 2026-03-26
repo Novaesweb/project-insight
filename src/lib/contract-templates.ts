@@ -18,7 +18,7 @@ const baseVars: ContractVariable[] = [
   { key: "nome_cliente", label: "Nome do Cliente", type: "text", autoFill: "nome_cliente" },
   { key: "cpf_cnpj", label: "CPF/CNPJ do Cliente", type: "text", autoFill: "cpf_cnpj" },
   { key: "endereco", label: "Endereço do Cliente", type: "text", autoFill: "endereco" },
-  { key: "cnpj_webnovax", label: "CNPJ WebNovaX", type: "text", defaultValue: "" },
+  { key: "cnpj_webnovax", label: "CNPJ webnovax", type: "text", defaultValue: "" },
   { key: "lista_servicos", label: "Lista de Serviços", type: "textarea" },
   { key: "numero_revisoes", label: "Nº de Revisões", type: "number", defaultValue: "2" },
   { key: "valor_revisao", label: "Valor Revisão Adicional (R$/hora)", type: "number", defaultValue: "50" },
@@ -47,7 +47,7 @@ export const contractTemplates: ContractTemplate[] = [
 
 CONTRATANTE: {nome_cliente}, {cpf_cnpj}, residente/sediado em {endereco}, doravante denominado CONTRATANTE.
 
-CONTRATADA: WebNovaX, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
+CONTRATADA: webnovax, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
 
 As partes acima identificadas têm entre si justo e acertado o presente contrato, que se regerá pelas cláusulas seguintes:
 
@@ -87,7 +87,7 @@ As partes elegem o foro da Comarca de Alvorada, RS para dirimir quaisquer dúvid
 Alvorada, {data}.
 
 CONTRATANTE: ___________________________
-CONTRATADA — WebNovaX: ___________________________`,
+CONTRATADA — webnovax: ___________________________`,
   },
   {
     id: "loja-virtual",
@@ -105,7 +105,7 @@ CONTRATADA — WebNovaX: ___________________________`,
 
 CONTRATANTE: {nome_cliente}, {cpf_cnpj}, residente/sediado em {endereco}, doravante denominado CONTRATANTE.
 
-CONTRATADA: WebNovaX, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
+CONTRATADA: webnovax, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
 
 CLÁUSULA 1 — DO OBJETO
 A CONTRATADA se compromete a desenvolver uma loja virtual completa incluindo: {lista_servicos}, com capacidade para até {numero_produtos} produtos cadastrados.
@@ -146,7 +146,7 @@ Foro da Comarca de Alvorada, RS.
 Alvorada, {data}.
 
 CONTRATANTE: ___________________________
-CONTRATADA — WebNovaX: ___________________________`,
+CONTRATADA — webnovax: ___________________________`,
   },
   {
     id: "manutencao-mensal",
@@ -164,7 +164,7 @@ CONTRATADA — WebNovaX: ___________________________`,
 
 CONTRATANTE: {nome_cliente}, {cpf_cnpj}, residente/sediado em {endereco}, doravante denominado CONTRATANTE.
 
-CONTRATADA: WebNovaX, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
+CONTRATADA: webnovax, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
 
 CLÁUSULA 1 — DO OBJETO
 A CONTRATADA prestará serviços mensais de manutenção do site/sistema do CONTRATANTE incluindo: {lista_servicos}.
@@ -193,7 +193,7 @@ Foro da Comarca de Alvorada, RS.
 Alvorada, {data}.
 
 CONTRATANTE: ___________________________
-CONTRATADA — WebNovaX: ___________________________`,
+CONTRATADA — webnovax: ___________________________`,
   },
   {
     id: "marketing-digital",
@@ -212,7 +212,7 @@ CONTRATADA — WebNovaX: ___________________________`,
 
 CONTRATANTE: {nome_cliente}, {cpf_cnpj}, residente/sediado em {endereco}, doravante denominado CONTRATANTE.
 
-CONTRATADA: WebNovaX, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
+CONTRATADA: webnovax, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
 
 CLÁUSULA 1 — DO OBJETO
 A CONTRATADA prestará serviços de marketing digital incluindo: {lista_servicos}.
@@ -244,7 +244,7 @@ Foro da Comarca de Alvorada, RS.
 Alvorada, {data}.
 
 CONTRATANTE: ___________________________
-CONTRATADA — WebNovaX: ___________________________`,
+CONTRATADA — webnovax: ___________________________`,
   },
   {
     id: "landing-page",
@@ -260,7 +260,7 @@ CONTRATADA — WebNovaX: ___________________________`,
 
 CONTRATANTE: {nome_cliente}, {cpf_cnpj}, residente/sediado em {endereco}, doravante denominado CONTRATANTE.
 
-CONTRATADA: WebNovaX, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
+CONTRATADA: webnovax, CNPJ {cnpj_webnovax}, sediada em Alvorada, RS, doravante denominada CONTRATADA.
 
 CLÁUSULA 1 — DO OBJETO
 A CONTRATADA se compromete a desenvolver uma landing page de alta conversão para {finalidade} incluindo: {lista_servicos}.
@@ -289,7 +289,7 @@ Foro da Comarca de Alvorada, RS.
 Alvorada, {data}.
 
 CONTRATANTE: ___________________________
-CONTRATADA — WebNovaX: ___________________________`,
+CONTRATADA — webnovax: ___________________________`,
   },
 ];
 
@@ -300,5 +300,6 @@ export function fillTemplate(corpo: string, values: Record<string, string>): str
   }
   return result;
 }
+
 
 

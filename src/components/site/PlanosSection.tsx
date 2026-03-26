@@ -71,7 +71,7 @@ export default function PlanosSection() {
                     ))}
                   </ul>
                   <p className="text-xs text-emerald-400/80 italic mb-3">⚡ A base perfeita para sua transformação digital.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, vi a arquitetura Express da WebNovaX e gostaria de estruturar minha presença digital!" target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/5551981964238?text=Olá, vi a arquitetura Express da webnovax e gostaria de estruturar minha presença digital!" target="_blank" rel="noopener noreferrer">
                     <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                       Aproveitar promoção <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -106,7 +106,7 @@ export default function PlanosSection() {
                     ))}
                   </ul>
                   <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-3">💡 Ideal para quem busca controle total e escala operacional.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, gostaria de saber mais sobre a Arquitetura de Gestão da WebNovaX." target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/5551981964238?text=Olá, gostaria de saber mais sobre a Arquitetura de Gestão da webnovax." target="_blank" rel="noopener noreferrer">
                     <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
                       Falar com Arquiteto <MessageCircle className="w-4 h-4 ml-2" />
                     </Button>
@@ -158,5 +158,6 @@ export default function PlanosSection() {
     </motion.section>
   );
 }
+
 
 

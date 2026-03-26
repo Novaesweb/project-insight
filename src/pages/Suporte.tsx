@@ -66,7 +66,7 @@ export default function Suporte() {
     const { data, error } = await supabase.from("ticket_mensagens").insert({
       ticket_id: selectedTicket,
       remetente: "admin",
-      nome: "Engenharia WebNovaX",
+      nome: "Engenharia webnovax",
       texto: texto.trim(),
     }).select().single();
     setSending(false);
@@ -255,5 +255,6 @@ export default function Suporte() {
     </motion.div>
   );
 }
+
 
 

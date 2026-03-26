@@ -56,7 +56,7 @@ export default function ExperienceSection() {
             className="text-lg text-white/50 leading-relaxed max-w-2xl mx-auto"
           >
             Pare de buscar apenas execução. Comece a investir em estrutura e transformação. 
-            Na WebNovaX, estruturamos ativos digitais que geram valor real para o seu negócio.
+            Na webnovax, estruturamos ativos digitais que geram valor real para o seu negócio.
           </motion.p>
         </div>
 
@@ -121,5 +121,6 @@ export default function ExperienceSection() {
     </section>
   );
 }
+
 
 

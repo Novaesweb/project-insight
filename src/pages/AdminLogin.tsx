@@ -87,7 +87,7 @@ export default function AdminLogin() {
         >
           <img 
             src={logoImg} 
-            alt="WebNovaX" 
+            alt="webnovax" 
             className="w-32 h-32 rounded-full object-cover border-2 border-[hsl(var(--primary))]/20 shadow-[0_0_30px_-5px_hsl(var(--primary))]" 
           />
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[hsl(var(--muted))]">
@@ -199,11 +199,12 @@ export default function AdminLogin() {
 
         <p className="text-center text-[10px] text-[hsl(var(--muted-foreground))]/50 flex items-center justify-center gap-1">
           <ShieldAlert className="w-3 h-3" />
-          WebNovaX © 2025 · Acesso restrito e criptografado
+          webnovax © 2025 · Acesso restrito e criptografado
         </p>
       </motion.div>
     </div>
   );
 }
+
 
 

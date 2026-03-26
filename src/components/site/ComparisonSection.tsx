@@ -54,7 +54,7 @@ export default function ComparisonSection() {
             className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-6"
           >
             Site <span className="text-white/20">Genérico</span> <br />
-            vs. Arquitetura <span className="gradient-text">WebNovaX</span>
+            vs. Arquitetura <span className="gradient-text">webnovax</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -142,5 +142,6 @@ export default function ComparisonSection() {
     </section>
   );
 }
+
 
 

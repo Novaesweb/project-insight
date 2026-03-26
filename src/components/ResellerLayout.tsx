@@ -195,7 +195,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             <div className="flex items-center justify-between mb-8">
                <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center font-bold text-white">NW</div>
-                  <span className="font-bold text-white">WebNovaX</span>
+                  <span className="font-bold text-white">webnovax</span>
                </div>
                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                  <X className="w-5 h-5" />
@@ -224,5 +224,6 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
     </div>
   );
 }
+
 
 

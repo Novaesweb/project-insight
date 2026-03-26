@@ -36,7 +36,7 @@ export function exportFaturaPDF(fatura: FaturaData) {
   doc.text("FATURA", 20, 25);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("WebNovaX", w - 20, 18, { align: "right" });
+  doc.text("webnovax", w - 20, 18, { align: "right" });
   doc.text("Soluções Digitais", w - 20, 25, { align: "right" });
 
   // Body
@@ -82,7 +82,7 @@ export function exportFaturaPDF(fatura: FaturaData) {
   doc.setFontSize(8);
   doc.setTextColor(180, 180, 180);
   doc.setFont("helvetica", "normal");
-  doc.text("Documento gerado automaticamente pelo sistema WebNovaX", w / 2, 280, { align: "center" });
+  doc.text("Documento gerado automaticamente pelo sistema webnovax", w / 2, 280, { align: "center" });
 
   doc.save(`fatura-${fatura.descricao.replace(/\s+/g, "-").toLowerCase()}.pdf`);
 }
@@ -110,7 +110,7 @@ export async function exportFaturaWord(fatura: FaturaData) {
     sections: [{
       children: [
         new Paragraph({ alignment: AlignmentType.LEFT, spacing: { after: 400 }, children: [new TextRun({ text: "FATURA", bold: true, size: 44, color: "E8334A" })] }),
-        new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: "WebNovaX — Soluções Digitais", size: 20, color: "888888" })] }),
+        new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: "webnovax — Soluções Digitais", size: 20, color: "888888" })] }),
         new Paragraph({ spacing: { after: 300 }, children: [] }),
         new Table({ rows, width: { size: 9000, type: WidthType.DXA } }),
         new Paragraph({ spacing: { before: 400 }, children: [] }),
@@ -122,7 +122,7 @@ export async function exportFaturaWord(fatura: FaturaData) {
             new TextRun({ text: formatCurrency(fatura.valor), bold: true, size: 32, color: "E8334A" }),
           ],
         }),
-        new Paragraph({ spacing: { before: 600 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Documento gerado automaticamente pelo sistema WebNovaX", size: 16, color: "BBBBBB" })] }),
+        new Paragraph({ spacing: { before: 600 }, alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Documento gerado automaticamente pelo sistema webnovax", size: 16, color: "BBBBBB" })] }),
       ],
     }],
   });
@@ -140,5 +140,6 @@ export function exportFaturaCSV(fatura: FaturaData) {
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   saveAs(blob, `fatura-${fatura.descricao.replace(/\s+/g, "-").toLowerCase()}.csv`);
 }
+
 
 

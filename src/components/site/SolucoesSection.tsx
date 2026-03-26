@@ -107,3 +107,4 @@ export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
 }
 
 
+

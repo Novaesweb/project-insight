@@ -19,7 +19,7 @@ const stories: Record<string, Story> = {
     id: "geral",
     slides: [
       { title: "Seu negócio online agora", subtitle: "Sites, sistemas e automações para empresas locais.", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800", icon: "🚀" },
-      { title: "WebNovaX", subtitle: "Construindo o Futuro Digital do seu negócio.", image: "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=800", icon: "💎" }
+      { title: "webnovax", subtitle: "Construindo o Futuro Digital do seu negócio.", image: "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=800", icon: "💎" }
     ]
   },
   delivery: {
@@ -117,7 +117,7 @@ export default function StoryViewer({ storyId, onClose }: StoryViewerProps) {
               N
             </div>
             <div>
-              <p className="text-white text-xs font-bold leading-none tracking-wide">WebNovaX</p>
+              <p className="text-white text-xs font-bold leading-none tracking-wide">webnovax</p>
               <p className="text-white/40 text-[10px] uppercase tracking-widest mt-0.5">Patrocinado</p>
             </div>
           </div>
@@ -190,5 +190,6 @@ export default function StoryViewer({ storyId, onClose }: StoryViewerProps) {
     </div>
   );
 }
+
 
 

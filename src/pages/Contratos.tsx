@@ -53,7 +53,7 @@ function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, as
     if (y > 230) { doc.addPage(); y = 20; }
     y += 10;
     doc.setFont("helvetica", "bold");
-    doc.text("Assinatura CONTRATADA (WebNovaX):", margin, y);
+    doc.text("Assinatura CONTRATADA (webnovax):", margin, y);
     y += 5;
     doc.addImage(assinaturaAdmin, "PNG", margin, y, 60, 25);
     y += 30;
@@ -401,7 +401,7 @@ export default function Contratos() {
             <DialogTitle className="text-[hsl(var(--foreground))] text-sm">Assinatura da CONTRATADA</DialogTitle>
           </DialogHeader>
           <SignaturePad
-            label="Assine abaixo como representante da WebNovaX"
+            label="Assine abaixo como representante da webnovax"
             onSave={(dataUrl) => { setAdminSignature(dataUrl); setSignOpen(false); toast({ title: "Assinatura adicionada!" }); }}
             onCancel={() => setSignOpen(false)}
           />
@@ -445,5 +445,6 @@ export default function Contratos() {
     </motion.div>
   );
 }
+
 
 

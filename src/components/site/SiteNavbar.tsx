@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import webnovaxSymbol from "@/assets/WebNovaX-symbol.jpeg";
+import webnovaxSymbol from "@/assets/webnovax-symbol.jpeg";
 
 interface SiteNavbarProps {
   onOpenModal: (id: string) => void;
@@ -19,7 +19,7 @@ const navLinks = [
 ];
 
 const companyLinks = [
-  { id: "sobre", label: "Sobre a WebNovaX", icon: Star },
+  { id: "sobre", label: "Sobre a webnovax", icon: Star },
   { id: "quem-somos", label: "Quem Somos", icon: Users },
   { id: "diferenciais", label: "Diferenciais", icon: Target },
 ];
@@ -71,7 +71,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             whileHover={{ rotate: 10, scale: 1.1 }}
             className="relative"
           >
-            <img src={webnovaxSymbol} alt="WebNovaX" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
+            <img src={webnovaxSymbol} alt="webnovax" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
           </motion.div>
           <span className="text-lg font-bold tracking-tighter text-white">
             <span className="gradient-text">webnovax</span>
@@ -155,7 +155,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           >
             <div className="flex justify-between items-center mb-12">
               <div className="flex items-center gap-3">
-                <img src={webnovaxSymbol} alt="WebNovaX" className="w-10 h-10 rounded-xl" />
+                <img src={webnovaxSymbol} alt="webnovax" className="w-10 h-10 rounded-xl" />
                 <span className="text-2xl font-black gradient-text tracking-tighter">Explorar</span>
               </div>
               <button 
@@ -219,5 +219,6 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
     </nav>
   );
 }
+
 
 

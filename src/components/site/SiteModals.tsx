@@ -50,13 +50,13 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
               <div className="p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossa história</span>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sobre a WebNovaX</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sobre a webnovax</h2>
                 </div>
                 <div className="rounded-2xl overflow-hidden mb-6">
-                  <img src={aboutPhoto} alt="WebNovaX" className="w-full h-48 object-cover" />
+                  <img src={aboutPhoto} alt="webnovax" className="w-full h-48 object-cover" />
                 </div>
                 <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  <p>A WebNovaX é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.</p>
+                  <p>A webnovax é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.</p>
                   <p>Nosso trabalho é criar plataformas simples, modernas e funcionais, permitindo que empresas tenham mais controle sobre seus clientes, produtos e atendimento. Utilizamos tecnologias de ponta como React, TypeScript e bancos de dados em nuvem.</p>
                   <p>Nascemos com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa. Mesmo sendo um projeto recente, já participamos do desenvolvimento de soluções utilizadas por cerca de 6 empresas.</p>
                   <p>Acreditamos que toda empresa, independente do tamanho, merece ter uma presença digital profissional e ferramentas de gestão que simplifiquem sua rotina. Nosso diferencial está no atendimento humanizado, na agilidade de entrega e na evolução contínua dos projetos.</p>
@@ -116,7 +116,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
               <div className="p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Diferenciais</span>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Por que a WebNovaX?</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Por que a webnovax?</h2>
                 </div>
                 <div className="space-y-4">
                   {[
@@ -146,7 +146,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Política de Privacidade</h2>
                 </div>
                 <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  <p>A WebNovaX valoriza a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos suas informações pessoais.</p>
+                  <p>A webnovax valoriza a privacidade dos seus usuários. Esta política descreve como coletamos, usamos e protegemos suas informações pessoais.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Coleta de dados:</strong> Coletamos informações fornecidas voluntariamente por você ao preencher formulários de contato, cadastro ou solicitação de orçamento, como nome, e-mail, telefone e dados do negócio.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Uso das informações:</strong> As informações são utilizadas exclusivamente para entrar em contato, fornecer orçamentos, desenvolver projetos e melhorar nossos serviços.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Compartilhamento:</strong> No vendemos, alugamos ou compartilhamos seus dados pessoais com terceiros, exceto quando necessário para a prestação do serviço contratado.</p>
@@ -163,10 +163,10 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Termos de Uso</h2>
                 </div>
                 <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  <p>Ao utilizar os serviços da WebNovaX, você concorda com os termos descritos abaixo.</p>
-                  <p><strong className="text-[hsl(var(--foreground))]">Serviços:</strong> A WebNovaX oferece desenvolvimento de sites, sistemas web e soluções digitais personalizadas. Cada projeto é definido em comum acordo entre as partes.</p>
+                  <p>Ao utilizar os serviços da webnovax, você concorda com os termos descritos abaixo.</p>
+                  <p><strong className="text-[hsl(var(--foreground))]">Serviços:</strong> A webnovax oferece desenvolvimento de sites, sistemas web e soluções digitais personalizadas. Cada projeto é definido em comum acordo entre as partes.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Responsabilidades do cliente:</strong> O cliente é responsável por fornecer informações precisas e conteúdos necessários para o desenvolvimento do projeto dentro dos prazos acordados.</p>
-                  <p><strong className="text-[hsl(var(--foreground))]">Propriedade intelectual:</strong> Após a quitação total do projeto, o cliente recebe os direitos de uso sobre o produto desenvolvido. O código-fonte e a tecnologia utilizada permanecem como propriedade da WebNovaX.</p>
+                  <p><strong className="text-[hsl(var(--foreground))]">Propriedade intelectual:</strong> Após a quitação total do projeto, o cliente recebe os direitos de uso sobre o produto desenvolvido. O código-fonte e a tecnologia utilizada permanecem como propriedade da webnovax.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Pagamento:</strong> Os valores e condições de pagamento são definidos no orçamento aprovado. Custos adicionais, como domínio e serviços externos, são de responsabilidade do cliente.</p>
                   <p><strong className="text-[hsl(var(--foreground))]">Cancelamento:</strong> O cliente pode cancelar o projeto a qualquer momento, porém valores já pagos referentes a etapas concluídas não serão reembolsados.</p>
                 </div>
@@ -178,7 +178,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Portfólio</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sites de Demonstração</h2>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">Conheça alguns dos projetos desenvolvidos pela WebNovaX.</p>
+                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">Conheça alguns dos projetos desenvolvidos pela webnovax.</p>
                 </div>
                 <div className="grid gap-4">
                   {[
@@ -273,5 +273,6 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
     </AnimatePresence>
   );
 }
+
 
 

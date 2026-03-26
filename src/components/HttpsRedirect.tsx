@@ -8,12 +8,13 @@ export default function HttpsRedirect({ children }: { children: React.ReactNode 
       !window.location.hostname.includes("localhost") &&
       !window.location.hostname.includes("127.0.0.1")
     ) {
-      console.log("🔒 WebNovaX Security: Redirecting to HTTPS...");
+      console.log("🔒 webnovax Security: Redirecting to HTTPS...");
       window.location.href = `https:${window.location.href.substring(window.location.protocol.length)}`;
     }
   }, []);
 
   return <>{children}</>;
 }
+
 
 

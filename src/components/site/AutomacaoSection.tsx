@@ -31,10 +31,10 @@ export default function AutomacaoSection() {
             >
               <div className="mt-6 glass-card rounded-2xl p-8 space-y-6">
                 <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] flex items-center gap-2">
-                  <Rocket className="w-6 h-6 text-[hsl(var(--primary))]" /> WebNovaX + AUTOMAÇÃO INTELIGENTE
+                  <Rocket className="w-6 h-6 text-[hsl(var(--primary))]" /> webnovax + AUTOMAÇÃO INTELIGENTE
                 </h2>
                 <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  Na WebNovaX, desenvolvemos sites completos, sistemas de pedidos e soluções digitais estruturadas.
+                  Na webnovax, desenvolvemos sites completos, sistemas de pedidos e soluções digitais estruturadas.
                 </p>
 
                 <div className="border-t border-[hsl(var(--border))] pt-5">
@@ -125,7 +125,7 @@ export default function AutomacaoSection() {
 
                 <div className="border-t border-[hsl(var(--border))] pt-5">
                   <p className="text-sm italic text-[hsl(var(--muted-foreground))] leading-relaxed">
-                    A WebNovaX estrutura o sistema. A automação potencializa o atendimento.
+                    A webnovax estrutura o sistema. A automação potencializa o atendimento.
                   </p>
                 </div>
 
@@ -149,5 +149,6 @@ export default function AutomacaoSection() {
     </motion.section>
   );
 }
+
 
 

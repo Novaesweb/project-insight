@@ -173,11 +173,12 @@ export default function NichePage() {
       {/* Footer */}
       <footer className="gradient-primary py-4 px-4">
         <p className="text-center text-white text-sm font-medium tracking-wide">
-          WebNovaX © 2025 — Todos os direitos reservados
+          webnovax © 2025 — Todos os direitos reservados
         </p>
       </footer>
     </div>
   );
 }
+
 
 
