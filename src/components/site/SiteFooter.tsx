@@ -100,7 +100,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
               </div>
               <div>
                 <h5 className="text-xl font-black text-white leading-none tracking-tighter">
-                  Architect<span className="text-primary">v9.0</span>
+                  Architect<span className="text-primary">v10.0</span>
                 </h5>
                 <p className="text-[10px] text-primary/60 uppercase font-black tracking-[0.2em] mt-2">Engenharia Certificada Pro</p>
               </div>
