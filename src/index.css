@@ -61,7 +61,11 @@
     
     --gradient-primary: linear-gradient(135deg, #ff3366, #ff00cc, #9900ff);
     --gradient-premium: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(153, 0, 255, 0.1));
-    --admin-bg: #0a0a0c;
+    --gradient-admin: linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a, #ff3366);
+    --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
+    --gradient-admin-subtle: linear-gradient(135deg, rgba(123, 31, 162, 0.08), rgba(194, 24, 91, 0.08), rgba(232, 51, 74, 0.08));
+    --admin-bg: #07060a;
+    --admin-surface: #0d0b12;
     --gold: 43 100% 50%;
   }
 
