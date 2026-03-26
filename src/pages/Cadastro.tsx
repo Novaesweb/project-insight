@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
-import webnovaxPremiumLogo from "@/assets/webnovax-logo-premium.png";
+import webnovaxPremiumLogo from "@/assets/webnovax-logo-admin.png";
 
 // --- Opções de Seleção ---
 const NECESSIDADES = [
@@ -161,7 +161,7 @@ export default function Cadastro() {
                 </div>
               </div>
               <div className="mt-6 flex flex-col items-center text-center">
-                <span className="text-2xl font-black tracking-[0.2em] leading-none text-white">webnovax<span className="text-primary-webnovax">WEB</span></span>
+                <span className="text-2xl font-black tracking-[0.2em] leading-none text-white">webnovax</span>
                 <span className="text-[10px] font-black uppercase tracking-[0.6em] opacity-40 mt-2">Elite CRM</span>
               </div>
             </div>
