@@ -108,7 +108,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     if (!extraSelecionado) return;
     setSavingExtra(true);
     const sel = catalogo.find(c => c.id === extraSelecionado);
-    const { error } = await supabase.from("clientes_extras").insert({
+    const { error } = await (supabase.from("clientes_extras" as any) as any).insert({
       cliente_id: clienteId,
       extra_id: extraSelecionado,
       categoria: sel?.categoria || "vendas",

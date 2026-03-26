@@ -49,7 +49,7 @@ export default function ResellerDashboard() {
     setLoading(true);
     
     // Total de Leads indicados
-    const { count: totalLeads } = await supabase.from("leads").select("*", { count: 'exact', head: true }).eq("coupon_code", reseller.referral_code) as any;
+    const { count: totalLeads } = await (supabase.from("leads").select("*", { count: 'exact', head: true }) as any).eq("coupon_code", reseller.referral_code) as any;
     
     // Comissões pendentes (fictício para o MVP)
     const { data: comissoes } = await supabase.from("comissoes" as any).select("valor").eq("revendedor_id", reseller.id).eq("status_pagamento", "pendente") as any;
