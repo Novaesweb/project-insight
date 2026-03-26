@@ -7,8 +7,13 @@ export default async function handler(req: any, res: any) {
   const authHeader = req.headers.authorization;
   const PING_SECRET = process.env.PING_SECRET;
 
-  // 1. Validar Token Bearer (Proteção de Elite)
+  if (!PING_SECRET) {
+    console.error("ERRO CRÍTICO: PING_SECRET não configurado na Vercel.");
+  }
+
+  // 1. Validar Token Bearer (com log de comparação)
   if (!authHeader || authHeader !== `Bearer ${PING_SECRET}`) {
+    console.warn("Bloqueio 401: Token inválido ou ausente.");
     return res.status(401).json({ error: "Unauthorized" });
   }
 
