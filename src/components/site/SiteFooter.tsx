@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
-import sealImg from "@/assets/webnovax-seal-v9.png";
+import sealImg from "@/assets/webnovax-v10-seal.png";
 import { scrollTo } from "./SiteNavbar";
 
 interface SiteFooterProps {
