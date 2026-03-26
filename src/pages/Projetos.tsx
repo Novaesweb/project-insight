@@ -373,3 +373,5 @@ export default function Projetos() {
 function Badge({ children, variant, className }: any) {
   return <span className={`px-2 py-0.5 rounded text-white ${className}`}>{children}</span>;
 }
+
+

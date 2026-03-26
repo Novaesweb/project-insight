@@ -12,7 +12,7 @@ if (!gotTheLock) {
   app.quit();
 } else {
   // Configuração essencial para notificações no Windows
-  app.setAppUserModelId('com.novaesweb.admin');
+  app.setAppUserModelId('com.WebNovaX.admin');
 
   app.on('second-instance', () => {
     if (mainWindow) {
@@ -27,7 +27,7 @@ if (!gotTheLock) {
       width: 1280,
       height: 800,
       backgroundColor: '#050505',
-      title: 'NovaesWeb Admin',
+      title: 'WebNovaX Admin',
       icon: path.join(__dirname, isDev ? '../public/favicon.ico' : '../dist/favicon.ico'),
       webPreferences: {
         nodeIntegration: false,
@@ -53,7 +53,7 @@ if (!gotTheLock) {
       });
     } else {
       // Carrega direto do seu site no ar (Atualização Automática!)
-      mainWindow.loadURL('https://novaesweb.vercel.app/admin/login').catch(err => {
+      mainWindow.loadURL('https://WebNovaX.vercel.app/admin/login').catch(err => {
         console.error('Failed to load Production URL:', err);
       });
     }
@@ -63,7 +63,7 @@ if (!gotTheLock) {
       console.log('Failed to load:', errorCode, errorDescription);
       const errorPage = `data:text/html;charset=utf-8,<html><body style="background:black;color:white;padding:40px;font-family:sans-serif">
         <h1 style="color:red">Erro de Conexão!</h1>
-        <p>Não foi possível conectar ao servidor da <b>NovaesWeb</b>.</p>
+        <p>Não foi possível conectar ao servidor da <b>WebNovaX</b>.</p>
         <p>Verifique sua conexão com a internet ou se o site está no ar.</p>
         <hr style="border-color:rgba(255,255,255,0.1)">
         <p style="font-size:12px;color:gray">Código do erro: ${errorDescription}</p>
@@ -99,7 +99,7 @@ if (!gotTheLock) {
         }
       }
     ]);
-    tray.setToolTip('NovaesWeb Admin');
+    tray.setToolTip('WebNovaX Admin');
     tray.setContextMenu(contextMenu);
     tray.on('double-click', () => mainWindow.show());
   }
@@ -135,7 +135,7 @@ if (!gotTheLock) {
   // Listener para Notificações Nativas
   ipcMain.on('notify', (event, { title, body, url }) => {
     const notification = new Notification({
-      title: title || 'NovaesWeb Admin',
+      title: title || 'WebNovaX Admin',
       body: body || 'Nova mensagem recebida.',
       icon: path.join(__dirname, isDev ? '../public/favicon.ico' : '../dist/favicon.ico'),
       silent: false
@@ -152,3 +152,4 @@ if (!gotTheLock) {
     notification.show();
   });
 }
+

@@ -16,7 +16,7 @@ export default function ProcessoSection() {
     <motion.section id="processo" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-7xl mx-auto">
         <motion.div variants={fade} className="max-w-3xl mb-24">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Metodologia Novaes</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Metodologia webnovax</span>
           <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
             Do briefing à entrega <br />
             <span className="text-white/20">em </span> <span className="gradient-text">4 etapas</span>
@@ -65,3 +65,5 @@ export default function ProcessoSection() {
     </motion.section>
   );
 }
+
+

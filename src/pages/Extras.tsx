@@ -454,7 +454,7 @@ export default function Extras() {
 
       {/* Footer */}
       <div className="mt-8 pt-4 border-t border-white/5 text-center">
-        <p className="text-[11px] text-white/20">NovaesWeb © 2025 — v2.4.8 Premium — Painel Administrativo</p>
+        <p className="text-[11px] text-white/20">WebNovaX © 2025 — v2.4.8 Premium — Painel Administrativo</p>
       </div>
 
       {/* MODAL — Novo Extra */}
@@ -675,3 +675,5 @@ export default function Extras() {
     </motion.div>
   );
 }
+
+

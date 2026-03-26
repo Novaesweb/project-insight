@@ -106,7 +106,7 @@ export default function Funcionalidades() {
           >
             <div className="text-center mb-16 space-y-4">
               <Badge className="bg-red-500/10 text-red-500 border-red-500/20 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
-                NovaesWeb Premium
+                WebNovaX Premium
               </Badge>
               <h2 className="text-4xl sm:text-6xl font-black text-white tracking-tighter uppercase">
                 Funcionalidades <span className="gradient-text">Estratégicas</span>
@@ -232,3 +232,5 @@ export default function Funcionalidades() {
     </div>
   );
 }
+
+

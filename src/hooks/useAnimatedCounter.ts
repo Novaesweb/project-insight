@@ -23,3 +23,5 @@ export function useAnimatedCounter(target: number, duration = 1500) {
   }, [target, duration]);
   return { count, ref };
 }
+
+

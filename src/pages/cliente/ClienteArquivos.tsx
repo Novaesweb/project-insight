@@ -202,7 +202,7 @@ export default function ClienteArquivos() {
               <Info className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white mb-1">Dica Novaesweb</p>
+              <p className="text-sm font-bold text-white mb-1">Dica WebNovaX</p>
               <p className="text-xs text-blue-400/80 leading-relaxed">
                 Quanto mais rápido você nos enviar esses materiais, mais rápido poderemos avançar para a fase de **Desenvolvimento**. 
                 Se tiver dúvidas sobre o formato, fale conosco pelo Suporte Prioritário.
@@ -214,3 +214,5 @@ export default function ClienteArquivos() {
     </motion.div>
   );
 }
+
+

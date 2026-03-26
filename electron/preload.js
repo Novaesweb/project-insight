@@ -14,3 +14,4 @@ contextBridge.exposeInMainWorld('electron', {
     }
   }
 });
+

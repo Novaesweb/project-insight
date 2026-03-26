@@ -21,7 +21,7 @@ const faqs = [
     a: "Zero limites. Nossa engenharia é construída para escala, suportando desde o pequeno produtor até grandes franquias com alto volume de vendas."
   },
   {
-    q: "A NovaesWeb cobra taxas por venda?",
+    q: "A WebNovaX cobra taxas por venda?",
     a: "Nunca. Cobramos apenas o valor da sua engenharia e manutenção mensal. O lucro das suas vendas é 100% seu, sem porcentagem para terceiros."
   }
 ];
@@ -84,3 +84,5 @@ export default function FaqSection() {
     </section>
   );
 }
+
+

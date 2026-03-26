@@ -5,7 +5,7 @@ export function useBranding() {
   const [branding, setBranding] = useState({
     logo: "",
     primary_color: "#e8334a",
-    nome: "NovaesWeb"
+    nome: "WebNovaX"
   });
 
   useEffect(() => {
@@ -101,3 +101,5 @@ function hexToHsl(hex: string) {
     l: Math.round(l * 100)
   };
 }
+
+

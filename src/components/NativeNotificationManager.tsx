@@ -63,3 +63,5 @@ export function NativeNotificationManager() {
 
   return null; // Componente invisível
 }
+
+

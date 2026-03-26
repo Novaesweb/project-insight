@@ -39,7 +39,7 @@ function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, as
     if (y > 230) { doc.addPage(); y = 20; }
     y += 10;
     doc.setFont("helvetica", "bold");
-    doc.text("Assinatura CONTRATADA (NovaesWeb):", margin, y);
+    doc.text("Assinatura CONTRATADA (WebNovaX):", margin, y);
     y += 5;
     doc.addImage(assinaturaAdmin, "PNG", margin, y, 60, 25);
     y += 30;
@@ -203,3 +203,5 @@ export default function ClienteContratos() {
     </motion.div>
   );
 }
+
+

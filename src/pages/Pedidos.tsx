@@ -238,7 +238,7 @@ export default function Pedidos() {
                    variant="ghost" 
                    className="h-12 border border-white/5 hover:border-primary/20 hover:bg-primary/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-primary rounded-2xl transition-all"
                    onClick={() => {
-                      const text = `💎 *FATURA NOVAESWEB*\n\nNº: ${p.codigo}\nCliente: ${p.clientes?.nome}\nServiço: ${p.tipo}\nValor: R$ ${p.valor.toLocaleString("pt-BR")}\nStatus: ${p.status.toUpperCase()}\n\n_Acesse seu portal para mais detalhes._`;
+                      const text = `💎 *FATURA WebNovaX*\n\nNº: ${p.codigo}\nCliente: ${p.clientes?.nome}\nServiço: ${p.tipo}\nValor: R$ ${p.valor.toLocaleString("pt-BR")}\nStatus: ${p.status.toUpperCase()}\n\n_Acesse seu portal para mais detalhes._`;
                       navigator.clipboard.writeText(text);
                       toast({ title: "Pronto para WhatsApp!", description: "Dados copiados com sucesso." });
                    }}
@@ -282,3 +282,5 @@ export default function Pedidos() {
     </motion.div>
   );
 }
+
+

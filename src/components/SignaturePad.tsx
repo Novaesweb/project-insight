@@ -114,3 +114,5 @@ export default function SignaturePad({ onSave, onCancel, label = "Assine abaixo"
     </div>
   );
 }
+
+

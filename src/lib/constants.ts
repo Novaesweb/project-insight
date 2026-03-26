@@ -44,3 +44,5 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/leads": { titulo: "Máquina de Leads", subtitulo: "Acompanhe e qualifique novas oportunidades" },
   "/admin/contratos": { titulo: "Blindagem de Ativos", subtitulo: "Gestão de ativos jurídicos e blindagem contratual" },
 };
+
+

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
-import sealImg from "@/assets/novaesweb-seal-v9.png";
+import sealImg from "@/assets/WebNovaX-seal-v9.png";
 import { scrollTo } from "./SiteNavbar";
 
 interface SiteFooterProps {
@@ -21,7 +21,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
                 <span className="text-white font-black text-sm uppercase">NW</span>
               </div>
               <span className="text-xl font-black text-white tracking-tighter">
-                Novaes<span className="text-white/20 font-medium tracking-normal">Web</span>
+                webnovax<span className="text-white/20 font-medium tracking-normal">Web</span>
               </span>
             </div>
             <p className="text-sm text-white/40 leading-relaxed font-medium">
@@ -106,7 +106,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
               </div>
             </div>
             <div className="hidden sm:block text-right pr-4">
-              <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic">NovaesWeb Official</span>
+              <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic">WebNovaX Official</span>
             </div>
           </div>
         </div>
@@ -115,14 +115,14 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-10">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <p className="text-[11px] text-white/20 font-bold tracking-widest uppercase">
-              © {new Date().getFullYear()} NovaesWeb
+              © {new Date().getFullYear()} WebNovaX
             </p>
             <div className="hidden md:block h-3 w-px bg-white/5" />
             <div className="flex gap-6">
               {[
-                { icon: Instagram, url: "https://www.instagram.com/novaesweb/" },
-                { icon: Linkedin, url: "https://linkedin.com/company/novaesweb" },
-                { icon: Facebook, url: "https://facebook.com/novaesweb" },
+                { icon: Instagram, url: "https://www.instagram.com/WebNovaX/" },
+                { icon: Linkedin, url: "https://linkedin.com/company/WebNovaX" },
+                { icon: Facebook, url: "https://facebook.com/WebNovaX" },
               ].map((s, i) => (
                 <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-white/10 hover:text-primary transition-all hover:-translate-y-1">
                   <s.icon className="w-5 h-5" />
@@ -145,3 +145,5 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
     </footer>
   );
 }
+
+

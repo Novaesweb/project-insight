@@ -51,13 +51,13 @@
     --sidebar-ring: 346 84% 61%;
 
     /* Novos Tokens Blueprint v3.0 */
-    --bg-novaes: 260 20% 8%;
-    --card-novaes: 260 18% 12% / 0.7;
-    --primary-novaes: 330 85% 60%;
-    --secondary-novaes: 270 60% 50%;
-    --accent-novaes: 350 80% 55%;
+    --bg-webnovax: 260 20% 8%;
+    --card-webnovax: 260 18% 12% / 0.7;
+    --primary-webnovax: 330 85% 60%;
+    --secondary-webnovax: 270 60% 50%;
+    --accent-webnovax: 350 80% 55%;
     
-    --gradient-novaes: linear-gradient(135deg, hsl(330, 85%, 60%), hsl(270, 60%, 50%), hsl(350, 80%, 55%));
+    --gradient-webnovax: linear-gradient(135deg, hsl(330, 85%, 60%), hsl(270, 60%, 50%), hsl(350, 80%, 55%));
     
     --gradient-primary: linear-gradient(135deg, #ff3366, #ff00cc, #9900ff);
     --gradient-premium: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(153, 0, 255, 0.1));
@@ -340,15 +340,15 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 
-  .bg-novaes-gradient {
+  .bg-webnovax-gradient {
     background: radial-gradient(circle at center, hsla(260, 20%, 15%, 1) 0%, hsla(260, 20%, 8%, 1) 100%);
   }
 
-  .sidebar-novaes-gradient {
+  .sidebar-webnovax-gradient {
     background: linear-gradient(135deg, hsl(330, 85%, 60%), hsl(270, 60%, 50%), hsl(350, 80%, 55%));
   }
 
-  .glass-card-novaes {
+  .glass-card-webnovax {
     background: hsla(260, 18%, 12%, 0.7);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -503,3 +503,4 @@
   pointer-events: none;
   opacity: 0.4;
 }
+

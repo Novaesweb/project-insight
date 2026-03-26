@@ -44,11 +44,11 @@ export default function Instalar() {
         className="max-w-md w-full text-center space-y-8"
       >
         <div className="w-24 h-24 mx-auto rounded-3xl overflow-hidden shadow-2xl shadow-[hsl(var(--primary))]/30">
-          <img src="/pwa-192x192.png" alt="Novaes Web" className="w-full h-full object-cover" />
+          <img src="/pwa-192x192.png" alt="webnovax Web" className="w-full h-full object-cover" />
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-[hsl(var(--foreground))]">Novaes Web</h1>
+          <h1 className="text-3xl font-bold text-[hsl(var(--foreground))]">webnovax Web</h1>
           <p className="text-[hsl(var(--muted-foreground))]">
             Instale o painel direto no seu celular. Acesse tudo sem abrir o navegador.
           </p>
@@ -125,3 +125,5 @@ export default function Instalar() {
     </div>
   );
 }
+
+

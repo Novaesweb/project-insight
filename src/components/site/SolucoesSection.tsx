@@ -105,3 +105,5 @@ export default function SolucoesSection({ onOpenModal }: SolucoesSectionProps) {
     </motion.section>
   );
 }
+
+

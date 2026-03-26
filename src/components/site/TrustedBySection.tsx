@@ -15,7 +15,7 @@ export default function TrustedBySection() {
     <section className="py-20 border-y border-white/5 bg-white/[0.01]">
       <div className="max-w-7xl mx-auto px-6 text-center">
         <p className="text-[10px] uppercase tracking-[0.3em] text-white/20 font-bold mb-12">
-          Empresas que confiam na Engenharia NovaesWeb
+          Empresas que confiam na Engenharia WebNovaX
         </p>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 opacity-40 hover:opacity-80 transition-opacity duration-500 grayscale hover:grayscale-0">
@@ -39,3 +39,5 @@ export default function TrustedBySection() {
     </section>
   );
 }
+
+

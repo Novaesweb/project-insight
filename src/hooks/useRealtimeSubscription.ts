@@ -17,3 +17,5 @@ export function useRealtimeSubscription(tableName: string, onUpdate: () => void)
     };
   }, [tableName, onUpdate]);
 }
+
+

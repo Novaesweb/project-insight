@@ -64,3 +64,4 @@ jobs:
       run: |
         echo "Notifying Lovable of successful deployment..."
         # Adicione seu webhook do Lovable aqui se desejar
+

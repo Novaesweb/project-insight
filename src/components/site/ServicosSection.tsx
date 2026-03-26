@@ -102,3 +102,5 @@ export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
     </motion.section>
   );
 }
+
+
