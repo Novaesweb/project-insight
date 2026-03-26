@@ -28,6 +28,7 @@ interface NavItem {
   label: string;
   icon: any;
   count?: number;
+  gold?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -36,10 +37,10 @@ const navItems: NavItem[] = [
   { href: "/admin/leads", label: "Leads", icon: Headphones, count: 0 },
   { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
-  { href: "/admin/extras", label: "Extras", icon: Puzzle },
+  { href: "/admin/extras", label: "Extras", icon: Puzzle, gold: true },
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/admin/relatorios", label: "Performance & ROI", icon: BarChart3 },
-  { href: "/admin/financeiro", label: "Fluxo de Valor", icon: DollarSign },
+  { href: "/admin/financeiro", label: "Fluxo de Valor", icon: DollarSign, gold: true },
   { href: "/admin/suporte", label: "Engenharia de Evolução", icon: Headphones },
   { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
   { href: "/admin/revenda", label: "Revenda", icon: Users },
@@ -61,18 +62,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0a0c] text-white font-sora selection:bg-primary/30 overflow-hidden">
+    <div className="flex h-screen bg-[var(--admin-bg)] text-foreground font-sora selection:bg-primary/30 overflow-hidden">
       {/* Sidebar Desktop */}
       <motion.aside
         animate={{ width: isCollapsed ? 64 : 260 }}
-        className="border-r border-white/5 bg-[#0a0a0c] hidden md:flex md:flex-col relative z-50 transition-all duration-300 ease-in-out shrink-0"
+        className="border-r border-white/[0.06] bg-[var(--admin-surface)] hidden md:flex md:flex-col relative z-50 transition-all duration-300 ease-in-out shrink-0"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        {/* Gradient line on left edge */}
+        <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-[#7b1fa2] via-[#c2185b] to-[#FFB800] opacity-40" />
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#7b1fa2]/[0.04] via-transparent to-[#FFB800]/[0.03] pointer-events-none" />
 
         {/* Toggle Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-[#1a1a1e] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:border-primary/50 transition-all z-50"
+          className="absolute -right-3 top-20 w-6 h-6 bg-[var(--admin-surface)] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:border-primary/50 transition-all z-50 shadow-lg"
         >
           {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
@@ -80,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className={cn("py-8 flex items-center justify-center", isCollapsed ? "px-0" : "px-6")}>
           <Link to="/admin" className={cn("flex items-center group", isCollapsed ? "gap-0" : "gap-3")}>
             <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
               {branding.logo ? (
                 <img src={branding.logo} alt={branding.nome} className="relative w-8 h-8 rounded-lg object-cover" />
               ) : (
@@ -90,16 +94,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {!isCollapsed && (
               <div className="flex flex-col items-center">
                 <span className="text-sm font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">webnovax</span>
-                <span className="text-[7px] text-primary font-black uppercase tracking-[0.2em] mt-1 text-center bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Architect CEO Lucas Alencar</span>
+                <span className="text-[7px] font-black uppercase tracking-[0.2em] mt-1 text-center bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] text-white px-2 py-0.5 rounded-full">Architect CEO Lucas Alencar</span>
               </div>
             )}
           </Link>
         </div>
 
-        <nav className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-0.5">
           {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            const isGold = item.label === "Financeiro" || item.label === "Extras";
+            const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+            const isGold = item.gold;
 
             return (
               <Link
@@ -108,9 +112,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={cn(
                   "group flex items-center px-3 py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
                   isActive
-                    ? (isGold ? "text-[hsl(var(--gold))] bg-white/5 shadow-[0_0_20px_rgba(255,184,0,0.1)]" : "text-white bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] shadow-[0_0_20px_rgba(232,51,74,0.3)]")
-                    : "text-white/40 hover:text-white/80 hover:bg-white/5",
-                  isGold && !isActive && "gold-item opacity-80 hover:opacity-100",
+                    ? isGold
+                      ? "text-[hsl(var(--gold))] bg-[hsl(var(--gold))]/10 shadow-[0_0_20px_rgba(255,184,0,0.08)]"
+                      : "text-white bg-gradient-to-r from-[#7b1fa2]/80 via-[#c2185b]/80 to-[#e8334a]/80 shadow-lg shadow-[#c2185b]/20"
+                    : "text-white/40 hover:text-white/80 hover:bg-white/[0.04]",
+                  isGold && !isActive && "text-[hsl(var(--gold))]/50 hover:text-[hsl(var(--gold))]/80",
                   isCollapsed ? "justify-center gap-0" : "gap-3"
                 )}
               >
@@ -119,14 +125,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     layoutId="activeNav"
                     className={cn(
                       "absolute left-0 w-1 h-5 rounded-r-full",
-                      isGold ? "sidebar-active-indicator-gold" : "sidebar-active-indicator"
+                      isGold ? "bg-gradient-to-b from-[#FFB800] to-[#FF8C00]" : "bg-gradient-to-b from-[#7b1fa2] to-[#e8334a]"
                     )}
                   />
                 )}
                 <item.icon className={cn(
                   "w-4 h-4 transition-transform duration-300 group-hover:scale-110 shrink-0",
-                  isActive ? (isGold ? "text-[hsl(var(--gold))]" : "text-white") : "text-white/30 group-hover:text-white/60",
-                  isGold && !isActive && "text-[hsl(var(--gold))/40]"
+                  isActive ? (isGold ? "text-[hsl(var(--gold))]" : "text-white") : isGold ? "text-[hsl(var(--gold))]/40" : "text-white/30 group-hover:text-white/60"
                 )} />
                 {!isCollapsed && <span>{item.label}</span>}
                 {!isCollapsed && item.count !== undefined && item.count > 0 && (
@@ -137,7 +142,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className={cn("p-4 border-t border-white/5", isCollapsed && "px-2")}>
+        <div className={cn("p-4 border-t border-white/[0.06]", isCollapsed && "px-2")}>
           <button
             onClick={handleLogout}
             className={cn(
@@ -154,16 +159,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile Trigger */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild className="md:hidden absolute top-4 left-4 z-50">
-          <Button variant="ghost" size="icon" className="bg-[#1a1a1e] border border-white/10 rounded-xl"><Menu className="w-5 h-5" /></Button>
+          <Button variant="ghost" size="icon" className="bg-[var(--admin-surface)] border border-white/10 rounded-xl"><Menu className="w-5 h-5" /></Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 bg-[#0a0a0c] border-r border-white/10 p-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-          <div className="p-8">
+        <SheetContent side="left" className="w-72 bg-[var(--admin-surface)] border-r border-white/10 p-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-[#7b1fa2] via-[#c2185b] to-[#FFB800] opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#7b1fa2]/[0.04] via-transparent to-[#FFB800]/[0.03] pointer-events-none" />
+          <div className="p-8 relative">
             <Link to="/admin" className="flex items-center gap-3 mb-8" onClick={() => setOpen(false)}>
               <img src={branding.logo || nwLogo} className="w-8 h-8 rounded-lg" alt="" />
               <div className="flex flex-col items-center">
                 <span className="text-sm font-bold tracking-tight italic text-center">webnovax</span>
-                <span className="text-[9px] text-primary font-bold uppercase tracking-widest text-center mt-0.5">Painel CEO Lucas Alencar</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-center mt-0.5 bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] bg-clip-text text-transparent">Painel CEO Lucas Alencar</span>
               </div>
             </Link>
             <nav className="space-y-1">
@@ -174,7 +180,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                    pathname.startsWith(item.href) ? "bg-primary/10 text-primary" : "text-white/40"
+                    pathname.startsWith(item.href)
+                      ? item.gold
+                        ? "bg-[hsl(var(--gold))]/10 text-[hsl(var(--gold))]"
+                        : "bg-gradient-to-r from-[#7b1fa2]/20 to-[#e8334a]/20 text-white"
+                      : "text-white/40"
                   )}
                 >
                   <item.icon className="w-4 h-4" />
@@ -189,28 +199,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <main className="flex-1 relative flex flex-col min-w-0">
         <TopProgressBar />
-        <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-white/5">
+        <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[var(--admin-bg)]/80 backdrop-blur-xl border-b border-white/[0.06]">
+          {/* Top gold line */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#FFB800]/30 to-transparent" />
+          
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col">
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold tracking-tight text-white/90">
+                <h1 className="text-lg font-bold tracking-tight text-foreground/90">
                   {pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin"}
                 </h1>
-                <span className="px-2 py-0.5 rounded-full border border-white/10 bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] text-[9px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(232,51,74,0.4)] anim-pulse-slow">v10.0 ARCHITECT PREMIUM</span>
+                <span className="px-2.5 py-0.5 rounded-full border border-[#7b1fa2]/30 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] text-[9px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(123,31,162,0.3)]">v10.0 ARCHITECT PREMIUM</span>
               </div>
-              <p className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em]">webnovax • Gestão Digital</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em]">webnovax • Gestão Digital</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <GlobalSearch />
             <div className="h-4 w-px bg-white/10 mx-2 hidden sm:block" />
-            <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/5">
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white rounded-lg" onClick={toggle}>
+            <div className="flex items-center gap-1.5 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg" onClick={toggle}>
                 {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
               <NotificationCenter userType="admin" userId="admin" />
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white rounded-lg" onClick={() => navigate("/admin/configuracoes")}><Settings className="w-4 h-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg" onClick={() => navigate("/admin/configuracoes")}><Settings className="w-4 h-4" /></Button>
             </div>
           </div>
         </header>
@@ -234,6 +247,3 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
-
-
-
