@@ -382,7 +382,7 @@ export default function ClienteDashboard() {
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                     <p className="text-xs font-bold text-white">{new Date(proximaReuniao.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
                     <p className="text-[10px] text-white/40 mt-1">{proximaReuniao.horario} · {tipoReuniaoLabels[proximaReuniao.tipo as TipoReuniao] || proximaReuniao.tipo}</p>
-                    <div className="mt-2"><StatusBadge status={proximaReuniao.status} type="reuniao" /></div>
+                    <div className="mt-2"><StatusBadge status={proximaReuniao.status} /></div>
                   </div>
                   {proximaReuniao.link && (
                     <a href={proximaReuniao.link} target="_blank" rel="noreferrer" className="block text-center text-xs font-bold py-2.5 rounded-xl text-white border-0" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}>
