@@ -23,13 +23,29 @@ const menuItems = [
   { label: "Meus Parâmetros", icon: User, path: "/cliente/dados" },
 ];
 
+const menuColors = [
+  "from-purple-500 to-pink-500",
+  "from-pink-500 to-red-500",
+  "from-yellow-500 to-amber-500",
+  "from-purple-600 to-indigo-500",
+  "from-red-500 to-pink-500",
+  "from-amber-500 to-yellow-500",
+  "from-pink-500 to-purple-500",
+  "from-indigo-500 to-purple-500",
+];
+
 function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const branding = useBranding();
 
   return (
-    <div className="flex flex-col h-full bg-black/20 backdrop-blur-2xl border-r border-white/5 relative z-50">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+    <div className="flex flex-col h-full relative z-50" style={{ background: "linear-gradient(180deg, #0d0b12 0%, #1a0a2e 50%, #0f0a05 100%)" }}>
+      {/* Top gradient line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b, #e8334a, #FFD700)" }} />
+      
+      {/* Subtle side glow */}
+      <div className="absolute top-0 left-0 w-1 h-full" style={{ background: "linear-gradient(180deg, #7b1fa2, #c2185b, #FFD700, transparent)" }} />
+
       <div className="px-4 py-4 border-b border-white/5">
         <div className="flex items-center gap-2">
           {branding.logo ? (
@@ -38,8 +54,8 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
             <img src={nwLogo} alt="webnovax" className="w-8 h-8 rounded-lg object-cover" />
           )}
           <div>
-            <span className="text-sm font-bold">
-              <span className="text-white">{branding.nome || "webnovax"}</span>
+            <span className="text-sm font-bold" style={{ background: "linear-gradient(90deg, #c084fc, #e8334a, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              {branding.nome || "webnovax"}
             </span>
             <p className="text-[9px] text-white/40 tracking-widest uppercase">Portal Cliente</p>
           </div>
@@ -47,7 +63,7 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
       </div>
 
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-        {menuItems.map(item => {
+        {menuItems.map((item, idx) => {
           const isActive = currentPath === item.path;
           return (
             <Link
@@ -55,16 +71,22 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
               to={item.path}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all relative overflow-hidden group",
+                "flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all relative overflow-hidden group",
                 isActive
-                  ? "text-white bg-primary/20 shadow-lg shadow-primary/10"
+                  ? "text-white shadow-lg"
                   : "text-white/40 hover:bg-white/5 hover:text-white/80"
               )}
+              style={isActive ? { background: "linear-gradient(135deg, rgba(123,31,162,0.25), rgba(232,51,74,0.15))" } : {}}
             >
               {isActive && (
-                <div className="absolute left-0 w-1 h-4 bg-primary rounded-r-full shadow-[0_0_15px_rgba(255,51,102,0.8)]" />
+                <div className="absolute left-0 w-1 h-5 rounded-r-full" style={{ background: "linear-gradient(180deg, #7b1fa2, #e8334a, #FFD700)", boxShadow: "0 0 12px rgba(123,31,162,0.6)" }} />
               )}
-              <item.icon className={cn("w-4 h-4 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-primary" : "text-white/30")} />
+              <div className={cn(
+                "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                isActive ? `bg-gradient-to-br ${menuColors[idx]} shadow-lg` : "bg-white/5"
+              )}>
+                <item.icon className={cn("w-3.5 h-3.5", isActive ? "text-white" : "text-white/30")} />
+              </div>
               <span>{item.label}</span>
             </Link>
           );
@@ -72,8 +94,8 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
       </nav>
 
       <div className="px-2 py-3 border-t border-white/5">
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary))" }}>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.1), rgba(232,51,74,0.05))" }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}>
             <span className="text-white text-xs font-bold">{cliente.avatar || "?"}</span>
           </div>
           <div className="flex-1 min-w-0">
@@ -83,8 +105,8 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
         </div>
       </div>
 
-      <div className="py-2 px-4" style={{ background: "hsl(var(--primary))" }}>
-        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">{branding.nome} © 2026 — v9.0 Architect Pro</p>
+      <div className="py-2 px-4" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b, #e8334a, #FFD700)" }}>
+        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">{branding.nome} © 2026 — v10.0 Architect Pro</p>
       </div>
     </div>
   );
@@ -118,7 +140,9 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         <header className="h-14 shrink-0 flex items-center px-4 md:px-6 gap-4 sticky top-0 z-40 bg-transparent">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <button className="lg:hidden text-white/50 hover:text-white bg-white/5 p-2 rounded-xl border border-white/10"><Menu className="w-5 h-5" /></button>
+              <button className="lg:hidden text-white/50 hover:text-white p-2 rounded-xl border border-white/10" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.15), rgba(232,51,74,0.1))" }}>
+                <Menu className="w-5 h-5" />
+              </button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[260px] border-0 bg-transparent">
               <ClienteSidebar currentPath={location.pathname} onNavigate={() => setMobileOpen(false)} />
@@ -127,7 +151,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
           <div className="flex-1" />
 
-          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-2xl">
+          <div className="flex items-center gap-3 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-2xl" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.1), rgba(13,11,18,0.8))" }}>
             <NotificationCenter userType="cliente" userId={cliente.id} />
             <div className="h-6 w-px bg-white/10 mx-1" />
             <button onClick={handleLogout} className="h-9 w-9 flex items-center justify-center rounded-xl text-white/50 hover:text-red-400 hover:bg-red-400/10 transition-all">
@@ -140,14 +164,11 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           <div className="p-3 lg:p-4 max-w-[1100px] mx-auto w-full pb-6">
             {children}
           </div>
-          <div className="py-2 px-4 mt-6" style={{ background: "hsl(var(--primary))" }}>
-            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">{branding.nome} © 2026 — v9.0 Architect Pro</p>
+          <div className="py-2 px-4 mt-6" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b, #e8334a, #FFD700)" }}>
+            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">{branding.nome} © 2026 — v10.0 Architect Pro</p>
           </div>
         </main>
       </div>
     </div>
   );
 }
-
-
-
