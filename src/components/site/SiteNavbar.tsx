@@ -53,7 +53,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       <div className={cn(
         "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border border-transparent relative",
         scrolled
-          ? "glass-panel-premium border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl translate-y-0"
+          ? "border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-[hsl(var(--background)/0.95)] translate-y-0"
           : "bg-transparent"
       )}>
         {/* Logo */}
