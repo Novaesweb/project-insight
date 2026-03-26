@@ -4,16 +4,18 @@ export default async function handler(req: any, res: any) {
   // Log conforme solicitado pelo Sócio
   console.log("Ping recebido:", new Date().toISOString());
 
-  const authHeader = req.headers.authorization;
-  const PING_SECRET = process.env.PING_SECRET;
+  const authHeader = req.headers['authorization'] || req.headers.authorization;
+  const PING_SECRET = process.env.PING_SECRET?.trim();
 
   if (!PING_SECRET) {
-    console.error("ERRO CRÍTICO: PING_SECRET não configurado na Vercel.");
+    console.error("ERRO CRÍTICO: PING_SECRET não encontrado no process.env");
   }
 
-  // 1. Validar Token Bearer (com log de comparação)
-  if (!authHeader || authHeader !== `Bearer ${PING_SECRET}`) {
-    console.warn("Bloqueio 401: Token inválido ou ausente.");
+  const receivedToken = authHeader?.replace("Bearer ", "").trim();
+
+  // 1. Validar Token (com limpeza de espaços e aspas extras)
+  if (!receivedToken || receivedToken !== PING_SECRET) {
+    console.warn(`Bloqueio 401: Recebido(${receivedToken?.length ?? 0}) vs Esperado(${PING_SECRET?.length ?? 0})`);
     return res.status(401).json({ error: "Unauthorized" });
   }
 
