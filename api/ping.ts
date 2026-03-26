@@ -5,17 +5,19 @@ export default async function handler(req: any, res: any) {
   console.log("Ping recebido:", new Date().toISOString());
 
   const authHeader = req.headers['authorization'] || req.headers.authorization;
-  const PING_SECRET = process.env.PING_SECRET?.trim();
+  // Limpeza profunda do segredo (remove aspas se o Sócio colou com elas)
+  const PING_SECRET = (process.env.PING_SECRET || "").replace(/['"]/g, "").trim();
 
   if (!PING_SECRET) {
-    console.error("ERRO CRÍTICO: PING_SECRET não encontrado no process.env");
+    console.error("ERRO CRÍTICO: PING_SECRET não encontrado no process.env da Vercel.");
   }
 
-  const receivedToken = authHeader?.replace("Bearer ", "").trim();
+  // Remoção robusta do prefixo Bearer (ignora maiúsculas/minúsculas)
+  const receivedToken = (authHeader || "").replace(/^Bearer\s+/i, "").trim();
 
-  // 1. Validar Token (com limpeza de espaços e aspas extras)
+  // 1. Validar Token (com máxima tolerância a espaços e aspas)
   if (!receivedToken || receivedToken !== PING_SECRET) {
-    console.warn(`Bloqueio 401: Recebido(${receivedToken?.length ?? 0}) vs Esperado(${PING_SECRET?.length ?? 0})`);
+    console.warn(`Bloqueio 401: Recebido(len:${receivedToken?.length}) vs Esperado(len:${PING_SECRET?.length})`);
     return res.status(401).json({ error: "Unauthorized" });
   }
 
