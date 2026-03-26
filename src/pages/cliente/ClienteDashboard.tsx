@@ -17,6 +17,20 @@ const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 import { jsPDF } from "jspdf";
 import { useBranding } from "@/hooks/useBranding";
 
+const kpiGradients = [
+  "linear-gradient(135deg, #7b1fa2, #9c27b0)",
+  "linear-gradient(135deg, #c2185b, #e8334a)",
+  "linear-gradient(135deg, #FFB800, #FFD700)",
+  "linear-gradient(135deg, #9c27b0, #7b1fa2)",
+];
+
+const kpiGlows = [
+  "0 8px 30px -8px rgba(123,31,162,0.4)",
+  "0 8px 30px -8px rgba(232,51,74,0.4)",
+  "0 8px 30px -8px rgba(255,184,0,0.4)",
+  "0 8px 30px -8px rgba(156,39,176,0.4)",
+];
+
 export default function ClienteDashboard() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const cId = cliente.id;
@@ -86,7 +100,7 @@ export default function ClienteDashboard() {
     const projName = projetoAtivo.titulo;
     
     doc.setFontSize(22);
-    doc.setTextColor(232, 51, 74); // primary color hex #e8334a approx
+    doc.setTextColor(123, 31, 162);
     doc.text(title, 20, 20);
     
     doc.setFontSize(16);
@@ -131,18 +145,18 @@ export default function ClienteDashboard() {
   useRealtimeSubscription("projeto_atualizacoes", load);
 
   const kpis = [
-    { label: "Soluções Ativas", value: counts.projetos, icon: FolderKanban, color: "text-blue-400" },
-    { label: "Módulos Injetados", value: counts.extras, icon: Plus, color: "text-green-400" },
-    { label: "Fluxo de Valor", value: counts.faturas, icon: Receipt, color: counts.faturas > 0 ? "text-yellow-400" : "text-green-400" },
-    { label: "Dossiês de Evolução", value: counts.tickets, icon: Headphones, color: "text-purple-400" },
+    { label: "Soluções Ativas", value: counts.projetos, icon: FolderKanban },
+    { label: "Módulos Injetados", value: counts.extras, icon: Plus },
+    { label: "Fluxo de Valor", value: counts.faturas, icon: Receipt },
+    { label: "Dossiês de Evolução", value: counts.tickets, icon: Headphones },
   ];
 
   const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6 ambient-glow min-h-screen pb-10">
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6 min-h-screen pb-10">
       {isTrialExpired && (
-        <Card className="bg-red-500/10 border-red-500/20 overflow-hidden relative">
+        <Card className="overflow-hidden relative border-0" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.15), rgba(232,51,74,0.1))", borderLeft: "3px solid #e8334a" }}>
           <div className="absolute top-0 right-0 p-4 opacity-10"><Sparkles className="w-12 h-12" /></div>
           <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
@@ -153,7 +167,7 @@ export default function ClienteDashboard() {
                 Seu acesso aos recursos premium expirou. Continue acelerando seu negócio assinando um de nossos planos.
               </p>
             </div>
-            <Button className="gradient-primary h-12 px-8 font-bold shadow-lg shadow-primary/20 whitespace-nowrap">
+            <Button className="h-12 px-8 font-bold shadow-lg whitespace-nowrap border-0 text-white" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a)" }}>
                ESCOLHER MEU PLANO
             </Button>
           </CardContent>
@@ -168,20 +182,24 @@ export default function ClienteDashboard() {
           <p className="text-sm text-white/50">Seu Ecossistema Digital está sendo potencializado.</p>
         </div>
         <div className="flex items-center gap-3">
-           <span className="px-3 py-1 rounded-full border border-primary/20 bg-primary/10 text-[9px] font-black text-white uppercase tracking-[0.2em]">v9.0 ARCHITECT PRO CLIENT</span>
+          <span className="px-3 py-1.5 rounded-full border border-white/10 text-[9px] font-black text-white uppercase tracking-[0.15em]" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.2), rgba(255,215,0,0.1))" }}>
+            <span style={{ background: "linear-gradient(90deg, #c084fc, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>v10.0 ARCHITECT PRO</span>
+          </span>
         </div>
       </div>
 
+      {/* KPI Cards with gradient borders */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map(kpi => (
-          <Card key={kpi.label} className="glass-card border-white/5 info-card-hover overflow-hidden group">
+        {kpis.map((kpi, idx) => (
+          <Card key={kpi.label} className="border-0 overflow-hidden group relative" style={{ background: "rgba(13,11,18,0.8)" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: kpiGradients[idx] }} />
             <CardContent className="p-4 flex items-center gap-3 relative">
-              <div className={`absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white/5 blur-xl group-hover:bg-white/10 transition-colors`} />
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
+              <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity" style={{ background: kpiGradients[idx] }} />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform duration-500" style={{ background: kpiGradients[idx], boxShadow: kpiGlows[idx] }}>
+                <kpi.icon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className={`text-xl font-bold text-white`}>{kpi.value}</p>
+                <p className="text-xl font-bold text-white">{kpi.value}</p>
                 <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">{kpi.label}</p>
               </div>
             </CardContent>
@@ -189,18 +207,19 @@ export default function ClienteDashboard() {
         ))}
       </div>
 
+      {/* Quick actions */}
       <div className="space-y-3">
         <h2 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold px-1">Atalhos rápidos</h2>
         <motion.div variants={stagger} className="flex gap-3 overflow-x-auto pb-4 scrollbar-none">
           {[
-            { to: "/cliente/suporte", label: "Engenharia de Evolução", icon: Headphones, color: "blue" },
-            { to: "/cliente/faturas", label: "Fluxo de Valor", icon: Receipt, color: "emerald" },
-            { to: "/cliente/projetos", label: "Engenharia de Soluções", icon: FolderKanban, color: "purple" },
-            { to: "/cliente/contratos", label: "Blindagem de Ativos", icon: ShieldCheck, color: "amber" },
+            { to: "/cliente/suporte", label: "Engenharia de Evolução", icon: Headphones, grad: "linear-gradient(135deg, #7b1fa2, #9c27b0)" },
+            { to: "/cliente/faturas", label: "Fluxo de Valor", icon: Receipt, grad: "linear-gradient(135deg, #c2185b, #e8334a)" },
+            { to: "/cliente/projetos", label: "Engenharia de Soluções", icon: FolderKanban, grad: "linear-gradient(135deg, #FFB800, #FFD700)" },
+            { to: "/cliente/contratos", label: "Blindagem de Ativos", icon: ShieldCheck, grad: "linear-gradient(135deg, #9c27b0, #c2185b)" },
           ].map((item, idx) => (
-            <Button key={idx} asChild className="flex-shrink-0 bg-white/5 hover:bg-white/10 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center">
+            <Button key={idx} asChild className="flex-shrink-0 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center" style={{ background: "rgba(13,11,18,0.8)" }}>
               <Link to={item.to}>
-                <div className={`p-2.5 rounded-xl bg-white/5 group-hover:scale-110 transition-all z-10 mx-auto`}><item.icon className="w-5 h-5" /></div>
+                <div className="p-2.5 rounded-xl group-hover:scale-110 transition-all z-10 mx-auto" style={{ background: item.grad }}><item.icon className="w-5 h-5 text-white" /></div>
                 <span className="text-xs font-semibold z-10">{item.label}</span>
               </Link>
             </Button>
@@ -211,11 +230,12 @@ export default function ClienteDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <div className="space-y-6">
           {/* Briefing Card */}
-          <Card className="glass-card border-white/5 overflow-hidden">
+          <Card className="border-white/5 overflow-hidden border-0 relative" style={{ background: "rgba(13,11,18,0.8)" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b, #FFD700)" }} />
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" /> Briefing & Referências
+                  <Sparkles className="w-4 h-4" style={{ color: "#FFD700" }} /> Briefing & Referências
                 </h2>
                 {projetoAtivo && <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">{projetoAtivo.titulo}</Badge>}
               </div>
@@ -225,7 +245,7 @@ export default function ClienteDashboard() {
                   <div className="space-y-1.5">
                     <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">O que não pode faltar no seu site?</p>
                     <textarea 
-                      className="w-full min-h-[100px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-primary/50 transition-colors outline-none placeholder:text-white/10"
+                      className="w-full min-h-[100px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-purple-500/50 transition-colors outline-none placeholder:text-white/10"
                       placeholder="Ex: Botão de WhatsApp flutuante, Galeria de fotos na Home, Seção de depoimentos..."
                       value={briefing}
                       onChange={(e) => setBriefing(e.target.value)}
@@ -234,7 +254,7 @@ export default function ClienteDashboard() {
                   <div className="space-y-1.5">
                     <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Referências (Links de sites que você gosta)</p>
                     <textarea 
-                      className="w-full min-h-[60px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-primary/50 transition-colors outline-none placeholder:text-white/10"
+                      className="w-full min-h-[60px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-purple-500/50 transition-colors outline-none placeholder:text-white/10"
                       placeholder="Ex: https://referencia.com, https://meuconcorrente.com..."
                       value={referencias}
                       onChange={(e) => setReferencias(e.target.value)}
@@ -242,9 +262,10 @@ export default function ClienteDashboard() {
                   </div>
                   <div className="flex gap-3">
                     <Button 
-                      className="flex-1 gradient-primary text-white border-0 h-10 rounded-xl shadow-lg shadow-primary/20"
+                      className="flex-1 text-white border-0 h-10 rounded-xl shadow-lg"
                       onClick={salvarBriefing}
                       disabled={saving}
+                      style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a)" }}
                     >
                       {saving ? "Salvando..." : "Salvar Briefing"}
                     </Button>
@@ -265,52 +286,56 @@ export default function ClienteDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="glass-card border-white/5 overflow-hidden border-primary/20 bg-primary/5">
+          {/* Blueprint */}
+          <Card className="overflow-hidden border-0 relative" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.1), rgba(13,11,18,0.9))" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #FFD700, #FFB800, #c2185b)" }} />
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Target className="w-4 h-4 text-primary" /> Blueprint de Escala Técnica
+                  <Target className="w-4 h-4" style={{ color: "#FFD700" }} /> Blueprint de Escala Técnica
                 </h2>
-                <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px] font-bold">PLANILHA ESTRATÉGICA ATIVA</Badge>
+                <Badge className="border-0 text-[9px] font-bold text-white" style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,215,0,0.1))", color: "#FFD700" }}>PLANILHA ESTRATÉGICA ATIVA</Badge>
               </div>
               
               <div className="space-y-4">
-                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/50 transition-all">
-                    <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><LayoutDashboard className="w-4 h-4 text-primary" /></div>
-                          <div>
-                             <p className="text-xs font-bold text-white">Arquitetura PWA & App Nativo</p>
-                             <p className="text-[10px] text-white/40">Transformar site em Ativo de Instalação Direta</p>
-                          </div>
-                       </div>
-                       <Badge variant="outline" className="text-[9px] border-white/10 text-white/60">Disponível</Badge>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 group hover:border-purple-500/30 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}><LayoutDashboard className="w-4 h-4 text-white" /></div>
+                      <div>
+                        <p className="text-xs font-bold text-white">Arquitetura PWA & App Nativo</p>
+                        <p className="text-[10px] text-white/40">Transformar site em Ativo de Instalação Direta</p>
+                      </div>
                     </div>
-                 </div>
+                    <Badge variant="outline" className="text-[9px] border-white/10 text-white/60">Disponível</Badge>
+                  </div>
+                </div>
 
-                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 group hover:border-primary/50 transition-all opacity-60">
-                    <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><Vault className="w-4 h-4 text-blue-400" /></div>
-                          <div>
-                             <p className="text-xs font-bold text-white">Blindagem WAF & Segurança Militar</p>
-                             <p className="text-[10px] text-white/40">Proteção avançada de infraestrutura contra ataques</p>
-                          </div>
-                       </div>
-                       <Badge variant="outline" className="text-[9px] border-white/10 text-white/60">Agendado</Badge>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 group hover:border-yellow-500/30 transition-all opacity-60">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #FFB800, #FFD700)" }}><Vault className="w-4 h-4 text-white" /></div>
+                      <div>
+                        <p className="text-xs font-bold text-white">Blindagem WAF & Segurança Militar</p>
+                        <p className="text-[10px] text-white/40">Proteção avançada de infraestrutura contra ataques</p>
+                      </div>
                     </div>
-                 </div>
+                    <Badge variant="outline" className="text-[9px] border-white/10 text-white/60">Agendado</Badge>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-card border-white/5 overflow-hidden">
+          {/* Timeline */}
+          <Card className="border-white/5 overflow-hidden border-0 relative" style={{ background: "rgba(13,11,18,0.8)" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #9c27b0, #c2185b, #e8334a)" }} />
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" /> Timeline de Acompanhamento Técnico
+                  <Clock className="w-4 h-4 text-purple-400" /> Timeline de Acompanhamento
                 </h2>
-                <Badge variant="outline" className="text-[9px] border-white/10 text-emerald-400 bg-emerald-500/5">SISTEMA OPERACIONAL</Badge>
+                <Badge variant="outline" className="text-[9px] border-emerald-500/20 text-emerald-400 bg-emerald-500/5">SISTEMA OPERACIONAL</Badge>
               </div>
               
               {atualizacoes.length === 0 ? (
@@ -322,21 +347,18 @@ export default function ClienteDashboard() {
                 </div>
               ) : (
                 <div className="space-y-0 relative ml-2">
-                  <div className="absolute left-[5px] top-2 bottom-6 w-px bg-white/5" />
+                  <div className="absolute left-[5px] top-2 bottom-6 w-px" style={{ background: "linear-gradient(180deg, #7b1fa2, #c2185b, #FFD700, transparent)" }} />
                   {atualizacoes.map((a: any, i: number) => (
                     <div key={a.id} className="flex gap-4 pb-6 last:pb-0 relative group">
                       <div className="relative z-10">
-                        <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-purple-600 shadow-[0_0_8px_rgba(232,51,74,0.4)] group-hover:scale-125 transition-transform mt-1" />
+                        <div className="w-3 h-3 rounded-full shadow-lg group-hover:scale-125 transition-transform mt-1" style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a)", boxShadow: "0 0 8px rgba(123,31,162,0.4)" }} />
                       </div>
                       <div className="flex-1 -mt-0.5 p-3 rounded-xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
-                        <p className="text-sm font-medium text-white group-hover:text-primary transition-colors">{a.descricao}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                           <Badge variant="outline" className="text-[9px] border-white/10 text-white/30 h-4">{ (a as any).projetos?.titulo }</Badge>
-                           <span className="text-[10px] text-white/30 flex items-center gap-1">
-                             <Clock className="w-3 h-3 text-white/20" /> 
-                             {new Date(a.created_at).toLocaleDateString("pt-BR")}
-                           </span>
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="text-xs font-bold text-white">{a.titulo}</h4>
+                          <span className="text-[10px] text-white/30">{new Date(a.created_at).toLocaleDateString("pt-BR")}</span>
                         </div>
+                        <p className="text-[11px] text-white/40 leading-relaxed">{a.descricao}</p>
                       </div>
                     </div>
                   ))}
@@ -346,67 +368,80 @@ export default function ClienteDashboard() {
           </Card>
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-6">
-          <Card className={`glass-card border-${perfil.site_url ? "emerald" : "amber"}-500/10 bg-${perfil.site_url ? "emerald" : "amber"}-500/5 group`}>
-            <CardContent className="p-5 flex flex-col items-center text-center">
-              <div className={`w-12 h-12 rounded-full bg-${perfil.site_url ? "emerald" : "amber"}-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                <div className={`w-3 h-3 rounded-full bg-${perfil.site_url ? "emerald" : "amber"}-400 animate-pulse`} />
-              </div>
-              <p className="text-xs font-bold text-white mb-1">Status do Seu Site</p>
-              <p className={`text-[10px] text-${perfil.site_url ? "emerald" : "amber"}-400/70 mb-4 font-medium uppercase tracking-wider`}>
-                {perfil.site_url ? "Publicado e Seguro" : "Em Desenvolvimento"}
-              </p>
-              <Button asChild variant="outline" className={`w-full h-8 text-[10px] rounded-lg border-${perfil.site_url ? "emerald" : "amber"}-500/20 bg-${perfil.site_url ? "emerald" : "amber"}-500/10 text-${perfil.site_url ? "emerald" : "amber"}-400 hover:bg-${perfil.site_url ? "emerald" : "amber"}-500 hover:text-white transition-all`}>
-                {perfil.site_url ? (
-                  <a href={perfil.site_url} target="_blank" rel="noopener noreferrer">Acessar Meu Site →</a>
-                ) : (
-                  <span className="opacity-50 cursor-not-allowed">Site em Breve →</span>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card border-white/5 hover:border-white/10 transition-all">
-            <CardContent className="p-5 space-y-4">
-              <h2 className="text-xs font-bold text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-amber-400" /> Próxima Reunião
-              </h2>
+          {/* Reunião */}
+          <Card className="border-0 overflow-hidden relative" style={{ background: "rgba(13,11,18,0.8)" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #FFD700, #FFB800)" }} />
+            <CardContent className="p-5">
+              <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold mb-4 flex items-center gap-2" style={{ color: "#FFD700" }}>
+                <CalendarDays className="w-4 h-4" /> Próxima Reunião
+              </h3>
               {proximaReuniao ? (
-                <div className="p-4 rounded-xl space-y-3 bg-white/5 border border-white/5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-white">{tipoReuniaoLabels[proximaReuniao.tipo as TipoReuniao]}</span>
-                    <Badge variant="outline" className="text-[10px] border-0 px-2 py-0.5 rounded-md" style={{ backgroundColor: statusReuniaoColors[proximaReuniao.status as StatusReuniao] + "33", color: statusReuniaoColors[proximaReuniao.status as StatusReuniao] }}>
-                      {statusReuniaoLabels[proximaReuniao.status as StatusReuniao]}
-                    </Badge>
-                  </div>
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center gap-2 text-white/50 text-xs">
-                      <CalendarDays className="w-3 h-3" /> {proximaReuniao.data}
-                    </div>
-                    <div className="flex items-center gap-2 text-white/50 text-xs">
-                      <Clock className="w-3 h-3" /> {proximaReuniao.hora_inicio} — {proximaReuniao.hora_fim}
-                    </div>
+                <div className="space-y-3">
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                    <p className="text-xs font-bold text-white">{new Date(proximaReuniao.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
+                    <p className="text-[10px] text-white/40 mt-1">{proximaReuniao.horario} · {tipoReuniaoLabels[proximaReuniao.tipo as TipoReuniao] || proximaReuniao.tipo}</p>
+                    <div className="mt-2"><StatusBadge status={proximaReuniao.status} /></div>
                   </div>
                   {proximaReuniao.link && (
-                    <Button asChild className="w-full h-9 mt-1 gradient-primary border-0 text-white rounded-lg text-xs font-bold">
-                      <a href={proximaReuniao.link} target="_blank" rel="noopener noreferrer">
-                        Entrar na Reunião
-                      </a>
-                    </Button>
+                    <a href={proximaReuniao.link} target="_blank" rel="noreferrer" className="block text-center text-xs font-bold py-2.5 rounded-xl text-white border-0" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}>
+                      Entrar na Reunião →
+                    </a>
                   )}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center border-2 border-dashed border-white/5 rounded-xl group hover:border-white/10 transition-all">
-                  <p className="text-xs text-white/20 group-hover:text-white/40 transition-colors">Tudo em ordem. Nenhuma reunião pendente.</p>
+                <div className="flex flex-col items-center py-8 text-center">
+                  <CalendarDays className="w-8 h-8 text-white/10 mb-3" />
+                  <p className="text-[11px] text-white/40">Nenhuma reunião agendada.</p>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Perfil */}
+          <Card className="border-0 overflow-hidden relative" style={{ background: "rgba(13,11,18,0.8)" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b)" }} />
+            <CardContent className="p-5">
+              <h3 className="text-[10px] uppercase tracking-[0.2em] text-purple-400 font-bold mb-4">Meu Perfil</h3>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold shrink-0" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}>
+                  {perfil?.nome?.charAt(0) || "?"}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{perfil?.nome}</p>
+                  <p className="text-[11px] text-white/40 truncate">{perfil?.email}</p>
+                </div>
+              </div>
+              <Link to="/cliente/dados" className="mt-4 block text-center text-[11px] font-semibold py-2 rounded-xl border border-white/10 text-white/60 hover:bg-white/5 transition-colors">
+                Editar Meus Dados →
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Status bar */}
+          <div className="p-4 rounded-2xl border border-white/5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.1), rgba(255,215,0,0.05))" }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Sistema Online</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px]">
+                <span className="text-white/40">Uptime</span>
+                <span className="text-white font-bold">99.9%</span>
+              </div>
+              <div className="flex justify-between text-[10px]">
+                <span className="text-white/40">Velocidade</span>
+                <span className="text-white font-bold">Premium</span>
+              </div>
+              <div className="flex justify-between text-[10px]">
+                <span className="text-white/40">SSL</span>
+                <span className="text-emerald-400 font-bold">Ativo ✓</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>
   );
 }
-
-
-
