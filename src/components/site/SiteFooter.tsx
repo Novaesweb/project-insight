@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucide-react";
 import codethioLogo from "@/assets/codethio-new-logo.jpg";
 import sealImg from "@/assets/webnovax-v10-seal.png";
+import webnovaxSymbol from "@/assets/webnovax-main-logo.png";
 import { scrollTo } from "./SiteNavbar";
 
 interface SiteFooterProps {
@@ -16,14 +17,10 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-20">
           {/* Brand & Mission */}
           <div className="space-y-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                <span className="text-white font-black text-sm uppercase">NW</span>
-              </div>
+              <img src={webnovaxSymbol} alt="WebNovaX" className="w-10 h-10 rounded-full object-cover shadow-lg shadow-primary/20" />
               <span className="text-xl font-black text-white tracking-tighter">
-                webnovax<span className="text-white/20 font-medium tracking-normal">Web</span>
+                webnovax
               </span>
-            </div>
             <p className="text-sm text-white/40 leading-relaxed font-medium">
               Arquitetando ativos digitais de alta fidelidade para empresas que buscam o topo do mercado.
             </p>
