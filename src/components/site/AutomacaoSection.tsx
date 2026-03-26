@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Bot, MessageCircle, Zap, Target, ArrowRight, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import codethioLogo from "@/assets/codethio-logo.png";
+
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -103,32 +103,35 @@ export default function AutomacaoSection() {
             </div>
           </div>
 
-          {/* Partnership card */}
+          {/* CTA card */}
           <div className="glass-card rounded-[2.5rem] p-10 border-emerald-500/10 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-4 mb-6">
-                <img src={codethioLogo} alt="CodeThio" className="w-14 h-14 rounded-full border-2 border-emerald-500/20 p-1 bg-[hsl(var(--background))]" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-emerald-400" />
+                </div>
                 <div>
-                  <p className="text-xl font-black text-white tracking-tighter">
-                    Code<span className="text-emerald-400">Thio</span>
+                  <p className="text-xl font-black text-foreground tracking-tighter">
+                    Comece a <span className="text-emerald-400">Automatizar</span>
                   </p>
-                  <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-[0.2em]">Parceria Estratégica</p>
+                  <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-[0.2em]">Fale com a webnovax</p>
                 </div>
               </div>
-              <p className="text-sm text-white/40 leading-relaxed font-medium mb-6">
-                A automação inteligente é desenvolvida pela CodeThio, nossa parceira especializada em IA conversacional e automação de atendimento.
+              <p className="text-sm text-muted-foreground leading-relaxed font-medium mb-4">
+                A webnovax cuida de tudo — do site à automação inteligente no WhatsApp. Nosso time configura, treina a IA e acompanha os resultados do seu negócio.
               </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a href="https://wa.me/5551981964238?text=Olá! Quero saber sobre a automação inteligente no WhatsApp." target="_blank" rel="noopener noreferrer" className="flex-1">
-                <Button className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold border-0 shadow-lg shadow-emerald-500/20 group">
-                  Quero Automatizar <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </a>
-              <div className="flex items-center justify-center gap-2 text-[10px] text-white/20 font-bold uppercase tracking-widest">
-                <span>A partir de R$60/mês</span>
+              <div className="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mb-6">
+                <Bot className="w-4 h-4 text-emerald-400 shrink-0" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <span className="text-emerald-400 font-bold">A partir de R$60/mês</span> para clientes com site webnovax. Contratação direta com parceiro de automação terá valores definidos por ele.
+                </p>
               </div>
             </div>
+            <a href="https://wa.me/5551981964238?text=Olá! Quero saber sobre a automação inteligente no WhatsApp." target="_blank" rel="noopener noreferrer">
+              <Button className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold border-0 shadow-lg shadow-emerald-500/20 group">
+                Falar com a webnovax <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </a>
           </div>
         </motion.div>
       </div>
