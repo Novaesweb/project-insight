@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const faqs = [
   {
     q: "O sistema é difícil de mexer?",
-    a: "Não! Projetamos a interface Architect v9.0 para ser intuitiva e direta. Além disso, você tem o suporte da nossa Engenharia de Evolução sempre à disposição."
+    a: "Não! Projetamos a interface Architect v10.0 para ser intuitiva e direta. Além disso, você tem o suporte da nossa Engenharia de Evolução sempre à disposição."
   },
   {
     q: "Como meus pedidos chegam no WhatsApp?",

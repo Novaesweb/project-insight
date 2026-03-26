@@ -26,8 +26,8 @@ export default function ExperienceSection() {
   return (
     <section className="py-24 relative overflow-hidden bg-[hsl(var(--background))]">
       {/* Background patterns */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
