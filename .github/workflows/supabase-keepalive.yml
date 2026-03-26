@@ -2,7 +2,7 @@ name: Supabase Keep-Alive
 
 on:
   schedule:
-    - cron: '0 12 * * *' # Todo dia às 12h UTC (9h BRT)
+    - cron: '*/10 * * * *' # Todo 10 minutos para garantir atividade máxima
   workflow_dispatch:    # Permite rodar manualmente
 
 jobs:
