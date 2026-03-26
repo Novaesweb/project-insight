@@ -9,7 +9,7 @@ import ServicosSection from "@/components/site/ServicosSection";
 import AutomacaoSection from "@/components/site/AutomacaoSection";
 import SolucoesSection from "@/components/site/SolucoesSection";
 import NicheCarousel from "@/components/NicheCarousel";
-import PortfolioSection from "@/components/site/PortfolioSection";
+
 import ProcessoSection from "@/components/site/ProcessoSection";
 import PlanosSection from "@/components/site/PlanosSection";
 import FuncionalidadeExtraSection from "@/components/site/FuncionalidadeExtraSection";
@@ -35,7 +35,7 @@ export default function Site() {
       <section id="segmentos" className="py-8">
         <NicheCarousel />
       </section>
-      <PortfolioSection />
+      
       <ProcessoSection />
       <PlanosSection />
       <FuncionalidadeExtraSection />
