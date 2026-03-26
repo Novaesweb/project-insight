@@ -13,4 +13,6 @@ jobs:
         run: |
           curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive" \
           -H "Authorization: Bearer ${{ secrets.PING_SECRET }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
           -f
