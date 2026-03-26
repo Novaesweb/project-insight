@@ -1,0 +1,16 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # Todo dia às 12h UTC (9h BRT)
+  workflow_dispatch:    # Permite rodar manualmente
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar Ping via Edge Function
+        run: |
+          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive" \
+          -H "Authorization: Bearer ${{ secrets.PING_SECRET }}" \
+          -f
