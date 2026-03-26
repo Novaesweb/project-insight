@@ -129,7 +129,7 @@ export default function AdminLogin() {
                 Acesso Restrito
               </span>
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border border-border text-muted-foreground">
-                v9.0
+                v10.0
               </span>
             </div>
           </div>
