@@ -11,7 +11,8 @@ jobs:
     steps:
       - name: Disparar Ping via Edge Function
         run: |
-          curl -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive" \
+          ENDPOINT=$(echo "${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive" | sed 's/\([^:]\)\/\//\1\//g')
+          curl -X POST "$ENDPOINT" \
           -H "Authorization: Bearer ${{ secrets.PING_SECRET }}" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Content-Type: application/json" \

@@ -5,8 +5,11 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization");
   const secret = Deno.env.get("PING_SECRET");
 
-  // Validação de segurança via Token
-  if (!secret || authHeader !== `Bearer ${secret}`) {
+  // Validação de segurança via Token (com limpeza de espaços)
+  const cleanSecret = secret?.trim();
+  const cleanHeader = authHeader?.replace("Bearer ", "").trim();
+
+  if (!cleanSecret || cleanHeader !== cleanSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { 
       status: 401, 
       headers: { "Content-Type": "application/json" } 
