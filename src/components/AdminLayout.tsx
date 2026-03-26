@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
-import nwLogo from "@/assets/webnovax-symbol.jpeg";
+import nwLogo from "@/assets/webnovax-logo-admin.png";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -196,7 +196,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <h1 className="text-lg font-bold tracking-tight text-white/90">
                   {pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin"}
                 </h1>
-                <span className="px-2 py-0.5 rounded-full border border-white/10 bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] text-[9px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(232,51,74,0.4)] anim-pulse-slow">v9.0 ARCHITECT PREMIUM</span>
+                <span className="px-2 py-0.5 rounded-full border border-white/10 bg-gradient-to-r from-[#e8334a] via-[#c2185b] to-[#7b1fa2] text-[9px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(232,51,74,0.4)] anim-pulse-slow">v10.0 ARCHITECT PREMIUM</span>
               </div>
               <p className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em]">webnovax • Gestão Digital</p>
             </div>
