@@ -1,16 +1,93 @@
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, MessageCircle, Globe, Layers, Rocket } from "lucide-react";
+import { ArrowRight, CheckCircle, MessageCircle, Globe, Layers, Rocket, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
-const stagger = { show: { transition: { staggerChildren: 0.08 } } };
+const stagger = { show: { transition: { staggerChildren: 0.12 } } };
+
+const plans = [
+  {
+    tag: "Express",
+    tagColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    icon: Globe,
+    iconColor: "bg-emerald-500/20 text-emerald-400",
+    borderColor: "border-emerald-500/20 hover:border-emerald-500/40",
+    title: "Arquitetura Express",
+    desc: "A estrutura ágil para quem precisa de presença digital imediata e profissional.",
+    promo: true,
+    price: "R$180",
+    priceLabel: "Valor inicial",
+    monthly: "R$60",
+    features: [
+      "Site moderno e responsivo",
+      "Página de serviços",
+      "Página de contato",
+      "Integração com mapa",
+      "Botão WhatsApp direto",
+      "Otimização para celular",
+    ],
+    cta: "Aproveitar promoção",
+    ctaClass: "gradient-primary border-0 text-white shadow-lg shadow-primary/20",
+    whatsapp: "Olá, vi a arquitetura Express da webnovax e gostaria de estruturar minha presença digital!",
+    note: "A base perfeita para sua transformação digital.",
+  },
+  {
+    tag: "Pro",
+    tagColor: "text-primary bg-primary/10 border-primary/20",
+    icon: Layers,
+    iconColor: "bg-primary/20 text-primary",
+    borderColor: "border-primary/30 hover:border-primary/50",
+    title: "Arquitetura de Gestão",
+    desc: "O ecossistema completo para empresas que buscam estruturar sua operação e escalar resultados.",
+    popular: true,
+    features: [
+      "Site profissional completo",
+      "Painel administrativo",
+      "Cadastro de clientes",
+      "Recebimento de pedidos",
+      "Sistema de notificações",
+      "Controle financeiro básico",
+      "Histórico de informações",
+    ],
+    cta: "Falar com Arquiteto",
+    ctaClass: "gradient-primary border-0 text-white shadow-lg shadow-primary/20",
+    ctaIcon: MessageCircle,
+    whatsapp: "Olá, gostaria de saber mais sobre a Arquitetura de Gestão da webnovax.",
+    note: "Ideal para quem busca controle total e escala operacional.",
+  },
+  {
+    tag: "Sob Medida",
+    tagColor: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+    icon: Rocket,
+    iconColor: "bg-purple-500/20 text-purple-400",
+    borderColor: "border-purple-500/20 hover:border-purple-500/40",
+    title: "Arquitetura sob Medida",
+    desc: "Transformação sob demanda para projetos complexos que exigem engenharia dedicada.",
+    features: [
+      "Sistemas de gestão",
+      "Plataformas internas",
+      "Portais para clientes",
+      "Sistemas de pedidos",
+      "Dashboards administrativos",
+      "E muito mais...",
+    ],
+    cta: "Solicitar Diagnóstico",
+    ctaClass: "bg-purple-600 hover:bg-purple-700 border-0 text-white shadow-lg shadow-purple-600/20",
+    whatsapp: "Olá, gostaria de um orçamento para uma Arquitetura Digital sob Medida.",
+    note: "Engenharia estratégica focada na sua necessidade específica.",
+  },
+];
 
 export default function PlanosSection() {
   return (
-    <motion.section id="planos" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-      <div className="max-w-3xl mx-auto text-center">
-        <motion.div variants={fade} className="mb-16">
+    <motion.section id="planos" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+      {/* Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[200px]" />
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <motion.div variants={fade} className="text-center max-w-3xl mx-auto mb-20">
           <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Investimento Estratégico</span>
           <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
             Planos feitos para <br />
@@ -21,143 +98,94 @@ export default function PlanosSection() {
           </p>
         </motion.div>
 
-        <motion.div variants={fade} className="mt-10">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary border-0 text-white h-16 px-12 rounded-[2rem] font-black text-xl uppercase tracking-widest shadow-[0_20px_40px_rgba(255,51,102,0.3)] hover:shadow-[0_25px_50px_rgba(255,51,102,0.5)] transition-all hover:-translate-y-1">
-                Explorar Planos <ArrowRight className="w-6 h-6 ml-3" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-[hsl(var(--background))] border-[hsl(var(--border))] p-6">
-              <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] mb-6 text-center">Nossos Planos</h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                {/* Site Express */}
-                <div className="glass-card rounded-2xl p-6 flex flex-col relative overflow-hidden border border-emerald-500/20">
-                  <div className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-bold uppercase px-3 py-1 rounded-full animate-pulse">
-                    🔥 Promoção
-                  </div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Express</span>
-                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Arquitetura Express</h3>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-3">
-                    A estrutura ágil para quem precisa de presença digital imediata e profissional.
-                  </p>
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Valor inicial</p>
-                      <p className="text-xl font-bold text-emerald-400">R$180</p>
-                    </div>
-                    <div className="h-8 w-px bg-[hsl(var(--border))]" />
-                    <div className="text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Mensalidade</p>
-                      <p className="text-xl font-bold text-emerald-400">R$60<span className="text-xs font-normal text-[hsl(var(--muted-foreground))]">/mês</span></p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-3">
-                    Site moderno, funcional e totalmente personalizável.
-                  </p>
-                  <ul className="space-y-2 mb-4 flex-1">
-                    {["Site moderno e responsivo", "Página de serviços", "Página de contato", "Integração com mapa", "Botão WhatsApp direto", "Otimização para celular"].map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                        <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-xs text-emerald-400/80 italic mb-3">⚡ A base perfeita para sua transformação digital.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, vi a arquitetura Express da webnovax e gostaria de estruturar minha presença digital!" target="_blank" rel="noopener noreferrer">
-                    <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
-                      Aproveitar promoção <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </a>
+        {/* Plan Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {plans.map((plan, i) => (
+            <motion.div
+              key={plan.title}
+              variants={fade}
+              className={`relative glass-card rounded-[2.5rem] p-8 flex flex-col border ${plan.borderColor} transition-all duration-500 group overflow-hidden`}
+            >
+              {/* Popular badge */}
+              {plan.popular && (
+                <div className="absolute -top-px left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
+              )}
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-white bg-primary px-4 py-1 rounded-full shadow-lg shadow-primary/30 flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3" /> Mais popular
+                  </span>
                 </div>
+              )}
 
-                {/* Gestão Pro */}
-                <div className="relative glass-card rounded-2xl p-6 border border-[hsl(var(--primary))]/40 flex flex-col">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-white bg-[hsl(var(--primary))] px-4 py-1 rounded-full shadow-lg shadow-[hsl(var(--primary))]/30">
-                      Mais popular
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 mb-4 mt-2">
-                    <div className="w-10 h-10 rounded-xl bg-[hsl(var(--primary))]/20 flex items-center justify-center">
-                      <Layers className="w-5 h-5 text-[hsl(var(--primary))]" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-2 py-0.5 rounded-full">Pro</span>
-                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Arquitetura de Gestão</h3>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                    O ecossistema completo para empresas que buscam estruturar sua operação e escalar resultados.
-                  </p>
-                  <ul className="space-y-2 mb-4 flex-1">
-                    {["Site profissional completo", "Painel administrativo", "Cadastro de clientes", "Recebimento de pedidos", "Sistema de notificações", "Controle financeiro básico", "Histórico de informações"].map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                        <CheckCircle className="w-4 h-4 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-xs text-[hsl(var(--primary))]/80 italic mb-3">💡 Ideal para quem busca controle total e escala operacional.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, gostaria de saber mais sobre a Arquitetura de Gestão da webnovax." target="_blank" rel="noopener noreferrer">
-                    <Button className="w-full gradient-primary border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-[hsl(var(--primary))]/20">
-                      Falar com Arquiteto <MessageCircle className="w-4 h-4 ml-2" />
-                    </Button>
-                  </a>
+              {/* Promo badge */}
+              {plan.promo && (
+                <div className="absolute top-6 right-6">
+                  <span className="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 animate-pulse">
+                    Promoção
+                  </span>
                 </div>
+              )}
 
-                {/* Sistema Sob Medida */}
-                <div className="glass-card rounded-2xl p-6 border border-purple-500/20 flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                      <Rocket className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">Sob Medida</span>
-                      <h3 className="text-lg font-bold text-[hsl(var(--foreground))] mt-1">Arquitetura sob Medida</h3>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mb-4">
-                    Transformação sob demanda para projetos complexos que exigem engenharia dedicada.
-                  </p>
-                  <ul className="space-y-2 mb-4 flex-1">
-                    {["Sistemas de gestão", "Plataformas internas", "Portais para clientes", "Sistemas de pedidos", "Dashboards administrativos", "E muito mais..."].map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                        <CheckCircle className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-xs text-purple-400/80 italic mb-3">💡 Engenharia estratégica focada na sua necessidade específica.</p>
-                  <a href="https://wa.me/5551981964238?text=Olá, gostaria de um orçamento para uma Arquitetura Digital sob Medida." target="_blank" rel="noopener noreferrer">
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700 border-0 text-white h-10 rounded-xl font-semibold shadow-lg shadow-purple-600/20">
-                      Solicitar Diagnóstico <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </a>
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6 mt-2">
+                <div className={`w-12 h-12 rounded-2xl ${plan.iconColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
+                  <plan.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full border ${plan.tagColor}`}>{plan.tag}</span>
+                  <h3 className="text-lg font-black text-white mt-1.5 tracking-tight">{plan.title}</h3>
                 </div>
               </div>
 
-              <div className="mt-6 text-center">
-                <div className="glass-card rounded-2xl p-4 max-w-2xl mx-auto">
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                    <span className="font-semibold text-[hsl(var(--foreground))]">⚠️ Informação importante:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
-                  </p>
+              <p className="text-sm text-white/40 leading-relaxed mb-6 font-medium">{plan.desc}</p>
+
+              {/* Price */}
+              {plan.price && (
+                <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                  <div className="text-center">
+                    <p className="text-[10px] uppercase tracking-wider text-white/30 font-bold">{plan.priceLabel}</p>
+                    <p className="text-2xl font-black text-emerald-400">{plan.price}</p>
+                  </div>
+                  <div className="h-8 w-px bg-white/10" />
+                  <div className="text-center">
+                    <p className="text-[10px] uppercase tracking-wider text-white/30 font-bold">Mensalidade</p>
+                    <p className="text-2xl font-black text-emerald-400">{plan.monthly}<span className="text-xs font-normal text-white/30">/mês</span></p>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              )}
+
+              {/* Features */}
+              <ul className="space-y-3 mb-6 flex-1">
+                {plan.features.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-white/50">
+                    <CheckCircle className="w-4 h-4 text-primary/60 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Note */}
+              <p className="text-xs text-white/20 italic mb-4 font-medium">{plan.note}</p>
+
+              {/* CTA */}
+              <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`} target="_blank" rel="noopener noreferrer">
+                <Button className={`w-full h-12 rounded-xl font-bold ${plan.ctaClass} group/btn`}>
+                  {plan.cta}
+                  {plan.ctaIcon ? <plan.ctaIcon className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />}
+                </Button>
+              </a>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Disclaimer */}
+        <motion.div variants={fade} className="mt-12 text-center">
+          <p className="text-xs text-white/20 max-w-2xl mx-auto leading-relaxed font-medium">
+            <span className="text-white/40 font-bold">Nota:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
+          </p>
         </motion.div>
       </div>
     </motion.section>
   );
 }
-
-
-

@@ -1,154 +1,137 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Rocket, MessageCircle, Sparkles, CheckCircle, Zap, Target, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Bot, MessageCircle, Zap, Target, ArrowRight, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import codethioLogo from "@/assets/codethio-logo.jpeg";
 
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
+const features = [
+  {
+    icon: Bot,
+    title: "Agente IA no WhatsApp",
+    desc: "Inteligência artificial treinada no seu negócio que atende, responde e vende 24h por dia.",
+    color: "from-emerald-500 to-teal-500",
+  },
+  {
+    icon: MessageCircle,
+    title: "Atendimento Automático",
+    desc: "Respostas instantâneas para perguntas frequentes, boas-vindas personalizadas e direcionamento inteligente.",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    icon: Target,
+    title: "Fluxos de Conversão",
+    desc: "Funis automatizados que qualificam leads, agendam horários e direcionam para fechamento.",
+    color: "from-purple-500 to-pink-500",
+  },
+  {
+    icon: TrendingUp,
+    title: "Resultados Mensuráveis",
+    desc: "Dashboard com métricas de atendimento, conversão e tempo de resposta em tempo real.",
+    color: "from-orange-500 to-red-500",
+  },
+];
+
+const results = [
+  { icon: Clock, value: "< 3s", label: "Tempo de resposta" },
+  { icon: Zap, value: "24/7", label: "Disponibilidade" },
+  { icon: TrendingUp, value: "+40%", label: "Mais conversões" },
+];
+
 export default function AutomacaoSection() {
-  const [showAutomacao, setShowAutomacao] = useState(false);
-
   return (
-    <motion.section className="py-16 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-      <div className="max-w-3xl mx-auto">
-        <Button
-          onClick={() => setShowAutomacao(!showAutomacao)}
-          className="w-full h-14 rounded-2xl text-base font-bold gradient-primary text-white shadow-lg shadow-[hsl(var(--primary))]/25 hover:shadow-xl hover:shadow-[hsl(var(--primary))]/35 transition-all"
-        >
-          🚀 {showAutomacao ? "Fechar Automação Inteligente" : "Ver Automação Inteligente"}
-        </Button>
+    <motion.section className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+      {/* Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px]" />
+      </div>
 
-        <AnimatePresence>
-          {showAutomacao && (
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header */}
+        <motion.div variants={fade} className="max-w-3xl mb-20">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20">
+            Automação Inteligente
+          </span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
+            Automatize o <br />
+            <span className="text-white/20">atendimento com </span>
+            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">IA</span>
+          </h2>
+          <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
+            Integre inteligência artificial ao seu WhatsApp. Seu negócio atende, vende e agenda automaticamente — sem perder o toque humano.
+          </p>
+        </motion.div>
+
+        {/* Feature cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-16">
+          {features.map((f, i) => (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4 }}
-              className="overflow-hidden"
+              key={f.title}
+              variants={fade}
+              className="glass-card rounded-[2rem] p-8 group hover:border-emerald-500/20 transition-all duration-500 relative overflow-hidden"
             >
-              <div className="mt-6 glass-card rounded-2xl p-8 space-y-6">
-                <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] flex items-center gap-2">
-                  <Rocket className="w-6 h-6 text-[hsl(var(--primary))]" /> webnovax + AUTOMAÇÃO INTELIGENTE
-                </h2>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                  Na webnovax, desenvolvemos sites completos, sistemas de pedidos e soluções digitais estruturadas.
-                </p>
+              <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+                <f.icon className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="relative text-lg font-black text-white tracking-tight mb-3">{f.title}</h3>
+              <p className="relative text-sm text-white/40 leading-relaxed font-medium">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
 
-                <div className="border-t border-[hsl(var(--border))] pt-5">
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-5 h-5 text-[hsl(var(--primary))]" /> POSICIONAMENTO
-                  </h3>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] font-medium">
-                    Criamos seu site, organizamos pedidos e automatizamos atendimento.
-                  </p>
-                </div>
-
-                <div className="border-t border-[hsl(var(--border))] pt-5">
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
-                    <Sparkles className="w-5 h-5 text-[hsl(var(--primary))]" /> COMO FUNCIONA
-                  </h3>
-                  <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
-                    <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Desenvolvimento do site</li>
-                    <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Sistema de pedidos</li>
-                    <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Painel administrativo</li>
-                    <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Controle completo</li>
-                  </ul>
-                  <p className="text-sm font-semibold text-[hsl(var(--foreground))] mt-4 mb-2">+ Automação:</p>
-                  <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
-                    <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-[hsl(var(--primary))]" /> WhatsApp automatizado</li>
-                    <li className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-[hsl(var(--primary))]" /> Atendimento automático</li>
-                    <li className="flex items-center gap-2"><Target className="w-4 h-4 text-[hsl(var(--primary))]" /> Respostas rápidas</li>
-                  </ul>
-                </div>
-
-                <div className="border-t border-[hsl(var(--border))] pt-5">
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
-                    <ArrowRight className="w-5 h-5 text-[hsl(var(--primary))]" /> RESULTADO
-                  </h3>
-                  <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
-                    <li>👉 Cliente entra no site</li>
-                    <li>👉 WhatsApp responde automaticamente</li>
-                    <li>👉 Direciona com link pro site</li>
-                  </ul>
-                  <p className="text-sm font-bold text-[hsl(var(--foreground))] mt-3">🔥 Mais vendas e organização</p>
-                </div>
-
-                <div className="border-t border-[hsl(var(--border))] pt-5">
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-3">
-                    💰 PLANO ESSENCIAL
-                  </h3>
-                  <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-6 space-y-4">
-                    <p className="text-2xl font-bold text-[hsl(var(--foreground))]">
-                      A partir de R$ 60<span className="text-sm font-normal text-[hsl(var(--muted-foreground))]">/mês</span>
-                    </p>
-                    <p className="text-sm text-green-400 font-medium">
-                      👉 Ideal para automatizar o atendimento de forma simples e eficiente
-                    </p>
-                    <div>
-                      <p className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">Inclui:</p>
-                      <ul className="space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
-                        <li className="flex items-start gap-2">🤖 Resposta automática no WhatsApp</li>
-                        <li className="flex items-start gap-2">💬 Mensagem inicial de boas-vindas</li>
-                        <li className="flex items-start gap-2">📌 Direcionamento para o site (link automático)</li>
-                        <li className="flex items-start gap-2">📦 Informações básicas sobre pedidos</li>
-                        <li className="flex items-start gap-2">⏱ Respostas rápidas para perguntas frequentes</li>
-                        <li className="flex items-start gap-2">🔄 Atendimento inicial organizado</li>
-                      </ul>
-                    </div>
-                    <div className="border-t border-green-500/20 pt-4">
-                      <p className="text-sm font-semibold text-[hsl(var(--foreground))] mb-2">⚙️ PERSONALIZAÇÃO</p>
-                      <p className="text-xs text-green-400 font-medium mb-3">💡 O valor pode variar de acordo com:</p>
-                      <ul className="space-y-1.5 text-sm text-[hsl(var(--muted-foreground))]">
-                        <li>📊 Volume de mensagens (ex: 50, 100, 300 por dia)</li>
-                        <li>🧠 Complexidade do atendimento</li>
-                        <li>🔁 Quantidade de fluxos automatizados</li>
-                        <li>📦 Tipo de operação do cliente</li>
-                      </ul>
-                      <p className="text-sm font-medium text-[hsl(var(--foreground))] mt-3">
-                        👉 Cada projeto é ajustado conforme a necessidade do negócio
-                      </p>
-                    </div>
+        {/* Stats + CTA row */}
+        <motion.div variants={fade} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Results card */}
+          <div className="glass-card rounded-[2.5rem] p-10 border-emerald-500/10">
+            <div className="flex items-center gap-3 mb-8">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <span className="text-xs font-black text-white uppercase tracking-widest">Resultados Comprovados</span>
+            </div>
+            <div className="grid grid-cols-3 gap-6">
+              {results.map((r) => (
+                <div key={r.label} className="text-center">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                    <r.icon className="w-5 h-5 text-emerald-400" />
                   </div>
+                  <p className="text-2xl font-black text-white mb-1">{r.value}</p>
+                  <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold">{r.label}</p>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                <div className="border-t border-[hsl(var(--border))] pt-5">
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-2">
-                    📌 IMPORTANTE
-                  </h3>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
-                    Para projetos que utilizam apenas automação no WhatsApp, sem o site, os valores são definidos diretamente pela Codethio.
+          {/* Partnership card */}
+          <div className="glass-card rounded-[2.5rem] p-10 border-emerald-500/10 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-4 mb-6">
+                <img src={codethioLogo} alt="CodeThio" className="w-14 h-14 rounded-full border-2 border-emerald-500/20 p-1 bg-[hsl(var(--background))]" />
+                <div>
+                  <p className="text-xl font-black text-white tracking-tighter">
+                    Code<span className="text-emerald-400">Thio</span>
                   </p>
-                </div>
-
-                <div className="border-t border-[hsl(var(--border))] pt-5">
-                  <p className="text-sm italic text-[hsl(var(--muted-foreground))] leading-relaxed">
-                    A webnovax estrutura o sistema. A automação potencializa o atendimento.
-                  </p>
-                </div>
-
-                <div className="border-t border-[hsl(var(--border))] pt-6 flex flex-col items-center text-center gap-3">
-                  <p className="text-xs uppercase tracking-widest text-[hsl(var(--muted-foreground))]">Automação desenvolvida por</p>
-                  <div className="flex items-center gap-3">
-                    <img src={codethioLogo} alt="Codethio" className="w-10 h-10 rounded-full object-cover" />
-                    <p className="text-2xl font-bold">
-                      <span className="text-[hsl(var(--foreground))]">Code</span><span className="text-green-500">thio</span>
-                    </p>
-                  </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] max-w-md leading-relaxed">
-                    Transformando atendimento em resultado através da automação inteligente.
-                  </p>
+                  <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-[0.2em]">Parceria Estratégica</p>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <p className="text-sm text-white/40 leading-relaxed font-medium mb-6">
+                A automação inteligente é desenvolvida pela CodeThio, nossa parceira especializada em IA conversacional e automação de atendimento.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a href="https://wa.me/5551981964238?text=Olá! Quero saber sobre a automação inteligente no WhatsApp." target="_blank" rel="noopener noreferrer" className="flex-1">
+                <Button className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold border-0 shadow-lg shadow-emerald-500/20 group">
+                  Quero Automatizar <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </a>
+              <div className="flex items-center justify-center gap-2 text-[10px] text-white/20 font-bold uppercase tracking-widest">
+                <span>A partir de R$60/mês</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </motion.section>
   );
 }
-
-
-

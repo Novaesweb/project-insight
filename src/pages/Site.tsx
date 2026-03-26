@@ -16,6 +16,7 @@ import FuncionalidadeExtraSection from "@/components/site/FuncionalidadeExtraSec
 import ResultadosSection from "@/components/site/ResultadosSection";
 import SiteModals from "@/components/site/SiteModals";
 import CadastroPerfeitoSection from "@/components/site/CadastroPerfeitoSection";
+import CtaSection from "@/components/site/CtaSection";
 import SiteFooter from "@/components/site/SiteFooter";
 import SocialProofPopup from "@/components/conversion/SocialProofPopup";
 
@@ -41,6 +42,7 @@ export default function Site() {
       <FuncionalidadeExtraSection />
       <ResultadosSection />
       <CadastroPerfeitoSection />
+      <CtaSection />
       <FaqSection />
       <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
       <SiteFooter onOpenModal={setModalOpen} />
