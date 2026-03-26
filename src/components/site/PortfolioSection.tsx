@@ -10,17 +10,6 @@ import pizzariaDemo from "@/assets/pizzaria-webnovax-demo.png";
 
 const demos = [
   {
-    id: "restaurante",
-    label: "🍕 Restaurante",
-    nome: "Pizzaria webnovax",
-    img: pizzariaDemo,
-    link: "https://pizzariawebnovax.vercel.app/",
-    descricao: "Site completo com cardápio digital, pedidos online e integração com WhatsApp. Seus clientes fazem pedidos sem sair do site.",
-    recursos: ["Cardápio digital interativo", "Pedidos pelo WhatsApp", "Galeria de pratos", "Horário de funcionamento"],
-    prazo: "até 5 dias",
-    tag: "Mais popular",
-  },
-  {
     id: "barbearia",
     label: "✂️ Barbearia / Salão",
     nome: "Barbearia Urban",
