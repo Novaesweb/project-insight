@@ -446,7 +446,7 @@ export default function CadastroPerfeitoSection() {
                 <Button variant="ghost" className="h-10 text-muted-foreground hover:text-foreground font-semibold text-xs gap-2" onClick={handlePrev}>
                   <ArrowLeft className="w-3.5 h-3.5" /> Voltar
                 </Button>
-                <motion.div whileTap={{ scale: isFormValid ? 0.97 : 1 }}>
+                <motion.div whileTap={{ scale: 0.97 }}>
                   <Button
                     onClick={handleNext}
                     disabled={loading}
