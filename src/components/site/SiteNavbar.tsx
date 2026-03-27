@@ -148,7 +148,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col p-8 overflow-y-auto"
+            className="fixed inset-0 z-50 bg-black/98 lg:hidden flex flex-col p-8 overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-12">
               <div className="flex items-center gap-3">

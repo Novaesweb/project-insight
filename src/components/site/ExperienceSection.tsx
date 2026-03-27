@@ -87,7 +87,7 @@ export default function ExperienceSection() {
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="mt-20 rounded-[3rem] bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden"
+          className="mt-20 rounded-[3rem] bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 relative overflow-hidden"
         >
           <div className="grid md:grid-cols-2 gap-0">
             {/* Image side */}

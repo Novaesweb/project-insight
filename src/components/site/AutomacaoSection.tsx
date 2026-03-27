@@ -2,35 +2,14 @@ import { motion } from "framer-motion";
 import { Bot, MessageCircle, Zap, Target, ArrowRight, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-
 const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const features = [
-  {
-    icon: Bot,
-    title: "Agente IA no WhatsApp",
-    desc: "Inteligência artificial treinada no seu negócio que atende, responde e vende 24h por dia.",
-    color: "from-emerald-500 to-teal-500",
-  },
-  {
-    icon: MessageCircle,
-    title: "Atendimento Automático",
-    desc: "Respostas instantâneas para perguntas frequentes, boas-vindas personalizadas e direcionamento inteligente.",
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    icon: Target,
-    title: "Fluxos de Conversão",
-    desc: "Funis automatizados que qualificam leads, agendam horários e direcionam para fechamento.",
-    color: "from-purple-500 to-pink-500",
-  },
-  {
-    icon: TrendingUp,
-    title: "Resultados Mensuráveis",
-    desc: "Dashboard com métricas de atendimento, conversão e tempo de resposta em tempo real.",
-    color: "from-orange-500 to-red-500",
-  },
+  { icon: Bot, title: "Agente IA no WhatsApp", desc: "Inteligência artificial treinada no seu negócio que atende, responde e vende 24h por dia.", color: "from-emerald-500 to-teal-500" },
+  { icon: MessageCircle, title: "Atendimento Automático", desc: "Respostas instantâneas para perguntas frequentes, boas-vindas personalizadas e direcionamento inteligente.", color: "from-blue-500 to-cyan-500" },
+  { icon: Target, title: "Fluxos de Conversão", desc: "Funis automatizados que qualificam leads, agendam horários e direcionam para fechamento.", color: "from-purple-500 to-pink-500" },
+  { icon: TrendingUp, title: "Resultados Mensuráveis", desc: "Dashboard com métricas de atendimento, conversão e tempo de resposta em tempo real.", color: "from-orange-500 to-red-500" },
 ];
 
 const results = [
@@ -41,11 +20,11 @@ const results = [
 
 export default function AutomacaoSection() {
   return (
-    <motion.section className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-      {/* Background */}
+    <motion.section className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
+      {/* Background — static, no blur animation */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px]" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -66,14 +45,13 @@ export default function AutomacaoSection() {
 
         {/* Feature cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-16">
-          {features.map((f, i) => (
+          {features.map((f) => (
             <motion.div
               key={f.title}
               variants={fade}
-              className="glass-card rounded-[2rem] p-8 group hover:border-emerald-500/20 transition-all duration-500 relative overflow-hidden"
+              className="glass-card rounded-[2rem] p-8 group hover:border-emerald-500/20 transition-colors duration-300 relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+              <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                 <f.icon className="w-7 h-7 text-white" />
               </div>
               <h3 className="relative text-lg font-black text-white tracking-tight mb-3">{f.title}</h3>
