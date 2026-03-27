@@ -35,10 +35,10 @@ export default function ClienteDashboard() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const cId = cliente.id;
   const [counts, setCounts] = useState({ projetos: 0, extras: 0, faturas: 0, tickets: 0 });
-  const [proximaReuniao, setProximaReuniao] = useState<any>(null);
-  const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
-  const [perfil, setPerfil] = useState<any>(cliente);
-  const [projetoAtivo, setProjetoAtivo] = useState<any>(null);
+  const [proximaReuniao, setProximaReuniao] = useState<Record<string, any> | null>(null);
+  const [atualizacoes, setAtualizacoes] = useState<Record<string, any>[]>([]);
+  const [perfil, setPerfil] = useState<Record<string, any>>(cliente);
+  const [projetoAtivo, setProjetoAtivo] = useState<Record<string, any> | null>(null);
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
   const [saving, setSaving] = useState(false);
@@ -55,7 +55,7 @@ export default function ClienteDashboard() {
     supabase.from("projetos").select("*").eq("cliente_id", cId).neq("status", "cancelado").order("created_at", { ascending: false }).limit(1)
       .then(({ data }) => {
         if (data?.[0]) {
-          const p = data[0] as any;
+          const p = data[0];
           setProjetoAtivo(p);
           setBriefing(p.briefing || "");
           setReferencias(p.referencias || "");
@@ -82,7 +82,7 @@ export default function ClienteDashboard() {
     const { error } = await supabase.from("projetos").update({ 
       briefing, 
       referencias 
-    } as any).eq("id", projetoAtivo.id);
+    }).eq("id", projetoAtivo.id);
     
     setSaving(false);
     if (error) {
@@ -119,7 +119,7 @@ export default function ClienteDashboard() {
     const splitBriefing = doc.splitTextToSize(briefing || "Nenhuma informação fornecida.", 170);
     doc.text(splitBriefing, 20, 75);
     
-    let y = 75 + (splitBriefing.length * 7);
+    const y = 75 + (splitBriefing.length * 7);
     
     doc.setFont("helvetica", "bold");
     doc.text("Referências:", 20, y + 15);
@@ -348,7 +348,7 @@ export default function ClienteDashboard() {
               ) : (
                 <div className="space-y-0 relative ml-2">
                   <div className="absolute left-[5px] top-2 bottom-6 w-px" style={{ background: "linear-gradient(180deg, #7b1fa2, #c2185b, #FFD700, transparent)" }} />
-                  {atualizacoes.map((a: any, i: number) => (
+                  {atualizacoes.map((a: Record<string, any>) => (
                     <div key={a.id} className="flex gap-4 pb-6 last:pb-0 relative group">
                       <div className="relative z-10">
                         <div className="w-3 h-3 rounded-full shadow-lg group-hover:scale-125 transition-transform mt-1" style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a)", boxShadow: "0 0 8px rgba(123,31,162,0.4)" }} />
