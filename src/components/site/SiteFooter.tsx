@@ -117,7 +117,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
             <div className="hidden md:block h-3 w-px bg-white/5" />
             <div className="flex gap-6">
               {[
-                { icon: Instagram, url: "https://www.instagram.com/webnovax/" },
+                { icon: Instagram, url: "https://www.instagram.com/webnovax.oficial/" },
                 { icon: Linkedin, url: "https://linkedin.com/company/webnovax" },
                 { icon: Facebook, url: "https://facebook.com/webnovax" },
               ].map((s, i) => (
