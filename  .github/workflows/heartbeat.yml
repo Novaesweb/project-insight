@@ -1,0 +1,14 @@
+name: WebNovaX Daily Heartbeat
+
+on:
+  schedule:
+    - cron: "0 12 * * *" # Diário às 09h BRT
+  workflow_dispatch:    # Permite rodar na mão para testar
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Pulse
+        run: |
+          curl --fail -s -X GET "${{ secrets.PING_URL }}"
