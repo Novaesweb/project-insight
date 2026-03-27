@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import webnovaxSymbol from "@/assets/webnovax-main-logo.png";
+import webnovaxSymbol from "@/assets/webnovax-main-logo.webp";
 
 interface SiteNavbarProps {
   onOpenModal: (id: string) => void;

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Layout, PenTool, TrendingUp, Cpu, Network, CheckCircle2 } from "lucide-react";
-import experienceImg from "@/assets/experience-hero.jpg";
+import experienceImg from "@/assets/experience-hero.webp";
 
 export default function ExperienceSection() {
   const pillars = [

@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
-import webnovaxPremiumLogo from "@/assets/webnovax-logo-admin.png";
+import webnovaxPremiumLogo from "@/assets/webnovax-logo-admin.webp";
 
 // --- Opções de Seleção ---
 const NECESSIDADES = [
