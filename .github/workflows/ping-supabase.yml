@@ -2,7 +2,7 @@ name: Ping Supabase
 
 on:
   schedule:
-    - cron: "3/10 * * * *"
+    - cron: "1/5 * * * *"
   workflow_dispatch:
 
 jobs:
