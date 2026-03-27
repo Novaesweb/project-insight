@@ -101,20 +101,9 @@ export default function PlanosSection() {
           </p>
         </motion.div>
 
-        {/* Toggle button */}
-        <motion.div variants={fade} className="flex justify-center mb-10">
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="group flex items-center gap-2 px-6 py-3 rounded-full glass-card border border-primary/20 hover:border-primary/40 transition-all duration-300"
-          >
-            <span className="text-sm font-bold text-foreground">{expanded ? "Fechar planos" : "Ver todos os planos"}</span>
-            <ChevronDown className={`w-4 h-4 text-primary transition-transform duration-300 ${expanded ? "rotate-180" : ""}`} />
-          </button>
-        </motion.div>
-
         {/* Collapsed preview — 3 mini cards */}
         <AnimatePresence mode="wait">
-          {!expanded && (
+          {!expandedPlan && (
             <motion.div
               key="preview"
               initial={{ opacity: 0, y: 10 }}
@@ -126,7 +115,7 @@ export default function PlanosSection() {
               {plans.map((plan) => (
                 <div
                   key={plan.title}
-                  onClick={() => setExpanded(true)}
+                  onClick={() => setExpandedPlan(plan.tag)}
                   className={`relative glass-card rounded-2xl p-6 border ${plan.borderColor} transition-all duration-300 cursor-pointer group`}
                 >
                   {plan.popular && (
