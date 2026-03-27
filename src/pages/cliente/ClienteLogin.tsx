@@ -9,6 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
+interface PerfilCliente {
+  id: string;
+  nome: string;
+  email: string;
+  status: string;
+}
+
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -37,7 +44,7 @@ export default function ClienteLogin() {
       password: senha,
     });
 
-    let clienteRecord = null;
+    let clienteRecord: PerfilCliente | null = null;
 
     if (!authError && authData.user) {
       const { data } = await supabase
@@ -46,16 +53,16 @@ export default function ClienteLogin() {
         .eq("email", email.trim())
         .eq("status", "ativo")
         .maybeSingle();
-      clienteRecord = data;
+      clienteRecord = data as PerfilCliente | null;
     } else {
-      const { data } = await (supabase
-        .from("clientes" as any)
+      const { data } = await supabase
+        .from("clientes")
         .select("*")
         .eq("email", email.trim())
         .eq("senha", senha)
         .eq("status", "ativo")
-        .maybeSingle() as any);
-      clienteRecord = data;
+        .maybeSingle();
+      clienteRecord = data as PerfilCliente | null;
     }
 
     if (clienteRecord) {

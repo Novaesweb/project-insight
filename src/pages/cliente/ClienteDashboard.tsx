@@ -14,31 +14,45 @@ import { useToast } from "@/hooks/use-toast";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
-import { jsPDF } from "jspdf";
-import { useBranding } from "@/hooks/useBranding";
+interface ProjetoAtivo {
+  id: string;
+  titulo: string;
+  briefing?: string;
+  referencias?: string;
+  status: string;
+}
 
-const kpiGradients = [
-  "linear-gradient(135deg, #7b1fa2, #9c27b0)",
-  "linear-gradient(135deg, #c2185b, #e8334a)",
-  "linear-gradient(135deg, #FFB800, #FFD700)",
-  "linear-gradient(135deg, #9c27b0, #7b1fa2)",
-];
+interface Reuniao {
+  id: string;
+  data: string;
+  horario: string;
+  tipo: TipoReuniao;
+  status: StatusReuniao;
+  link?: string;
+}
 
-const kpiGlows = [
-  "0 8px 30px -8px rgba(123,31,162,0.4)",
-  "0 8px 30px -8px rgba(232,51,74,0.4)",
-  "0 8px 30px -8px rgba(255,184,0,0.4)",
-  "0 8px 30px -8px rgba(156,39,176,0.4)",
-];
+interface Atualizacao {
+  id: string;
+  titulo: string;
+  descricao: string;
+  created_at: string;
+}
+
+interface PerfilCliente {
+  id: string;
+  nome: string;
+  email: string;
+  trial_ends_at?: string;
+}
 
 export default function ClienteDashboard() {
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente: PerfilCliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const cId = cliente.id;
   const [counts, setCounts] = useState({ projetos: 0, extras: 0, faturas: 0, tickets: 0 });
-  const [proximaReuniao, setProximaReuniao] = useState<Record<string, any> | null>(null);
-  const [atualizacoes, setAtualizacoes] = useState<Record<string, any>[]>([]);
-  const [perfil, setPerfil] = useState<Record<string, any>>(cliente);
-  const [projetoAtivo, setProjetoAtivo] = useState<Record<string, any> | null>(null);
+  const [proximaReuniao, setProximaReuniao] = useState<Reuniao | null>(null);
+  const [atualizacoes, setAtualizacoes] = useState<Atualizacao[]>([]);
+  const [perfil, setPerfil] = useState<PerfilCliente>(cliente);
+  const [projetoAtivo, setProjetoAtivo] = useState<ProjetoAtivo | null>(null);
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
   const [saving, setSaving] = useState(false);
@@ -55,7 +69,7 @@ export default function ClienteDashboard() {
     supabase.from("projetos").select("*").eq("cliente_id", cId).neq("status", "cancelado").order("created_at", { ascending: false }).limit(1)
       .then(({ data }) => {
         if (data?.[0]) {
-          const p = data[0];
+          const p = data[0] as ProjetoAtivo;
           setProjetoAtivo(p);
           setBriefing(p.briefing || "");
           setReferencias(p.referencias || "");
@@ -63,14 +77,14 @@ export default function ClienteDashboard() {
       });
 
     supabase.from("reunioes").select("*").eq("cliente_id", cId).in("status", ["agendada", "confirmada"]).order("data", { ascending: true }).limit(1)
-      .then(({ data }) => setProximaReuniao(data?.[0] || null));
+      .then(({ data }) => setProximaReuniao((data?.[0] as unknown as Reuniao) || null));
 
     supabase.from("projeto_atualizacoes").select("*, projetos!inner(titulo, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
       .order("created_at", { ascending: false }).limit(5)
-      .then(({ data }) => setAtualizacoes(data || []));
+      .then(({ data }) => setAtualizacoes((data as unknown as Atualizacao[]) || []));
 
     supabase.from("clientes").select("*").eq("id", cId).single()
-      .then(({ data }) => { if (data) setPerfil(data); });
+      .then(({ data }) => { if (data) setPerfil(data as PerfilCliente); });
   }, [cId]);
 
   const { toast } = useToast();
@@ -119,14 +133,14 @@ export default function ClienteDashboard() {
     const splitBriefing = doc.splitTextToSize(briefing || "Nenhuma informação fornecida.", 170);
     doc.text(splitBriefing, 20, 75);
     
-    const y = 75 + (splitBriefing.length * 7);
+    const yValue = 75 + (splitBriefing.length * 7);
     
     doc.setFont("helvetica", "bold");
-    doc.text("Referências:", 20, y + 15);
+    doc.text("Referências:", 20, yValue + 15);
     
     doc.setFont("helvetica", "normal");
     const splitRefs = doc.splitTextToSize(referencias || "Nenhum link ou referência fornecida.", 170);
-    doc.text(splitRefs, 20, y + 25);
+    doc.text(splitRefs, 20, yValue + 25);
     
     doc.setFontSize(10);
     doc.setTextColor(150, 150, 150);
