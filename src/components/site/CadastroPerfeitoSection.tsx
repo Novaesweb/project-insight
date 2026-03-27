@@ -134,18 +134,12 @@ export default function CadastroPerfeitoSection() {
 
   return (
     <section id="cadastro" className="relative py-24 lg:py-32 overflow-hidden" style={{ background: 'hsl(var(--background))' }}>
-      {/* Background Effects */}
+      {/* Background Effects — static */}
       <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[5%] right-[10%] w-[500px] h-[500px] rounded-full opacity-[0.07]"
+        <div className="absolute top-[5%] right-[10%] w-[500px] h-[500px] rounded-full opacity-[0.07]"
           style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }}
         />
-        <motion.div
-          animate={{ y: [0, 15, 0], x: [0, -15, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          className="absolute bottom-[10%] left-[5%] w-[400px] h-[400px] rounded-full opacity-[0.05]"
+        <div className="absolute bottom-[10%] left-[5%] w-[400px] h-[400px] rounded-full opacity-[0.05]"
           style={{ background: 'radial-gradient(circle, hsl(var(--accent)), transparent 70%)' }}
         />
       </div>
@@ -181,7 +175,7 @@ export default function CadastroPerfeitoSection() {
           transition={{ delay: 0.15 }}
           className="max-w-4xl mx-auto"
         >
-          <div className="rounded-3xl border border-border/50 overflow-hidden backdrop-blur-2xl relative"
+            <div className="rounded-3xl border border-border/50 overflow-hidden relative"
             style={{
               background: 'hsl(var(--card))',
               boxShadow: '0 40px 80px -20px hsl(var(--primary) / 0.08), 0 0 0 1px hsl(var(--border) / 0.2)',
@@ -243,11 +237,8 @@ export default function CadastroPerfeitoSection() {
                 {currentStep === 0 && (
                   <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="text-center space-y-8">
                     <div className="relative mx-auto w-fit">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute -inset-4 rounded-3xl opacity-40"
-                        style={{ background: 'conic-gradient(from 0deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))', filter: 'blur(12px)' }}
+                      <div className="absolute -inset-4 rounded-3xl opacity-30"
+                        style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))', filter: 'blur(12px)' }}
                       />
                       <div className="relative w-20 h-20 rounded-2xl flex items-center justify-center" style={{
                         background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))',

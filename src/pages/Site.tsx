@@ -30,21 +30,49 @@ export default function Site() {
       
       <Suspense fallback={null}>
         <ExperienceSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <TrustedBySection />
+      </Suspense>
+      <Suspense fallback={null}>
         <ServicosSection onOpenModal={setModalOpen} />
+      </Suspense>
+      <Suspense fallback={null}>
         <AutomacaoSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <SolucoesSection onOpenModal={setModalOpen} />
+      </Suspense>
+      <Suspense fallback={null}>
         <section id="segmentos" className="py-8">
           <NicheCarousel />
         </section>
+      </Suspense>
+      <Suspense fallback={null}>
         <ProcessoSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <PlanosSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <FuncionalidadeExtraSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <ResultadosSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <CadastroPerfeitoSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <CtaSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <FaqSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
+      </Suspense>
+      <Suspense fallback={null}>
         <SiteFooter onOpenModal={setModalOpen} />
       </Suspense>
 

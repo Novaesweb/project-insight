@@ -3,34 +3,13 @@ import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const particles = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  size: Math.random() * 3 + 1,
-  duration: Math.random() * 4 + 3,
-  delay: Math.random() * 3,
-}));
-
 export default function CtaSection() {
   return (
     <section id="contato" className="py-32 px-6 relative overflow-hidden">
-      {/* Background radial glow */}
+      {/* Background radial glow — static, no blur animation */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-red-600/10 blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full bg-pink-600/8 blur-[80px]" />
       </div>
-
-      {/* Floating particles */}
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full bg-red-500/30 pointer-events-none"
-          style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size }}
-          animate={{ y: [0, -20, 0], opacity: [0.2, 0.6, 0.2] }}
-          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
-        />
-      ))}
 
       <motion.div
         className="relative max-w-3xl mx-auto text-center"
@@ -40,16 +19,10 @@ export default function CtaSection() {
         transition={{ duration: 0.6 }}
       >
         {/* Badge */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-semibold mb-8"
-        >
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-semibold mb-8">
           <Sparkles className="w-3.5 h-3.5" />
           Resposta em até 2 horas
-        </motion.div>
+        </div>
 
         <h2 className="text-5xl sm:text-7xl font-black text-white mb-8 leading-[0.9] tracking-tighter">
           Pronto para <br />
@@ -67,7 +40,6 @@ export default function CtaSection() {
                 Solicitar orçamento
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
-              <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
             </Button>
           </Link>
           <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da webnovax." target="_blank" rel="noopener noreferrer">
@@ -90,6 +62,3 @@ export default function CtaSection() {
     </section>
   );
 }
-
-
-
