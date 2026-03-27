@@ -139,21 +139,22 @@ export default function PlanosSection() {
           )}
         </AnimatePresence>
 
-        {/* Expanded full cards */}
+        {/* Expanded single plan */}
         <AnimatePresence>
-          {expanded && (
-            <motion.div
-              key="full"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-                {plans.map((plan) => (
+          {expandedPlan && (() => {
+            const plan = plans.find(p => p.tag === expandedPlan);
+            if (!plan) return null;
+            return (
+              <motion.div
+                key="full"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="max-w-lg mx-auto">
                   <motion.div
-                    key={plan.title}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
@@ -164,7 +165,7 @@ export default function PlanosSection() {
                     )}
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-white bg-primary px-4 py-1 rounded-full shadow-lg shadow-primary/30 flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg shadow-primary/30 flex items-center gap-1.5">
                           <Sparkles className="w-3 h-3" /> Mais popular
                         </span>
                       </div>
@@ -222,16 +223,26 @@ export default function PlanosSection() {
                       </Button>
                     </a>
                   </motion.div>
-                ))}
-              </div>
 
-              <div className="mt-12 text-center">
-                <p className="text-xs text-muted-foreground/40 max-w-2xl mx-auto leading-relaxed font-medium">
-                  <span className="text-muted-foreground font-bold">Nota:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
-                </p>
-              </div>
-            </motion.div>
-          )}
+                  <div className="flex justify-center mt-6">
+                    <button
+                      onClick={() => setExpandedPlan(null)}
+                      className="group flex items-center gap-2 px-6 py-3 rounded-full glass-card border border-primary/20 hover:border-primary/40 transition-all duration-300"
+                    >
+                      <span className="text-sm font-bold text-foreground">Voltar aos planos</span>
+                      <ChevronDown className="w-4 h-4 text-primary rotate-180" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-8 text-center">
+                  <p className="text-xs text-muted-foreground/40 max-w-2xl mx-auto leading-relaxed font-medium">
+                    <span className="text-muted-foreground font-bold">Nota:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })()}
         </AnimatePresence>
       </div>
     </motion.section>
