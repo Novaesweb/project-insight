@@ -94,7 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             {!isCollapsed && (
               <div className="flex flex-col items-center">
-                <span className="text-sm font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">novaesweb</span>
+                <span className="text-sm font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">NovaesWeb</span>
                 <span className="text-[7px] font-black uppercase tracking-[0.2em] mt-1 text-center bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] text-white px-2 py-0.5 rounded-full">Architect CEO Lucas Alencar</span>
               </div>
             )}

@@ -19,7 +19,7 @@ const navLinks = [
 ];
 
 const companyLinks = [
-  { id: "sobre", label: "Sobre a novaesweb", icon: Star },
+  { id: "sobre", label: "Sobre a NovaesWeb", icon: Star },
   { id: "quem-somos", label: "Quem Somos", icon: Users },
   { id: "diferenciais", label: "Diferenciais", icon: Target },
 ];
@@ -67,7 +67,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           >
             <img src={novaeswebSymbol} alt="novaesweb" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
           </motion.div>
-            <span className="gradient-text">novaesweb</span>
+            <span className="gradient-text">NovaesWeb</span>
         </Link>
 
         {/* Desktop Menu */}
