@@ -80,7 +80,7 @@ const plans = [
 ];
 
 export default function PlanosSection() {
-  const [expanded, setExpanded] = useState(false);
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
   return (
     <motion.section id="planos" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
@@ -101,20 +101,9 @@ export default function PlanosSection() {
           </p>
         </motion.div>
 
-        {/* Toggle button */}
-        <motion.div variants={fade} className="flex justify-center mb-10">
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="group flex items-center gap-2 px-6 py-3 rounded-full glass-card border border-primary/20 hover:border-primary/40 transition-all duration-300"
-          >
-            <span className="text-sm font-bold text-foreground">{expanded ? "Fechar planos" : "Ver todos os planos"}</span>
-            <ChevronDown className={`w-4 h-4 text-primary transition-transform duration-300 ${expanded ? "rotate-180" : ""}`} />
-          </button>
-        </motion.div>
-
         {/* Collapsed preview — 3 mini cards */}
         <AnimatePresence mode="wait">
-          {!expanded && (
+          {!expandedPlan && (
             <motion.div
               key="preview"
               initial={{ opacity: 0, y: 10 }}
@@ -126,7 +115,7 @@ export default function PlanosSection() {
               {plans.map((plan) => (
                 <div
                   key={plan.title}
-                  onClick={() => setExpanded(true)}
+                  onClick={() => setExpandedPlan(plan.tag)}
                   className={`relative glass-card rounded-2xl p-6 border ${plan.borderColor} transition-all duration-300 cursor-pointer group`}
                 >
                   {plan.popular && (
@@ -150,21 +139,22 @@ export default function PlanosSection() {
           )}
         </AnimatePresence>
 
-        {/* Expanded full cards */}
+        {/* Expanded single plan */}
         <AnimatePresence>
-          {expanded && (
-            <motion.div
-              key="full"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-                {plans.map((plan) => (
+          {expandedPlan && (() => {
+            const plan = plans.find(p => p.tag === expandedPlan);
+            if (!plan) return null;
+            return (
+              <motion.div
+                key="full"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="max-w-lg mx-auto">
                   <motion.div
-                    key={plan.title}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
@@ -175,7 +165,7 @@ export default function PlanosSection() {
                     )}
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-white bg-primary px-4 py-1 rounded-full shadow-lg shadow-primary/30 flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg shadow-primary/30 flex items-center gap-1.5">
                           <Sparkles className="w-3 h-3" /> Mais popular
                         </span>
                       </div>
@@ -233,16 +223,26 @@ export default function PlanosSection() {
                       </Button>
                     </a>
                   </motion.div>
-                ))}
-              </div>
 
-              <div className="mt-12 text-center">
-                <p className="text-xs text-muted-foreground/40 max-w-2xl mx-auto leading-relaxed font-medium">
-                  <span className="text-muted-foreground font-bold">Nota:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
-                </p>
-              </div>
-            </motion.div>
-          )}
+                  <div className="flex justify-center mt-6">
+                    <button
+                      onClick={() => setExpandedPlan(null)}
+                      className="group flex items-center gap-2 px-6 py-3 rounded-full glass-card border border-primary/20 hover:border-primary/40 transition-all duration-300"
+                    >
+                      <span className="text-sm font-bold text-foreground">Voltar aos planos</span>
+                      <ChevronDown className="w-4 h-4 text-primary rotate-180" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-8 text-center">
+                  <p className="text-xs text-muted-foreground/40 max-w-2xl mx-auto leading-relaxed font-medium">
+                    <span className="text-muted-foreground font-bold">Nota:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })()}
         </AnimatePresence>
       </div>
     </motion.section>
