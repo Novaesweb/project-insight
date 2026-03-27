@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Eye, Heart, Users, Globe, Shield, Zap, ArrowRight } from "lucide-react";
-import aboutPhoto from "@/assets/about-webnovax.jpg";
-import bellaMassaDemo from "@/assets/bella-massa-demo.png";
-import barbeariaDemo from "@/assets/barbearia-demo.png";
+import aboutPhoto from "@/assets/about-webnovax.webp";
+import bellaMassaDemo from "@/assets/bella-massa-demo.webp";
+import barbeariaDemo from "@/assets/barbearia-demo.webp";
 import pizzariawebnovaxDemo from "@/assets/pizzaria-webnovax-demo.png";
-import acaiDemo from "@/assets/acai-demo.png";
+import acaiDemo from "@/assets/acai-demo.webp";
 import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
