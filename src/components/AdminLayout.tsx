@@ -22,6 +22,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import GlobalSearch from "@/components/GlobalSearch";
 import { ReloadPrompt } from "./ReloadPrompt";
 import { useBranding } from "@/hooks/useBranding";
+import { SupabaseHeartbeat } from "./SupabaseHeartbeat";
 
 interface NavItem {
   href: string;
@@ -198,6 +199,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content Area */}
       <main className="flex-1 relative flex flex-col min-w-0">
+        <SupabaseHeartbeat />
         <TopProgressBar />
         <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[var(--admin-bg)]/80 backdrop-blur-xl border-b border-white/[0.06]">
           {/* Top gold line */}
@@ -216,6 +218,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-2">
+            {/* System Status Indicator */}
+            <div className="hidden sm:flex items-center gap-2 mr-2 px-3 py-1.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10 transition-all hover:bg-emerald-500/10 group/status">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-2 h-2 bg-emerald-500 rounded-full animate-ping opacity-75" />
+                <div className="relative w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 group-hover/status:text-emerald-300 transition-colors">Sistema: Live</span>
+            </div>
+
             <GlobalSearch />
             <div className="h-4 w-px bg-white/10 mx-2 hidden sm:block" />
             <div className="flex items-center gap-1.5 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">

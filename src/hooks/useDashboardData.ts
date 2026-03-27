@@ -121,7 +121,11 @@ export function useDashboardData() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { 
+    load(); 
+    const interval = setInterval(load, 30000); // Atualiza estatísticas a cada 30 segundos
+    return () => clearInterval(interval);
+  }, [load]);
 
   return {
     stats, pedidos, tickets, dbStatus, subCount, activity, 
