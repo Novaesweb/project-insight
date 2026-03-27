@@ -1,8 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/favicon.ico", "destination": "/favicon.ico" },
-    { "source": "/((?!api|assets|static|favicon.ico|sw.js).*)", "destination": "/index.html" }
-  ]
+  "framework": "vite"
 }
