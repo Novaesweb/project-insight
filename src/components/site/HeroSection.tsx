@@ -9,10 +9,10 @@ interface HeroSectionProps {
 export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
   return (
     <section id="home" className="relative min-h-[95vh] flex items-center justify-center overflow-hidden pt-20 pb-12">
-      {/* Background Effects - static */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]" />
+      {/* Background Effects - GPU promoted */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" style={{ willChange: 'transform', transform: 'translateZ(0)' }} />
+        <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]" style={{ willChange: 'transform', transform: 'translateZ(0)' }} />
       </div>
 
       {/* Dot grid pattern */}

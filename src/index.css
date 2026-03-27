@@ -3,6 +3,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS — NovaesWeb v10.0
+   ============================================ */
+
+/* 1. Scroll nativo suave em todos os browsers */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 2. Isolamento de compositing para seções de conteúdo */
+section {
+  contain: layout style;
+}
+
+/* 3. will-change apenas quando necessário */
+.info-card-hover,
+.gradient-text {
+  will-change: transform;
+}
+
+/* 4. Desabilita animações pesadas em mobile (< 768px) para zero travamento */
+@media (max-width: 767px) {
+  .ambient-glow::before,
+  .ambient-glow::after,
+  .login-rays::before,
+  .login-rays::after {
+    animation: none !important;
+  }
+
+  /* Reduz blur nos orbs para aliviar GPU em mobile */
+  .blur-\[120px\] {
+    filter: blur(60px) !important;
+  }
+}
+
+/* 5. Prefers-reduced-motion: respeita configuração de acessibilidade  */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
 @layer base {
   :root {
     --background: 240 10% 4%;
