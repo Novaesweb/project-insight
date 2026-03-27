@@ -10,7 +10,9 @@ if ("serviceWorker" in navigator) {
         const audio = new Audio("/notification-sound.mp3");
         audio.volume = 0.5;
         audio.play().catch(() => {});
-      } catch {}
+      } catch (e) {
+        console.warn("Audio interaction deferred:", e);
+      }
     }
   });
 }

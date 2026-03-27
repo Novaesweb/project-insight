@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
@@ -19,10 +19,10 @@ export function ReloadPrompt() {
     },
   });
 
-  const close = () => {
+  const close = useCallback(() => {
     setNeedRefresh(false);
     isToastShown.current = false;
-  };
+  }, [setNeedRefresh]);
 
   useEffect(() => {
     if (needRefresh && !isToastShown.current) {
@@ -51,7 +51,7 @@ export function ReloadPrompt() {
         ),
       });
     }
-  }, [needRefresh, updateServiceWorker]);
+  }, [needRefresh, updateServiceWorker, close]);
 
   return null;
 }

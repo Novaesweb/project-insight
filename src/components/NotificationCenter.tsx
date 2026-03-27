@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -36,7 +36,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     let query = supabase
       .from("notifications")
       .select("*")
@@ -50,7 +50,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
     const { data } = await query;
     if (data) setNotifications(data as Notification[]);
-  };
+  }, [userType, userId]);
 
   useEffect(() => {
     fetchNotifications();
@@ -91,7 +91,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
-  }, [userType, userId]);
+  }, [userType, userId, fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     await supabase.from("notifications").update({ read: true } as any).eq("id", id);

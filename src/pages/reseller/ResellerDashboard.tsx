@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   Users, DollarSign, Wallet, ArrowUpRight, 
@@ -40,11 +40,7 @@ export default function ResellerDashboard() {
 
   const referralLink = `${window.location.origin}/cadastro?ref=${reseller.referral_code || "OFFICIAL"}`;
 
-  useEffect(() => {
-    loadStats();
-  }, [reseller.id]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!reseller.id) return;
     setLoading(true);
     
@@ -66,7 +62,11 @@ export default function ResellerDashboard() {
       pendingCommissions: pending
     });
     setLoading(false);
-  };
+  }, [reseller.id, reseller.referral_code]);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);

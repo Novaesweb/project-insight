@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -37,7 +37,7 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: proj } = await supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single();
     setProjeto(proj);
     if (proj) {
@@ -50,9 +50,9 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
       const { data: arData } = await (supabase.from("projeto_arquivos" as any) as any).select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false });
       setArquivos(arData || []);
     }
-  };
+  }, [projetoId]);
 
-  useEffect(() => { loadData(); }, [projetoId]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const updateStatus = async (newStatus: string) => {
     const progressMap: Record<string, number> = { briefing: 20, design: 40, desenvolvimento: 60, homologacao: 85, concluido: 100 };
@@ -308,12 +308,12 @@ export default function Projetos() {
   const [projetos, setProjetos] = useState<any[]>([]);
   const [selectedProjeto, setSelectedProjeto] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data } = await supabase.from("projetos").select("*, clientes(nome)").order("updated_at", { ascending: false });
     if (data) setProjetos(data);
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   if (selectedProjeto) return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} />;
 

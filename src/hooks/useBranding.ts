@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useBranding() {
@@ -53,7 +53,7 @@ export function useBranding() {
     };
   }, []);
 
-  const applyTheme = (hex: string) => {
+  const applyTheme = useCallback((hex: string) => {
     if (!hex) return;
     
     // Convert hex to HSL for Shadcn
@@ -63,7 +63,7 @@ export function useBranding() {
       // Optional: adjust other variables if needed (ring, etc)
       document.documentElement.style.setProperty("--ring", `${hsl.h} ${hsl.s}% ${hsl.l}%`);
     }
-  };
+  }, []);
 
   return branding;
 }

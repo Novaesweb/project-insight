@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   Users, Plus, Search, Mail, Phone, MapPin, 
@@ -85,7 +85,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const [observacao, setObservacao] = useState("");
   const [savingExtra, setSavingExtra] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
     if (c) setCliente(c);
 
@@ -100,9 +100,9 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
 
     const { data: cat } = await supabase.from("extras_catalogo").select("*");
     if (cat) setCatalogo(cat);
-  };
+  }, [clienteId]);
 
-  useEffect(() => { loadData(); }, [clienteId]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const handleAddExtra = async () => {
     if (!extraSelecionado) return;
@@ -567,12 +567,12 @@ export default function Clientes() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "" });
   const [saving, setSaving] = useState(false);
 
-  const fetchClientes = async () => {
+  const fetchClientes = useCallback(async () => {
     const { data } = await supabase.from("clientes").select("*").order("created_at", { ascending: false });
     if (data) setClientes(data);
-  };
+  }, []);
 
-  useEffect(() => { fetchClientes(); }, []);
+  useEffect(() => { fetchClientes(); }, [fetchClientes]);
 
   if (selectedCliente) {
     return <ClienteDetalhes clienteId={selectedCliente} onBack={() => setSelectedCliente(null)} />;

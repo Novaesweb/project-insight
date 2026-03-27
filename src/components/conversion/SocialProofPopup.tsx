@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Star, CheckCircle2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,9 +57,9 @@ export default function SocialProofPopup({
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-  }, [displayCount, maxDisplays, intervalMs, isActive]);
+  }, [displayCount, maxDisplays, intervalMs, isActive, showRandomPurchase]);
 
-  const showRandomPurchase = () => {
+  const showRandomPurchase = useCallback(() => {
     if (displayCount >= maxDisplays) return;
     
     // Pick a random purchase that is different from the current one
@@ -75,7 +75,7 @@ export default function SocialProofPopup({
     setTimeout(() => {
       setCurrentPurchase(null);
     }, visibleMs);
-  };
+  }, [displayCount, maxDisplays, currentPurchase, visibleMs]);
 
   if (!isActive) return null;
 

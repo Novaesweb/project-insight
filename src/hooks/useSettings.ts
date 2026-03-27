@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, sendTestNotification, isPushSupported } from "@/lib/push-notifications";
@@ -33,7 +33,7 @@ export function useSettings() {
     social_proof_active: "true",
   });
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     isPushSupported().then(setPushSupported);
     isSubscribed().then(setPushEnabled);
 
@@ -59,9 +59,9 @@ export function useSettings() {
       setIntegValues(newIntegs);
     }
     setLoading(false);
-  };
+  }, [integValues]);
 
-  useEffect(() => { loadSettings(); }, []);
+  useEffect(() => { loadSettings(); }, [loadSettings]);
 
   const handleSaveEmpresa = async () => {
     setLoading(true);

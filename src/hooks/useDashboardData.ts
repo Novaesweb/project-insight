@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,7 +20,7 @@ export function useDashboardData() {
   const [revenue, setRevenue] = useState({ paid: 0, pending: 0 });
   const [pendingInvoices, setPendingInvoices] = useState(0);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
       setDbStatus("erro");
       return;
@@ -119,9 +119,9 @@ export function useDashboardData() {
       console.error("Dashboard error:", err);
       setDbStatus("erro");
     }
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   return {
     stats, pedidos, tickets, dbStatus, subCount, activity, 
