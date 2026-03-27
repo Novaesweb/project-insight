@@ -26,13 +26,7 @@ const companyLinks = [
 
 
 
-export function scrollTo(href: string, setMenuOpen?: (v: boolean) => void) {
-  setMenuOpen?.(false);
-  setTimeout(() => {
-    const el = document.getElementById(href.replace("#", ""));
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  }, 350);
-}
+import { scrollTo } from "@/lib/utils";
 
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);

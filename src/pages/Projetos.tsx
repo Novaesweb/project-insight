@@ -52,6 +52,7 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     }
   }, [projetoId]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, [loadData]);
 
   const updateStatus = async (newStatus: string) => {

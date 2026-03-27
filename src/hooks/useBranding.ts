@@ -8,6 +8,15 @@ export function useBranding() {
     nome: "novaesweb"
   });
 
+  const applyTheme = useCallback((hex: string) => {
+    if (!hex) return;
+    const hsl = hexToHsl(hex);
+    if (hsl) {
+      document.documentElement.style.setProperty("--primary", `${hsl.h} ${hsl.s}% ${hsl.l}%`);
+      document.documentElement.style.setProperty("--ring", `${hsl.h} ${hsl.s}% ${hsl.l}%`);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchBranding = async () => {
       const { data } = await supabase
@@ -16,20 +25,21 @@ export function useBranding() {
         .in("key", ["logo", "primary_color", "nome"]);
 
       if (data) {
-        const newBranding = { ...branding };
-        data.forEach((row) => {
-          if ((newBranding as any)[row.key] !== undefined) {
-             (newBranding as any)[row.key] = row.value;
-          }
+        setBranding((prev) => {
+          const next = { ...prev };
+          data.forEach((row) => {
+            if ((next as any)[row.key] !== undefined) {
+               (next as any)[row.key] = row.value;
+            }
+          });
+          applyTheme(next.primary_color);
+          return next;
         });
-        setBranding(newBranding);
-        applyTheme(newBranding.primary_color);
       }
     };
 
     fetchBranding();
 
-    // Realtime subscription
     const channel = supabase
       .channel("branding_changes")
       .on(
@@ -51,19 +61,8 @@ export function useBranding() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
-
-  const applyTheme = useCallback((hex: string) => {
-    if (!hex) return;
-    
-    // Convert hex to HSL for Shadcn
-    const hsl = hexToHsl(hex);
-    if (hsl) {
-      document.documentElement.style.setProperty("--primary", `${hsl.h} ${hsl.s}% ${hsl.l}%`);
-      // Optional: adjust other variables if needed (ring, etc)
-      document.documentElement.style.setProperty("--ring", `${hsl.h} ${hsl.s}% ${hsl.l}%`);
-    }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applyTheme]);
 
   return branding;
 }

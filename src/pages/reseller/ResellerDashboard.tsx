@@ -66,6 +66,7 @@ export default function ResellerDashboard() {
 
   useEffect(() => {
     loadStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadStats]);
 
   const copyLink = () => {

@@ -50,7 +50,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
     const { data } = await query;
     if (data) setNotifications(data as Notification[]);
-  }, [userType, userId]);
+  }, [userType, userId]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchNotifications();
@@ -91,6 +91,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userType, userId, fetchNotifications]);
 
   const markAsRead = async (id: string) => {

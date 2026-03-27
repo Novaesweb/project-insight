@@ -51,6 +51,7 @@ export function ReloadPrompt() {
         ),
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needRefresh, updateServiceWorker, close]);
 
   return null;

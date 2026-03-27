@@ -61,6 +61,7 @@ export function useSettings() {
     setLoading(false);
   }, [integValues]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadSettings(); }, [loadSettings]);
 
   const handleSaveEmpresa = async () => {

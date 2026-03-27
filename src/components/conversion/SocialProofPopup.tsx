@@ -28,6 +28,24 @@ export default function SocialProofPopup({
   const [displayCount, setDisplayCount] = useState(0);
   const [isActive, setIsActive] = useState(true);
 
+  const showRandomPurchase = useCallback(() => {
+    if (displayCount >= maxDisplays) return;
+    
+    // Pick a random purchase that is different from the current one
+    let randomIndex;
+    do {
+      randomIndex = Math.floor(Math.random() * fakePurchases.length);
+    } while (fakePurchases[randomIndex] === currentPurchase && fakePurchases.length > 1);
+    
+    setCurrentPurchase(fakePurchases[randomIndex]);
+    setDisplayCount(prev => prev + 1);
+
+    // Hide it after visibleMs
+    setTimeout(() => {
+      setCurrentPurchase(null);
+    }, visibleMs);
+  }, [displayCount, maxDisplays, currentPurchase, visibleMs]);
+
   useEffect(() => {
     // Check if active in Supabase config
     supabase.from("app_config")
@@ -57,25 +75,8 @@ export default function SocialProofPopup({
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayCount, maxDisplays, intervalMs, isActive, showRandomPurchase]);
-
-  const showRandomPurchase = useCallback(() => {
-    if (displayCount >= maxDisplays) return;
-    
-    // Pick a random purchase that is different from the current one
-    let randomIndex;
-    do {
-      randomIndex = Math.floor(Math.random() * fakePurchases.length);
-    } while (fakePurchases[randomIndex] === currentPurchase && fakePurchases.length > 1);
-    
-    setCurrentPurchase(fakePurchases[randomIndex]);
-    setDisplayCount(prev => prev + 1);
-
-    // Hide it after visibleMs
-    setTimeout(() => {
-      setCurrentPurchase(null);
-    }, visibleMs);
-  }, [displayCount, maxDisplays, currentPurchase, visibleMs]);
 
   if (!isActive) return null;
 
