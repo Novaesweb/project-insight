@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ExternalLink, ChevronRight, Sparkles, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import acaiDemo from "@/assets/acai-demo.png";
-import barbeariaDemo from "@/assets/barbearia-demo.png";
-import bellaMassaDemo from "@/assets/bella-massa-demo.png";
+import acaiDemo from "@/assets/acai-demo.webp";
+import barbeariaDemo from "@/assets/barbearia-demo.webp";
+import bellaMassaDemo from "@/assets/bella-massa-demo.webp";
 import pizzariaDemo from "@/assets/pizzaria-webnovax-demo.png";
 
 const demos = [

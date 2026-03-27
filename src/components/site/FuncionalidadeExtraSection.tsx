@@ -27,7 +27,7 @@ export default function FuncionalidadeExtraSection() {
           >
             <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             <div className="relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-red-500/20 pointer-events-none">
-              <Box className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse pointer-events-none" />
+              <Box className="w-8 h-8 sm:w-10 sm:h-10 pointer-events-none" />
             </div>
             <div className="pointer-events-none">
               <span className="block text-2xl sm:text-4xl font-black text-white tracking-tighter uppercase group-hover:text-red-500 transition-colors pointer-events-none">Funcionalidades Estratégicas</span>

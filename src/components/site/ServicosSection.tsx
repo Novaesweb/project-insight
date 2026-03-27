@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Globe, ShoppingBag, Layers, Smartphone, Shield, Zap, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,36 +14,13 @@ const servicos = [
   { icon: Zap, titulo: "Conectividade Estratégica", desc: "Integramos seu ecossistema ao WhatsApp e IA. Criamos pontes inteligentes que automatizam o atendimento e multiplicam resultados.", color: "from-red-500 to-pink-500" },
 ];
 
-function Card3D({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [style, setStyle] = useState({});
-
-  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 16;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -16;
-    setStyle({ transform: `perspective(600px) rotateX(${y}deg) rotateY(${x}deg) scale(1.02)` });
-  };
-
-  const reset = () => setStyle({ transform: "perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)", transition: "transform 0.4s ease" });
-
-  return (
-    <div ref={ref} style={style} onMouseMove={handleMove} onMouseLeave={reset}
-      className="glass-card rounded-2xl p-8 group cursor-default transition-all duration-200 hover:border-white/15 will-change-transform">
-      {children}
-    </div>
-  );
-}
-
 interface ServicosSectionProps {
   onOpenModal: (id: string) => void;
 }
 
 export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
   return (
-    <motion.section id="servicos" className="py-28 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+    <motion.section id="servicos" className="py-28 px-6" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
       <div className="max-w-7xl mx-auto">
         <motion.div variants={fade} className="max-w-3xl mb-24">
           <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">Explore Nossas Expertise</span>
@@ -70,9 +46,9 @@ export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
                 i === 5 && "lg:col-span-12"
               )}
             >
-              <Card3D>
+              <div className="glass-card rounded-2xl p-8 group cursor-default transition-colors duration-200 hover:border-white/15">
                 <div className="flex flex-col h-full">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
                     <s.icon className="w-7 h-7 text-white" />
                   </div>
                   <h3 className={cn(
@@ -94,7 +70,7 @@ export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
                     </button>
                   )}
                 </div>
-              </Card3D>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -102,6 +78,3 @@ export default function ServicosSection({ onOpenModal }: ServicosSectionProps) {
     </motion.section>
   );
 }
-
-
-

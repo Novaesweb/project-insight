@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import webnovaxSymbol from "@/assets/webnovax-main-logo.png";
+import webnovaxSymbol from "@/assets/webnovax-main-logo.webp";
 
 interface SiteNavbarProps {
   onOpenModal: (id: string) => void;
@@ -53,7 +53,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       <div className={cn(
         "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border border-transparent relative",
         scrolled
-          ? "glass-panel-premium border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl translate-y-0"
+          ? "border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-[hsl(var(--background)/0.95)] translate-y-0"
           : "bg-transparent"
       )}>
         {/* Logo */}
@@ -148,7 +148,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col p-8 overflow-y-auto"
+            className="fixed inset-0 z-50 bg-black/98 lg:hidden flex flex-col p-8 overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-12">
               <div className="flex items-center gap-3">

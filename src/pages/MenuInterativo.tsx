@@ -27,11 +27,11 @@ export default function MenuInterativo() {
       setLoading(true);
       try {
         // 1. Fetch Client by Slug
-        const { data: clientData, error: clientError } = await supabase
+        const { data: clientData, error: clientError } = await (supabase
           .from("clientes")
-          .select("id, nome, trial_ends_at, site_url")
+          .select("id, nome, trial_ends_at, site_url") as any)
           .eq("slug", slug)
-          .single();
+          .single() as any;
 
         if (clientError || !clientData) {
            setLoading(false);

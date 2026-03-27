@@ -93,7 +93,7 @@ export default function SocialProofPopup({
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
           className={`fixed z-40 ${positionClasses} max-w-[320px] w-full`}
         >
-          <div className="bg-[#0f0f13]/95 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.5)] flex items-start gap-4 hover:border-red-500/30 transition-colors cursor-default group">
+          <div className="bg-[#0f0f13]/98 border border-white/10 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.5)] flex items-start gap-4 hover:border-red-500/30 transition-colors cursor-default group">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500/20 to-rose-500/10 flex items-center justify-center shrink-0 border border-red-500/20 group-hover:bg-red-500/30 transition-colors">
               <currentPurchase.icon className="w-5 h-5 text-red-500" />
             </div>

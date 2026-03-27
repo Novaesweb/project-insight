@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
-import nwLogo from "@/assets/webnovax-logo-admin.png";
+import nwLogo from "@/assets/webnovax-logo-admin.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";

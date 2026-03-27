@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Lock, Mail, Eye, EyeOff, ShieldAlert, Timer, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import logoImg from "@/assets/webnovax-logo-admin.png";
+import logoImg from "@/assets/webnovax-logo-admin.webp";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");

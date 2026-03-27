@@ -44,8 +44,8 @@ export default function ClienteArquivos() {
 
       if (proj) {
         // 2. Pegar os arquivos do projeto
-        const { data: files, error: filesError } = await supabase
-          .from("projeto_arquivos")
+        const { data: files, error: filesError } = await (supabase
+          .from("projeto_arquivos" as any) as any)
           .select("*")
           .eq("projeto_id", proj.id);
         
@@ -84,7 +84,7 @@ export default function ClienteArquivos() {
         .getPublicUrl(fileName);
 
       // 2. Salvar metadados no DB
-      const { error: dbError } = await supabase.from("projeto_arquivos").insert({
+      const { error: dbError } = await (supabase.from("projeto_arquivos" as any) as any).insert({
         projeto_id: projeto.id,
         nome: file.name,
         url: publicUrl,

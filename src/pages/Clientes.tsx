@@ -89,7 +89,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
     if (c) setCliente(c);
 
-    const { data: e } = await supabase.from("clientes_extras").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
+    const { data: e } = await (supabase.from("clientes_extras" as any) as any).select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
     if (e) setExtras(e);
 
     const { data: p } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
@@ -108,7 +108,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     if (!extraSelecionado) return;
     setSavingExtra(true);
     const sel = catalogo.find(c => c.id === extraSelecionado);
-    const { error } = await supabase.from("clientes_extras").insert({
+    const { error } = await (supabase.from("clientes_extras" as any) as any).insert({
       cliente_id: clienteId,
       extra_id: extraSelecionado,
       categoria: sel?.categoria || "vendas",
