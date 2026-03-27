@@ -11,4 +11,4 @@ jobs:
 
     steps:
       - name: Chamar endpoint
-        run: curl --fail -s https://webnovax.site/api/ping
+        run: curl --fail -s https://webnovax.vercel.app/api/ping
