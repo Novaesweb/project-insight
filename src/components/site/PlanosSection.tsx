@@ -80,7 +80,7 @@ const plans = [
 ];
 
 export default function PlanosSection() {
-  const [expanded, setExpanded] = useState(false);
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
   return (
     <motion.section id="planos" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
