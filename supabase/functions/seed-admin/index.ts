@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error - APIs do Deno não reconhecidas localmente
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 declare const Deno: any;

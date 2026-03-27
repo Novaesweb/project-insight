@@ -1,8 +1,8 @@
-// @ts-ignore
+// @ts-expect-error - APIs do Deno não reconhecidas localmente
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// @ts-ignore
+// @ts-expect-error - APIs do Deno não reconhecidas localmente
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-// @ts-ignore
+// @ts-expect-error - APIs do Deno não reconhecidas localmente
 import webPush from "npm:web-push@3";
 
 declare const Deno: any;
