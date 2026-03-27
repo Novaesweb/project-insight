@@ -59,7 +59,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            webnovax
+            novaesweb
           </motion.h1>
 
           {/* Typing text */}
@@ -86,7 +86,7 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
           </div>
 
           {/* Version */}
-          <p className="absolute bottom-6 right-6 text-[10px] text-white/20">v2.4.8 Premium — webnovax</p>
+          <p className="absolute bottom-6 right-6 text-[10px] text-white/20">v2.4.8 Premium — novaesweb</p>
         </motion.div>
       )}
     </AnimatePresence>

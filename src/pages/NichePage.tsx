@@ -45,7 +45,7 @@ export default function NichePage() {
               <span className="text-white font-bold text-xs">NW</span>
             </div>
             <span className="text-lg font-bold">
-              <span className="gradient-text">webnovax</span>
+              <span className="gradient-text">novaesweb</span>
               <span className="text-[hsl(var(--foreground))]">Web</span>
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function NichePage() {
       {/* Footer */}
       <footer className="gradient-primary py-4 px-4">
         <p className="text-center text-white text-sm font-medium tracking-wide">
-          webnovax © 2025 — Todos os direitos reservados
+          novaesweb © 2025 — Todos os direitos reservados
         </p>
       </footer>
     </div>

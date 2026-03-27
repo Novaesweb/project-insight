@@ -77,7 +77,7 @@ export function UserManagement() {
 
       <div>
         <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 px-1 flex items-center gap-2">
-          <div className="w-1 h-1 rounded-full bg-accent" /> Clientes (Portal webnovax)
+          <div className="w-1 h-1 rounded-full bg-accent" /> Clientes (Portal novaesweb)
         </h3>
         <Table>
           <TableHeader>

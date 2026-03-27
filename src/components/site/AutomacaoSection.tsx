@@ -92,22 +92,22 @@ export default function AutomacaoSection() {
                   <p className="text-xl font-black text-foreground tracking-tighter">
                     Comece a <span className="text-emerald-400">Automatizar</span>
                   </p>
-                  <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-[0.2em]">Fale com a webnovax</p>
+                  <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-[0.2em]">Fale com a novaesweb</p>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed font-medium mb-4">
-                A webnovax cuida de tudo — do site à automação inteligente no WhatsApp. Nosso time configura, treina a IA e acompanha os resultados do seu negócio.
+                A novaesweb cuida de tudo — do site à automação inteligente no WhatsApp. Nosso time configura, treina a IA e acompanha os resultados do seu negócio.
               </p>
               <div className="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mb-6">
                 <Bot className="w-4 h-4 text-emerald-400 shrink-0" />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <span className="text-emerald-400 font-bold">A partir de R$60/mês</span> para clientes com site webnovax. Contratação direta com parceiro de automação terá valores definidos por ele.
+                  <span className="text-emerald-400 font-bold">A partir de R$60/mês</span> para clientes com site novaesweb. Contratação direta com parceiro de automação terá valores definidos por ele.
                 </p>
               </div>
             </div>
             <a href="https://wa.me/5551981964238?text=Olá! Quero saber sobre a automação inteligente no WhatsApp." target="_blank" rel="noopener noreferrer">
               <Button className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold border-0 shadow-lg shadow-emerald-500/20 group">
-                Falar com a webnovax <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                Falar com a novaesweb <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </a>
           </div>

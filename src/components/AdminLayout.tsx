@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLeadCount } from "@/hooks/useLeadCount";
-import nwLogo from "@/assets/webnovax-logo-admin.webp";
+import nwLogo from "@/assets/novaesweb-logo-admin.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -88,12 +88,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {branding.logo ? (
                 <img src={branding.logo} alt={branding.nome} className="relative w-8 h-8 rounded-lg object-cover" />
               ) : (
-                <img src={nwLogo} alt="webnovax" className="relative w-8 h-8 rounded-lg object-cover" />
+                <img src={nwLogo} alt="novaesweb" className="relative w-8 h-8 rounded-lg object-cover" />
               )}
             </div>
             {!isCollapsed && (
               <div className="flex flex-col items-center">
-                <span className="text-sm font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">webnovax</span>
+                <span className="text-sm font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">novaesweb</span>
                 <span className="text-[7px] font-black uppercase tracking-[0.2em] mt-1 text-center bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] text-white px-2 py-0.5 rounded-full">Architect CEO Lucas Alencar</span>
               </div>
             )}
@@ -168,7 +168,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link to="/admin" className="flex items-center gap-3 mb-8" onClick={() => setOpen(false)}>
               <img src={branding.logo || nwLogo} className="w-8 h-8 rounded-lg" alt="" />
               <div className="flex flex-col items-center">
-                <span className="text-sm font-bold tracking-tight italic text-center">webnovax</span>
+                <span className="text-sm font-bold tracking-tight italic text-center">novaesweb</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest text-center mt-0.5 bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] bg-clip-text text-transparent">Painel CEO Lucas Alencar</span>
               </div>
             </Link>
@@ -211,7 +211,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full border border-[#7b1fa2]/30 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] text-[9px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(123,31,162,0.3)]">v10.0 ARCHITECT PREMIUM</span>
               </div>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em]">webnovax • Gestão Digital</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em]">novaesweb • Gestão Digital</p>
             </div>
           </div>
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ResellerMateriais() {
   const materiais = [
-    { title: "Logotipos webnovax", desc: "Arquivos em PNG, SVG e PDF para uso em artes.", icon: ImageIcon },
+    { title: "Logotipos novaesweb", desc: "Arquivos em PNG, SVG e PDF para uso em artes.", icon: ImageIcon },
     { title: "Banner: Redes Sociais", desc: "Formatos para Instagram (Feed e Stories).", icon: ImageIcon },
     { title: "Script de Vendas", desc: "PDF com abordagens sugeridas para fechar leads.", icon: FileText },
     { title: "Tabela de Preços", desc: "Tabela atualizada com todos os serviços e bônus.", icon: FileText },

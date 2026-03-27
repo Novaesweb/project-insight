@@ -54,7 +54,7 @@ export default function ComparisonSection() {
             className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-6"
           >
             Site <span className="text-white/20">Genérico</span> <br />
-            vs. Arquitetura <span className="gradient-text">webnovax</span>
+            vs. Arquitetura <span className="gradient-text">novaesweb</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -99,7 +99,7 @@ export default function ComparisonSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent pointer-events-none" />
             </div>
 
-            {/* Architecture column (The "webnovax" way) */}
+            {/* Architecture column (The "novaesweb" way) */}
             <div className="md:col-span-4 p-8 bg-gradient-to-br from-primary/10 to-transparent relative overflow-hidden">
                <div className="absolute top-0 right-0 p-4">
                   <div className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-full uppercase shadow-lg shadow-primary/40 animate-pulse">

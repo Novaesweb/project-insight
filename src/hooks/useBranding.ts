@@ -5,7 +5,7 @@ export function useBranding() {
   const [branding, setBranding] = useState({
     logo: "",
     primary_color: "#e8334a",
-    nome: "webnovax"
+    nome: "novaesweb"
   });
 
   useEffect(() => {

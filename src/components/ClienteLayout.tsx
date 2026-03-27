@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationCenter from "@/components/NotificationCenter";
 import { ReloadPrompt } from "./ReloadPrompt";
-import nwLogo from "@/assets/webnovax-logo-n.jpeg";
+import nwLogo from "@/assets/novaesweb-logo-n.jpeg";
 import { useBranding } from "@/hooks/useBranding";
 
 const menuItems = [
@@ -51,11 +51,11 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
           {branding.logo ? (
             <img src={branding.logo} alt={branding.nome} className="w-8 h-8 rounded-lg object-cover" />
           ) : (
-            <img src={nwLogo} alt="webnovax" className="w-8 h-8 rounded-lg object-cover" />
+            <img src={nwLogo} alt="novaesweb" className="w-8 h-8 rounded-lg object-cover" />
           )}
           <div>
             <span className="text-sm font-bold" style={{ background: "linear-gradient(90deg, #c084fc, #e8334a, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              {branding.nome || "webnovax"}
+              {branding.nome || "novaesweb"}
             </span>
             <p className="text-[9px] text-white/40 tracking-widest uppercase">Portal Cliente</p>
           </div>

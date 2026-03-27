@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
-import webnovaxPremiumLogo from "@/assets/webnovax-premium-logo.png";
+import novaeswebPremiumLogo from "@/assets/novaesweb-premium-logo.png";
 
 const SEGMENTOS = [
   { id: "imobiliaria", label: "Imobiliária", icon: Building },

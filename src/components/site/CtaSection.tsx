@@ -42,7 +42,7 @@ export default function CtaSection() {
               </span>
             </Button>
           </Link>
-          <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da webnovax." target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da novaesweb." target="_blank" rel="noopener noreferrer">
             <Button className="h-14 px-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/15 hover:border-white/25 text-white text-base font-semibold transition-all">
               <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp
             </Button>

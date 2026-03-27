@@ -29,7 +29,7 @@ const plans = [
     ],
     cta: "Aproveitar promoção",
     ctaClass: "gradient-primary border-0 text-white shadow-lg shadow-primary/20",
-    whatsapp: "Olá, vi a arquitetura Express da webnovax e gostaria de estruturar minha presença digital!",
+    whatsapp: "Olá, vi a arquitetura Express da novaesweb e gostaria de estruturar minha presença digital!",
     note: "A base perfeita para sua transformação digital.",
   },
   {
@@ -53,7 +53,7 @@ const plans = [
     cta: "Falar com Arquiteto",
     ctaClass: "gradient-primary border-0 text-white shadow-lg shadow-primary/20",
     ctaIcon: MessageCircle,
-    whatsapp: "Olá, gostaria de saber mais sobre a Arquitetura de Gestão da webnovax.",
+    whatsapp: "Olá, gostaria de saber mais sobre a Arquitetura de Gestão da novaesweb.",
     note: "Ideal para quem busca controle total e escala operacional.",
   },
   {

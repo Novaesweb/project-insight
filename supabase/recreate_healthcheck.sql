@@ -1,8 +1,8 @@
--- WebNovaX v10.0 - Reativação do Coração
+-- NovaesWeb v10.0 - Reativação do Coração
 CREATE TABLE IF NOT EXISTS public.healthcheck (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at timestamptz DEFAULT now(),
-  name text DEFAULT 'WebNovaX Pulse'
+  name text DEFAULT 'NovaesWeb Pulse'
 );
 
 -- Segurança de Camada (RLS)
@@ -14,5 +14,5 @@ CREATE POLICY "Enable all for service_role" ON public.healthcheck
 
 -- Registro Inicial
 INSERT INTO public.healthcheck (name) 
-VALUES ('WebNovaX Pulse 10.0')
+VALUES ('NovaesWeb Pulse 10.0')
 ON CONFLICT DO NOTHING;

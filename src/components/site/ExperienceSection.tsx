@@ -56,7 +56,7 @@ export default function ExperienceSection() {
             className="text-lg text-white/50 leading-relaxed max-w-2xl mx-auto"
           >
             Pare de buscar apenas execução. Comece a investir em estrutura e transformação. 
-            Na webnovax, estruturamos ativos digitais que geram valor real para o seu negócio.
+            Na novaesweb, estruturamos ativos digitais que geram valor real para o seu negócio.
           </motion.p>
         </div>
 
@@ -94,7 +94,7 @@ export default function ExperienceSection() {
             <div className="relative h-64 md:h-auto min-h-[300px]">
               <img 
                 src={experienceImg} 
-                alt="Arquitetura digital webnovax" 
+                alt="Arquitetura digital novaesweb" 
                 loading="lazy" 
                 width={1024} 
                 height={768}

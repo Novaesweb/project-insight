@@ -95,7 +95,7 @@ export default function MenuInterativo() {
   };
 
   const finalizeOrder = () => {
-    const message = `*Novo Pedido - ${cliente?.nome || "webnovax"}*\n\n` + 
+    const message = `*Novo Pedido - ${cliente?.nome || "novaesweb"}*\n\n` + 
       cart.map(i => `- ${i.qtd}x ${i.nome} (R$ ${(i.preco * i.qtd).toFixed(2)})`).join('\n') + 
       `\n\n*Total: R$ ${total.toFixed(2)}*`;
     
@@ -133,7 +133,7 @@ export default function MenuInterativo() {
             <p>Se você é o proprietário desta empresa:</p>
             <ul className="space-y-1 text-white/60">
               <li className="flex items-center gap-2">• Efetue o pagamento da sua mensalidade</li>
-              <li className="flex items-center gap-2">• Entre em contato com o suporte webnovax</li>
+              <li className="flex items-center gap-2">• Entre em contato com o suporte novaesweb</li>
             </ul>
           </div>
           <Button className="w-full gradient-primary h-12 rounded-xl font-bold gap-2" asChild>
@@ -141,7 +141,7 @@ export default function MenuInterativo() {
               Ativar Agora <ExternalLink className="w-4 h-4" />
             </a>
           </Button>
-          <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">webnovax Digital Solutions</p>
+          <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">novaesweb Digital Solutions</p>
         </motion.div>
       </div>
     );
@@ -172,7 +172,7 @@ export default function MenuInterativo() {
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight">Cardápio Interativo</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">webnovax Experience</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">novaesweb Experience</p>
             </div>
           </div>
           <Button 

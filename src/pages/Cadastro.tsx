@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
-import webnovaxPremiumLogo from "@/assets/webnovax-logo-admin.webp";
+import novaeswebPremiumLogo from "@/assets/novaesweb-logo-admin.webp";
 
 // --- Opções de Seleção ---
 const NECESSIDADES = [
@@ -133,8 +133,8 @@ export default function Cadastro() {
       <div className={cn("flex items-center gap-4 transition-all duration-300", 
         isActive ? "opacity-100 translate-x-1" : isCompleted ? "opacity-60" : "opacity-30")}>
         <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-black",
-          isActive ? "border-white bg-white text-secondary-webnovax" : 
-          isCompleted ? "border-white bg-white text-secondary-webnovax" : "border-white/20 text-white")}>
+          isActive ? "border-white bg-white text-secondary-novaesweb" : 
+          isCompleted ? "border-white bg-white text-secondary-novaesweb" : "border-white/20 text-white")}>
           {isCompleted ? <Check className="w-3 h-3 stroke-[4px]" /> : stepIdx + 1}
         </div>
         <span className={cn("text-[11px] uppercase tracking-widest font-bold", isActive ? "text-white" : "text-white/70")}>
@@ -145,23 +145,23 @@ export default function Cadastro() {
   };
 
   return (
-    <div className="min-h-screen bg-webnovax-bg flex items-center justify-center p-4 lg:p-8 font-inter text-white overflow-hidden relative">
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-webnovax/5 rounded-full blur-[150px]" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent-webnovax/5 rounded-full blur-[150px]" />
+    <div className="min-h-screen bg-novaesweb-bg flex items-center justify-center p-4 lg:p-8 font-inter text-white overflow-hidden relative">
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-novaesweb/5 rounded-full blur-[150px]" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent-novaesweb/5 rounded-full blur-[150px]" />
 
       <div className="w-full max-w-5xl min-h-[600px] h-auto lg:h-[680px] bg-black/20 backdrop-blur-[40px] rounded-[32px] flex flex-col lg:flex-row shadow-[0_50px_100px_rgba(0,0,0,0.4)] overflow-hidden relative border border-white/5 z-10">
-        <div className="hidden lg:flex w-[300px] sidebar-webnovax-gradient p-10 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
+        <div className="hidden lg:flex w-[300px] sidebar-novaesweb-gradient p-10 flex-col justify-between relative overflow-hidden shadow-[25px_0_50px_rgba(0,0,0,0.3)] shrink-0">
           <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] pointer-events-none" />
           <div className="z-10 relative">
             <div className="flex flex-col items-center justify-center mb-10 group pt-4">
               <div className="relative group-hover:scale-110 transition-transform duration-500">
-                <div className="absolute inset-0 bg-primary-webnovax/20 blur-[30px] rounded-full animate-pulse" />
+                <div className="absolute inset-0 bg-primary-novaesweb/20 blur-[30px] rounded-full animate-pulse" />
                 <div className="w-28 h-28 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center p-1 shadow-2xl overflow-hidden relative backdrop-blur-xl">
-                  <img src={webnovaxPremiumLogo} alt="Logo Premium" className="w-full h-full object-cover" />
+                  <img src={novaeswebPremiumLogo} alt="Logo Premium" className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="mt-6 flex flex-col items-center text-center">
-                <span className="text-2xl font-black tracking-[0.2em] leading-none text-white">webnovax</span>
+                <span className="text-2xl font-black tracking-[0.2em] leading-none text-white">novaesweb</span>
                 <span className="text-[10px] font-black uppercase tracking-[0.6em] opacity-40 mt-2">Elite CRM</span>
               </div>
             </div>
@@ -176,21 +176,21 @@ export default function Cadastro() {
 
         <div className="flex-1 flex flex-col relative bg-[#0a0a0f]/40">
           <div className="lg:hidden h-2 w-full bg-white/5 overflow-hidden">
-            <motion.div animate={{ width: `${(currentStep / 9) * 100}%` }} className="h-full sidebar-webnovax-gradient shadow-[0_0_20px_rgba(255,51,102,0.5)]" />
+            <motion.div animate={{ width: `${(currentStep / 9) * 100}%` }} className="h-full sidebar-novaesweb-gradient shadow-[0_0_20px_rgba(255,51,102,0.5)]" />
           </div>
 
           <div className="flex-1 p-8 lg:p-14 flex flex-col justify-center relative overflow-hidden">
             <AnimatePresence mode="wait">
               {currentStep === 0 && (
                 <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} className="text-center lg:text-left space-y-8">
-                  <div className="w-20 h-20 rounded-[1.5rem] sidebar-webnovax-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-2xl mb-6 group overflow-hidden">
+                  <div className="w-20 h-20 rounded-[1.5rem] sidebar-novaesweb-gradient mx-auto lg:mx-0 flex items-center justify-center shadow-2xl mb-6 group overflow-hidden">
                     <Rocket className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="space-y-4">
                     <h1 className="text-4xl lg:text-6xl font-black tracking-tighter font-space leading-[0.85]">VAMOS <br /> <span className="opacity-20 italic">DECOLAR SEU</span> <br /> PROJETO?</h1>
                     <p className="text-white/40 text-lg font-medium max-w-sm leading-relaxed">Sua jornada rumo ao topo do mercado digital começa com estas poucas perguntas.</p>
                   </div>
-                  <Button onClick={handleNext} className="h-16 px-12 rounded-2xl sidebar-webnovax-gradient font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-2xl group flex items-center gap-4">
+                  <Button onClick={handleNext} className="h-16 px-12 rounded-2xl sidebar-novaesweb-gradient font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-2xl group flex items-center gap-4">
                     COMEÇAR AGORA <ArrowRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" />
                   </Button>
                 </motion.div>
@@ -199,7 +199,7 @@ export default function Cadastro() {
               {[1, 2, 3, 4].includes(currentStep) && (
                 <motion.div key={`s${currentStep}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-8 w-full max-w-2xl">
                    <div className="space-y-4">
-                    <h2 className="text-xs font-black text-primary-webnovax uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-webnovax/50">Passo {currentStep} de 8</h2>
+                    <h2 className="text-xs font-black text-primary-novaesweb uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaesweb/50">Passo {currentStep} de 8</h2>
                     <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">
                       {currentStep === 1 && "Qual seu nome completo?"}
                       {currentStep === 2 && "Qual seu melhor e-mail?"}
@@ -208,10 +208,10 @@ export default function Cadastro() {
                     </h1>
                   </div>
                   <div className="relative group">
-                    {currentStep === 2 && <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/5 group-focus-within:text-primary-webnovax/50 transition-colors" />}
+                    {currentStep === 2 && <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/5 group-focus-within:text-primary-novaesweb/50 transition-colors" />}
                     <Input 
                       autoFocus
-                      className="h-20 lg:h-24 bg-white/[0.02] border-white/5 rounded-2xl text-2xl lg:text-3xl font-black px-8 focus:border-primary-webnovax/30 focus:bg-white/[0.05] transition-all placeholder:text-white/[0.02] shadow-inner"
+                      className="h-20 lg:h-24 bg-white/[0.02] border-white/5 rounded-2xl text-2xl lg:text-3xl font-black px-8 focus:border-primary-novaesweb/30 focus:bg-white/[0.05] transition-all placeholder:text-white/[0.02] shadow-inner"
                       placeholder={currentStep === 1 ? "Nome e Sobrenome" : currentStep === 2 ? "seu@email.com" : currentStep === 3 ? "(00) 00000-0000" : "Marca / Empresa"}
                       value={currentStep === 1 ? form.nome : currentStep === 2 ? form.email : currentStep === 3 ? form.whatsapp : form.empresa}
                       onChange={(e) => {
@@ -235,7 +235,7 @@ export default function Cadastro() {
               {[5, 7].includes(currentStep) && (
                 <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="space-y-8 w-full">
                    <div className="space-y-3">
-                    <h2 className="text-xs font-black text-primary-webnovax uppercase tracking-[0.5em] opacity-80">Passo {currentStep} de 8</h2>
+                    <h2 className="text-xs font-black text-primary-novaesweb uppercase tracking-[0.5em] opacity-80">Passo {currentStep} de 8</h2>
                     <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">
                       {currentStep === 5 && "O que você precisa agora?"}
                       {currentStep === 7 && "Como nos conheceu?"}
@@ -251,12 +251,12 @@ export default function Cadastro() {
                         }}
                         className={cn("flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all gap-3 group relative overflow-hidden",
                           (currentStep === 5 ? form.necessidade : form.origem) === opt.id 
-                            ? "bg-white/10 border-primary-webnovax shadow-lg shadow-primary-webnovax/20" 
+                            ? "bg-white/10 border-primary-novaesweb shadow-lg shadow-primary-novaesweb/20" 
                             : "bg-white/5 border-white/5 hover:border-white/20"
                         )}
                       >
                         <opt.icon className={cn("w-8 h-8 transition-transform group-hover:scale-110", 
-                          (currentStep === 5 ? form.necessidade : form.origem) === opt.id ? "text-primary-webnovax" : "text-white/20")} 
+                          (currentStep === 5 ? form.necessidade : form.origem) === opt.id ? "text-primary-novaesweb" : "text-white/20")} 
                         />
                         <span className="text-[10px] font-black uppercase tracking-widest leading-tight">{opt.label}</span>
                       </button>
@@ -268,7 +268,7 @@ export default function Cadastro() {
               {currentStep === 6 && (
                 <motion.div key="s6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-8">
                    <div className="space-y-4">
-                    <h2 className="text-xs font-black text-primary-webnovax uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-webnovax/50">Passo 6 de 8</h2>
+                    <h2 className="text-xs font-black text-primary-novaesweb uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaesweb/50">Passo 6 de 8</h2>
                     <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">Qual seu volume atual de pedidos?</h1>
                   </div>
                   <div className="grid grid-cols-1 gap-3 lg:gap-4">
@@ -281,13 +281,13 @@ export default function Cadastro() {
                         }}
                         className={cn("p-6 lg:p-8 rounded-2xl border-2 text-left transition-all text-lg lg:text-xl font-black uppercase tracking-widest relative group overflow-hidden",
                           form.volume === opt.id 
-                            ? "bg-white/10 border-primary-webnovax text-white" 
+                            ? "bg-white/10 border-primary-novaesweb text-white" 
                             : "bg-white/[0.03] border-white/5 text-white/40 hover:bg-white/5 hover:border-white/20"
                         )}
                       >
                         <span className="relative z-10">{opt.label}</span>
                         {form.volume === opt.id && (
-                          <motion.div layoutId="vol-glow" className="absolute inset-0 bg-primary-webnovax/10 blur-2xl -z-10" />
+                          <motion.div layoutId="vol-glow" className="absolute inset-0 bg-primary-novaesweb/10 blur-2xl -z-10" />
                         )}
                       </button>
                     ))}
@@ -298,13 +298,13 @@ export default function Cadastro() {
               {currentStep === 8 && (
                 <motion.div key="s8" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -40 }} className="space-y-8 w-full max-w-3xl">
                    <div className="space-y-4">
-                    <h2 className="text-xs font-black text-primary-webnovax uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-webnovax/50">Passo Final</h2>
+                    <h2 className="text-xs font-black text-primary-novaesweb uppercase tracking-[0.5em] opacity-80 pl-2 border-l-4 border-primary-novaesweb/50">Passo Final</h2>
                     <h1 className="text-4xl lg:text-5xl font-black font-space tracking-tight leading-[1]">Fale um pouco mais sobre o projeto...</h1>
                   </div>
                   <div className="relative group">
                     <Textarea 
                       autoFocus
-                      className="min-h-[180px] lg:min-h-[220px] bg-white/[0.03] border-white/5 rounded-2xl p-8 text-xl lg:text-2xl font-medium focus:border-primary-webnovax/50 transition-all placeholder:text-white/5 leading-relaxed shadow-inner"
+                      className="min-h-[180px] lg:min-h-[220px] bg-white/[0.03] border-white/5 rounded-2xl p-8 text-xl lg:text-2xl font-medium focus:border-primary-novaesweb/50 transition-all placeholder:text-white/5 leading-relaxed shadow-inner"
                       placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
                       value={form.mensagem}
                       onChange={(e) => updateForm("mensagem", e.target.value)}
@@ -319,7 +319,7 @@ export default function Cadastro() {
                     <Check className="w-12 h-12 text-emerald-500 stroke-[3px]" />
                   </div>
                   <div className="space-y-4">
-                    <h1 className="text-5xl font-black font-space tracking-tight">ENVIADO COM <br /> <span className="text-primary-webnovax italic">PERFEIÇÃO!</span></h1>
+                    <h1 className="text-5xl font-black font-space tracking-tight">ENVIADO COM <br /> <span className="text-primary-novaesweb italic">PERFEIÇÃO!</span></h1>
                     <p className="text-white/50 text-xl font-medium max-w-sm mx-auto leading-relaxed">
                       Um membro da nossa equipe já vai entrar em contato com você. Prepare-se! 🚀
                     </p>
@@ -340,7 +340,7 @@ export default function Cadastro() {
               <Button 
                 onClick={handleNext} 
                 disabled={loading}
-                className={cn("h-14 lg:h-16 px-8 lg:px-10 rounded-xl sidebar-webnovax-gradient font-black uppercase tracking-widest text-[10px] shadow-2xl transition-all flex items-center gap-3 group hover:scale-[1.02] active:scale-[0.98]",
+                className={cn("h-14 lg:h-16 px-8 lg:px-10 rounded-xl sidebar-novaesweb-gradient font-black uppercase tracking-widest text-[10px] shadow-2xl transition-all flex items-center gap-3 group hover:scale-[1.02] active:scale-[0.98]",
                   loading && "opacity-50")}
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (

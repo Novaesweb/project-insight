@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, User, Eye, EyeOff, ShieldAlert, Timer, Sparkles, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import logoImg from "@/assets/webnovax-logo-premium.webp";
+import logoImg from "@/assets/novaesweb-logo-premium.webp";
 
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
@@ -106,7 +106,7 @@ export default function ClienteLogin() {
             <div className="absolute inset-0 rounded-full blur-2xl opacity-40" style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #FFD700)" }} />
             <img 
               src={logoImg} 
-              alt="webnovax" 
+              alt="novaesweb" 
               className="w-28 h-28 rounded-full object-cover relative z-10 border-2 border-white/10 shadow-2xl" 
             />
           </div>
@@ -193,7 +193,7 @@ export default function ClienteLogin() {
 
         <p className="text-center text-[10px] text-white/30 flex items-center justify-center gap-1.5">
           <ShieldAlert className="w-3 h-3" />
-          <span style={{ background: "linear-gradient(90deg, #c084fc, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>webnovax</span> © 2026 · Acesso restrito e criptografado
+          <span style={{ background: "linear-gradient(90deg, #c084fc, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>novaesweb</span> © 2026 · Acesso restrito e criptografado
         </p>
       </motion.div>
     </div>

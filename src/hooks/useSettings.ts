@@ -4,9 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, sendTestNotification, isPushSupported } from "@/lib/push-notifications";
 
 const defaultEmpresa = {
-  nome: "webnovax",
+  nome: "novaesweb",
   cnpj: "",
-  email: "contato@webnovax.com.br",
+  email: "contato@novaesweb.com.br",
   telefone: "",
   endereco: "",
   logo: "",

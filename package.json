@@ -1,6 +1,6 @@
 {
-  "name": "webnovax",
-  "description": "Painel Administrativo - WebNovaX com Lovable",
+  "name": "novaesweb",
+  "description": "Painel Administrativo - NovaesWeb com Lovable",
   "private": true,
   "version": "10.0.0",
   "type": "module",
@@ -101,8 +101,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.webnovax.admin",
-    "productName": "WebNovaX Admin",
+    "appId": "com.novaesweb.admin",
+    "productName": "NovaesWeb Admin",
     "directories": {
       "output": "dist_electron"
     },
@@ -116,7 +116,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "WebNovaX Admin"
+      "shortcutName": "NovaesWeb Admin"
     },
     "files": [
       "dist/**/*",

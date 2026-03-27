@@ -64,7 +64,7 @@ export default function ClienteReferral() {
           <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 mb-4 px-3 py-1">PROGRAMA INDIQUE & GANHE</Badge>
           <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">Ganhe até 15% de desconto por cada amigo!</h1>
           <p className="text-white/80 text-lg mb-8">
-            Compartilhe a webnovax com sua rede. Quando seu indicado fechar um projeto, você ganha crédito na sua próxima fatura e ele ganha um bônus de boas-vindas.
+            Compartilhe a novaesweb com sua rede. Quando seu indicado fechar um projeto, você ganha crédito na sua próxima fatura e ele ganha um bônus de boas-vindas.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -150,7 +150,7 @@ export default function ClienteReferral() {
                   { t: "1. Compartilhe seu link", d: "Envie seu link exclusivo para um amigo que precisa de um site ou sistema." },
                   { t: "2. Ele solicita um orçamento", d: "Ao acessar seu link, o cupom é ativado automaticamente no cadastro dele." },
                   { t: "3. Projeto Fechado", d: "Assim que ele fechar o contrato e pagar a primeira parcela, seu bônus é liberado." },
-                  { t: "4. Use seu Crédito", d: "O valor será descontado automaticamente na sua próxima fatura da webnovax." }
+                  { t: "4. Use seu Crédito", d: "O valor será descontado automaticamente na sua próxima fatura da novaesweb." }
                 ].map((step, idx) => (
                   <div key={idx} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/5 group hover:border-white/10 transition-all">
                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xs font-bold border border-red-500/20">{idx+1}</span>
@@ -173,7 +173,7 @@ export default function ClienteReferral() {
            </CardHeader>
            <CardContent className="space-y-6">
               <p className="text-sm text-white/60 leading-relaxed">
-                 Tem uma indicação de grande porte ou precisa de um material personalizado para apresentar a webnovax? Fale com nosso time comercial.
+                 Tem uma indicação de grande porte ou precisa de um material personalizado para apresentar a novaesweb? Fale com nosso time comercial.
               </p>
               <Button variant="outline" className="w-full border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl h-12 font-bold">
                  Falar com Consultor

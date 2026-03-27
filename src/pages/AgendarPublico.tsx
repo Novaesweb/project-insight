@@ -157,7 +157,7 @@ export default function AgendarPublico() {
               <Zap className="text-white w-5 h-5 fill-current" />
             </motion.div>
             <span className="text-xl font-black tracking-tighter">
-              <span className="gradient-text">webnovax</span>
+              <span className="gradient-text">novaesweb</span>
               <span className="text-white">Web</span>
             </span>
           </Link>

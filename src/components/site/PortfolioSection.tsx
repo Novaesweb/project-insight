@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import acaiDemo from "@/assets/acai-demo.webp";
 import barbeariaDemo from "@/assets/barbearia-demo.webp";
 import bellaMassaDemo from "@/assets/bella-massa-demo.webp";
-import pizzariaDemo from "@/assets/pizzaria-webnovax-demo.png";
+import pizzariaDemo from "@/assets/pizzaria-novaesweb-demo.png";
 
 const demos = [
   {

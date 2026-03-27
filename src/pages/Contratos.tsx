@@ -53,7 +53,7 @@ function generatePDF(titulo: string, corpo: string, assinaturaAdmin?: string, as
     if (y > 230) { doc.addPage(); y = 20; }
     y += 10;
     doc.setFont("helvetica", "bold");
-    doc.text("Assinatura CONTRATADA (webnovax):", margin, y);
+    doc.text("Assinatura CONTRATADA (novaesweb):", margin, y);
     y += 5;
     doc.addImage(assinaturaAdmin, "PNG", margin, y, 60, 25);
     y += 30;
@@ -123,7 +123,7 @@ export default function Contratos() {
     const config = localStorage.getItem("config_empresa");
     if (config) {
       const parsed = JSON.parse(config);
-      if (parsed.cnpj) defaults.cnpj_webnovax = parsed.cnpj;
+      if (parsed.cnpj) defaults.cnpj_novaesweb = parsed.cnpj;
     }
     setFormValues(prev => ({ ...defaults, ...prev }));
   }, [selectedTemplate]);
@@ -401,7 +401,7 @@ export default function Contratos() {
             <DialogTitle className="text-[hsl(var(--foreground))] text-sm">Assinatura da CONTRATADA</DialogTitle>
           </DialogHeader>
           <SignaturePad
-            label="Assine abaixo como representante da webnovax"
+            label="Assine abaixo como representante da novaesweb"
             onSave={(dataUrl) => { setAdminSignature(dataUrl); setSignOpen(false); toast({ title: "Assinatura adicionada!" }); }}
             onCancel={() => setSignOpen(false)}
           />

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Lock, Mail, Eye, EyeOff, ShieldAlert, Timer, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import logoImg from "@/assets/webnovax-logo-admin.webp";
+import logoImg from "@/assets/novaesweb-logo-admin.webp";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -113,7 +113,7 @@ export default function AdminLogin() {
             />
             <img
               src={logoImg}
-              alt="webnovax"
+              alt="novaesweb"
               className="relative w-28 h-28 rounded-full object-cover border-2 border-[hsl(var(--background))]"
               style={{ boxShadow: '0 0 40px -8px hsl(var(--primary))' }}
             />
@@ -257,7 +257,7 @@ export default function AdminLogin() {
           className="text-center text-[10px] text-muted-foreground/40 flex items-center justify-center gap-1.5 mt-6"
         >
           <ShieldAlert className="w-3 h-3" />
-          webnovax © 2025 · Acesso criptografado
+          novaesweb © 2025 · Acesso criptografado
         </motion.p>
       </motion.div>
     </div>

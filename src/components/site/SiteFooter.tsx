@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.webp";
-import sealImg from "@/assets/webnovax-v10-seal-final.webp";
-import webnovaxSymbol from "@/assets/webnovax-main-logo.webp";
+import sealImg from "@/assets/novaesweb-v10-seal-final.webp";
+import novaeswebSymbol from "@/assets/novaesweb-main-logo.webp";
 import { scrollTo } from "./SiteNavbar";
 
 interface SiteFooterProps {
@@ -17,9 +17,9 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-20">
           {/* Brand & Mission */}
           <div className="space-y-8">
-              <img src={webnovaxSymbol} alt="WebNovaX" className="w-10 h-10 rounded-full object-cover shadow-lg shadow-primary/20" />
+              <img src={novaeswebSymbol} alt="NovaesWeb" className="w-10 h-10 rounded-full object-cover shadow-lg shadow-primary/20" />
               <span className="text-xl font-black text-white tracking-tighter">
-                webnovax
+                novaesweb
               </span>
             <p className="text-sm text-white/40 leading-relaxed font-medium">
               Arquitetando ativos digitais de alta fidelidade para empresas que buscam o topo do mercado.
@@ -103,7 +103,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
               </div>
             </div>
             <div className="hidden sm:block text-right pr-4">
-              <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic">webnovax Official</span>
+              <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic">novaesweb Official</span>
             </div>
           </div>
         </div>
@@ -112,14 +112,14 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-10">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <p className="text-[11px] text-white/20 font-bold tracking-widest uppercase">
-              © {new Date().getFullYear()} webnovax
+              © {new Date().getFullYear()} novaesweb
             </p>
             <div className="hidden md:block h-3 w-px bg-white/5" />
             <div className="flex gap-6">
               {[
-                { icon: Instagram, url: "https://www.instagram.com/webnovax.oficial/" },
-                { icon: Linkedin, url: "https://linkedin.com/company/webnovax" },
-                { icon: Facebook, url: "https://facebook.com/webnovax" },
+                { icon: Instagram, url: "https://www.instagram.com/novaesweb.oficial/" },
+                { icon: Linkedin, url: "https://linkedin.com/company/novaesweb" },
+                { icon: Facebook, url: "https://facebook.com/novaesweb" },
               ].map((s, i) => (
                 <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-white/10 hover:text-primary transition-all hover:-translate-y-1">
                   <s.icon className="w-5 h-5" />
