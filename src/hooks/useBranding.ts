@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function useBranding() {
   const [branding, setBranding] = useState({
-    logo: "",
+    logo: "/novaesweb-v10-seal-final.png",
     primary_color: "#e8334a",
     nome: "NovaesWeb"
   });
