@@ -77,31 +77,28 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
 
-      <div className={cn("pt-8 pb-4 flex flex-col items-center justify-center", isCollapsed ? "px-0" : "px-6")}>
-        {!isCollapsed && (
+      <div className={cn("py-8 flex flex-col items-center justify-center", isCollapsed ? "px-0" : "px-6")}>
+        <Link to="/admin" className={cn("flex flex-col items-center group", isCollapsed ? "gap-0" : "gap-5")}>
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mb-6 relative group"
+            className="relative"
           >
-            <div className="absolute -inset-2 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] rounded-full blur-xl opacity-20 group-hover:opacity-40 transition duration-1000" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] rounded-full blur-xl opacity-25 group-hover:opacity-50 transition duration-1000" />
             <img 
               src={adminTopLogo} 
               alt="NovaesWeb Premium" 
-              className="relative w-32 h-32 rounded-full object-cover border border-white/10 shadow-2xl transition-transform duration-500 group-hover:scale-105" 
+              className={cn(
+                "relative rounded-full object-cover border border-white/10 shadow-2xl transition-transform duration-500 group-hover:scale-105",
+                isCollapsed ? "w-10 h-10" : "w-28 h-28"
+              )} 
             />
           </motion.div>
-        )}
-        
-        <Link to="/admin" className={cn("flex items-center group", isCollapsed ? "gap-0" : "gap-3")}>
-          <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-            <img src={branding.logo || nwLogo} alt={branding.nome} className="relative w-8 h-8 rounded-lg object-cover" />
-          </div>
+          
           {!isCollapsed && (
             <div className="flex flex-col items-center">
-              <span className="text-sm font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">NovaesWeb</span>
-              <span className="text-[7px] font-black uppercase tracking-[0.2em] mt-1 text-center bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] text-white px-2 py-0.5 rounded-full">Architect CEO Lucas Alencar</span>
+              <span className="text-lg font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent italic leading-[0.8]">NovaesWeb</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] mt-1.5 text-center bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] text-white px-2.5 py-0.5 rounded-full shadow-[0_0_15px_rgba(194,24,91,0.3)]">Architect CEO Lucas Alencar</span>
             </div>
           )}
         </Link>
