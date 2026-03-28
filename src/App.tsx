@@ -62,9 +62,9 @@ import ResellerFinanceiro from "./pages/reseller/ResellerFinanceiro";
 import ResellerMateriais from "./pages/reseller/ResellerMateriais";
 import NotFound from "@/pages/NotFound";
 import AdminMenu from "@/pages/AdminMenu";
-import MenuInterativo from "@/pages/MenuInterativo";
+import AdminDepoimentos from "@/pages/AdminDepoimentos";
+import AdminConfig from "@/pages/admin/AdminConfig";
 import ClientePedidosFome from "./pages/cliente/ClientePedidosFome";
-import AdminDepoimentos from "./pages/AdminDepoimentos";
 import AdminLogin from "./pages/AdminLogin";
 import ClienteLayout from "@/components/ClienteLayout";
 
@@ -114,6 +114,7 @@ function AdminWithSplash() {
           <Route path="/contratos" element={<Contratos />} />
           <Route path="/menu" element={<AdminMenu />} />
           <Route path="/depoimentos" element={<AdminDepoimentos />} />
+          <Route path="/configuracoes" element={<AdminConfig />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AdminLayout>
@@ -158,7 +159,7 @@ const App = () => (
               <Route path="/agendar" element={<AgendarPublico />} />
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/funcionalidades" element={<Funcionalidades />} />
-              <Route path="/cardapio/:slug" element={<MenuInterativo />} />
+              <Route path="/cardapio/:slug" element={<AdminMenu />} />
               <Route path="/instalar" element={<Instalar />} />
               <Route path="/cliente" element={<ClienteLogin />} />
 

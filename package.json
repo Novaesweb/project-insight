@@ -115,7 +115,8 @@
     "vite-bundle-analyzer": "^0.7.0",
     "vite-plugin-pwa": "^0.17.4",
     "vitest": "^1.0.4",
-    "wait-on": "^7.2.0"
+    "wait-on": "^7.2.0",
+    "web-push": "^3.6.7"
   },
   "build": {
     "appId": "com.novaesweb.admin",
