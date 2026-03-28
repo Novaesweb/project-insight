@@ -184,7 +184,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   {[
                     { name: "Bella Massa", description: "Site completo para pizzaria com cardápio digital e pedidos online.", link: "https://bellamassa0.vercel.app/", image: bellaMassaDemo },
                     { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/", image: barbeariaDemo },
-                    { name: "Pizzaria novaesweb", description: "Plataforma com pedidos integrados e painel administrativo.", link: "https://pizzarianovaesweb.vercel.app/", image: pizzarianovaeswebDemo },
+                    { name: "Pizzaria novaesweb", description: "Plataforma com pedidos integrados e painel administrativo.", link: "https://pizzariafogo.novaesweb.site/", image: pizzarianovaeswebDemo },
                     { name: "Açaí Delivery", description: "Loja online para venda de açaí com controle de pedidos.", link: "https://demoacai.vercel.app/", image: acaiDemo },
                   ].map((item, index) => (
                     <motion.a
