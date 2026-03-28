@@ -6,7 +6,9 @@ import NotificationCenter from "@/components/NotificationCenter";
 import { useTheme } from "@/hooks/useTheme";
 import { pageInfo } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Sun, Moon, Settings } from "lucide-react";
+import { Sun, Moon, Settings, Bell } from "lucide-react";
+import { sendTestNotification } from "@/lib/push-notifications";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdminHeaderProps {
   title?: string;
@@ -17,9 +19,34 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const { pathname } = useLocation();
+  const { toast } = useToast();
 
   const pageTitle = title || pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin";
   const pageSubtitle = subtitle || "novaesweb • Gestão Digital";
+
+  const handleTestPush = async () => {
+    try {
+      const result = await sendTestNotification();
+      if (result.ok) {
+        toast({
+          title: "🔔 Notificação Enviada!",
+          description: `Sucesso! ${result.sent}/${result.total} notificações enviadas.`,
+        });
+      } else {
+        toast({
+          title: "❌ Falha no Envio",
+          description: result.message || "Tente ativar as notificações primeiro.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "❌ Erro",
+        description: "Falha ao enviar notificação de teste.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[var(--admin-bg)]/80 backdrop-blur-xl border-b border-white/[0.06]">
@@ -51,6 +78,16 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         <GlobalSearch />
         <div className="h-4 w-px bg-white/10 mx-2 hidden sm:block" />
         <div className="flex items-center gap-1.5 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg hover:bg-blue-500/10" 
+            onClick={handleTestPush}
+            aria-label="Testar Notificação"
+            title="Testar Notificação Push"
+          >
+            <Bell className="w-4 h-4" />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
