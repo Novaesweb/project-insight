@@ -14,7 +14,10 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "optimize:images": "node scripts/optimize-images.js",
+    "analyze:bundle": "npm run build && npx vite-bundle-analyzer dist",
+    "check:performance": "npm run build && npm run analyze:bundle"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
