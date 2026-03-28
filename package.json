@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
+    "build:dev": "vite build",
     "electron:dev": "concurrently \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:8080 && electron .\"",
     "electron:build": "vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
