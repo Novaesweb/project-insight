@@ -13,6 +13,8 @@ import { useLeadCount } from "@/hooks/useLeadCount";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { pageInfo } from "@/lib/constants";
+import adminTopLogo from "@/assets/admin-top-logo.png";
+import nwLogo from "@/assets/novaesweb-logo-admin.webp";
 
 interface NavItem {
   href: string;
@@ -75,11 +77,26 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
 
-      <div className={cn("py-8 flex items-center justify-center", isCollapsed ? "px-0" : "px-6")}>
+      <div className={cn("pt-8 pb-4 flex flex-col items-center justify-center", isCollapsed ? "px-0" : "px-6")}>
+        {!isCollapsed && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 relative group"
+          >
+            <div className="absolute -inset-2 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] rounded-full blur-xl opacity-20 group-hover:opacity-40 transition duration-1000" />
+            <img 
+              src={adminTopLogo} 
+              alt="NovaesWeb Premium" 
+              className="relative w-32 h-32 rounded-full object-cover border border-white/10 shadow-2xl transition-transform duration-500 group-hover:scale-105" 
+            />
+          </motion.div>
+        )}
+        
         <Link to="/admin" className={cn("flex items-center group", isCollapsed ? "gap-0" : "gap-3")}>
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-            <img src={branding.logo} alt={branding.nome} className="relative w-8 h-8 rounded-lg object-cover" />
+            <img src={branding.logo || nwLogo} alt={branding.nome} className="relative w-8 h-8 rounded-lg object-cover" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col items-center">
