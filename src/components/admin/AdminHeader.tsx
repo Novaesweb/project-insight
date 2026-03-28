@@ -26,7 +26,52 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
   const handleTestPush = async () => {
     try {
+      console.log("🔔 Iniciando teste de push notification...");
+      
+      // Verificar suporte
+      const supported = await ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+      console.log("📱 Push suportado:", supported);
+      
+      if (!supported) {
+        toast({
+          title: "❌ Não Suportado",
+          description: "Seu navegador não suporta notificações push. Use Chrome ou Firefox.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Verificar permissão
+      const permission = Notification.permission;
+      console.log("🔐 Permissão atual:", permission);
+      
+      if (permission === 'denied') {
+        toast({
+          title: "❌ Bloqueado",
+          description: "Notificações bloqueadas. Habilite nas configurações do navegador.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Verificar inscrição
+      const registration = await navigator.serviceWorker.getRegistration('/');
+      const subscription = await registration?.pushManager.getSubscription();
+      console.log("📋 Inscrição:", !!subscription);
+      
+      if (!subscription) {
+        toast({
+          title: "❌ Não Inscrito",
+          description: "Vá em Configurações > Notificações para ativar primeiro.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Enviar teste
       const result = await sendTestNotification();
+      console.log("📊 Resultado do teste:", result);
+      
       if (result.ok) {
         toast({
           title: "🔔 Notificação Enviada!",
@@ -35,14 +80,15 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
       } else {
         toast({
           title: "❌ Falha no Envio",
-          description: result.message || "Tente ativar as notificações primeiro.",
+          description: result.message || "Erro desconhecido.",
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error("❌ Erro no teste de push:", error);
       toast({
         title: "❌ Erro",
-        description: "Falha ao enviar notificação de teste.",
+        description: error instanceof Error ? error.message : "Falha ao enviar notificação.",
         variant: "destructive",
       });
     }
