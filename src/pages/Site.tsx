@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
+import PizzariaFogoBanner from "@/components/site/PizzariaFogoBanner";
 
 // Lazy load below-fold sections
 const ExperienceSection = lazy(() => import("@/components/site/ExperienceSection"));
@@ -26,6 +27,9 @@ export default function Site() {
     <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth font-sans antialiased">
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
+      
+      {/* Pizzaria Fogo Banner */}
+      <PizzariaFogoBanner />
       
       <Suspense fallback={null}>
         <ExperienceSection />
