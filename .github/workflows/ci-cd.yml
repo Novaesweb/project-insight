@@ -25,7 +25,7 @@ jobs:
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '20'
         cache: 'npm'
 
     - name: 📦 Install Dependencies
@@ -70,7 +70,7 @@ jobs:
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '20'
         cache: 'npm'
 
     - name: 📦 Install Dependencies
@@ -113,7 +113,7 @@ jobs:
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '20'
         cache: 'npm'
 
     - name: 📦 Install Dependencies
@@ -172,7 +172,7 @@ jobs:
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '20'
         cache: 'npm'
 
     - name: 📦 Install Dependencies
@@ -199,8 +199,15 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
 
-    - name: 🔍 Run Security Audit
+    - name: � Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: �🔍 Run Security Audit
       run: |
+        npm ci
         npm audit --audit-level=moderate
         echo "Security audit completed"
 
@@ -222,8 +229,15 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
 
-    - name: 🔍 Lighthouse CI
+    - name: � Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: �🔍 Lighthouse CI
       run: |
+        npm ci
         npm install -g @lhci/cli@0.12.x
         lhci autorun
       env:
