@@ -13,7 +13,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const VAPID_PUBLIC_KEY = "BM47PHF9eRSbLJLk93fTXz1925t7fQGt-95zu8OQhpWa-zY5r9PbKMUmrRrytaTkwoP7wHbXRZJ1hSac0QIot7Q";
+const VAPID_PUBLIC_KEY = "BO9uhUEJOQdzq7bANXsX-6lKXuRqgd2PFAK43GXwB2NxPW_Wgb4yANtVk1-bxOtFUWjCRvxAX2k2jbagrPl2MaE";
 const VAPID_SUBJECT = "mailto:camila.lucas2604@gmail.com";
 
 serve(async (req: Request) => {

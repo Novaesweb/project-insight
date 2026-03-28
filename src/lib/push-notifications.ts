@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // VAPID Public Key - segura para uso no frontend
-const VAPID_PUBLIC_KEY = "BNH-kNLGHmSGcz7YNYYhgeUkUmsmB1zlPNGmjwlR1W6PQHYF3Xr0KID53sjnWFJ9HevwWBKfrlEXH4sKh3f-Yz8";
+const VAPID_PUBLIC_KEY = "BO9uhUEJOQdzq7bANXsX-6lKXuRqgd2PFAK43GXwB2NxPW_Wgb4yANtVk1-bxOtFUWjCRvxAX2k2jbagrPl2MaE";
 const PUSH_SW_PATH = "/sw.js";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
