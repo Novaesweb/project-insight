@@ -142,67 +142,67 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 bg-black/98 lg:hidden flex flex-col p-8 overflow-y-auto"
+            className="fixed inset-0 z-50 lg:hidden overflow-y-auto bg-[hsl(var(--background))]"
           >
-            <div className="flex justify-between items-center mb-12">
-              <div className="flex items-center gap-3">
-                <img src={novaeswebSymbol} alt="novaesweb" className="w-10 h-10 rounded-full" />
-                <span className="text-2xl font-black gradient-text tracking-tighter">Explorar</span>
-              </div>
-              <button 
-                onClick={() => setMenuOpen(false)}
-                className="p-3 bg-white/5 rounded-2xl text-white"
-              >
-                <X className="w-8 h-8" />
-              </button>
-            </div>
-
-            <div className="space-y-8">
-              {/* Seção Empresa */}
-              <div>
-                <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-bold mb-4">Institucional</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {companyLinks.map(link => (
-                    <button
-                      key={link.id}
-                      onClick={() => { setMenuOpen(false); setTimeout(() => onOpenModal(link.id), 300); }}
-                      className="flex items-center justify-between p-4 bg-white/5 rounded-2xl text-white/70 hover:text-white"
-                    >
-                      <span className="font-bold flex items-center gap-3"><link.icon className="w-4 h-4 text-primary" /> {link.label}</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  ))}
+            <div className="min-h-full bg-[hsl(var(--background)/0.98)] px-6 py-8 backdrop-blur-2xl">
+              <div className="mb-12 rounded-[28px] border border-white/10 bg-[hsl(var(--background))] px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img src={novaeswebSymbol} alt="novaesweb" className="w-10 h-10 rounded-full shrink-0" />
+                    <span className="text-2xl font-black gradient-text tracking-tighter truncate">Explorar</span>
+                  </div>
+                  <button 
+                    onClick={() => setMenuOpen(false)}
+                    className="p-3 rounded-2xl text-white bg-white/10 hover:bg-white/15 transition-colors shrink-0"
+                  >
+                    <X className="w-8 h-8" />
+                  </button>
                 </div>
               </div>
 
+              <div className="space-y-8">
+                <div>
+                  <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-bold mb-4">Institucional</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {companyLinks.map(link => (
+                      <button
+                        key={link.id}
+                        onClick={() => { setMenuOpen(false); setTimeout(() => onOpenModal(link.id), 300); }}
+                        className="flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-[hsl(var(--muted)/0.3)] text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
+                      >
+                        <span className="font-bold flex items-center gap-3"><link.icon className="w-4 h-4 text-primary" /> {link.label}</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-
-              {/* Seção Navegação */}
-              <div>
-                <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-bold mb-4">Navegação</p>
-                <div className="flex flex-wrap gap-2">
-                  {navLinks.map((link) => (
-                    <button
-                      key={link.href}
-                      onClick={() => scrollTo(link.href, setMenuOpen)}
-                      className="px-4 py-2 bg-white/5 rounded-lg text-sm font-bold text-white/60"
-                    >
-                      {link.label}
-                    </button>
-                  ))}
+                <div>
+                  <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-bold mb-4">Navegação</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {navLinks.map((link) => (
+                      <button
+                        key={link.href}
+                        onClick={() => scrollTo(link.href, setMenuOpen)}
+                        className="px-4 py-3 rounded-xl border border-white/10 bg-[hsl(var(--muted)/0.3)] text-sm font-bold text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-12">
-              <button 
-                className="w-full" 
-                onClick={() => scrollTo("#cadastro", setMenuOpen)}
-              >
-                <Button className="h-16 rounded-2xl w-full gradient-primary text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20">
-                  Começar Agora
-                </Button>
-              </button>
+              <div className="mt-12">
+                <button 
+                  className="w-full" 
+                  onClick={() => scrollTo("#cadastro", setMenuOpen)}
+                >
+                  <Button className="h-16 rounded-2xl w-full gradient-primary text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20">
+                    Começar Agora
+                  </Button>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
