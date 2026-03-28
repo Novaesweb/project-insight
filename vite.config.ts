@@ -2,6 +2,7 @@ import path from "path"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -48,11 +49,6 @@ export default defineConfig({
       }
     })
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
   build: {
     // Performance optimizations
     minify: 'esbuild',
@@ -73,13 +69,26 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
+      },
+      plugins: [
+        visualizer({
+          filename: 'dist/stats.html',
+          open: false,
+          gzipSize: true,
+          brotliSize: true,
+        })
+      ]
     },
     // Reduce chunk size warning threshold
     chunkSizeWarningLimit: 600,
     // Optimize assets
     assetsInlineLimit: 4096,
     cssCodeSplit: true
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
   server: {
     host: '127.0.0.1',
