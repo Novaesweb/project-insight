@@ -1,0 +1,58 @@
+name: 🚀 CI/CD Pipeline - NovaesWeb FIXED
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 🔍 Quality Checks
+  quality:
+    name: 🔍 Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 📦 Install Dependencies
+      run: |
+        echo "🔍 Verificando Node.js..."
+        node --version
+        npm --version
+        echo "✅ Versões verificadas, instalando dependências..."
+        npm install --prefer-offline --no-audit --no-fund
+        npm install --save-dev @playwright/test
+
+    - name: 🔍 Lint Code
+      run: npm run lint
+      continue-on-error: false
+
+    - name: 🧪 Type Check
+      run: npm run build
+      continue-on-error: false
+
+    - name: 🧪 Run Tests
+      run: npm run test
+      continue-on-error: false
+
+    - name: 📊 Bundle Analysis
+      run: npm run analyze:bundle
+      continue-on-error: false
+
+    - name: 📤 Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: quality-results
+        path: |
+          coverage/
+          dist/stats.html
