@@ -39,7 +39,7 @@ export default function AutomacaoSection() {
             <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">IA</span>
           </h2>
           <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
-            Integre inteligência artificial ao seu WhatsApp. Seu negócio atende, vende e agenda automaticamente — sem perder o toque humano.
+            A NovaesWeb cria sites para delivery e automatiza seu atendimento no WhatsApp para você focar no que realmente importa: <span className="text-emerald-400 font-bold">vender.</span>
           </p>
         </motion.div>
 
