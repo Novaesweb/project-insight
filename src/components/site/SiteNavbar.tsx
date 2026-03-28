@@ -45,10 +45,10 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       scrolled && "py-4"
     )} onMouseLeave={() => setActiveDropdown(null)}>
       <div className={cn(
-        "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border border-transparent relative",
+        "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border relative",
         scrolled
-          ? "border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-[hsl(var(--background)/0.95)] translate-y-0"
-          : "bg-transparent"
+          ? "border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-[hsl(var(--background)/0.97)] translate-y-0"
+          : "border-white/5 bg-[hsl(var(--background)/0.8)] backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
       )}>
         {/* Logo */}
         <Link 
