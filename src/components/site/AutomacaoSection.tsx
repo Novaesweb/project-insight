@@ -39,7 +39,7 @@ export default function AutomacaoSection() {
             <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">IA</span>
           </h2>
           <p className="text-lg text-white/40 mt-8 leading-relaxed max-w-xl font-medium">
-            Integre inteligência artificial ao seu WhatsApp. Seu negócio atende, vende e agenda automaticamente — sem perder o toque humano.
+            A NovaesWeb cria sites para delivery e automatiza seu atendimento no WhatsApp para você focar no que realmente importa: <span className="text-emerald-400 font-bold">vender.</span>
           </p>
         </motion.div>
 
@@ -96,12 +96,18 @@ export default function AutomacaoSection() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed font-medium mb-4">
-                A novaesweb cuida de tudo — do site à automação inteligente no WhatsApp. Nosso time configura, treina a IA e acompanha os resultados do seu negócio.
+                Seu WhatsApp responde automaticamente seus clientes e direciona direto para o seu site de pedidos — sem você precisar ficar online o tempo todo.
               </p>
-              <div className="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mb-6">
-                <Bot className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-start gap-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mb-3">
+                <Bot className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <span className="text-emerald-400 font-bold">A partir de R$60/mês</span> para clientes com site novaesweb. Contratação direta com parceiro de automação terá valores definidos por ele.
+                  <span className="text-emerald-400 font-bold">💡 Automação a partir de R$60/mês</span> — seu WhatsApp responde automaticamente e direciona para o seu site de pedidos.
+                </p>
+              </div>
+              <div className="flex items-start gap-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl px-4 py-3 mb-6">
+                <Zap className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <span className="text-emerald-400 font-bold">🚀 Soluções avançadas</span> — projetos personalizados desenvolvidos em parceria com especialistas, com valores ajustados conforme a necessidade do seu negócio.
                 </p>
               </div>
             </div>
