@@ -44,6 +44,7 @@ import Cadastro from "./pages/Cadastro";
 import Funcionalidades from "./pages/Funcionalidades";
 import NichePage from "./pages/NichePage";
 import Instalar from "./pages/Instalar";
+import LandingPage from "./pages/LandingPage";
 import ClienteLogin from "./pages/cliente/ClienteLogin";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
 import ClienteProjetos from "./pages/cliente/ClienteProjetos";
@@ -161,6 +162,7 @@ const App = () => (
               <Route path="/funcionalidades" element={<Funcionalidades />} />
               <Route path="/cardapio/:slug" element={<AdminMenu />} />
               <Route path="/instalar" element={<Instalar />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/cliente" element={<ClienteLogin />} />
 
               {/* Client Portal */}

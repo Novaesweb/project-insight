@@ -12,6 +12,7 @@ interface SiteNavbarProps {
 
 const navLinks = [
   { href: "#servicos", label: "Serviços" },
+  { href: "/landing", label: "Sites Vitrine" },
   { href: "#solucoes", label: "Soluções" },
   { href: "#processo", label: "Processo" },
   { href: "#planos", label: "Planos" },
