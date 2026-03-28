@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export function NativeNotificationManager() {
+export default function NativeNotificationManager() {
   useEffect(() => {
     // Verificar se estamos no ambiente Electron
     const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');

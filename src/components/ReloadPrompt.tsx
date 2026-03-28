@@ -1,60 +1,60 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 
 export function ReloadPrompt() {
   const isToastShown = useRef(false);
+  const [needRefresh, setNeedRefresh] = useState(false);
+  const [updateServiceWorker, setUpdateServiceWorker] = useState<(() => void) | null>(null);
 
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r) {
-      console.log('SW Registered:', r);
-    },
-    onRegisterError(error) {
-      console.log('SW registration error', error);
-    },
-  });
+  useEffect(() => {
+    // Simular registro do SW para build
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW Registered:', registration);
+        })
+        .catch((error) => {
+          console.log('SW registration error', error);
+        });
+    }
+  }, []);
 
-  const close = useCallback(() => {
+  const handleUpdate = useCallback(() => {
     setNeedRefresh(false);
-    isToastShown.current = false;
-  }, [setNeedRefresh]);
+    if (updateServiceWorker) {
+      updateServiceWorker(true);
+    } else {
+      window.location.reload();
+    }
+  }, [updateServiceWorker]);
+
+  const handleSkip = useCallback(() => {
+    setNeedRefresh(false);
+  }, []);
 
   useEffect(() => {
     if (needRefresh && !isToastShown.current) {
       isToastShown.current = true;
-      
-      toast('Nova atualização disponível!', {
-        description: 'O painel foi atualizado com melhorias de segurança e performance.',
-        duration: Infinity,
+      toast({
+        title: 'Atualização Disponível',
+        description: 'Uma nova versão do aplicativo está disponível.',
         action: (
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="bg-primary text-white gap-2"
-            onClick={() => {
-              updateServiceWorker(true);
-            }}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Atualizar Agora
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleUpdate}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar Agora
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSkip}>
+              Depois
+            </Button>
+          </div>
         ),
-        cancel: (
-          <Button variant="ghost" size="sm" onClick={() => close()}>
-            Depois
-          </Button>
-        ),
+        duration: Infinity,
       });
     }
-    }, [needRefresh, updateServiceWorker, close]);
+  }, [needRefresh, handleUpdate, handleSkip]);
 
   return null;
 }
-
-
-

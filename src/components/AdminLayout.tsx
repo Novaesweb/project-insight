@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { TopProgressBar } from "@/components/TopProgressBar";
+import TopProgressBar from "@/components/TopProgressBar";
 import { SupabaseHeartbeat } from "./SupabaseHeartbeat";
 import { ReloadPrompt } from "./ReloadPrompt";
 import { useBranding } from "@/hooks/useBranding";
