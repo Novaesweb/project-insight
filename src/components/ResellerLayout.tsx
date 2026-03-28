@@ -45,8 +45,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
     if (!reseller.id && !location.pathname.includes("login")) {
       // navigate("/revenda/login");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, navigate, reseller.id]);
+    }, [location.pathname, navigate, reseller.id]);
 
   const handleLogout = () => {
     localStorage.removeItem("revendedorLogado");

@@ -102,7 +102,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     if (cat) setCatalogo(cat);
   }, [clienteId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, [loadData]);
 
   const handleAddExtra = async () => {

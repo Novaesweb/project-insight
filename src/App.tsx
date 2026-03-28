@@ -7,18 +7,23 @@ declare global {
   }
 }
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { HelmetProvider } from "react-helmet-async";
 import AdminLayout from "@/components/AdminLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminLogin from "@/pages/AdminLogin";
-import ClienteLayout from "@/components/ClienteLayout";
 import SplashScreen from "@/components/SplashScreen";
 import { ThemeProvider } from "@/hooks/useTheme";
+import SEOHead from "@/components/SEOHead";
+import NativeNotificationManager from "@/components/NativeNotificationManager";
+import HttpsRedirect from "@/components/HttpsRedirect";
+import { getQueryClient } from "@/lib/query-client";
+
+// Regular imports for now - lazy loading can be added later
 import Site from "./pages/Site";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
@@ -58,14 +63,14 @@ import ResellerMateriais from "./pages/reseller/ResellerMateriais";
 import NotFound from "@/pages/NotFound";
 import AdminMenu from "@/pages/AdminMenu";
 import MenuInterativo from "@/pages/MenuInterativo";
-import ClientePedidosFome from "@/pages/cliente/ClientePedidosFome";
-import AdminDepoimentos from "@/pages/AdminDepoimentos";
-import { NativeNotificationManager } from "@/components/NativeNotificationManager";
-import HttpsRedirect from "@/components/HttpsRedirect";
+import ClientePedidosFome from "./pages/cliente/ClientePedidosFome";
+import AdminDepoimentos from "./pages/AdminDepoimentos";
+import AdminLogin from "./pages/AdminLogin";
+import ClienteLayout from "@/components/ClienteLayout";
 
 import { useLocation } from "react-router-dom";
 
-const queryClient = new QueryClient();
+const queryClient = getQueryClient();
 
 function ReferralTracker() {
   const { search } = useLocation();
@@ -134,76 +139,79 @@ const DesktopNavigationHandler = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <HttpsRedirect>
-        <NativeNotificationManager />
-        <BrowserRouter>
-        <Toaster />
-        <Sonner />
-        <DesktopNavigationHandler />
-        <ReferralTracker />
-        <Routes>
-          {/* Public Site */}
-          <Route path="/" element={<Site />} />
-          <Route path="/site" element={<Site />} />
-          <Route path="/nicho/:slug" element={<NichePage />} />
-          <Route path="/agendar" element={<AgendarPublico />} />
-          <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/funcionalidades" element={<Funcionalidades />} />
-          <Route path="/cardapio/:slug" element={<MenuInterativo />} />
-          <Route path="/instalar" element={<Instalar />} />
-          <Route path="/cliente" element={<ClienteLogin />} />
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <HttpsRedirect>
+          <NativeNotificationManager />
+          <BrowserRouter>
+            <SEOHead />
+            <Toaster />
+            <Sonner />
+            <DesktopNavigationHandler />
+            <ReferralTracker />
+            <Routes>
+              {/* Public Site */}
+              <Route path="/" element={<Site />} />
+              <Route path="/site" element={<Site />} />
+              <Route path="/nicho/:slug" element={<NichePage />} />
+              <Route path="/agendar" element={<AgendarPublico />} />
+              <Route path="/cadastro" element={<Cadastro />} />
+              <Route path="/funcionalidades" element={<Funcionalidades />} />
+              <Route path="/cardapio/:slug" element={<MenuInterativo />} />
+              <Route path="/instalar" element={<Instalar />} />
+              <Route path="/cliente" element={<ClienteLogin />} />
 
-          {/* Client Portal */}
-          <Route path="/cliente/*" element={
-            <ClienteLayout>
-              <Routes>
-                <Route path="dashboard" element={<ClienteDashboard />} />
-                <Route path="pedidos" element={<ClientePedidosFome />} />
-                <Route path="projetos" element={<ClienteProjetos />} />
-                <Route path="extras" element={<ClienteExtras />} />
-                <Route path="contratos" element={<ClienteContratos />} />
-                <Route path="faturas" element={<ClienteFaturas />} />
-                <Route path="reunioes" element={<ClienteReunioes />} />
-                <Route path="suporte" element={<ClienteSuporte />} />
-                <Route path="indique" element={<ClienteReferral />} />
-                <Route path="dados" element={<ClienteDados />} />
-                <Route path="arquivos" element={<ClienteArquivos />} />
-              </Routes>
-            </ClienteLayout>
-          } />
+              {/* Client Portal */}
+              <Route path="/cliente/*" element={
+                <ClienteLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<ClienteDashboard />} />
+                    <Route path="pedidos" element={<ClientePedidosFome />} />
+                    <Route path="projetos" element={<ClienteProjetos />} />
+                    <Route path="extras" element={<ClienteExtras />} />
+                    <Route path="contratos" element={<ClienteContratos />} />
+                    <Route path="faturas" element={<ClienteFaturas />} />
+                    <Route path="reunioes" element={<ClienteReunioes />} />
+                    <Route path="suporte" element={<ClienteSuporte />} />
+                    <Route path="indique" element={<ClienteReferral />} />
+                    <Route path="dados" element={<ClienteDados />} />
+                    <Route path="arquivos" element={<ClienteArquivos />} />
+                  </Routes>
+                </ClienteLayout>
+              } />
 
-          {/* Admin Login */}
-          <Route path="/admin/login" element={<AdminLogin />} />
+              {/* Admin Login */}
+              <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Admin */}
-          <Route path="/admin/*" element={
-            <ProtectedRoute>
-              <AdminWithSplash />
-            </ProtectedRoute>
-          } />
+              {/* Admin */}
+              <Route path="/admin/*" element={
+                <ProtectedRoute>
+                  <AdminWithSplash />
+                </ProtectedRoute>
+              } />
 
-          {/* Reseller Portal */}
-          <Route path="/revenda/*" element={
-            <ResellerLayout>
-              <Routes>
-                <Route path="dashboard" element={<ResellerDashboard />} />
-                <Route path="indicacoes" element={<ResellerIndicacoes />} />
-                <Route path="financeiro" element={<ResellerFinanceiro />} />
-                <Route path="materiais" element={<ResellerMateriais />} />
-                <Route path="suporte" element={<ClienteSuporte />} />
-                <Route path="*" element={<ResellerDashboard />} />
-              </Routes>
-            </ResellerLayout>
-          } />
+              {/* Reseller Portal */}
+              <Route path="/revenda/*" element={
+                <ResellerLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<ResellerDashboard />} />
+                    <Route path="indicacoes" element={<ResellerIndicacoes />} />
+                    <Route path="financeiro" element={<ResellerFinanceiro />} />
+                    <Route path="materiais" element={<ResellerMateriais />} />
+                    <Route path="suporte" element={<ClienteSuporte />} />
+                    <Route path="*" element={<ResellerDashboard />} />
+                  </Routes>
+                </ResellerLayout>
+              } />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      </HttpsRedirect>
-    </TooltipProvider>
-  </QueryClientProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </HttpsRedirect>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

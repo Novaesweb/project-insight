@@ -75,8 +75,7 @@ export default function SocialProofPopup({
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayCount, maxDisplays, intervalMs, isActive, showRandomPurchase]);
+    }, [displayCount, maxDisplays, intervalMs, isActive, showRandomPurchase]);
 
   if (!isActive) return null;
 
