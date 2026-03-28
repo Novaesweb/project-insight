@@ -1,7 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
-import SocialProofPopup from "@/components/conversion/SocialProofPopup";
 
 // Lazy load below-fold sections
 const ExperienceSection = lazy(() => import("@/components/site/ExperienceSection"));
@@ -76,7 +75,7 @@ export default function Site() {
         <SiteFooter onOpenModal={setModalOpen} />
       </Suspense>
 
-      <SocialProofPopup />
+      
     </div>
   );
 }
