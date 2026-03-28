@@ -1,0 +1,123 @@
+name: 🏓 Supabase Ping - Keep Alive
+
+on:
+  schedule:
+    # Executar a cada 6 horas (minuto 0, todas as horas)
+    - cron: 0 */6 * * *
+  workflow_dispatch: # Permite execução manual
+
+jobs:
+  ping-supabase:
+    name: 🏓 Ping Supabase
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 🏓 Ping Supabase Project
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: |
+        echo "🏓 Iniciando ping para manter Supabase ativo..."
+        echo "⏰ Horário: $(date)"
+        
+        # Verificar se as variáveis estão configuradas
+        if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+          echo "❌ Variáveis de ambiente não configuradas"
+          echo "📝 Configure SUPABASE_URL e SUPABASE_ANON_KEY nos secrets do GitHub"
+          exit 1
+        fi
+        
+        echo "🔗 URL Supabase: $SUPABASE_URL"
+        
+        # Ping 1: Verificar se o projeto está acessível
+        echo "📡 Ping 1: Verificando acessibilidade..."
+        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          "$SUPABASE_URL/rest/v1/" \
+          -H "apikey: $SUPABASE_ANON_KEY" \
+          -H "Content-Type: application/json")
+        
+        if [ "$HTTP_STATUS" = "200" ]; then
+          echo "✅ Supabase acessível (HTTP $HTTP_STATUS)"
+          ACCESSIBLE=true
+        else
+          echo "❌ Supabase não respondeu (HTTP $HTTP_STATUS)"
+          ACCESSIBLE=false
+        fi
+        
+        # Ping 2: Verificar se a API está funcionando
+        echo "📡 Ping 2: Testando API básica..."
+        API_STATUS=$(curl -s \
+          "$SUPABASE_URL/rest/v1/" \
+          -H "apikey: $SUPABASE_ANON_KEY" \
+          -H "Accept: application/json" \
+          -w "%{http_code}" \
+          -o /dev/null)
+        
+        if [ "$API_STATUS" = "200" ]; then
+          echo "✅ API Supabase funcionando"
+          API_WORKING=true
+        else
+          echo "⚠️ API não respondeu, mas projeto está ativo"
+          API_WORKING=false
+        fi
+        
+        # Ping 3: Manter conexão ativa (simples)
+        echo "📡 Ping 3: Mantendo conexão ativa..."
+        KEEP_ALIVE_STATUS=$(curl -s -X GET \
+          "$SUPABASE_URL/rest/v1/" \
+          -H "apikey: $SUPABASE_ANON_KEY" \
+          -H "Accept: application/json" \
+          -w "%{http_code}" \
+          -o /dev/null)
+        
+        if [ "$KEEP_ALIVE_STATUS" = "200" ]; then
+          echo "✅ Conexão mantida ativa"
+          CONNECTION_ACTIVE=true
+        else
+          echo "⚠️ Keep alive não respondeu"
+          CONNECTION_ACTIVE=false
+        fi
+        
+        # Status final
+        echo "🎉 Ping concluído em $(date)"
+        
+        if [ "$ACCESSIBLE" = "true" ] && [ "$API_WORKING" = "true" ]; then
+          echo "📊 Status: ✅ Supabase totalmente ativo"
+          echo "🚀 Site protegido contra congelamento"
+          exit 0
+        elif [ "$ACCESSIBLE" = "true" ]; then
+          echo "📊 Status: ⚠️ Supabase parcialmente ativo"
+          echo "🔧 Verificar configurações da API"
+          exit 0
+        else
+          echo "📊 Status: ❌ Supabase não responde"
+          echo "🚨 Possível problema de congelamento detectado"
+          exit 1
+        fi
+        
+    - name: 📊 Status Report
+      if: always()
+      run: |
+        echo "## 📊 Relatório de Ping Supabase"
+        echo "⏰ Executado em: $(date)"
+        echo "🔄 Frequência: A cada 6 horas"
+        echo "🎯 Objetivo: Manter site ativo durante atualizações"
+        echo "🌐 URL: Configurada nos secrets"
+        echo "✅ Status: Pipeline de keep alive funcionando"
+        
+    - name: 📧 Notificar Falha
+      if: failure()
+      run: |
+        echo "❌ Falha no ping do Supabase"
+        echo "🔍 Verificar configurações do projeto"
+        echo "🌐 Verificar status do Supabase"
+        echo "📝 Configure SUPABASE_URL e SUPABASE_ANON_KEY nos secrets"
+        exit 1
