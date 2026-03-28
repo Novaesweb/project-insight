@@ -61,7 +61,7 @@ section {
     --popover: 240 10% 7%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 346 84% 61%;
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 10% 12%;
@@ -70,7 +70,7 @@ section {
     --muted: 240 10% 12%;
     --muted-foreground: 240 5% 65%;
 
-    --accent: 262 83% 58%;
+    --accent: 262 70% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -84,18 +84,18 @@ section {
 
     --border: 240 10% 15% / 0.5;
     --input: 240 10% 15% / 0.5;
-    --ring: 346 84% 61%;
+    --ring: 0 72% 51%;
 
     --radius: 1rem;
 
     --sidebar-background: 240 10% 6% / 0.8;
     --sidebar-foreground: 240 5% 70%;
-    --sidebar-primary: 346 84% 61%;
+    --sidebar-primary: 0 72% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 10% 15% / 0.5;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 240 10% 15% / 0.3;
-    --sidebar-ring: 346 84% 61%;
+    --sidebar-ring: 0 72% 51%;
 
     /* Novos Tokens Blueprint v3.0 */
     --bg-novaesweb: 260 20% 8%;
@@ -106,11 +106,11 @@ section {
     
     --gradient-novaesweb: linear-gradient(135deg, hsl(330, 85%, 60%), hsl(270, 60%, 50%), hsl(350, 80%, 55%));
     
-    --gradient-primary: linear-gradient(135deg, #ff3366, #ff00cc, #9900ff);
-    --gradient-premium: linear-gradient(135deg, rgba(255, 51, 102, 0.1), rgba(153, 0, 255, 0.1));
-    --gradient-admin: linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a, #ff3366);
+    --gradient-primary: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
+    --gradient-premium: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(236, 72, 153, 0.1));
+    --gradient-admin: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899, #FF6B6B);
     --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
-    --gradient-admin-subtle: linear-gradient(135deg, rgba(123, 31, 162, 0.08), rgba(194, 24, 91, 0.08), rgba(232, 51, 74, 0.08));
+    --gradient-admin-subtle: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(107, 33, 168, 0.08), rgba(236, 72, 153, 0.08));
     --admin-bg: #07060a;
     --admin-surface: #0d0b12;
     --gold: 43 100% 50%;
@@ -126,7 +126,7 @@ section {
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 10%;
 
-    --primary: 346 78% 50%;
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 5% 92%;
@@ -135,7 +135,7 @@ section {
     --muted: 240 5% 94%;
     --muted-foreground: 240 5% 45%;
 
-    --accent: 280 60% 38%;
+    --accent: 262 70% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -149,18 +149,18 @@ section {
 
     --border: 240 6% 88%;
     --input: 240 6% 88%;
-    --ring: 346 78% 50%;
+    --ring: 0 72% 51%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5% 40%;
-    --sidebar-primary: 346 78% 50%;
+    --sidebar-primary: 0 72% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 5% 94%;
     --sidebar-accent-foreground: 240 10% 15%;
     --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 346 78% 50%;
+    --sidebar-ring: 0 72% 51%;
 
-    --gradient-primary: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
+    --gradient-primary: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
   }
 }
 
@@ -195,11 +195,11 @@ section {
 
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
+    background: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2);
+    background: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
