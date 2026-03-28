@@ -58,7 +58,7 @@ export default function Extras() {
   const [editForm, setEditForm] = useState({ ...emptyForm, id: "" });
 
   const fetchData = async () => {
-    // @ts-expect-error - Desvio de tipos do Supabase em tabelas dinâmicas
+    // @ts-ignore - Desvio de tipos do Supabase em tabelas dinâmicas
     const [extrasRes, pacotesRes, piRes, clientesRes, ecRes] = await Promise.all([
       supabase.from("extras_catalogo").select("*").order("nome"),
       (supabase.from as any)("pacotes").select("*").order("nome"),

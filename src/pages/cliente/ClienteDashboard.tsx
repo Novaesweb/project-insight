@@ -10,6 +10,21 @@ import { statusReuniaoLabels, statusReuniaoColors, tipoReuniaoLabels, type Statu
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import StatusBadge from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { useBranding } from "@/hooks/useBranding";
+import jsPDF from "jspdf";
+
+const kpiGradients = [
+  "linear-gradient(135deg, #a78bfa, #7c3aed)",
+  "linear-gradient(135deg, #38bdf8, #0284c7)",
+  "linear-gradient(135deg, #34d399, #059669)",
+  "linear-gradient(135deg, #fbbf24, #d97706)",
+];
+const kpiGlows = [
+  "0 0 20px rgba(167,139,250,0.3)",
+  "0 0 20px rgba(56,189,248,0.3)",
+  "0 0 20px rgba(52,211,153,0.3)",
+  "0 0 20px rgba(251,191,36,0.3)",
+];
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
