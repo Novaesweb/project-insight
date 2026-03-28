@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCompanyCounter } from "@/hooks/useCompanyCounter";
 
 interface HeroSectionProps {
   onOpenDemo: () => void;
 }
 
 export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
+  const companyCount = useCompanyCounter();
+
   return (
     <section id="home" className="relative min-h-[95vh] flex items-center justify-center overflow-hidden pt-20 pb-12">
       {/* Background Effects - GPU promoted */}
@@ -81,7 +84,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             className="mt-20 grid grid-cols-3 gap-6 max-w-lg mx-auto"
           >
             {[
-              { value: "36+", label: "Empresas" },
+              { value: `${companyCount}+`, label: "Empresas" },
               { value: "100%", label: "Satisfação" },
               { value: "7d", label: "Prazo médio" },
             ].map((stat) => (
