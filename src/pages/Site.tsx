@@ -58,7 +58,7 @@ export default function Site() {
         <SiteFooter onOpenModal={setModalOpen} />
       </Suspense>
 
-      
+      <WhatsAppFloat />
     </div>
   );
 }
