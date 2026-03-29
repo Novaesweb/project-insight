@@ -11,12 +11,11 @@ interface SiteNavbarProps {
 }
 
 const navLinks = [
-  { href: "#servicos", label: "Serviços" },
+  { href: "#o-que-fazemos", label: "O Que Fazemos" },
   { href: "/landing", label: "Sites Vitrine" },
-  { href: "#solucoes", label: "Soluções" },
-  { href: "#processo", label: "Processo" },
+  { href: "#como-funciona", label: "Como Funciona" },
   { href: "#planos", label: "Planos" },
-  { href: "#resultados", label: "Resultados" },
+  { href: "#contato", label: "Contato" },
 ];
 
 const companyLinks = [
