@@ -1,10 +1,8 @@
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Eye, Heart, Users, Globe, Shield, Zap, ArrowRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import aboutPhoto from "@/assets/about-novaesweb.webp";
-import bellaMassaDemo from "@/assets/demo-bella-massa.jpg";
-import barbeariaDemo from "@/assets/demo-barbearia.jpg";
-import pizzariaFogoDemo from "@/assets/demo-pizzaria-fogo.jpg";
-import acaiDemo from "@/assets/demo-acai.jpg";
 import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
@@ -12,7 +10,27 @@ interface SiteModalsProps {
   onClose: () => void;
 }
 
+interface DemoSite {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  link: string;
+  imagem_url: string | null;
+}
+
 export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
+  const [demos, setDemos] = useState<DemoSite[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("demo_sites")
+      .select("*")
+      .eq("ativo", true)
+      .order("ordem")
+      .then(({ data }) => {
+        if (data) setDemos(data as DemoSite[]);
+      });
+  }, []);
   // Se for um story, renderizamos o StoryViewer separadamente para manter a imersão
   if (modalOpen?.startsWith("story-")) {
     const storyId = modalOpen.replace("story-", "");
@@ -181,14 +199,9 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">Conheça alguns dos projetos desenvolvidos pela novaesweb.</p>
                 </div>
                 <div className="grid gap-4">
-                  {[
-                    { name: "Bella Massa", description: "Site completo para pizzaria com cardápio digital e pedidos online.", link: "https://bellamassa0.vercel.app/", image: bellaMassaDemo },
-                    { name: "Barbearia", description: "Sistema de agendamento simples e profissional para barbearias.", link: "https://barber00.vercel.app/", image: barbeariaDemo },
-                    { name: "Pizzaria Fogo", description: "Plataforma completa com pedidos integrados e painel administrativo.", link: "https://pizzariafogo.novaesweb.site/", image: pizzariaFogoDemo },
-                    { name: "Açaí Delivery", description: "Loja online para venda de açaí com controle de pedidos.", link: "https://demoacai.vercel.app/", image: acaiDemo },
-                  ].map((item, index) => (
+                  {demos.map((item, index) => (
                     <motion.a
-                      key={index}
+                      key={item.id}
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -197,17 +210,17 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className="group rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 hover:bg-[hsl(var(--muted))]/60 hover:border-[hsl(var(--primary))]/40 transition-all duration-300 overflow-hidden"
                     >
-                      {item.image && (
+                      {item.imagem_url && (
                         <motion.div className="w-full h-28 overflow-hidden" whileHover={{ scale: 1.05 }} transition={{ duration: 0.4 }}>
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          <img src={item.imagem_url} alt={item.nome} className="w-full h-full object-cover" />
                         </motion.div>
                       )}
                       <div className="p-5">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">{item.name}</h3>
+                          <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">{item.nome}</h3>
                           <ArrowRight className="w-4 h-4 text-[hsl(var(--primary))] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{item.description}</p>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{item.descricao}</p>
                       </div>
                     </motion.a>
                   ))}

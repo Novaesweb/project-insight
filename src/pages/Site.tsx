@@ -1,8 +1,8 @@
 import { useState, lazy, Suspense } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
-import PizzariaFogoBanner from "@/components/site/PizzariaFogoBanner";
 import DemoButtonSection from "@/components/site/DemoButtonSection";
+import WhatsAppFloat from "@/components/site/WhatsAppFloat";
 
 // Lazy load below-fold sections
 const TrustedBySection = lazy(() => import("@/components/site/TrustedBySection"));
@@ -26,9 +26,6 @@ export default function Site() {
       
       {/* Demo Button */}
       <DemoButtonSection onOpenDemo={() => setModalOpen("demonstracao")} />
-      
-      {/* Pizzaria Fogo Banner */}
-      <PizzariaFogoBanner />
       
       <Suspense fallback={null}>
         <TrustedBySection />
@@ -61,7 +58,7 @@ export default function Site() {
         <SiteFooter onOpenModal={setModalOpen} />
       </Suspense>
 
-      
+      <WhatsAppFloat />
     </div>
   );
 }

@@ -206,6 +206,39 @@ export type Database = {
           },
         ]
       }
+      demo_sites: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          imagem_url: string | null
+          link: string
+          nome: string
+          ordem: number | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          link: string
+          nome: string
+          ordem?: number | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          link?: string
+          nome?: string
+          ordem?: number | null
+        }
+        Relationships: []
+      }
       extras_catalogo: {
         Row: {
           categoria: string
