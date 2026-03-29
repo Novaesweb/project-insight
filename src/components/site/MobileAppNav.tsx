@@ -1,12 +1,27 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Home, Layout, UserPlus, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MobileAppNavProps {
   onOpenModal?: (type: string) => void;
 }
 
 export default function MobileAppNav({ onOpenModal }: MobileAppNavProps) {
+  const [waNumber, setWaNumber] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "whatsapp_number")
+      .single()
+      .then(({ data }) => {
+        if (data?.value) setWaNumber(data.value);
+      });
+  }, []);
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -16,7 +31,10 @@ export default function MobileAppNav({ onOpenModal }: MobileAppNavProps) {
     { id: "hero", label: "Início", icon: Home, action: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
     { id: "demos", label: "Demos", icon: Layout, action: () => scrollTo("demonstracao") },
     { id: "cadastro", label: "Começar", icon: UserPlus, action: () => scrollTo("cadastro"), highlight: true },
-    { id: "whatsapp", label: "Suporte", icon: MessageCircle, action: () => window.open("https://wa.me/5511999999999", "_blank") }, // Placeholder WHATSAPP
+    { id: "whatsapp", label: "Consultor", icon: MessageCircle, action: () => {
+      const msg = encodeURIComponent("Olá! Estou no site da NovaesWeb e gostaria de uma consultoria gratuita.");
+      window.open(`https://wa.me/${waNumber.replace(/\D/g, "")}?text=${msg}`, "_blank");
+    }},
   ];
 
   return (
