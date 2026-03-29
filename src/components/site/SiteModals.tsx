@@ -1,10 +1,8 @@
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Eye, Heart, Users, Globe, Shield, Zap, ArrowRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import aboutPhoto from "@/assets/about-novaesweb.webp";
-import bellaMassaDemo from "@/assets/demo-bella-massa.jpg";
-import barbeariaDemo from "@/assets/demo-barbearia.jpg";
-import pizzariaFogoDemo from "@/assets/demo-pizzaria-fogo.jpg";
-import acaiDemo from "@/assets/demo-acai.jpg";
 import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
