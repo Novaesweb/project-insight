@@ -104,7 +104,7 @@ export default function PlanosSection() {
               key={plan.tag}
               variants={fade}
               className={cn(
-                "relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col border transition-all duration-500 group overflow-hidden",
+                "relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col border transition-all duration-500 group",
                 plan.popular
                   ? "border-[hsl(var(--primary))]/30 bg-white/[0.04] md:scale-[1.03] md:-my-2 shadow-2xl shadow-[hsl(var(--primary))]/10"
                   : "border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
@@ -123,7 +123,9 @@ export default function PlanosSection() {
               )}
 
               {/* Background ambient */}
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] opacity-30 pointer-events-none" style={{ background: plan.glowColor }} />
+              <div className="absolute inset-0 rounded-[1.75rem] overflow-hidden pointer-events-none">
+                <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] opacity-30" style={{ background: plan.glowColor }} />
+              </div>
 
               {/* Header */}
               <div className="flex items-start gap-3 mb-4 mt-1">

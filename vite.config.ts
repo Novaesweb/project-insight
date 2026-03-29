@@ -13,6 +13,10 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'NovaesWeb - Painel Administrativo',

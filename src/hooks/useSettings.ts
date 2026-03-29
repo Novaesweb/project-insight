@@ -112,7 +112,11 @@ export function useSettings() {
     if (result.ok) {
       toast({ title: "Pulsar emitido!", description: "Verifique seu terminal de notificações." });
     } else {
-      toast({ title: "Falha no pulso", variant: "destructive" });
+      toast({ 
+        title: "Falha no pulso", 
+        description: result.message || (result.errors && result.errors.length > 0 ? result.errors[0] : "Erro na função de envio"),
+        variant: "destructive" 
+      });
     }
     setTestLoading(false);
   };

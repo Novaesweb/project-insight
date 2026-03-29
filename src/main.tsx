@@ -1,7 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { registerSW } from "virtual:pwa-register";
 
+registerSW({ immediate: true });
 // Play notification sound when push arrives and app is open
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("message", (event) => {
