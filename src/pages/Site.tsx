@@ -8,6 +8,7 @@ const TrustedBySection = lazy(() => import("@/components/site/TrustedBySection")
 const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSection"));
 const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
 const PlanosSection = lazy(() => import("@/components/site/PlanosSection"));
+const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
 const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection"));
 const SiteModals = lazy(() => import("@/components/site/SiteModals"));
 const CtaSection = lazy(() => import("@/components/site/CtaSection"));
@@ -35,6 +36,9 @@ export default function Site() {
       </Suspense>
       <Suspense fallback={null}>
         <PlanosSection />
+      </Suspense>
+      <Suspense fallback={null}>
+        <CadastroPerfeitoSection />
       </Suspense>
       <Suspense fallback={null}>
         <ResultadosSection />
