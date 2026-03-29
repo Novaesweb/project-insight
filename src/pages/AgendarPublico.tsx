@@ -118,6 +118,18 @@ export default function AgendarPublico() {
         status: "novo",
       });
 
+      supabase.functions.invoke("send-lead-email", {
+        body: {
+          nome: formData.nome,
+          email: formData.email,
+          whatsapp: formData.telefone.replace(/\D/g, ""),
+          nome_negocio: "Agendamento via Site",
+          tipo_negocio: formData.tipo,
+          servicos: [formData.tipo || "alinhamento"],
+          mensagem: `REUNIÃO PARA: ${format(selectedDate, "dd/MM")} às ${selectedTime}\n\n${formData.mensagem}`,
+        }
+      });
+
       sendPushToAdmins("📅 Nova Reunião Agendada", `${formData.nome} solicitou uma reunião para ${format(selectedDate, "dd/MM")}.`, "/admin/agenda");
       setConfirmed(true);
       setLoading(false);
