@@ -24,8 +24,9 @@ export default function LandingPage() {
       <section className="min-h-screen flex items-center justify-center px-6 relative">
         {/* Background Effects */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-red-500/10 rounded-full blur-[150px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px]" />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[100px]" />
         </div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -36,8 +37,8 @@ export default function LandingPage() {
             className="text-5xl md:text-7xl font-black mb-6 leading-tight"
           >
             Seu site não é só um site.<br />
-            <span className="text-red-500">É uma estrutura feita para gerar</span><br />
-            <span className="text-orange-500">clientes todos os dias.</span>
+            <span className="text-purple-500">É uma estrutura feita para gerar</span><br />
+            <span className="text-red-500">clientes todos os dias.</span>
           </motion.h1>
           
           <motion.p 
@@ -57,7 +58,7 @@ export default function LandingPage() {
           >
             <Button 
               size="lg" 
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-red-600/25"
+              className="bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-purple-600/25"
               onClick={() => scrollToSection('contato')}
             >
               Quero meu site
@@ -90,7 +91,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              O <span className="text-red-500">problema</span> que muitos negócios enfrentam
+              O <span className="text-purple-500">problema</span> que muitos negócios enfrentam
             </motion.h2>
             
             <motion.p 
@@ -118,7 +119,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              Nossa <span className="text-orange-500">solução</span>
+              Nossa <span className="text-red-500">solução</span>
             </motion.h2>
             
             <motion.p 
@@ -146,7 +147,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              Como <span className="text-red-500">funciona</span>
+              Como <span className="text-purple-500">funciona</span>
             </motion.h2>
           </motion.div>
           
@@ -162,7 +163,7 @@ export default function LandingPage() {
                 variants={fadeUp}
                 className="text-center"
               >
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-2xl shadow-red-500/25">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 via-red-500 to-pink-500 rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-2xl shadow-purple-500/25">
                   {item.step}
                 </div>
                 <h3 className="text-xl font-bold mb-4">{item.title}</h3>
@@ -187,7 +188,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              <span className="text-orange-500">Benefícios</span> para seu negócio
+              <span className="text-red-500">Benefícios</span> para seu negócio
             </motion.h2>
           </motion.div>
           
@@ -205,7 +206,7 @@ export default function LandingPage() {
                 variants={fadeUp}
                 className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-red-500/50 transition-all duration-300"
               >
-                <item.icon className="w-12 h-12 text-red-500 mb-6" />
+                <item.icon className="w-12 h-12 text-purple-500 mb-6" />
                 <h3 className="text-xl font-bold mb-4">{item.title}</h3>
                 <p className="text-gray-400">{item.desc}</p>
               </motion.div>
@@ -228,7 +229,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              <span className="text-red-500">Exemplo prático</span>
+              <span className="text-purple-500">Exemplo prático</span>
             </motion.h2>
           </motion.div>
           
@@ -237,7 +238,7 @@ export default function LandingPage() {
             className="grid md:grid-cols-2 gap-12"
           >
             <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
-              <h3 className="text-2xl font-bold mb-6 text-orange-500">👨‍⚖️ Advogado</h3>
+              <h3 className="text-2xl font-bold mb-6 text-purple-500">👨‍⚖️ Advogado</h3>
               <p className="text-gray-300 mb-6">
                 Site simples com suas informações, áreas de atuação e um botão direto para o WhatsApp. 
                 Clientes marcam consultas facilmente.
@@ -296,7 +297,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              Nosso <span className="text-orange-500">diferencial</span>
+              Nosso <span className="text-purple-500">diferencial</span>
             </motion.h2>
             
             <motion.p 
@@ -311,7 +312,7 @@ export default function LandingPage() {
       </section>
 
       {/* FRASE DE IMPACTO */}
-      <section className="py-24 px-6 bg-gradient-to-r from-red-600 to-orange-600">
+      <section className="py-24 px-6 bg-gradient-to-r from-purple-600 via-red-600 to-pink-600">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2 
             initial={{ opacity: 0, scale: 0.9 }}
@@ -338,7 +339,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="text-4xl md:text-5xl font-black mb-8"
             >
-              Quer ter um site profissional que <span className="text-red-500">realmente traz clientes</span>?
+              Quer ter um site profissional que <span className="text-purple-500">realmente traz clientes</span>?
             </motion.h2>
             
             <motion.p 
@@ -364,7 +365,7 @@ export default function LandingPage() {
               
               <Link 
                 to="/agendar"
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-red-600/25 inline-flex items-center gap-3"
+                className="bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-purple-600/25 inline-flex items-center gap-3"
               >
                 <Phone className="w-6 h-6" />
                 Agendar Reunião

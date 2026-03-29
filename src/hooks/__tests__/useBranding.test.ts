@@ -36,7 +36,7 @@ describe('useBranding Hook', () => {
     const { result } = renderHook(() => useBranding());
     
     expect(result.current).toEqual({
-      logo: '/novaesweb-v10-seal-final.png',
+      logo: '/novaesweb-logo.png',
       primary_color: '#e8334a',
       nome: 'NovaesWeb'
     });
@@ -71,7 +71,7 @@ describe('useBranding Hook', () => {
     expect(result.current).toHaveProperty('nome');
     
     // Verify default values
-    expect(result.current.logo).toBe('/novaesweb-v10-seal-final.png');
+    expect(result.current.logo).toBe('/novaesweb-logo.png');
     expect(result.current.primary_color).toBe('#e8334a');
     expect(result.current.nome).toBe('NovaesWeb');
   });
