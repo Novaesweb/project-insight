@@ -262,6 +262,9 @@ export default function Cadastro() {
                       Vamos <span className="italic text-white/20">decolar</span><br />seu projeto?
                     </h1>
                     <p className="text-white/35 text-base lg:text-lg font-medium max-w-sm leading-relaxed">
+                      Sua empresa precisa de um site e nós temos a solução para criar a melhor estrutura, do jeito que o seu estabelecimento merece.
+                    </p>
+                    <p className="text-white/20 text-sm font-medium max-w-sm leading-relaxed">
                       Responda algumas perguntas rápidas e nossa equipe entra em contato com a solução ideal.
                     </p>
                   </div>
