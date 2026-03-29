@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -307,6 +308,7 @@ export default function Projetos() {
   const [view, setView] = useState<"lista" | "kanban">("kanban");
   const [projetos, setProjetos] = useState<any[]>([]);
   const [selectedProjeto, setSelectedProjeto] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("projetos").select("*, clientes(nome)").order("updated_at", { ascending: false });
@@ -314,6 +316,33 @@ export default function Projetos() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId) return;
+
+    const newStatus = destination.droppableId;
+    const progressMap: Record<string, number> = { briefing: 20, design: 40, desenvolvimento: 60, homologacao: 85, concluido: 100 };
+    const newProgress = progressMap[newStatus];
+
+    // Optimistic UI update
+    setProjetos(prev => prev.map(p => {
+      if (p.id === draggableId) return { ...p, status: newStatus, progresso: newProgress !== undefined ? newProgress : p.progresso };
+      return p;
+    }));
+
+    // Data-sync
+    const { error } = await supabase.from("projetos").update({ 
+      status: newStatus, 
+      progresso: newProgress !== undefined ? newProgress : 0 
+    }).eq("id", draggableId);
+
+    if (error) {
+       toast({ title: "Falha de Sincronia", description: "O servidor rejeitou a atualização.", variant: "destructive" });
+       load(); // rollback to real DB state
+    }
+  };
 
   if (selectedProjeto) return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} />;
 
@@ -328,25 +357,58 @@ export default function Projetos() {
       </div>
 
       {view === "kanban" ? (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {kanbanColumns.map(col => {
-            const items = projetos.filter(p => p.status === col.key);
-            return (
-              <div key={col.key} className="space-y-3">
-                <div className="flex items-center gap-2 px-2 border-l-2 border-primary/20"><span className="text-[10px] font-bold text-white/40 uppercase">{col.label}</span></div>
-                {items.map(p => (
-                  <Card key={p.id} className="glass-card border-white/5 hover:border-primary/20 cursor-pointer group" onClick={() => setSelectedProjeto(p.id)}>
-                    <CardContent className="p-4 space-y-3">
-                      <p className="font-bold text-sm text-white group-hover:text-primary transition-colors">{p.titulo}</p>
-                      <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden"><div className="h-full gradient-primary" style={{ width: `${p.progresso}%` }} /></div>
-                      <div className="flex items-center justify-between text-[10px] text-white/40 font-mono"><p>{p.clientes?.nome}</p><p>{p.progresso}%</p></div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            );
-          })}
-        </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+            {kanbanColumns.map(col => {
+              const items = projetos.filter(p => p.status === col.key);
+              return (
+                <div key={col.key} className="flex flex-col gap-3 min-h-[300px]">
+                  <div className="flex items-center gap-2 px-2 border-l-2 border-primary/20 shrink-0">
+                    <span className="text-[10px] font-bold text-white/40 uppercase">{col.label}</span>
+                  </div>
+                  
+                  <Droppable droppableId={col.key}>
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef} 
+                        {...provided.droppableProps} 
+                        className={`flex flex-col gap-3 flex-1 p-2 rounded-xl transition-colors ${snapshot.isDraggingOver ? "bg-white/5" : "bg-transparent"}`}
+                      >
+                        {items.map((p, index) => (
+                          <Draggable key={p.id} draggableId={p.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  opacity: snapshot.isDragging ? 0.9 : 1
+                                }}
+                              >
+                                <Card 
+                                  className={`glass-card border-white/5 hover:border-primary/20 cursor-grab active:cursor-grabbing group shadow-md transition-shadow ${snapshot.isDragging ? "ring-2 ring-primary bg-black/40 shadow-xl shadow-primary/20 scale-[1.02]" : ""}`} 
+                                  onClick={() => !snapshot.isDragging && setSelectedProjeto(p.id)}
+                                >
+                                  <CardContent className="p-4 space-y-3">
+                                    <p className="font-bold text-sm text-white group-hover:text-primary transition-colors">{p.titulo}</p>
+                                    <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden"><div className="h-full gradient-primary" style={{ width: `${p.progresso}%` }} /></div>
+                                    <div className="flex items-center justify-between text-[10px] text-white/40 font-mono"><p className="truncate pr-2">{p.clientes?.nome}</p><p>{p.progresso}%</p></div>
+                                  </CardContent>
+                                </Card>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              );
+            })}
+          </div>
+        </DragDropContext>
       ) : (
         <Card className="glass-card border-[0.5px]">
           <CardContent className="pt-6">

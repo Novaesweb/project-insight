@@ -70,7 +70,9 @@ export default defineConfig({
           utils: ['clsx', 'tailwind-merge', 'class-variance-authority'],
           charts: ['recharts'],
           supabase: ['@supabase/supabase-js'],
-          animations: ['framer-motion']
+          animations: ['framer-motion'],
+          icons: ['lucide-react'],
+          dnd: ['@hello-pangea/dnd']
         },
         // Optimize chunk sizes
         chunkFileNames: 'assets/[name]-[hash].js',

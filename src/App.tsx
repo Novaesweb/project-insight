@@ -23,51 +23,53 @@ import NativeNotificationManager from "@/components/NativeNotificationManager";
 import HttpsRedirect from "@/components/HttpsRedirect";
 import { getQueryClient } from "@/lib/query-client";
 
-// Regular imports for now - lazy loading can be added later
+// Importações críticas em memória (carregados no bundle principal)
 import Site from "./pages/Site";
 import Index from "./pages/Index";
-import Clientes from "./pages/Clientes";
-import Projetos from "./pages/Projetos";
-import Pedidos from "./pages/Pedidos";
-import Extras from "./pages/Extras";
-import Relatorios from "./pages/Relatorios";
-import Financeiro from "./pages/Financeiro";
-import Suporte from "./pages/Suporte";
-import Usuarios from "./pages/Usuarios";
-import Leads from "./pages/Leads";
-import Configuracoes from "./pages/Configuracoes";
-import Agenda from "./pages/Agenda";
-import Contratos from "./pages/Contratos";
-import AdminRevenda from "./pages/admin/AdminRevenda";
-import AgendarPublico from "./pages/AgendarPublico";
-import Cadastro from "./pages/Cadastro";
-import Funcionalidades from "./pages/Funcionalidades";
-import NichePage from "./pages/NichePage";
-import Instalar from "./pages/Instalar";
-import LandingPage from "./pages/LandingPage";
-import ClienteLogin from "./pages/cliente/ClienteLogin";
-import ClienteDashboard from "./pages/cliente/ClienteDashboard";
-import ClienteProjetos from "./pages/cliente/ClienteProjetos";
-import ClienteExtras from "./pages/cliente/ClienteExtras";
-import ClienteContratos from "./pages/cliente/ClienteContratos";
-import ClienteFaturas from "./pages/cliente/ClienteFaturas";
-import ClienteReunioes from "./pages/cliente/ClienteReunioes";
-import ClienteSuporte from "./pages/cliente/ClienteSuporte";
-import ClienteDados from "./pages/cliente/ClienteDados";
-import ClienteArquivos from "./pages/cliente/ClienteArquivos";
-import ClienteReferral from "./pages/cliente/ClienteReferral";
-import ResellerLayout from "@/components/ResellerLayout";
-import ResellerDashboard from "./pages/reseller/ResellerDashboard";
-import ResellerIndicacoes from "./pages/reseller/ResellerIndicacoes";
-import ResellerFinanceiro from "./pages/reseller/ResellerFinanceiro";
-import ResellerMateriais from "./pages/reseller/ResellerMateriais";
-import NotFound from "@/pages/NotFound";
-import AdminMenu from "@/pages/AdminMenu";
-import AdminDepoimentos from "@/pages/AdminDepoimentos";
-import AdminConfig from "@/pages/admin/AdminConfig";
-import ClientePedidosFome from "./pages/cliente/ClientePedidosFome";
-import AdminLogin from "./pages/AdminLogin";
-import ClienteLayout from "@/components/ClienteLayout";
+
+// Divisões Assíncronas (Lazy Loaded Chunks)
+const Clientes = React.lazy(() => import("./pages/Clientes"));
+const Projetos = React.lazy(() => import("./pages/Projetos"));
+const Pedidos = React.lazy(() => import("./pages/Pedidos"));
+const Extras = React.lazy(() => import("./pages/Extras"));
+const Relatorios = React.lazy(() => import("./pages/Relatorios"));
+const Financeiro = React.lazy(() => import("./pages/Financeiro"));
+const Suporte = React.lazy(() => import("./pages/Suporte"));
+const Usuarios = React.lazy(() => import("./pages/Usuarios"));
+const Leads = React.lazy(() => import("./pages/Leads"));
+const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
+const Agenda = React.lazy(() => import("./pages/Agenda"));
+const Contratos = React.lazy(() => import("./pages/Contratos"));
+const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
+const AgendarPublico = React.lazy(() => import("./pages/AgendarPublico"));
+const Cadastro = React.lazy(() => import("./pages/Cadastro"));
+const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
+const NichePage = React.lazy(() => import("./pages/NichePage"));
+const Instalar = React.lazy(() => import("./pages/Instalar"));
+const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
+const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
+const ClienteProjetos = React.lazy(() => import("./pages/cliente/ClienteProjetos"));
+const ClienteExtras = React.lazy(() => import("./pages/cliente/ClienteExtras"));
+const ClienteContratos = React.lazy(() => import("./pages/cliente/ClienteContratos"));
+const ClienteFaturas = React.lazy(() => import("./pages/cliente/ClienteFaturas"));
+const ClienteReunioes = React.lazy(() => import("./pages/cliente/ClienteReunioes"));
+const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte"));
+const ClienteDados = React.lazy(() => import("./pages/cliente/ClienteDados"));
+const ClienteArquivos = React.lazy(() => import("./pages/cliente/ClienteArquivos"));
+const ClienteReferral = React.lazy(() => import("./pages/cliente/ClienteReferral"));
+const ResellerLayout = React.lazy(() => import("@/components/ResellerLayout"));
+const ResellerDashboard = React.lazy(() => import("./pages/reseller/ResellerDashboard"));
+const ResellerIndicacoes = React.lazy(() => import("./pages/reseller/ResellerIndicacoes"));
+const ResellerFinanceiro = React.lazy(() => import("./pages/reseller/ResellerFinanceiro"));
+const ResellerMateriais = React.lazy(() => import("./pages/reseller/ResellerMateriais"));
+const NotFound = React.lazy(() => import("@/pages/NotFound"));
+const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
+const AdminDepoimentos = React.lazy(() => import("@/pages/AdminDepoimentos"));
+const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
+const ClientePedidosFome = React.lazy(() => import("./pages/cliente/ClientePedidosFome"));
+const AdminLogin = React.lazy(() => import("./pages/AdminLogin"));
+const ClienteLayout = React.lazy(() => import("@/components/ClienteLayout"));
 
 import { useLocation } from "react-router-dom";
 
@@ -98,8 +100,9 @@ function AdminWithSplash() {
   return (
     <ThemeProvider>
       <AdminLayout>
-        <Routes>
-          <Route path="/" element={<Index />} />
+        <React.Suspense fallback={<SplashScreen />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/leads" element={<Leads />} />
           <Route path="/projetos" element={<Projetos />} />
@@ -116,8 +119,9 @@ function AdminWithSplash() {
           <Route path="/menu" element={<AdminMenu />} />
           <Route path="/depoimentos" element={<AdminDepoimentos />} />
           <Route path="/configuracoes" element={<AdminConfig />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<React.Suspense fallback={<SplashScreen />}><NotFound /></React.Suspense>} />
+          </Routes>
+        </React.Suspense>
       </AdminLayout>
     </ThemeProvider>
   );
@@ -152,8 +156,9 @@ const App = () => (
             <Sonner />
             <DesktopNavigationHandler />
             <ReferralTracker />
-            <Routes>
-              {/* Public Site */}
+            <React.Suspense fallback={<SplashScreen />}>
+              <Routes>
+                {/* Public Site */}
               <Route path="/" element={<Site />} />
               <Route path="/site" element={<Site />} />
               <Route path="/nicho/:slug" element={<NichePage />} />
@@ -208,8 +213,9 @@ const App = () => (
                 </ResellerLayout>
               } />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                <Route path="*" element={<React.Suspense fallback={<SplashScreen />}><NotFound /></React.Suspense>} />
+              </Routes>
+            </React.Suspense>
           </BrowserRouter>
         </HttpsRedirect>
       </TooltipProvider>
