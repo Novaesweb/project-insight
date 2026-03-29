@@ -111,9 +111,7 @@ export default function PortfolioSection() {
           >
             {/* Browser mockup */}
             <a 
-              href={demo.link} 
-              target="_blank" 
-              rel="noopener noreferrer" 
+              href="#cadastro-perfeito" 
               className="group relative block"
             >
               {/* Tag badge */}
@@ -145,9 +143,9 @@ export default function PortfolioSection() {
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                   />
                   {/* Hover overlay indicator */}
-                  <div className="absolute inset-0 bg-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-semibold flex items-center gap-2">
-                       Acessar demonstração <ExternalLink className="w-3 h-3" />
+                       Tenho Interesse <ExternalLink className="w-3 h-3" />
                     </div>
                   </div>
                   {/* Gradient overlay at bottom */}
