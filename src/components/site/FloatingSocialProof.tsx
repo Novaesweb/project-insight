@@ -10,6 +10,19 @@ const LEADS = [
   { name: "Bruno", city: "Salvador", action: "recebeu proposta de", service: "Arquitetura de Gestão", icon: Smartphone },
   { name: "Fernanda", city: "Porto Alegre", action: "iniciou um projeto", service: "Arquitetura Express", icon: Globe },
   { name: "Gustavo", city: "Brasília", action: "ativou o módulo", service: "Gestão de Leads", icon: CheckCircle },
+  { name: "Camila", city: "Fortaleza", action: "solicitou orçamento", service: "Arquitetura sob Medida", icon: Layout },
+  { name: "Felipe", city: "Recife", action: "iniciou um projeto", service: "Arquitetura Express", icon: Globe },
+  { name: "Juliana", city: "Goiânia", action: "ativou o módulo", service: "Catálogo Online", icon: ShoppingCart },
+  { name: "Thiago", city: "Campinas", action: "acaba de fechar", service: "Arquitetura de Gestão", icon: Zap },
+  { name: "Sophia", city: "Florianópolis", action: "iniciou um projeto", service: "Arquitetura sob Medida", icon: Layout },
+  { name: "Diego", city: "Manaus", action: "solicitou orçamento", service: "Arquitetura Express", icon: Globe },
+  { name: "Beatriz", city: "Vitória", action: "ativou o módulo", service: "Automação WhatsApp", icon: Zap },
+  { name: "Rodrigo", city: "Natal", action: "acaba de fechar", service: "Arquitetura de Gestão", icon: Smartphone },
+  { name: "Larissa", city: "Belém", action: "iniciou um projeto", service: "Arquitetura Express", icon: Globe },
+  { name: "Gabriel", city: "Joinville", action: "ativou o módulo", service: "Gestão de Leads", icon: CheckCircle },
+  { name: "Vanessa", city: "Londrina", action: "solicitou orçamento", service: "Arquitetura sob Medida", icon: Layout },
+  { name: "Leonardo", city: "Caxias do Sul", action: "iniciou um projeto", service: "Arquitetura de Gestão", icon: ShoppingCart },
+  { name: "Clara", city: "Teresina", action: "acaba de fechar", service: "Arquitetura Express", icon: Globe },
 ];
 
 export default function FloatingSocialProof() {
@@ -26,7 +39,7 @@ export default function FloatingSocialProof() {
         setIndex((prev) => (prev + 1) % LEADS.length);
         setVisible(true);
       }, 1000);
-    }, 15000); // Muda a cada 15 segs
+    }, 10000); // Muda a cada 10 segs
 
     return () => {
       clearTimeout(initialTimer);
