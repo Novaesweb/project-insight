@@ -18,6 +18,8 @@ const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection
 const SiteModals = lazy(() => import("@/components/site/SiteModals"));
 const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
 const CtaSection = lazy(() => import("@/components/site/CtaSection"));
+const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
+const DiferencialSection = lazy(() => import("@/components/site/DiferencialSection"));
 const SiteFooter = lazy(() => import("@/components/site/SiteFooter"));
 
 export default function Site() {
@@ -41,6 +43,9 @@ export default function Site() {
         <ServicosSection onOpenModal={setModalOpen} />
       </Suspense>
       <Suspense fallback={null}>
+        <ComoFuncionaSection />
+      </Suspense>
+      <Suspense fallback={null}>
         <AutomacaoSection />
       </Suspense>
       <Suspense fallback={null}>
@@ -53,6 +58,9 @@ export default function Site() {
       </Suspense>
       <Suspense fallback={null}>
         <ProcessoSection />
+      </Suspense>
+      <Suspense fallback={null}>
+        <DiferencialSection />
       </Suspense>
       <Suspense fallback={null}>
         <PlanosSection />

@@ -6,20 +6,20 @@ export default function ExperienceSection() {
   const pillars = [
     {
       icon: Network,
-      title: "Estrutura",
-      description: "Construímos mais que páginas; criamos ecossistemas digitais que sustentam o crescimento do seu negócio.",
+      title: "Estrutura Digital",
+      description: "Criamos ecossistemas completos que transformam visitantes em clientes todos os dias. Mais que sites, máquinas de vendas.",
       color: "from-purple-500 to-indigo-500"
     },
     {
       icon: TrendingUp,
-      title: "Mudança de Valor",
-      description: "Quando mudamos a linguagem, mudamos a percepção. E quando a percepção muda, o valor do seu negócio decola.",
+      title: "Resultado Comprovado",
+      description: "36+ empresas transformadas, +300% de contatos, 100% satisfação. Não é teoria, são números reais de clientes conquistados.",
       color: "from-primary to-accent"
     },
     {
       icon: Cpu,
-      title: "Arquitetura Inteligente",
-      description: "Não focamos apenas na execução visual, mas na engenharia por trás de cada interação para gerar resultados reais.",
+      title: "Tecnologia que Vende",
+      description: "Arquitetura pensada para conversão. Cada botão, cada cor, cada palavra é estrategicamente colocada para gerar mais clientes.",
       color: "from-emerald-500 to-teal-500"
     }
   ];
