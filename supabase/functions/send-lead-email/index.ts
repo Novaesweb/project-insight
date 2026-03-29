@@ -41,7 +41,7 @@ serve(async (req: Request) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "NovaesWeb <contato@novaesweb.site>",
+        from: "NovaesWeb <onboarding@resend.dev>",
         to: ["novaesweb@gmail.com"],
         subject: `🚨 NOVO LEAD: ${nome} (@${nome_negocio})`,
         html: `
@@ -84,9 +84,8 @@ serve(async (req: Request) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "NovaesWeb <contato@novaesweb.site>",
+        from: "NovaesWeb <onboarding@resend.dev>",
         to: [email],
-        reply_to: "novaesweb@gmail.com",
         subject: `[Novaes Web] O planejamento do seu projeto começou, ${nome.split(' ')[0]}! 🚀`,
         html: `
           <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #07080a; color: #ffffff; padding: 0; border-radius: 24px; overflow: hidden; border: 1px solid #1a1f2e;">
