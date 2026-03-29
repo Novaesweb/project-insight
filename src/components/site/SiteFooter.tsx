@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ShieldCheck, Star, Users, Target, Lock, FileText, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.webp";
 import sealImg from "@/assets/novaesweb-v10-seal-final.webp";
-import novaeswebSymbol from "@/assets/novaesweb-main-logo.webp";
+import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
 import { scrollTo } from "@/lib/utils";
 
 interface SiteFooterProps {
