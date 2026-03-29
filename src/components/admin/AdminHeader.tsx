@@ -24,76 +24,6 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const pageTitle = title || pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin";
   const pageSubtitle = subtitle || "novaesweb • Gestão Digital";
 
-  const handleTestPush = async () => {
-    try {
-      console.log("🔔 Iniciando teste de push notification...");
-      
-      // Verificar suporte
-      const supported = await ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
-      console.log("📱 Push suportado:", supported);
-      
-      if (!supported) {
-        toast({
-          title: "❌ Não Suportado",
-          description: "Seu navegador não suporta notificações push. Use Chrome ou Firefox.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Verificar permissão
-      const permission = Notification.permission;
-      console.log("🔐 Permissão atual:", permission);
-      
-      if (permission === 'denied') {
-        toast({
-          title: "❌ Bloqueado",
-          description: "Notificações bloqueadas. Habilite nas configurações do navegador.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Verificar inscrição
-      const registration = await navigator.serviceWorker.getRegistration('/');
-      const subscription = await registration?.pushManager.getSubscription();
-      console.log("📋 Inscrição:", !!subscription);
-      
-      if (!subscription) {
-        toast({
-          title: "❌ Não Inscrito",
-          description: "Vá em Configurações > Notificações para ativar primeiro.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Enviar teste
-      const result = await sendTestNotification();
-      console.log("📊 Resultado do teste:", result);
-      
-      if (result.ok) {
-        toast({
-          title: "🔔 Notificação Enviada!",
-          description: `Sucesso! ${result.sent}/${result.total} notificações enviadas.`,
-        });
-      } else {
-        toast({
-          title: "❌ Falha no Envio",
-          description: result.message || "Erro desconhecido.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("❌ Erro no teste de push:", error);
-      toast({
-        title: "❌ Erro",
-        description: error instanceof Error ? error.message : "Falha ao enviar notificação.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <header className="h-20 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 bg-[var(--admin-bg)]/80 backdrop-blur-xl border-b border-white/[0.06]">
       {/* Top gold line */}
@@ -124,16 +54,6 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         <GlobalSearch />
         <div className="h-4 w-px bg-white/10 mx-2 hidden sm:block" />
         <div className="flex items-center gap-1.5 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg hover:bg-blue-500/10" 
-            onClick={handleTestPush}
-            aria-label="Testar Notificação"
-            title="Testar Notificação Push"
-          >
-            <Bell className="w-4 h-4" />
-          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
