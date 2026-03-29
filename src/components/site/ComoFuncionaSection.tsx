@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, Zap, Users, Target } from "lucide-react";
+import { CheckCircle, Zap, Users, Target } from "lucide-react";
 
 const fade = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.1 } } };
@@ -39,7 +39,7 @@ export default function ComoFuncionaSection() {
   return (
     <motion.section 
       id="como-funciona" 
-      className="py-28 px-6 bg-gradient-to-b from-gray-900 to-black"
+      className="py-28 px-6"
       initial="hidden" 
       whileInView="show" 
       viewport={{ once: true, margin: "-100px" }} 
@@ -47,49 +47,45 @@ export default function ComoFuncionaSection() {
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div variants={fade} className="text-center max-w-4xl mb-20">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-purple-400 bg-purple-900/20 px-4 py-1.5 rounded-full">
+        <motion.div variants={fade} className="text-center max-w-4xl mx-auto mb-20">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full border border-pink-500/15 bg-pink-500/[0.06] text-pink-400/80">
             Nosso Processo
           </span>
-          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
-            Como <span className="text-purple-400">transformamos</span><br />
-            <span className="text-white/60">ideias em </span><span className="text-red-400">máquinas de clientes</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
+            Como <span className="gradient-text">transformamos</span><br />
+            <span className="text-white/30">ideias em </span><span className="text-white/70">máquinas de clientes</span>
           </h2>
-          <p className="text-lg text-white/60 mt-6 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-white/35 mt-6 max-w-2xl mx-auto leading-relaxed">
             Um método comprovado que leva sua empresa do zero ao digital gerando resultados reais todos os dias.
           </p>
         </motion.div>
 
-        {/* Passos */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        {/* Steps */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {passos.map((passo, index) => (
             <motion.div
               key={index}
               variants={fade}
               className="relative"
             >
-              {/* Número */}
-              <div className="absolute -top-4 -left-4 text-8xl font-black text-purple-400 opacity-20">
+              {/* Faded number */}
+              <div className="absolute -top-4 -left-4 text-8xl font-black text-white/[0.03]">
                 {passo.numero}
               </div>
               
-              {/* Card */}
-              <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-purple-500/30 transition-all duration-300 h-full">
-                {/* Icon */}
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-red-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mb-6">
-                  <passo.icon className="w-8 h-8 text-purple-400" />
+              <div className="rounded-2xl p-8 border border-white/[0.05] bg-white/[0.02] hover:border-pink-500/15 hover:bg-white/[0.04] transition-all duration-300 h-full group">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-white/[0.06] bg-white/[0.03] group-hover:border-pink-500/20 transition-colors" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.08), rgba(168,85,247,0.06))' }}>
+                  <passo.icon className="w-7 h-7 text-pink-400/70 group-hover:text-pink-400 transition-colors" />
                 </div>
                 
-                {/* Conteúdo */}
-                <h3 className="text-xl font-bold text-white mb-4">{passo.titulo}</h3>
-                <p className="text-white/60 mb-6 leading-relaxed">{passo.descricao}</p>
+                <h3 className="text-lg font-bold text-white/85 mb-4">{passo.titulo}</h3>
+                <p className="text-white/35 mb-6 leading-relaxed text-sm">{passo.descricao}</p>
                 
-                {/* Detalhes */}
                 <div className="space-y-3">
                   {passo.detalhes.map((detalhe, idx) => (
                     <div key={idx} className="flex items-center gap-3">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-white/80">{detalhe}</span>
+                      <CheckCircle className="w-4 h-4 text-emerald-500/50 flex-shrink-0" />
+                      <span className="text-sm text-white/50">{detalhe}</span>
                     </div>
                   ))}
                 </div>
@@ -100,19 +96,17 @@ export default function ComoFuncionaSection() {
 
         {/* CTA */}
         <motion.div variants={fade} className="text-center">
-          <p className="text-lg text-white/60 mb-8">
-            Pronto para transformar seu negócio em uma máquina de clientes?
-          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="#contato"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-red-600 to-pink-600 hover:from-purple-700 hover:via-red-700 hover:to-pink-700 text-white text-lg font-black shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:shadow-[0_25px_60px_rgba(139,92,246,0.5)] hover:scale-105 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-lg font-black shadow-[0_20px_50px_rgba(168,85,247,0.2)] hover:shadow-[0_25px_60px_rgba(168,85,247,0.35)] hover:scale-105 transition-all"
+              style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)' }}
             >
               Começar Agora
             </a>
             <a 
               href="#demonstracao"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-purple-500/30 text-purple-300 text-lg font-black hover:bg-purple-500/10 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/50 text-lg font-black hover:bg-white/[0.04] hover:text-white/70 transition-all"
             >
               Ver Demonstração
             </a>
