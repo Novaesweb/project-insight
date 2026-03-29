@@ -23,11 +23,11 @@ export default function DemoButtonSection({ onOpenDemo }: DemoButtonSectionProps
           <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
             Veja nossos{" "}
             <span className="bg-gradient-to-r from-purple-400 via-red-400 to-pink-400 bg-clip-text text-transparent">
-              projetos reais
+              sites de demonstração
             </span>
           </h3>
-          <p className="text-white/40 mb-8 max-w-md mx-auto">
-            Conheça sites que já desenvolvemos para diferentes segmentos — pizzarias, barbearias, lojas e mais.
+          <p className="text-white/40 mb-8 max-w-md mx-auto leading-relaxed text-sm">
+            Temos estes e muitos outros projetos que já criamos para nossos clientes. Conheça na prática o que desenvolvemos para pizzarias, barbearias, lojas e diversos outros segmentos.
           </p>
           <Button
             onClick={onOpenDemo}
