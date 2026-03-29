@@ -7,6 +7,7 @@ import PizzariaFogoBanner from "@/components/site/PizzariaFogoBanner";
 const TrustedBySection = lazy(() => import("@/components/site/TrustedBySection"));
 const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSection"));
 const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
+const AutomacaoSection = lazy(() => import("@/components/site/AutomacaoSection"));
 const PlanosSection = lazy(() => import("@/components/site/PlanosSection"));
 const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
 const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection"));
@@ -33,6 +34,9 @@ export default function Site() {
       </Suspense>
       <Suspense fallback={null}>
         <ComoFuncionaSection />
+      </Suspense>
+      <Suspense fallback={null}>
+        <AutomacaoSection />
       </Suspense>
       <Suspense fallback={null}>
         <PlanosSection />

@@ -20,7 +20,7 @@ const results = [
 
 export default function AutomacaoSection() {
   return (
-    <motion.section className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
+    <motion.section id="automacao" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
       {/* Background — static, no blur animation */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px]" />

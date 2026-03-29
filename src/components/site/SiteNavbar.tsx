@@ -13,6 +13,7 @@ interface SiteNavbarProps {
 const navLinks = [
   { href: "#o-que-fazemos", label: "O Que Fazemos" },
   { href: "#como-funciona", label: "Como Funciona" },
+  { href: "#automacao", label: "Automação" },
   { href: "#planos", label: "Planos" },
   { href: "#contato", label: "Contato" },
 ];
