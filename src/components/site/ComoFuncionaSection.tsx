@@ -39,7 +39,7 @@ export default function ComoFuncionaSection() {
   return (
     <motion.section 
       id="como-funciona" 
-      className="py-28 px-6 bg-gradient-to-b from-black to-gray-900"
+      className="py-28 px-6 bg-gradient-to-b from-gray-900 to-black"
       initial="hidden" 
       whileInView="show" 
       viewport={{ once: true, margin: "-100px" }} 
@@ -48,12 +48,12 @@ export default function ComoFuncionaSection() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div variants={fade} className="text-center max-w-4xl mb-20">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary bg-primary/10 px-4 py-1.5 rounded-full">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-purple-400 bg-purple-900/20 px-4 py-1.5 rounded-full">
             Nosso Processo
           </span>
           <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
-            Como <span className="gradient-text">transformamos</span><br />
-            <span className="text-white/20">ideias em </span><span className="gradient-text">máquinas de clientes</span>
+            Como <span className="text-purple-400">transformamos</span><br />
+            <span className="text-white/60">ideias em </span><span className="text-red-400">máquinas de clientes</span>
           </h2>
           <p className="text-lg text-white/60 mt-6 max-w-2xl mx-auto leading-relaxed">
             Um método comprovado que leva sua empresa do zero ao digital gerando resultados reais todos os dias.
@@ -69,15 +69,15 @@ export default function ComoFuncionaSection() {
               className="relative"
             >
               {/* Número */}
-              <div className="absolute -top-4 -left-4 text-8xl font-black gradient-text opacity-20">
+              <div className="absolute -top-4 -left-4 text-8xl font-black text-purple-400 opacity-20">
                 {passo.numero}
               </div>
               
               {/* Card */}
-              <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-primary/50 transition-all duration-300 h-full">
+              <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-purple-500/30 transition-all duration-300 h-full">
                 {/* Icon */}
-                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mb-6">
-                  <passo.icon className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-red-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mb-6">
+                  <passo.icon className="w-8 h-8 text-purple-400" />
                 </div>
                 
                 {/* Conteúdo */}
@@ -106,14 +106,13 @@ export default function ComoFuncionaSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="#contato"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl gradient-primary text-white text-lg font-black shadow-[0_20px_50px_rgba(255,51,102,0.3)] hover:shadow-[0_25px_60px_rgba(255,51,102,0.5)] hover:scale-105 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-red-600 to-pink-600 hover:from-purple-700 hover:via-red-700 hover:to-pink-700 text-white text-lg font-black shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:shadow-[0_25px_60px_rgba(139,92,246,0.5)] hover:scale-105 transition-all"
             >
               Começar Agora
-              <ArrowRight className="w-5 h-5" />
             </a>
             <a 
               href="#demonstracao"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/20 text-white text-lg font-black hover:bg-white/10 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-purple-500/30 text-purple-300 text-lg font-black hover:bg-purple-500/10 transition-all"
             >
               Ver Demonstração
             </a>

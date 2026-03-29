@@ -44,8 +44,9 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-5xl md:text-7xl lg:text-[5.5rem] font-black mb-8 tracking-tighter leading-[0.85] text-white"
           >
-            <span className="block">Sua Empresa com</span>
-            <span className="gradient-text block">DNA Tecnológico</span>
+            <span className="block">Estruturas digitais que</span>
+            <span className="gradient-text block">atraem clientes</span>
+            <span className="block">todos os dias</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -53,9 +54,9 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-lg md:text-xl text-white/50 mb-14 max-w-2xl mx-auto leading-relaxed font-medium"
+            className="text-lg md:text-xl text-white/60 mb-14 max-w-2xl mx-auto leading-relaxed font-medium"
           >
-            Não entregamos apenas código. Estruturamos a base digital que escala o seu lucro e transforma sua operação em um ativo de alto valor.
+            Criamos sites profissionais, sistemas de pedidos e automações no WhatsApp que transformam visitantes em clientes de forma automática.
           </motion.p>
 
           {/* Actions */}
@@ -67,7 +68,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
           >
             <Button
               onClick={onOpenDemo}
-              className="h-16 px-12 rounded-2xl gradient-primary text-white text-lg font-black shadow-[0_20px_50px_rgba(255,51,102,0.3)] hover:shadow-[0_25px_60px_rgba(255,51,102,0.5)] hover:scale-105 transition-all group border-0 relative overflow-hidden"
+              className="h-16 px-12 rounded-2xl bg-gradient-to-r from-purple-600 via-red-600 to-pink-600 hover:from-purple-700 hover:via-red-700 hover:to-pink-700 text-white text-lg font-black shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:shadow-[0_25px_60px_rgba(139,92,246,0.5)] hover:scale-105 transition-all group border-0 relative overflow-hidden"
             >
               <span className="relative z-10 flex items-center gap-2">
                 Solicitar Demonstração
@@ -77,7 +78,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             
             <a 
               href="/landing"
-              className="h-16 px-12 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white text-lg font-black shadow-[0_20px_50px_rgba(251,146,60,0.3)] hover:shadow-[0_25px_60px_rgba(251,146,60,0.5)] hover:scale-105 transition-all group border-0 relative overflow-hidden inline-flex items-center gap-2"
+              className="h-16 px-12 rounded-2xl bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white text-lg font-black shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:shadow-[0_25px_60px_rgba(139,92,246,0.5)] hover:scale-105 transition-all group border-0 relative overflow-hidden inline-flex items-center gap-2"
             >
               <span className="relative z-10 flex items-center gap-2">
                 Sites Vitrine
