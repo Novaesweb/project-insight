@@ -1,11 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Eye, Heart, Users, Globe, Shield, Zap, ArrowRight } from "lucide-react";
 import aboutPhoto from "@/assets/about-novaesweb.webp";
-import bellaMassaDemo from "@/assets/bella-massa-demo.webp";
-import barbeariaDemo from "@/assets/barbearia-demo.webp";
-import pizzarianovaeswebDemo from "@/assets/pizzaria-novaesweb-demo.png";
-import pizzariaFogoDemo from "@/assets/pizzaria-fogo-demo.webp";
-import acaiDemo from "@/assets/acai-demo.webp";
+import bellaMassaDemo from "@/assets/demo-bella-massa.jpg";
+import barbeariaDemo from "@/assets/demo-barbearia.jpg";
+import pizzariaFogoDemo from "@/assets/demo-pizzaria-fogo.jpg";
+import acaiDemo from "@/assets/demo-acai.jpg";
 import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
