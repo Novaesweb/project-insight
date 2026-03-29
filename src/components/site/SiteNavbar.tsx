@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import novaeswebSymbol from "@/assets/novaesweb-main-logo.webp";
+import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
 
 interface SiteNavbarProps {
   onOpenModal: (id: string) => void;
