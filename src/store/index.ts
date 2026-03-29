@@ -41,8 +41,8 @@ interface Notification {
   title: string;
   message: string;
   type: 'success' | 'error' | 'warning' | 'info';
-  timestamp: Date;
-  read: boolean;
+  timestamp?: Date;
+  read?: boolean;
 }
 
 // Storage customizado para evitar erros de serialização

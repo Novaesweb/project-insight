@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileText, Image as ImageIcon, CheckCircle2, Circle, Upload, Info, Download, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

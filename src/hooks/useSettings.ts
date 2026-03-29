@@ -65,7 +65,7 @@ export function useSettings() {
 
   const handleSaveEmpresa = async () => {
     setLoading(true);
-    const updates = Object.entries(empresa).map(([key, value]) => ({ key, value }));
+    const updates = Object.entries(empresa).map(([key, value]) => ({ key, value: String(value) }));
     const { error } = await supabase.from("app_config").upsert(updates, { onConflict: "key" });
     setLoading(false);
     if (error) {
