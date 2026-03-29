@@ -78,22 +78,23 @@ export default function CadastroPerfeitoSection() {
     if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
   };
 
-  const validateStep = (step: number): boolean => {
+  const validateStep = (step: number, currentForm = form): boolean => {
     const errs: Record<string, string> = {};
-    if (step === 1 && !form.nome.trim()) errs.nome = "Campo obrigatório";
-    if (step === 2 && (!form.email.trim() || !form.email.includes("@"))) errs.email = "E-mail inválido";
-    if (step === 3 && !validateWhatsApp(form.whatsapp)) errs.whatsapp = "WhatsApp inválido";
-    if (step === 4 && !form.empresa.trim()) errs.empresa = "Campo obrigatório";
-    if (step === 5 && !form.necessidade) errs.necessidade = "Selecione uma opção";
-    if (step === 6 && !form.volume) errs.volume = "Selecione uma opção";
-    if (step === 7 && !form.origem) errs.origem = "Selecione uma opção";
-    if (step === 8 && !form.mensagem.trim()) errs.mensagem = "Conte-nos um pouco mais";
+    if (step === 1 && !currentForm.nome.trim()) errs.nome = "Campo obrigatório";
+    if (step === 2 && (!currentForm.email.trim() || !currentForm.email.includes("@"))) errs.email = "E-mail inválido";
+    if (step === 3 && !validateWhatsApp(currentForm.whatsapp)) errs.whatsapp = "WhatsApp inválido";
+    if (step === 4 && !currentForm.empresa.trim()) errs.empresa = "Campo obrigatório";
+    if (step === 5 && !currentForm.necessidade) errs.necessidade = "Selecione uma opção";
+    if (step === 6 && !currentForm.volume) errs.volume = "Selecione uma opção";
+    if (step === 7 && !currentForm.origem) errs.origem = "Selecione uma opção";
+    if (step === 8 && !currentForm.mensagem.trim()) errs.mensagem = "Conte-nos um pouco mais";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleNext = () => {
-    if (currentStep === 0 || validateStep(currentStep)) {
+  const handleNext = (field?: string, val?: string) => {
+    const data = field ? { ...form, [field]: val } : form;
+    if (currentStep === 0 || validateStep(currentStep, data)) {
       if (currentStep < 9) setCurrentStep(prev => prev + 1);
       if (currentStep === 8) handleSubmit();
     } else {
@@ -354,8 +355,9 @@ export default function CadastroPerfeitoSection() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.97 }}
                             onClick={() => {
-                              updateForm(currentStep === 5 ? "necessidade" : "origem", opt.id);
-                              setTimeout(handleNext, 350);
+                              const v = opt.id;
+                              updateForm(currentStep === 5 ? "necessidade" : "origem", v);
+                              setTimeout(() => handleNext(currentStep === 5 ? "necessidade" : "origem", v), 350);
                             }}
                             className={cn(
                               "flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all duration-300 group",
@@ -389,8 +391,9 @@ export default function CadastroPerfeitoSection() {
                             whileHover={{ x: 4 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => {
-                              updateForm("volume", opt.id);
-                              setTimeout(handleNext, 300);
+                              const v = opt.id;
+                              updateForm("volume", v);
+                              setTimeout(() => handleNext("volume", v), 300);
                             }}
                             className={cn(
                               "flex items-center gap-4 p-5 rounded-xl border-2 text-left transition-all duration-300 group",
