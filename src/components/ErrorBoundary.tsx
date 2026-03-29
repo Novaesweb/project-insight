@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
@@ -15,14 +15,11 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-    };
-  }
+  public state: State = {
+    hasError: false,
+    error: null,
+    errorInfo: null,
+  };
 
   static getDerivedStateFromError(error: Error): Partial<State> {
     return {
@@ -37,17 +34,10 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Log error to monitoring service
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     
-    // Call custom error handler if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
-    }
-
-    // In production, you might want to send this to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      // Example: Sentry.captureException(error, { contexts: { react: { componentStack: errorInfo.componentStack } } });
     }
   }
 
@@ -61,12 +51,10 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Default error UI
       return (
         <div className="flex min-h-[400px] items-center justify-center p-6">
           <div className="text-center space-y-4 max-w-md">
