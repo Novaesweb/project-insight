@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, MessageCircle, Smartphone, Users, Zap, Star, Phone, Mail, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, MessageCircle, Smartphone, Users, Zap, Star, Phone, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -13,6 +13,7 @@ const stagger = {
 };
 
 export default function LandingPage() {
+  const navigate = useNavigate();
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -20,13 +21,25 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       
+      {/* Botão Voltar */}
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        onClick={() => navigate("/")}
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#ff3366] via-[#a855f7] to-[#ec4899] text-white font-bold text-sm shadow-lg shadow-[#ff3366]/30 hover:shadow-[#a855f7]/40 hover:scale-105 transition-all duration-300"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Voltar
+      </motion.button>
+
       {/* HERO SECTION */}
       <section className="min-h-screen flex items-center justify-center px-6 relative">
         {/* Background Effects */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#ff3366]/10 rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#a855f7]/10 rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[#ec4899]/10 rounded-full blur-[100px]" />
         </div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -204,7 +217,7 @@ export default function LandingPage() {
               <motion.div
                 key={index}
                 variants={fadeUp}
-                className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-red-500/50 transition-all duration-300"
+                className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300"
               >
                 <item.icon className="w-12 h-12 text-purple-500 mb-6" />
                 <h3 className="text-xl font-bold mb-4">{item.title}</h3>
