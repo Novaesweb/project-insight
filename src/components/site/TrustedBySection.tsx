@@ -12,13 +12,13 @@ const logos = [
 
 export default function TrustedBySection() {
   return (
-    <section className="py-20 border-y border-white/5 bg-white/[0.01]">
+    <section className="py-20 border-y border-white/[0.04]">
       <div className="max-w-7xl mx-auto px-6 text-center">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-white/20 font-bold mb-12">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-white/15 font-bold mb-12">
           Empresas que confiam na Engenharia novaesweb
         </p>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 opacity-40 hover:opacity-80 transition-opacity duration-500 grayscale hover:grayscale-0">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 opacity-30 hover:opacity-60 transition-opacity duration-500 grayscale hover:grayscale-0">
           {logos.map((logo, i) => (
             <motion.div 
               key={i}
@@ -28,10 +28,10 @@ export default function TrustedBySection() {
               viewport={{ once: true }}
               className="flex flex-col items-center justify-center gap-3 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <logo.icon className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.04] flex items-center justify-center group-hover:scale-110 group-hover:border-purple-500/20 transition-all">
+                <logo.icon className="w-6 h-6 text-white/60 group-hover:text-purple-400 transition-colors" />
               </div>
-              <span className="text-[11px] font-bold text-white/60 tracking-tight">{logo.name}</span>
+              <span className="text-[11px] font-bold text-white/40 tracking-tight">{logo.name}</span>
             </motion.div>
           ))}
         </div>
@@ -39,6 +39,3 @@ export default function TrustedBySection() {
     </section>
   );
 }
-
-
-

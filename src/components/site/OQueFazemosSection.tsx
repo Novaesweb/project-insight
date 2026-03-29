@@ -35,7 +35,7 @@ export default function OQueFazemosSection() {
   return (
     <motion.section 
       id="o-que-fazemos" 
-      className="py-28 px-6 bg-gradient-to-b from-black to-gray-900"
+      className="py-28 px-6"
       initial="hidden" 
       whileInView="show" 
       viewport={{ once: true, margin: "-100px" }} 
@@ -43,39 +43,36 @@ export default function OQueFazemosSection() {
     >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div variants={fade} className="text-center max-w-4xl mb-20">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-purple-400 bg-purple-900/20 px-4 py-1.5 rounded-full">
+        <motion.div variants={fade} className="text-center max-w-4xl mx-auto mb-20">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full border border-purple-500/15 bg-purple-500/[0.06] text-purple-400/80">
             Nossos Serviços
           </span>
-          <h2 className="text-4xl sm:text-6xl font-black text-white mt-8 leading-[0.9] tracking-tighter">
-            O que <span className="text-purple-400">fazemos</span><br />
-            <span className="text-white/60">para seu </span><span className="text-red-400">negócio</span>
+          <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
+            O que <span className="gradient-text">fazemos</span><br />
+            <span className="text-white/30">para seu </span><span className="text-white/70">negócio</span>
           </h2>
-          <p className="text-lg text-white/60 mt-6 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-white/35 mt-6 max-w-2xl mx-auto leading-relaxed">
             Estruturas digitais completas que transformam visitantes em clientes recorrentes todos os dias.
           </p>
         </motion.div>
 
-        {/* Serviços */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        {/* Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {servicos.map((servico, index) => (
             <motion.div
               key={index}
               variants={fade}
-              className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 hover:border-purple-500/30 transition-all duration-300 h-full"
+              className="rounded-2xl p-8 border border-white/[0.05] bg-white/[0.02] hover:border-purple-500/15 hover:bg-white/[0.04] transition-all duration-300 h-full group"
             >
-              {/* Icon */}
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-red-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mb-6">
-                <servico.icon className="w-8 h-8 text-purple-400" />
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-white/[0.06] bg-white/[0.03] group-hover:border-purple-500/20 transition-colors" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.06))' }}>
+                <servico.icon className="w-7 h-7 text-purple-400/70 group-hover:text-purple-400 transition-colors" />
               </div>
               
-              {/* Conteúdo */}
-              <h3 className="text-xl font-bold text-white mb-4">{servico.titulo}</h3>
-              <p className="text-white/60 mb-6 leading-relaxed flex-grow">{servico.descricao}</p>
+              <h3 className="text-lg font-bold text-white/85 mb-4">{servico.titulo}</h3>
+              <p className="text-white/35 mb-6 leading-relaxed text-sm">{servico.descricao}</p>
               
-              {/* Resultado */}
-              <div className="bg-gradient-to-r from-purple-900/30 to-red-900/30 rounded-xl px-4 py-3 border border-purple-500/20">
-                <span className="text-sm font-semibold text-purple-300">{servico.resultado}</span>
+              <div className="rounded-xl px-4 py-3 border border-purple-500/10 bg-purple-500/[0.04]">
+                <span className="text-sm font-semibold gradient-text">{servico.resultado}</span>
               </div>
             </motion.div>
           ))}
@@ -83,19 +80,20 @@ export default function OQueFazemosSection() {
 
         {/* CTA */}
         <motion.div variants={fade} className="text-center">
-          <p className="text-lg text-white/60 mb-8">
+          <p className="text-lg text-white/35 mb-8">
             Pronto para transformar seu negócio em uma máquina de clientes?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="#contato"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-red-600 to-pink-600 hover:from-purple-700 hover:via-red-700 hover:to-pink-700 text-white text-lg font-black shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:shadow-[0_25px_60px_rgba(139,92,246,0.5)] hover:scale-105 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-lg font-black shadow-[0_20px_50px_rgba(168,85,247,0.2)] hover:shadow-[0_25px_60px_rgba(168,85,247,0.35)] hover:scale-105 transition-all"
+              style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)' }}
             >
               Começar Agora
             </a>
             <a 
               href="#demonstracao"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-purple-500/30 text-purple-300 text-lg font-black hover:bg-purple-500/10 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/50 text-lg font-black hover:bg-white/[0.04] hover:text-white/70 transition-all"
             >
               Ver Demonstração
             </a>

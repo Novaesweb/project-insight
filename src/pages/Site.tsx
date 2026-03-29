@@ -19,7 +19,7 @@ export default function Site() {
   const [modalOpen, setModalOpen] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth font-sans antialiased">
+    <div className="min-h-screen bg-[hsl(240,15%,3%)] scroll-smooth font-sans antialiased">
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       
