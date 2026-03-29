@@ -24,6 +24,9 @@ export default function Site() {
       <SiteNavbar onOpenModal={setModalOpen} />
       <HeroSection onOpenDemo={() => setModalOpen("demonstracao")} />
       
+      {/* Demo Button */}
+      <DemoButtonSection onOpenDemo={() => setModalOpen("demonstracao")} />
+      
       {/* Pizzaria Fogo Banner */}
       <PizzariaFogoBanner />
       
