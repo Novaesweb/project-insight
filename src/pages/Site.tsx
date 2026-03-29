@@ -31,7 +31,7 @@ export default function Site() {
         <TrustedBySection />
       </Suspense>
       <Suspense fallback={null}>
-        <OQueFazemosSection />
+        <OQueFazemosSection onOpenDemo={() => setModalOpen("demonstracao")} />
       </Suspense>
       <Suspense fallback={null}>
         <ComoFuncionaSection />

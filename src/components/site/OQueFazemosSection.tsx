@@ -31,7 +31,11 @@ const servicos = [
   }
 ];
 
-export default function OQueFazemosSection() {
+interface OQueFazemosProps {
+  onOpenDemo?: () => void;
+}
+
+export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
   return (
     <motion.section 
       id="o-que-fazemos" 
@@ -91,12 +95,12 @@ export default function OQueFazemosSection() {
             >
               Começar Agora
             </a>
-            <a 
-              href="#demonstracao"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/50 text-lg font-black hover:bg-white/[0.04] hover:text-white/70 transition-all"
+            <button 
+              onClick={onOpenDemo}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/50 text-lg font-black hover:bg-white/[0.04] hover:text-white/70 transition-all cursor-pointer"
             >
               Ver Demonstração
-            </a>
+            </button>
           </div>
         </motion.div>
       </div>

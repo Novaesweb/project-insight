@@ -8,7 +8,7 @@ interface DemoButtonSectionProps {
 
 export default function DemoButtonSection({ onOpenDemo }: DemoButtonSectionProps) {
   return (
-    <section className="py-16 px-6 relative">
+    <section id="demonstracao" className="py-16 px-6 relative">
       <div className="max-w-3xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
