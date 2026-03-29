@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Zap, CheckCircle, Smartphone, Layout, ShoppingCart, Globe } from "lucide-react";
 
 const LEADS = [
-  { name: "Ricardo", city: "São Paulo", action: "iniciou um projeto", service: "Site Profissional", icon: Globe },
-  { name: "Letícia", city: "Curitiba", action: "solicitou orçamento", service: "Loja Virtual", icon: ShoppingCart },
+  { name: "Ricardo", city: "São Paulo", action: "iniciou um projeto", service: "Arquitetura Express", icon: Globe },
+  { name: "Letícia", city: "Curitiba", action: "solicitou orçamento", service: "Arquitetura de Gestão", icon: ShoppingCart },
   { name: "Marcos", city: "Belo Horizonte", action: "ativou o módulo", service: "Automação WhatsApp", icon: Zap },
-  { name: "Ana Paula", city: "Rio de Janeiro", action: "acaba de fechar", service: "Sistema Customizado", icon: Layout },
-  { name: "Bruno", city: "Salvador", action: "recebeu proposta de", service: "Aplicativo Mobile", icon: Smartphone },
-  { name: "Fernanda", city: "Porto Alegre", action: "iniciou um projeto", service: "Landing Page High-Ticket", icon: Globe },
+  { name: "Ana Paula", city: "Rio de Janeiro", action: "acaba de fechar", service: "Arquitetura sob Medida", icon: Layout },
+  { name: "Bruno", city: "Salvador", action: "recebeu proposta de", service: "Arquitetura de Gestão", icon: Smartphone },
+  { name: "Fernanda", city: "Porto Alegre", action: "iniciou um projeto", service: "Arquitetura Express", icon: Globe },
   { name: "Gustavo", city: "Brasília", action: "ativou o módulo", service: "Gestão de Leads", icon: CheckCircle },
 ];
 
