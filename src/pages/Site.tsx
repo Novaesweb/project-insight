@@ -27,9 +27,6 @@ export default function Site() {
       {/* Demo Button */}
       <DemoButtonSection onOpenDemo={() => setModalOpen("demonstracao")} />
       
-      {/* Pizzaria Fogo Banner */}
-      <PizzariaFogoBanner />
-      
       <Suspense fallback={null}>
         <TrustedBySection />
       </Suspense>
