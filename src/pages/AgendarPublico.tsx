@@ -46,7 +46,7 @@ export default function AgendarPublico() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
-  const [formData, setFormData] = useState({ nome: "", email: "", telefone: "", tipo: "" as string, mensagem: "" });
+  const [formData, setFormData] = useState({ nome: "", email: "", telefone: "", tipo: "" as string, mensagem: "", _fax: "" });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -63,12 +63,39 @@ export default function AgendarPublico() {
   };
 
   const handleSubmit = async () => {
-    if (!formData.nome || !formData.email || !formData.telefone || !selectedDate || !selectedTime) {
-      toast({ title: "Preencha todos os campos obrigatórios", variant: "destructive" });
+    setLoading(true);
+
+    if (formData._fax) {
+      setTimeout(() => {
+        setConfirmed(true);
+        setLoading(false);
+      }, 1500);
       return;
     }
 
-    setLoading(true);
+    const now = Date.now();
+    const rateLimitStr = localStorage.getItem("agenda_rate_limit");
+    let rateData = rateLimitStr ? JSON.parse(rateLimitStr) : { count: 0, firstAt: now };
+
+    if (now - rateData.firstAt > 10 * 60 * 1000) {
+      rateData = { count: 1, firstAt: now };
+    } else {
+      rateData.count += 1;
+    }
+    localStorage.setItem("agenda_rate_limit", JSON.stringify(rateData));
+
+    if (rateData.count > 3) {
+      toast({ title: "Limite excedido", description: "Muitas tentativas. Aguarde alguns minutos.", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.nome || !formData.email || !formData.telefone || !selectedDate || !selectedTime) {
+      toast({ title: "Preencha todos os campos obrigatórios", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.from("reunioes").insert({
       cliente_id: null,
       tipo: formData.tipo || "alinhamento",
@@ -283,7 +310,10 @@ export default function AgendarPublico() {
             </motion.div>
 
             {/* Form Card */}
-            <motion.div variants={itemVariants} className="glass-panel-premium rounded-[2.5rem] p-8 border-white/5 shadow-2xl space-y-8">
+            <motion.div variants={itemVariants} className="glass-panel-premium rounded-[2.5rem] p-8 border-white/5 shadow-2xl relative space-y-8">
+              {/* Honeypot Field */}
+              <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={formData._fax} onChange={(e) => setFormData(p => ({ ...p, _fax: e.target.value }))} />
+              
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label className={labelClass}>Nome Completo *</Label>

@@ -62,7 +62,7 @@ export default function Cadastro() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     nome: "", email: "", whatsapp: "", empresa: "",
-    necessidade: "", volume: "", origem: "", mensagem: ""
+    necessidade: "", volume: "", origem: "", mensagem: "", _fax: ""
   });
 
   const updateForm = (field: string, value: string) => {
@@ -97,6 +97,32 @@ export default function Cadastro() {
 
   const handleSubmit = async () => {
     setLoading(true);
+
+    if (form._fax) {
+      setTimeout(() => {
+        setLoading(false);
+        setCurrentStep(9);
+      }, 1500);
+      return;
+    }
+
+    const now = Date.now();
+    const rateLimitStr = localStorage.getItem("cadastro_rate_limit");
+    let rateData = rateLimitStr ? JSON.parse(rateLimitStr) : { count: 0, firstAt: now };
+
+    if (now - rateData.firstAt > 10 * 60 * 1000) {
+      rateData = { count: 1, firstAt: now };
+    } else {
+      rateData.count += 1;
+    }
+    localStorage.setItem("cadastro_rate_limit", JSON.stringify(rateData));
+
+    if (rateData.count > 3) {
+      toast({ title: "Limite excedido", description: "Por favor, aguarde alguns minutos antes de reenviar.", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.from("leads").insert({
       nome: form.nome, email: form.email.trim(),
       whatsapp: form.whatsapp.replace(/\D/g, ""),
@@ -246,7 +272,8 @@ export default function Cadastro() {
             </div>
           )}
 
-          <div className="flex-1 px-8 lg:px-14 py-10 lg:py-14 flex flex-col justify-center">
+          <div className="flex-1 px-8 lg:px-14 py-10 lg:py-14 flex flex-col justify-center relative">
+            <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
             <AnimatePresence mode="wait">
               {/* Step 0: Welcome */}
               {currentStep === 0 && (

@@ -70,7 +70,7 @@ export default function CadastroPerfeitoSection() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     nome: "", email: "", whatsapp: "", empresa: "",
-    necessidade: "", volume: "", origem: "", mensagem: ""
+    necessidade: "", volume: "", origem: "", mensagem: "", _fax: ""
   });
 
   const updateForm = (field: string, value: string) => {
@@ -107,6 +107,34 @@ export default function CadastroPerfeitoSection() {
 
   const handleSubmit = async () => {
     setLoading(true);
+
+    // 1. HONEYPOT: Se o robô preencher o campo invisível, simula sucesso e descarta
+    if (form._fax) {
+      setTimeout(() => {
+        setLoading(false);
+        setCurrentStep(9);
+      }, 1500);
+      return;
+    }
+
+    // 2. RATE LIMITER: Limita a 3 cadastros a cada 10 minutos
+    const now = Date.now();
+    const rateLimitStr = localStorage.getItem("lead_rate_limit");
+    let rateData = rateLimitStr ? JSON.parse(rateLimitStr) : { count: 0, firstAt: now };
+
+    if (now - rateData.firstAt > 10 * 60 * 1000) {
+      rateData = { count: 1, firstAt: now };
+    } else {
+      rateData.count += 1;
+    }
+    localStorage.setItem("lead_rate_limit", JSON.stringify(rateData));
+
+    if (rateData.count > 3) {
+      toast({ title: "Limite excedido", description: "Por favor, aguarde alguns minutos antes de tentar novamente.", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.from("leads").insert({
       nome: form.nome,
       email: form.email.trim(),
@@ -234,7 +262,10 @@ export default function CadastroPerfeitoSection() {
             )}
 
             {/* Content Area */}
-            <div className="p-8 sm:p-10 lg:p-14 min-h-[420px] flex flex-col justify-center">
+            <div className="p-8 sm:p-10 lg:p-14 min-h-[420px] flex flex-col justify-center relative">
+              {/* Honeypot Field */}
+              <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
+              
               <AnimatePresence mode="wait">
                 {/* STEP 0: Welcome */}
                 {currentStep === 0 && (
