@@ -1,8 +1,8 @@
 import { useState, lazy, Suspense } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
-import PizzariaFogoBanner from "@/components/site/PizzariaFogoBanner";
 import DemoButtonSection from "@/components/site/DemoButtonSection";
+import WhatsAppFloat from "@/components/site/WhatsAppFloat";
 
 // Lazy load below-fold sections
 const TrustedBySection = lazy(() => import("@/components/site/TrustedBySection"));
