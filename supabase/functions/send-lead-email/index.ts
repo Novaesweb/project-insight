@@ -113,7 +113,7 @@ serve(async (req: Request) => {
               
               <div style="text-align: center; margin-top: 40px;">
                 <a href="https://novaesweb.com.br" style="display: inline-block; padding: 16px 30px; background: rgba(255,255,255,0.05); color: #ffffff; border-radius: 12px; font-weight: 600; text-decoration: none; font-size: 14px; margin-right: 10px; border: 1px solid rgba(255,255,255,0.1);">Ver Portfólio</a>
-                <a href="https://wa.me/5551981964238" style="display: inline-block; padding: 16px 30px; background: #25d366; color: #ffffff; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: 14px;">Chamar no WhatsApp</a>
+                <a href="https://wa.me/5551981964238?text=${encodeURIComponent(`Olá! Sou o ${nome}, acabei de enviar meu cadastro no site da Novaes Web e gostaria de conversar sobre o meu projeto. 🚀`)}" style="display: inline-block; padding: 16px 30px; background: #25d366; color: #ffffff; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: 14px;">Chamar no WhatsApp</a>
               </div>
             </div>
 

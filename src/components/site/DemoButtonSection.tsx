@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Eye, Sparkles } from "lucide-react";
+import { Eye, Sparkles, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DemoButtonSectionProps {
@@ -29,14 +29,26 @@ export default function DemoButtonSection({ onOpenDemo }: DemoButtonSectionProps
           <p className="text-white/40 mb-8 max-w-md mx-auto leading-relaxed text-sm">
             Temos estes e muitos outros projetos que já criamos para nossos clientes. Conheça na prática o que desenvolvemos para pizzarias, barbearias, lojas e diversos outros segmentos.
           </p>
-          <Button
-            onClick={onOpenDemo}
-            className="h-14 px-10 rounded-2xl text-white text-base font-bold border-0 shadow-[0_15px_40px_rgba(168,85,247,0.25)] hover:shadow-[0_20px_50px_rgba(168,85,247,0.4)] hover:scale-105 transition-all group"
-            style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)' }}
-          >
-            <Eye className="w-5 h-5 mr-2" />
-            Ver Demonstrações
-          </Button>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              onClick={onOpenDemo}
+              className="h-14 px-10 rounded-2xl text-white text-base font-bold border-0 shadow-[0_15px_40px_rgba(168,85,247,0.25)] hover:shadow-[0_20px_50px_rgba(168,85,247,0.4)] hover:scale-105 transition-all group w-full sm:w-auto"
+              style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)' }}
+            >
+              <Eye className="w-5 h-5 mr-2" />
+              Ver Demonstrações
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById('cadastro')?.scrollIntoView({ behavior: 'smooth' })}
+              className="h-14 px-10 rounded-2xl border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 hover:border-purple-500/50 transition-all font-bold text-base w-full sm:w-auto group"
+            >
+              <Rocket className="w-5 h-5 mr-2 group-hover:translate-y-[-2px] group-hover:translate-x-[2px] transition-transform" />
+              Iniciar meu projeto
+            </Button>
+          </div>
         </motion.div>
       </div>
     </section>
