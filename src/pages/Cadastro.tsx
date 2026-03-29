@@ -55,6 +55,7 @@ const formatWhatsApp = (value: string) => {
 const validateWhatsApp = (w: string) => w.replace(/\D/g, "").length >= 10;
 
 export default function Cadastro() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -154,6 +155,15 @@ export default function Cadastro() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 lg:p-8 font-sans text-white overflow-hidden relative" style={{ background: "linear-gradient(145deg, #07060a 0%, #0d0a1a 40%, #1a0a12 70%, #0a0a0f 100%)" }}>
+      {/* Close / Exit button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="fixed top-5 right-5 z-50 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
+        aria-label="Fechar"
+      >
+        <X className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
+      </button>
+
       {/* Ambient orbs */}
       <div className="absolute top-[-30%] left-[-15%] w-[600px] h-[600px] rounded-full opacity-[0.07] blur-[150px]" style={{ background: "radial-gradient(circle, hsl(var(--primary)), transparent 70%)" }} />
       <div className="absolute bottom-[-25%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-[0.05] blur-[130px]" style={{ background: "radial-gradient(circle, hsl(var(--accent)), transparent 70%)" }} />
