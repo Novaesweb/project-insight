@@ -75,16 +75,6 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
               </span>
             </Button>
-            
-            <a 
-              href="/landing"
-              className="h-16 px-12 rounded-2xl bg-gradient-to-r from-purple-500 to-red-500 hover:from-purple-600 hover:to-red-600 text-white text-lg font-black shadow-[0_20px_50px_rgba(139,92,246,0.3)] hover:shadow-[0_25px_60px_rgba(139,92,246,0.5)] hover:scale-105 transition-all group border-0 relative overflow-hidden inline-flex items-center gap-2"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                Sites Vitrine
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
-              </span>
-            </a>
           </motion.div>
 
           {/* Stats row */}
