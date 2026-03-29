@@ -17,17 +17,13 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
-
-  const registered = await registerServiceWorker();
-  if (!registered) return null;
-
+  
   try {
-    await navigator.serviceWorker.ready;
-  } catch {
-    // noop
+    return await navigator.serviceWorker.ready;
+  } catch (e) {
+    console.error("Erro ao obter ServiceWorker via Vite PWA:", e);
+    return null;
   }
-
-  return (await navigator.serviceWorker.getRegistration("/")) ?? registered;
 }
 
 export async function isPushSupported(): Promise<boolean> {
@@ -39,19 +35,19 @@ export async function getPushPermission(): Promise<NotificationPermission> {
 }
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  if (!("serviceWorker" in navigator)) return null;
-  try {
-    const reg = await navigator.serviceWorker.register(PUSH_SW_PATH, { scope: "/" });
-    await reg.update().catch(() => undefined);
-    return reg;
-  } catch (e) {
-    console.error("SW registration failed:", e);
-    return null;
-  }
+  // Obsoleto: O Vite PWA gerencia o registro automático
+  return getPushRegistration();
 }
 
 export async function subscribeToPush(userType: string, userId: string): Promise<boolean> {
   try {
+    // Evita duplicidade no Desktop! O App Desktop (Electron) já tem o NativeNotificationManager
+    const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
+    if (isElectron) {
+      console.log("[Push] Ambiente Electron detectado. Usando apenas notificações nativas do sistema.");
+      return false; 
+    }
+
     const supported = await isPushSupported();
     if (!supported) return false;
 

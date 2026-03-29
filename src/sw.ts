@@ -1,3 +1,11 @@
+/// <reference lib="webworker" />
+import { precacheAndRoute } from 'workbox-precaching';
+
+declare let self: ServiceWorkerGlobalScope;
+
+// Inject automatic compiled manifest map by Vite PWA
+precacheAndRoute(self.__WB_MANIFEST || []);
+
 // Service Worker for Push Notifications - NovaesWeb v2
 self.addEventListener('push', function(event) {
   let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-icon-192.png', url: '/' };
@@ -11,7 +19,7 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  const options = {
+  const options: NotificationOptions = {
     body: data.body,
     icon: data.icon || '/push-icon-192.png',
     badge: '/push-icon-192.png',
@@ -26,6 +34,7 @@ self.addEventListener('push', function(event) {
 
   event.waitUntil(
     self.registration.showNotification(data.title, options).then(function() {
+      // Notifica o frontend de que a notificação chegou (útil para atualizar UI se App estiver aberto)
       return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
         for (const client of clientList) {
           client.postMessage({
@@ -42,15 +51,16 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const url = event.notification.data?.url || '/';
+  
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(url);
           return client.focus();
         }
       }
-      return clients.openWindow(url);
+      return self.clients.openWindow(url);
     })
   );
 });
