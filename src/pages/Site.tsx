@@ -3,6 +3,8 @@ import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
 import DemoButtonSection from "@/components/site/DemoButtonSection";
 import WhatsAppFloat from "@/components/site/WhatsAppFloat";
+import MobileAppNav from "@/components/site/MobileAppNav";
+import FloatingSocialProof from "@/components/site/FloatingSocialProof";
 
 // Lazy load below-fold sections
 const TrustedBySection = lazy(() => import("@/components/site/TrustedBySection"));
@@ -59,6 +61,8 @@ export default function Site() {
       </Suspense>
 
       <WhatsAppFloat />
+      <MobileAppNav onOpenModal={setModalOpen} />
+      <FloatingSocialProof />
     </div>
   );
 }
