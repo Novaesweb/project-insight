@@ -41,7 +41,7 @@ serve(async (req: Request) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "NovaesWeb <onboarding@resend.dev>",
+        from: "NovaesWeb <contato@novaesweb.site>",
         to: ["novaesweb@gmail.com"],
         subject: `🚨 NOVO LEAD: ${nome} (@${nome_negocio})`,
         html: `
@@ -76,6 +76,10 @@ serve(async (req: Request) => {
       }),
     });
 
+    const isAgendamento = nome_negocio === "Agendamento via Site";
+    const businessName = isAgendamento ? "seu projeto" : `a ${nome_negocio}`;
+    const subjectPrefix = isAgendamento ? "[Agendamento]" : "[Projeto]";
+
     // 2. Confirmação para o Cliente (Premium Impact)
     await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -84,15 +88,15 @@ serve(async (req: Request) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "NovaesWeb <onboarding@resend.dev>",
+        from: "NovaesWeb <contato@novaesweb.site>",
         to: [email],
-        subject: `[Novaes Web] O planejamento do seu projeto começou, ${nome.split(' ')[0]}! 🚀`,
+        subject: `${subjectPrefix} O planejamento começou, ${nome.split(' ')[0]}! 🚀`,
         html: `
           <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #07080a; color: #ffffff; padding: 0; border-radius: 24px; overflow: hidden; border: 1px solid #1a1f2e;">
             
             <div style="background: linear-gradient(135deg, #1a1f2e 0%, #07080a 100%); padding: 50px 40px; text-align: center; border-bottom: 1px solid #1a1f2e;">
               <h1 style="font-size: 28px; font-weight: 900; margin: 0; background: linear-gradient(90deg, #ff3366, #ff00cc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Iniciamos sua Jornada.</h1>
-              <p style="color: #8a8f9e; font-size: 16px; margin-top: 15px; line-height: 1.5;">Prepare-se para transformar a <strong>${nome_negocio}</strong> em uma autoridade digital inquestionável.</p>
+              <p style="color: #8a8f9e; font-size: 16px; margin-top: 15px; line-height: 1.5;">Prepare-se para transformar <strong>${businessName}</strong> em uma autoridade digital inquestionável.</p>
             </div>
 
             <div style="padding: 40px;">
