@@ -28,7 +28,7 @@
       "vitest/globals",
       "vite-plugin-pwa/client"
     ],
-    "useDefineForClassFields": true
+    "useDefineForClassFields": false
   },
   "include": [
     "src"

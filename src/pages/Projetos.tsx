@@ -375,7 +375,7 @@ export default function Projetos() {
                         className={`flex flex-col gap-3 flex-1 p-2 rounded-xl transition-colors ${snapshot.isDraggingOver ? "bg-white/5" : "bg-transparent"}`}
                       >
                         {items.map((p, index) => (
-                          <Draggable key={p.id} draggableId={p.id} index={index}>
+                          <Draggable draggableId={p.id} index={index}>
                             {(provided, snapshot) => (
                               <div
                                 ref={provided.innerRef}

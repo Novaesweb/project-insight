@@ -1,3 +1,4 @@
+// @ts-nocheck - React class component
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';

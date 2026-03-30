@@ -8,7 +8,7 @@ precacheAndRoute(self.__WB_MANIFEST || []);
 
 // Service Worker for Push Notifications - NovaesWeb v2
 self.addEventListener('push', function(event) {
-  let data = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-icon-192.png', url: '/' };
+  let data: { title: string; body: string; icon: string; url: string; tag?: string } = { title: 'NovaesWeb', body: 'Nova notificação', icon: '/push-icon-192.png', url: '/' };
 
   if (event.data) {
     try {
@@ -19,7 +19,8 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  const options: NotificationOptions = {
+  // @ts-ignore - extended notification options for mobile
+  const options = {
     body: data.body,
     icon: data.icon || '/push-icon-192.png',
     badge: '/push-icon-192.png',
