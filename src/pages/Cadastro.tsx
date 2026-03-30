@@ -582,6 +582,7 @@ function InputStep({ step, form, errors, updateForm, onNext, direction, ...rest 
   updateForm: (f: string, v: string) => void;
   onNext: () => void;
   direction: number;
+  [key: string]: any;
 }) {
   const config: Record<number, { field: string; placeholder: string; label: string; subtitle: string; icon: typeof Mail }> = {
     1: { field: "nome", placeholder: "Nome e Sobrenome", label: "Qual seu nome?", subtitle: "Como devemos te chamar", icon: User },
