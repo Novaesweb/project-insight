@@ -135,6 +135,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white lg:hidden"
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -167,6 +168,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                   </div>
                   <button 
                     onClick={() => setMenuOpen(false)}
+                    aria-label="Fechar menu"
                     className="p-3 rounded-2xl text-white bg-white/10 hover:bg-white/15 transition-colors shrink-0"
                   >
                     <X className="w-8 h-8" />

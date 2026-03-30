@@ -74,6 +74,7 @@ export function AnimatedTestimonials({ data, autoplay = true, interval = 5000 }:
           <div className="flex items-center gap-4 mt-6 justify-center md:justify-start">
             <button
               onClick={prev}
+              aria-label="Depoimento anterior"
               className="w-9 h-9 rounded-full bg-[hsl(var(--muted))] flex items-center justify-center hover:bg-[hsl(var(--primary))]/20 transition-colors"
             >
               <ChevronLeft className="w-4 h-4 text-[hsl(var(--foreground))]" />
@@ -83,6 +84,7 @@ export function AnimatedTestimonials({ data, autoplay = true, interval = 5000 }:
                 <button
                   key={i}
                   onClick={() => setActive(i)}
+                  aria-label={`Ir para depoimento ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === active
                       ? "w-6 bg-[hsl(var(--primary))]"
@@ -93,6 +95,7 @@ export function AnimatedTestimonials({ data, autoplay = true, interval = 5000 }:
             </div>
             <button
               onClick={next}
+              aria-label="Próximo depoimento"
               className="w-9 h-9 rounded-full bg-[hsl(var(--muted))] flex items-center justify-center hover:bg-[hsl(var(--primary))]/20 transition-colors"
             >
               <ChevronRight className="w-4 h-4 text-[hsl(var(--foreground))]" />

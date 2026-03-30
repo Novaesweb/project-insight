@@ -265,7 +265,7 @@ export default function CadastroPerfeitoSection() {
             {/* Content Area */}
             <div className="p-8 sm:p-10 lg:p-14 min-h-[420px] flex flex-col justify-center relative">
               {/* Honeypot Field */}
-              <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
+              <input type="text" name="_fax" tabIndex={-1} aria-hidden="true" autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
               
               <AnimatePresence mode="wait">
                 {/* STEP 0: Welcome */}

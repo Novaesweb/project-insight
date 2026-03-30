@@ -324,7 +324,7 @@ export default function AgendarPublico() {
             {/* Form Card */}
             <motion.div variants={itemVariants} className="glass-panel-premium rounded-[2.5rem] p-8 border-white/5 shadow-2xl relative space-y-8">
               {/* Honeypot Field */}
-              <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={formData._fax} onChange={(e) => setFormData(p => ({ ...p, _fax: e.target.value }))} />
+              <input type="text" name="_fax" tabIndex={-1} aria-hidden="true" autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={formData._fax} onChange={(e) => setFormData(p => ({ ...p, _fax: e.target.value }))} />
               
               <div className="space-y-6">
                 <div className="space-y-2">

@@ -364,7 +364,7 @@ export default function Cadastro() {
         {/* Form area */}
         <div className="flex-1 flex items-center justify-center px-6 sm:px-10 lg:px-16 py-10 lg:py-14 relative">
           {/* Honeypot */}
-          <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
+          <input type="text" name="_fax" tabIndex={-1} aria-hidden="true" autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
 
           <AnimatePresence mode="wait" custom={direction}>
             {/* Step 0: Welcome */}

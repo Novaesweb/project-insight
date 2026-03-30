@@ -60,6 +60,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
           >
             <button
               onClick={onClose}
+              aria-label="Fechar"
               className="absolute top-4 right-4 p-2 rounded-xl hover:bg-[hsl(var(--muted))] transition-colors text-[hsl(var(--muted-foreground))] z-10"
             >
               <X className="w-5 h-5" />

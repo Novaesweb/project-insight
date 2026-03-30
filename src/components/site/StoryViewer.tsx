@@ -121,7 +121,11 @@ export default function StoryViewer({ storyId, onClose }: StoryViewerProps) {
               <p className="text-white/40 text-[10px] uppercase tracking-widest mt-0.5">Patrocinado</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 bg-black/20 backdrop-blur-md rounded-full text-white/70 hover:text-white transition-colors">
+          <button 
+            onClick={onClose} 
+            aria-label="Fechar"
+            className="p-2 bg-black/20 backdrop-blur-md rounded-full text-white/70 hover:text-white transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
@@ -178,12 +182,20 @@ export default function StoryViewer({ storyId, onClose }: StoryViewerProps) {
 
       {/* Side Navigation for Desktop */}
       <div className="hidden sm:flex absolute left-8 top-1/2 -translate-y-1/2 flex-col gap-4">
-         <button onClick={handlePrev} className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white/50 hover:text-white transition-colors border border-white/10">
+         <button 
+            onClick={handlePrev} 
+            aria-label="Slide anterior"
+            className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white/50 hover:text-white transition-colors border border-white/10"
+          >
             <ChevronLeft size={32} />
          </button>
       </div>
       <div className="hidden sm:flex absolute right-8 top-1/2 -translate-y-1/2 flex-col gap-4">
-         <button onClick={handleNext} className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white/50 hover:text-white transition-colors border border-white/10">
+         <button 
+            onClick={handleNext} 
+            aria-label="Próximo slide"
+            className="p-4 bg-white/10 backdrop-blur-md rounded-full text-white/50 hover:text-white transition-colors border border-white/10"
+          >
             <ChevronRight size={32} />
          </button>
       </div>
