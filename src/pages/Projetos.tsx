@@ -221,7 +221,7 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
       if (error) throw error;
       
       toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
-      load(); // Recarregar lista de projetos
+      onReload();
       
       // Se estiver visualizando o projeto excluído, voltar para lista
       if (selectedProjeto === projetoId) {
