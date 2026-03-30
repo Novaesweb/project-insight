@@ -61,51 +61,37 @@ export const OptimizedImage = React.memo<OptimizedImageProps>(({
   // Gerar URLs otimizadas para diferentes formatos
   const getOptimizedSrc = (originalSrc: string, imgFormat: string) => {
     // Se for URL externa, retornar como está
-    if (originalSrc.startsWith('http')) {
+    if (originalSrc.startsWith('http') || originalSrc.startsWith('data:')) {
       return originalSrc;
     }
 
-    // Para assets locais, aplicar otimizações
-    const baseUrl = originalSrc.split('.')[0];
-    const extension = originalSrc.split('.').pop();
-    
-    if (imgFormat === 'webp' && extension !== 'webp') {
-      return `${baseUrl}.webp`;
-    }
-    
-    if (imgFormat === 'avif' && extension !== 'avif') {
-      return `${baseUrl}.avif`;
-    }
-    
+    // Para assets locais do Vite, que já vêm otimizados e com hashes,
+    // não devemos tentar alterar a extensão dinamicamente, pois o arquivo
+    // com a nova extensão pode não existir no build final.
     return originalSrc;
   };
 
-  // Detectar suporte a formatos modernos
+  // Detectar suporte a formatos modernos (mantido para uso futuro em imagens de servidores internos)
   const [supportedFormat, setSupportedFormat] = useState<'webp' | 'avif' | 'jpg'>('jpg');
 
   useEffect(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    
-    if (ctx) {
-      // Testar AVIF
-      const avifData = canvas.toDataURL('image/avif');
-      if (avifData.indexOf('data:image/avif') === 0) {
-        setSupportedFormat('avif');
-        return;
-      }
+    const checkSupport = async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d');
       
-      // Testar WebP
-      const webpData = canvas.toDataURL('image/webp');
-      if (webpData.indexOf('data:image/webp') === 0) {
-        setSupportedFormat('webp');
-        return;
+      if (ctx) {
+        // Testar WebP
+        const webpData = canvas.toDataURL('image/webp');
+        if (webpData.indexOf('data:image/webp') === 0) {
+          setSupportedFormat('webp');
+          return;
+        }
       }
-    }
-    
-    setSupportedFormat('jpg');
+      setSupportedFormat('jpg');
+    };
+    checkSupport();
   }, []);
 
   const optimizedSrc = getOptimizedSrc(src, format === 'auto' ? supportedFormat : format);
