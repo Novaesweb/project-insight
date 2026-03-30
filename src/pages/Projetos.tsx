@@ -603,8 +603,8 @@ export default function Projetos() {
 
   return (
     <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-white tracking-tighter uppercase italic">Engenharia de Soluções</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tighter uppercase italic">Engenharia de Soluções</h1>
         <div className="flex gap-1 p-1 rounded-lg glass-card border-[0.5px]">
           <Button variant="ghost" size="sm" className={view === "lista" ? "gradient-primary text-white" : "text-white/40"} onClick={() => setView("lista")}><List className="w-4 h-4" /></Button>
           <Button variant="ghost" size="sm" className={view === "kanban" ? "gradient-primary text-white" : "text-white/40"} onClick={() => setView("kanban")}><LayoutGrid className="w-4 h-4" /></Button>
