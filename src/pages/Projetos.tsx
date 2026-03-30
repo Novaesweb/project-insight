@@ -27,7 +27,7 @@ const kanbanColumns = [
   { key: "concluido", label: "🚀 Finalizado", color: "border-emerald-500/50" },
 ];
 
-function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () => void }) {
+function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSelectedProjeto }: { projetoId: string; onBack: () => void; onReload: () => void; selectedProjeto: string | null; setSelectedProjeto: (id: string | null) => void }) {
   const { toast } = useToast();
   const [projeto, setProjeto] = useState<any>(null);
   const [pedido, setPedido] = useState<any>(null);
