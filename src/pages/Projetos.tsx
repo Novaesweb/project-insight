@@ -38,12 +38,16 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [urlSite, setUrlSite] = useState("");
+  const [dataEntrega, setDataEntrega] = useState("");
+  const [horaEntrega, setHoraEntrega] = useState("");
 
   const loadData = useCallback(async () => {
     const { data: proj } = await supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single();
     setProjeto(proj);
     if (proj) {
       setUrlSite((proj as any).url_site || "");
+      setDataEntrega((proj as any).data_entrega || "");
+      setHoraEntrega((proj as any).hora_entrega || "");
       const { data: pedData } = await supabase.from("pedidos").select("codigo").eq("projeto_id", proj.id).maybeSingle();
       setPedido(pedData);
       
@@ -70,8 +74,54 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
 
   const handleProgressChange = (value: number[]) => setProjeto((prev: any) => ({ ...prev, progresso: value[0] }));
   const saveProgresso = async (value: number[]) => {
+    // Permitir alterar progresso mesmo que esteja concluído
     const { error } = await supabase.from("projetos").update({ progresso: value[0] }).eq("id", projetoId);
-    if (!error) toast({ title: `Engenharia de Solução em ${value[0]}%` });
+    if (!error) {
+      toast({ title: `Engenharia de Solução em ${value[0]}%` });
+      // Atualizar status baseado no progresso
+      let novoStatus = projeto.status;
+      if (value[0] >= 100) {
+        novoStatus = "concluido";
+      } else if (value[0] >= 85) {
+        novoStatus = "homologacao";
+      } else if (value[0] >= 60) {
+        novoStatus = "desenvolvimento";
+      } else if (value[0] >= 40) {
+        novoStatus = "design";
+      } else {
+        novoStatus = "briefing";
+      }
+      
+      // Atualizar status também
+      await supabase.from("projetos").update({ status: novoStatus }).eq("id", projetoId);
+      setProjeto((prev: any) => ({ ...prev, progresso: value[0], status: novoStatus }));
+    }
+  };
+
+  const saveDataHoraEntrega = async () => {
+    if (!dataEntrega.trim() || !horaEntrega.trim()) {
+      toast({ title: "Dados incompletos", description: "Preencha data e hora de entrega", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { error } = await (supabase.from("projetos") as any).update({ 
+        data_entrega: dataEntrega.trim(), 
+        hora_entrega: horaEntrega.trim() 
+      }).eq("id", projetoId);
+      
+      if (error) throw error;
+      
+      setProjeto((prev: any) => ({ 
+        ...prev, 
+        data_entrega: dataEntrega.trim(), 
+        hora_entrega: horaEntrega.trim() 
+      }));
+      
+      toast({ title: "Data de entrega salva!", description: "Projeto será entregue em " + dataEntrega + " às " + horaEntrega });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    }
   };
 
   const saveUrlSite = async () => {
@@ -192,6 +242,53 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3"><p className="text-sm font-semibold text-white">Engenharia de Solução</p><span className="text-lg font-bold gradient-text">{projeto.progresso}%</span></div>
                 <Slider value={[projeto.progresso]} onValueChange={handleProgressChange} onValueCommit={saveProgresso} max={100} step={5} className="w-full" />
+                <p className="text-xs text-white/40 mt-2">Ajuste o progresso conforme necessário. A barra pode avançar ou voltar.</p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card border-[0.5px] border-amber-500/30 bg-amber-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-amber-400" /> Data & Hora de Entrega
+                </CardTitle>
+                <CardDescription className="text-[10px] text-white/40">Previsão de entrega do projeto</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-white/30 uppercase font-black">Data</Label>
+                    <Input
+                      type="date"
+                      value={dataEntrega}
+                      onChange={(e) => setDataEntrega(e.target.value)}
+                      className="glass-input h-10 text-white text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-white/30 uppercase font-black">Hora</Label>
+                    <Input
+                      type="time"
+                      value={horaEntrega}
+                      onChange={(e) => setHoraEntrega(e.target.value)}
+                      className="glass-input h-10 text-white text-sm"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={saveDataHoraEntrega}
+                  className="w-full gradient-primary text-white"
+                  size="sm"
+                >
+                  Salvar Data de Entrega
+                </Button>
+                {dataEntrega && horaEntrega && (
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <p className="text-xs text-white/60 mb-1">Previsão de entrega:</p>
+                    <p className="text-sm text-white font-semibold">
+                      📅 {new Date(dataEntrega).toLocaleDateString('pt-BR')} às 🕐 {horaEntrega}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
