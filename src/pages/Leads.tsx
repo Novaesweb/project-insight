@@ -88,6 +88,19 @@ export default function Leads() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!confirm("🚨 ATENÇÃO: Você está prestes a excluir TODOS os leads permanentemente. Esta ação não pode ser desfeita! Confirma a limpeza total?")) return;
+    
+    const { error } = await supabase.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    
+    if (!error) {
+      toast({ title: "Base de Leads limpa!", description: "Todos os contatos foram removidos com sucesso." });
+      fetchLeads();
+    } else {
+      toast({ title: "Erro ao limpar base", description: error.message, variant: "destructive" });
+    }
+  };
+
   const handleConvert = async () => {
     if (!convertModal) return;
     setConverting(true);
@@ -172,6 +185,18 @@ export default function Leads() {
               </button>
             ))}
           </div>
+
+          <div className="h-10 w-px bg-white/10 mx-2 hidden lg:block" />
+
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-10 px-4 rounded-xl text-xs font-black uppercase tracking-widest text-red-400/40 hover:text-red-400 hover:bg-red-500/10 transition-all border border-red-500/10"
+            onClick={handleDeleteAll}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Limpar Base
+          </Button>
         </div>
       </div>
 
