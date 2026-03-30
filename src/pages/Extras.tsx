@@ -230,7 +230,7 @@ export default function Extras() {
         extraData = extraInsert;
       }
 
-      // 3. Criar registro financeiro automaticamente
+      // 3. Criar registro financeiro automaticamente (só na ativação)
       const valorTotal = extraData.preco_ativacao + extraData.preco_mensal;
       if (valorTotal > 0) {
         const financeiroData = {
@@ -244,7 +244,7 @@ export default function Extras() {
 
         const { data: financeiroRecord } = await supabase.from("financeiro").insert(financeiroData).select().single();
 
-        // 4. Gerar fatura no Asaas automaticamente
+        // 4. Gerar fatura no Asaas automaticamente (só na ativação)
         if (financeiroRecord) {
           const { AsaasService } = await import("@/lib/asaas-service");
           
@@ -254,7 +254,7 @@ export default function Extras() {
               name: clienteData.nome,
               email: clienteData.email,
               cpfCnpj: clienteData.documento || undefined,
-              phone: clienteData.whatsapp || undefined,
+              mobilePhone: clienteData.whatsapp || undefined,
               externalReference: clienteData.id
             });
 
@@ -283,6 +283,14 @@ export default function Extras() {
             });
           }
         }
+      }
+
+      // 5. Se for recorrente, informar sobre cobranças futuras
+      if (extraData.categoria === 'mensal' || extraData.categoria === 'intermediario') {
+        toast({ 
+          title: "🔄 Extra Recorrente Ativado!", 
+          description: `Este extra será cobrado automaticamente todo mês. Use "Cobranças Recorrentes" no menu para gerar as faturas mensais.` 
+        });
       }
 
       setSaving(false);

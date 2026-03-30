@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import {
   Menu, LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles
+  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles, TrendingUp
 } from "lucide-react";
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
@@ -36,6 +36,7 @@ const mobileNavGroups = [
       { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
       { href: "/admin/extras", label: "Extras", icon: Puzzle },
       { href: "/admin/calculadora", label: "Calculadora", icon: DollarSign },
+      { href: "/admin/recurrent-billing", label: "Cobranças Recorrentes", icon: TrendingUp },
     ],
   },
   {

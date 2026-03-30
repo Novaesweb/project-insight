@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
   LogOut, CalendarDays, Puzzle, ShieldCheck,
-  ChevronLeft, ChevronRight, Sparkles
+  ChevronLeft, ChevronRight, Sparkles, TrendingUp
 } from "lucide-react";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +32,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
       { href: "/admin/extras", label: "Extras", icon: Puzzle, accent: true },
       { href: "/admin/calculadora", label: "Calculadora", icon: DollarSign, accent: true },
+      { href: "/admin/recurrent-billing", label: "Cobranças Recorrentes", icon: TrendingUp },
     ],
   },
   {
