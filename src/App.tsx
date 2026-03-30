@@ -33,21 +33,17 @@ const Clientes = React.lazy(() => import("./pages/Clientes"));
 const Projetos = React.lazy(() => import("./pages/Projetos"));
 const Pedidos = React.lazy(() => import("./pages/Pedidos"));
 const Extras = React.lazy(() => import("./pages/Extras"));
-const Calculadora = React.lazy(() => import("./pages/Calculadora"));
 const Relatorios = React.lazy(() => import("./pages/Relatorios"));
 const Financeiro = React.lazy(() => import("./pages/Financeiro"));
 const Suporte = React.lazy(() => import("./pages/Suporte"));
 const Usuarios = React.lazy(() => import("./pages/Usuarios"));
 const Leads = React.lazy(() => import("./pages/Leads"));
 const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
-const Agenda = React.lazy(() => import("./pages/Agenda"));
 const Contratos = React.lazy(() => import("./pages/Contratos"));
 const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
-const AgendarPublico = React.lazy(() => import("./pages/AgendarPublico"));
 const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
 const NichePage = React.lazy(() => import("./pages/NichePage"));
-const Instalar = React.lazy(() => import("./pages/Instalar"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
 const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
@@ -55,7 +51,6 @@ const ClienteProjetos = React.lazy(() => import("./pages/cliente/ClienteProjetos
 const ClienteExtras = React.lazy(() => import("./pages/cliente/ClienteExtras"));
 const ClienteContratos = React.lazy(() => import("./pages/cliente/ClienteContratos"));
 const ClienteFaturas = React.lazy(() => import("./pages/cliente/ClienteFaturas"));
-const ClienteReunioes = React.lazy(() => import("./pages/cliente/ClienteReunioes"));
 const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte"));
 const ClienteDados = React.lazy(() => import("./pages/cliente/ClienteDados"));
 const ClienteArquivos = React.lazy(() => import("./pages/cliente/ClienteArquivos"));
@@ -67,7 +62,6 @@ const ResellerFinanceiro = React.lazy(() => import("./pages/reseller/ResellerFin
 const ResellerMateriais = React.lazy(() => import("./pages/reseller/ResellerMateriais"));
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
 const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
-const AdminDepoimentos = React.lazy(() => import("@/pages/AdminDepoimentos"));
 const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
 const AdminRecurrentBilling = React.lazy(() => import("@/pages/AdminRecurrentBilling"));
 const ExtrasAtivos = React.lazy(() => import("@/pages/ExtrasAtivos"));
@@ -112,17 +106,14 @@ function AdminWithSplash() {
           <Route path="/projetos" element={<Projetos />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/extras" element={<Extras />} />
-          <Route path="/calculadora" element={<Calculadora />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/financeiro" element={<Financeiro />} />
           <Route path="/suporte" element={<Suporte />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/agenda" element={<Agenda />} />
           <Route path="/revenda" element={<AdminRevenda />} />
           <Route path="/contratos" element={<Contratos />} />
           <Route path="/menu" element={<AdminMenu />} />
-          <Route path="/depoimentos" element={<AdminDepoimentos />} />
           <Route path="/configuracoes" element={<AdminConfig />} />
           <Route path="/recurrent-billing" element={<AdminRecurrentBilling />} />
           <Route path="/extras-ativos" element={<ExtrasAtivos />} />
@@ -169,13 +160,10 @@ const App = () => (
               <Route path="/" element={<Site />} />
               <Route path="/site" element={<Site />} />
               <Route path="/nicho/:slug" element={<NichePage />} />
-              <Route path="/agendar" element={<AgendarPublico />} />
-              <Route path="/cadastro" element={<Cadastro />} />
-              <Route path="/funcionalidades" element={<Funcionalidades />} />
-              <Route path="/cardapio/:slug" element={<AdminMenu />} />
-              <Route path="/instalar" element={<Instalar />} />
-              <Route path="/landing" element={<LandingPage />} />
-              <Route path="/cliente" element={<ClienteLogin />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/funcionalidades" element={<Funcionalidades />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/cliente" element={<ClienteLogin />} />
 
               {/* Client Portal */}
               <Route path="/cliente/*" element={
@@ -187,7 +175,6 @@ const App = () => (
                     <Route path="extras" element={<ClienteExtras />} />
                     <Route path="contratos" element={<ClienteContratos />} />
                     <Route path="faturas" element={<ClienteFaturas />} />
-                    <Route path="reunioes" element={<ClienteReunioes />} />
                     <Route path="suporte" element={<ClienteSuporte />} />
                     <Route path="indique" element={<ClienteReferral />} />
                     <Route path="dados" element={<ClienteDados />} />
