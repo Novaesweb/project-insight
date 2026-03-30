@@ -215,7 +215,7 @@ export default function AdminRecurrentBilling() {
           ) : (
             <div className="space-y-3">
               {upcomingBills.map((bill) => (
-                <div key={bill.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                <div key={bill.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
                   <div className="flex-1">
                     <p className="text-white font-medium">{bill.clientes.nome}</p>
                     <p className="text-sm text-white/60">
