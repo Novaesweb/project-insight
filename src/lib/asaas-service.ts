@@ -38,27 +38,24 @@ export class AsaasService {
   }
 
   /**
-   * Faz uma requisição para a API do Asaas (Proxy client-side)
-   * Nota: Idealmente isso deve ser feito via Edge Function.
+   * Faz uma requisição para a API do Asaas via Supabase Edge Function (Ponte Segura)
    */
   private static async request(path: string, method: string = "GET", body?: any) {
-    const { apiKey, env } = await this.getConfig();
-    if (!apiKey) throw new Error("API Key do Asaas não configurada.");
-
-    const url = `${this.getBaseUrl(env)}${path}`;
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        access_token: apiKey,
-      },
-      body: body ? JSON.stringify(body) : undefined,
+    const { data, error } = await supabase.functions.invoke('asaas-api', {
+      body: { 
+        path: path.startsWith('/') ? path.substring(1) : path, 
+        method, 
+        body 
+      }
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.errors?.[0]?.description || "Erro na API do Asaas.");
+    if (error) {
+      console.error("Erro na Edge Function:", error);
+      throw new Error("Falha na ponte de comunicação com o Asaas.");
+    }
+
+    if (data?.errors) {
+      throw new Error(data.errors[0]?.description || "Erro na API do Asaas.");
     }
 
     return data;
