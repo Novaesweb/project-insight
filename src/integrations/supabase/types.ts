@@ -942,7 +942,9 @@ export type Database = {
           briefing: string | null
           cliente_id: string | null
           created_at: string
+          data_entrega: string | null
           descricao: string | null
+          hora_entrega: string | null
           id: string
           inicio: string | null
           prazo: string | null
@@ -952,13 +954,16 @@ export type Database = {
           status: string
           titulo: string
           updated_at: string
+          url_site: string | null
           valor: number
         }
         Insert: {
           briefing?: string | null
           cliente_id?: string | null
           created_at?: string
+          data_entrega?: string | null
           descricao?: string | null
+          hora_entrega?: string | null
           id?: string
           inicio?: string | null
           prazo?: string | null
@@ -968,13 +973,16 @@ export type Database = {
           status?: string
           titulo: string
           updated_at?: string
+          url_site?: string | null
           valor?: number
         }
         Update: {
           briefing?: string | null
           cliente_id?: string | null
           created_at?: string
+          data_entrega?: string | null
           descricao?: string | null
+          hora_entrega?: string | null
           id?: string
           inicio?: string | null
           prazo?: string | null
@@ -984,6 +992,7 @@ export type Database = {
           status?: string
           titulo?: string
           updated_at?: string
+          url_site?: string | null
           valor?: number
         }
         Relationships: [
