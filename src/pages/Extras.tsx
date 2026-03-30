@@ -254,7 +254,7 @@ export default function Extras() {
               name: clienteData.nome,
               email: clienteData.email,
               cpfCnpj: clienteData.documento || undefined,
-              mobilePhone: clienteData.whatsapp || undefined,
+              mobilePhone: (clienteData as any).whatsapp || undefined,
               externalReference: clienteData.id
             });
 

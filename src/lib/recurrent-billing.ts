@@ -235,9 +235,9 @@ export class RecurrentBillingService {
         .eq("id", clienteId)
         .single();
 
-      if (cliente?.asaas_customer_id) {
+      if (cliente) {
         // 3. Cancelar assinaturas no Asaas (se houver API para isso)
-        // await AsaasService.cancelSubscriptions(customer.asaas_customer_id);
+        // await AsaasService.cancelSubscriptions(cliente.id);
       }
 
       console.log(`✅ Assinatura recorrente cancelada para cliente ${clienteId}, extra ${extraId}`);

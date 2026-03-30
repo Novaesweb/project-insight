@@ -356,17 +356,18 @@ export default function ExtrasAtivos() {
                 {/* Preview dos Extras */}
                 <div className="flex flex-wrap gap-2">
                   {cliente.extras_ativos.slice(0, 3).map((extra) => (
-                    <Badge 
-                      key={extra.id}
-                      variant="outline" 
-                      className={cn(
-                        "text-xs border",
-                        categoriaConfig[extra.categoria as keyof typeof categoriaConfig]?.border || "border-white/30",
-                        categoriaConfig[extra.categoria as keyof typeof categoriaConfig]?.color || "text-white/60"
-                      )}
-                    >
-                      {extra.nome}
-                    </Badge>
+                    <span key={extra.id}>
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs border",
+                          categoriaConfig[extra.categoria as keyof typeof categoriaConfig]?.border || "border-white/30",
+                          categoriaConfig[extra.categoria as keyof typeof categoriaConfig]?.color || "text-white/60"
+                        )}
+                      >
+                        {extra.nome}
+                      </Badge>
+                    </span>
                   ))}
                   {cliente.extras_ativos.length > 3 && (
                     <Badge variant="outline" className="text-xs border-white/30 text-white/60">
