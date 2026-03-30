@@ -207,7 +207,7 @@ export default function Leads() {
           variants={container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
         >
           {filtrados.map(lead => {
             const sc = statusConfig[lead.status] || statusConfig.novo;
@@ -220,7 +220,7 @@ export default function Leads() {
                 onClick={() => setSelectedLead(lead)}
               >
                 <div className={cn(
-                  "glass-panel-premium h-full p-8 rounded-[2.5rem] border border-white/5 transition-all cursor-pointer relative overflow-hidden group-hover:border-primary/20",
+                  "glass-panel-premium h-full p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-white/5 transition-all cursor-pointer relative overflow-hidden group-hover:border-primary/20",
                   !lead.visualizado && "bg-primary/[0.03] border-primary/20"
                 )}>
                   {/* Status & Data */}
@@ -236,7 +236,7 @@ export default function Leads() {
 
                   {/* Nome & Avatar */}
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-2xl font-black text-white group-hover:gradient-primary transition-all shadow-inner">
+                    <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-2xl sm:rounded-3xl bg-white/5 flex items-center justify-center text-xl sm:text-2xl font-black text-white group-hover:gradient-primary transition-all shadow-inner">
                       {lead.nome[0]}
                     </div>
                     <div className="flex-1 min-w-0">

@@ -71,10 +71,10 @@ export default function AdminRecurrentBilling() {
         proximasCobrancas: upcoming.length
       });
 
-      const { data: lastExec } = await supabase
-        .from("logs_sistema")
+      const { data: lastExec } = await (supabase
+        .from("financeiro") as any)
         .select("created_at")
-        .eq("acao", "GERACAO_COBRANCAS_RECURRENTES")
+        .like("descricao", "%RECURRENTE%")
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
@@ -92,10 +92,11 @@ export default function AdminRecurrentBilling() {
     try {
       await RecurrentBillingService.generateMonthlyRecurrentBills();
       
-      await supabase.from("logs_sistema").insert({
-        acao: "GERACAO_COBRANCAS_RECURRENTES",
+      // Log de execução (usando tabela existente)
+      await (supabase.from("notificacoes") as any).insert({
+        titulo: "GERACAO_COBRANCAS_RECURRENTES",
         descricao: "Geração automática de cobranças recorrentes mensais",
-        usuario_id: "system"
+        tipo: "sistema"
       });
 
       toast({ 
@@ -117,17 +118,17 @@ export default function AdminRecurrentBilling() {
     }
   };
 
-  return (
+   return (
     <motion.div 
-      className="space-y-6 p-6" 
+      className="space-y-6 p-3 sm:p-6" 
       initial="hidden" 
       animate="show" 
       variants={fadeUp}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-2">Cobranças Recorrentes</h1>
-          <p className="text-white/60">Gerenciamento de faturamento mensal automático</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Cobranças Recorrentes</h1>
+          <p className="text-sm text-white/60">Gerenciamento de faturamento mensal automático</p>
         </div>
         
         <Button 
@@ -149,7 +150,7 @@ export default function AdminRecurrentBilling() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="glass-card border-[0.5px]">
           <CardContent className="p-4 text-center">
             <div className="p-2 rounded-lg bg-emerald-500/10 w-fit mx-auto mb-2">
@@ -214,7 +215,7 @@ export default function AdminRecurrentBilling() {
           ) : (
             <div className="space-y-3">
               {upcomingBills.map((bill) => (
-                <div key={bill.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                <div key={bill.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
                   <div className="flex-1">
                     <p className="text-white font-medium">{bill.clientes.nome}</p>
                     <p className="text-sm text-white/60">

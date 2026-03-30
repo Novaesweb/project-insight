@@ -782,8 +782,8 @@ export default function Clientes() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
+          <CardContent className="overflow-x-auto">
+            <Table className="min-w-[650px]">
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
                   {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (

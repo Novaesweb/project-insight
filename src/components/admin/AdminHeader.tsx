@@ -21,18 +21,18 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
   return (
     <header
-      className="h-16 flex items-center justify-between px-5 lg:px-8 sticky top-0 z-40 backdrop-blur-xl"
+      className="h-14 md:h-16 flex items-center justify-between px-3 sm:px-5 lg:px-8 sticky top-0 z-40 backdrop-blur-xl"
       style={{
         background: 'hsl(var(--background) / 0.85)',
         borderBottom: '1px solid hsl(var(--border))',
       }}
     >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="hidden md:flex flex-col min-w-0">
-          <h1 className="text-base font-bold tracking-tight text-foreground truncate" role="heading" aria-level={1}>
+      <div className="flex items-center gap-3 min-w-0 ml-12 md:ml-0">
+        <div className="flex flex-col min-w-0">
+          <h1 className="text-sm md:text-base font-bold tracking-tight text-foreground truncate" role="heading" aria-level={1}>
             {pageTitle}
           </h1>
-          <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">{pageSubtitle}</p>
+          <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase hidden sm:block">{pageSubtitle}</p>
         </div>
       </div>
 
