@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationCenter from "@/components/NotificationCenter";
 import { ReloadPrompt } from "./ReloadPrompt";
-import nwLogo from "@/assets/novaesweb-logo-n.jpeg";
+import nwLogo from "@/assets/novaesweb-logo-premium.png";
 import { useBranding } from "@/hooks/useBranding";
 
 const menuItems = [
