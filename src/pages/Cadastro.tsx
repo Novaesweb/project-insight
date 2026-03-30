@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -167,51 +167,111 @@ export default function Cadastro() {
       </motion.button>
 
       {/* LEFT PANEL — Brand & Progress */}
-      <div className="hidden lg:flex w-[420px] shrink-0 flex-col relative overflow-hidden"
+      <div className="hidden lg:flex w-[400px] shrink-0 flex-col relative overflow-hidden"
         style={{ background: "linear-gradient(180deg, hsl(var(--background)) 0%, hsl(260 20% 6%) 100%)" }}>
         
         {/* Decorative gradient orbs */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-[15%] left-[20%] w-[300px] h-[300px] rounded-full blur-[120px] opacity-[0.08]"
-            style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }} />
-          <div className="absolute bottom-[20%] right-[10%] w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.06]"
-            style={{ background: 'radial-gradient(circle, hsl(var(--accent)), transparent 70%)' }} />
+          <motion.div
+            className="absolute top-[10%] left-[15%] w-[350px] h-[350px] rounded-full blur-[140px] opacity-[0.08]"
+            style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }}
+            animate={{ scale: [1, 1.15, 1], opacity: [0.06, 0.1, 0.06] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-[15%] right-[5%] w-[280px] h-[280px] rounded-full blur-[120px] opacity-[0.06]"
+            style={{ background: 'radial-gradient(circle, hsl(var(--accent)), transparent 70%)' }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.04, 0.08, 0.04] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
 
         {/* Right edge line */}
         <div className="absolute top-0 bottom-0 right-0 w-px"
           style={{ background: 'linear-gradient(180deg, transparent, hsl(var(--border)), transparent)' }} />
 
-        <div className="relative z-10 flex flex-col h-full p-10">
+        <div className="relative z-10 flex flex-col h-full p-8 pt-10">
           {/* Logo area */}
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'var(--gradient-primary)' }}>
-                <Sparkles className="w-5 h-5 text-white" />
+          <div className="mb-8">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"
+                  style={{ background: 'var(--gradient-primary)' }} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center relative"
+                  style={{ background: 'var(--gradient-primary)' }}>
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
               </div>
               <div>
-                <h2 className="text-lg font-extrabold tracking-tight text-foreground">novaesweb</h2>
-                <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-muted-foreground">Engenharia Digital</p>
+                <h2 className="text-base font-extrabold tracking-tight text-foreground leading-none">novaesweb</h2>
+                <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-0.5">Engenharia Digital</p>
               </div>
-            </div>
+            </Link>
           </div>
 
-          {/* Motivational text */}
-          <div className="mb-10">
-            <h3 className="text-2xl font-extrabold tracking-tight leading-snug text-foreground/90 mb-3">
-              Sua empresa merece<br />
-              <span className="gradient-text">a melhor estrutura digital.</span>
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Nós temos a solução para criar a presença online que o seu estabelecimento merece. Preencha o formulário e nossa equipe entrará em contato.
-            </p>
+          {/* Dynamic motivational text based on step */}
+          <div className="mb-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-xl font-extrabold tracking-tight leading-snug text-foreground/90 mb-2">
+                  {currentStep === 0 && <>Transforme sua presença<br /><span className="gradient-text">digital hoje mesmo.</span></>}
+                  {currentStep === 1 && <>Prazer em conhecer<br /><span className="gradient-text">você!</span></>}
+                  {currentStep === 2 && <>Vamos manter<br /><span className="gradient-text">contato por e-mail.</span></>}
+                  {currentStep === 3 && <>Atendimento rápido<br /><span className="gradient-text">pelo WhatsApp.</span></>}
+                  {currentStep === 4 && <>Cada negócio é<br /><span className="gradient-text">único e especial.</span></>}
+                  {currentStep === 5 && <>Entender sua necessidade<br /><span className="gradient-text">é o primeiro passo.</span></>}
+                  {currentStep === 6 && <>Dimensionamos a solução<br /><span className="gradient-text">ideal para você.</span></>}
+                  {currentStep === 7 && <>Obrigado por nos<br /><span className="gradient-text">encontrar!</span></>}
+                  {currentStep === 8 && <>Estamos quase lá,<br /><span className="gradient-text">conte-nos tudo!</span></>}
+                  {currentStep === 9 && <>Missão<br /><span className="gradient-text">cumprida! 🎉</span></>}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {currentStep === 0 && "Sua empresa precisa de um site e nós temos a solução para criar a melhor estrutura, do jeito que o seu estabelecimento merece."}
+                  {currentStep === 1 && "Queremos te chamar pelo nome e oferecer um atendimento personalizado."}
+                  {currentStep === 2 && "Enviaremos propostas e novidades exclusivas para você."}
+                  {currentStep === 3 && "Respondemos em até 5 minutos durante horário comercial."}
+                  {currentStep === 4 && "Entender sua marca nos ajuda a criar a solução perfeita."}
+                  {currentStep === 5 && "Temos soluções sob medida para cada tipo de demanda."}
+                  {currentStep === 6 && "Criamos projetos que escalam junto com o seu crescimento."}
+                  {currentStep === 7 && "Isso nos ajuda a melhorar cada vez mais."}
+                  {currentStep === 8 && "Quanto mais detalhes, mais assertiva será nossa proposta."}
+                  {currentStep === 9 && "Nossa equipe já está preparando algo especial para você."}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </div>
+
+          {/* Testimonial quote */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mb-8 p-4 rounded-2xl relative"
+            style={{ background: 'hsl(var(--secondary) / 0.5)', border: '1px solid hsl(var(--border))' }}
+          >
+            <p className="text-xs text-muted-foreground italic leading-relaxed">
+              "Desde que contratamos a NovaesWeb, nosso faturamento online cresceu 300%. O site ficou incrível e profissional!"
+            </p>
+            <div className="flex items-center gap-2 mt-3">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
+                style={{ background: 'var(--gradient-primary)' }}>M</div>
+              <div>
+                <p className="text-[10px] font-bold text-foreground/80">Marina Silva</p>
+                <p className="text-[9px] text-muted-foreground">Dona da Bella Massa</p>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Step navigator */}
           <div className="flex-1">
-            <div className="space-y-1">
-              {STEPS_META.map((step, i) => {
+            <div className="space-y-0.5">
+              {STEPS_META.map((step) => {
                 const isActive = currentStep === step.num;
                 const isCompleted = currentStep > step.num;
                 const isFuture = currentStep < step.num;
@@ -222,31 +282,33 @@ export default function Cadastro() {
                     animate={{
                       backgroundColor: isActive ? 'hsl(var(--secondary))' : 'transparent',
                     }}
-                    className={cn(
-                      "flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-300 cursor-default",
-                    )}
+                    className="flex items-center gap-3 py-2 px-3 rounded-xl transition-all duration-300 cursor-default"
                   >
                     <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black transition-all duration-400 shrink-0",
+                      "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all duration-400 shrink-0",
                       isActive && "shadow-lg",
-                      isCompleted && "bg-emerald-500/15 text-emerald-400",
+                      isCompleted && "text-emerald-400",
                       isFuture && "text-muted-foreground/40"
                     )}
-                      style={isActive ? { background: 'var(--gradient-primary)' } : isFuture ? { background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' } : {}}
+                      style={
+                        isActive ? { background: 'var(--gradient-primary)' } :
+                        isCompleted ? { background: 'hsl(var(--success) / 0.1)' } :
+                        { background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }
+                      }
                     >
-                      {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3px]" /> :
-                        isActive ? <step.icon className="w-3.5 h-3.5 text-white" /> :
+                      {isCompleted ? <Check className="w-3 h-3 stroke-[3px]" /> :
+                        isActive ? <step.icon className="w-3 h-3 text-white" /> :
                         <span>{step.num}</span>}
                     </div>
                     <span className={cn(
-                      "text-xs font-semibold tracking-wide transition-all duration-300",
+                      "text-[11px] font-semibold tracking-wide transition-all duration-300",
                       isActive ? "text-foreground" : isCompleted ? "text-muted-foreground" : "text-muted-foreground/40"
                     )}>
                       {step.label}
                     </span>
                     {isActive && (
                       <motion.div layoutId="step-indicator" className="ml-auto">
-                        <ChevronRight className="w-3.5 h-3.5 text-primary" />
+                        <ChevronRight className="w-3 h-3 text-primary" />
                       </motion.div>
                     )}
                   </motion.div>
@@ -256,10 +318,10 @@ export default function Cadastro() {
           </div>
 
           {/* Progress bar */}
-          <div className="space-y-2">
+          <div className="space-y-2 pt-4">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Progresso</span>
-              <span className="text-xs font-black text-foreground/60">{Math.round(progress)}%</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Progresso</span>
+              <span className="text-[11px] font-black text-foreground/60">{Math.round(progress)}%</span>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'hsl(var(--secondary))' }}>
               <motion.div
