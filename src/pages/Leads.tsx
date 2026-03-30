@@ -236,7 +236,7 @@ export default function Leads() {
 
                   {/* Nome & Avatar */}
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-2xl font-black text-white group-hover:gradient-primary transition-all shadow-inner">
+                    <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-2xl sm:rounded-3xl bg-white/5 flex items-center justify-center text-xl sm:text-2xl font-black text-white group-hover:gradient-primary transition-all shadow-inner">
                       {lead.nome[0]}
                     </div>
                     <div className="flex-1 min-w-0">
