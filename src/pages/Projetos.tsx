@@ -72,9 +72,20 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
     }
   };
 
-  const handleProgressChange = (value: number[]) => setProjeto((prev: any) => ({ ...prev, progresso: value[0] }));
+  const handleProgressChange = (value: number[]) => {
+    // Se já estiver em 100%, não permite alterar
+    if (projeto.progresso >= 100) return;
+    // Se tentar diminuir, não permite
+    if (value[0] < projeto.progresso) return;
+    setProjeto((prev: any) => ({ ...prev, progresso: value[0] }));
+  };
+  
   const saveProgresso = async (value: number[]) => {
-    // Permitir alterar progresso mesmo que esteja concluído
+    // Se já estiver em 100%, não permite salvar
+    if (projeto.progresso >= 100) return;
+    // Se tentar diminuir, não permite salvar
+    if (value[0] < projeto.progresso) return;
+    
     const { error } = await supabase.from("projetos").update({ progresso: value[0] }).eq("id", projetoId);
     if (!error) {
       toast({ title: `Engenharia de Solução em ${value[0]}%` });
@@ -240,9 +251,25 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="glass-card border-[0.5px]">
               <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3"><p className="text-sm font-semibold text-white">Engenharia de Solução</p><span className="text-lg font-bold gradient-text">{projeto.progresso}%</span></div>
-                <Slider value={[projeto.progresso]} onValueChange={handleProgressChange} onValueCommit={saveProgresso} max={100} step={5} className="w-full" />
-                <p className="text-xs text-white/40 mt-2">Ajuste o progresso conforme necessário. A barra pode avançar ou voltar.</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-white">Engenharia de Solução</p>
+                  <span className="text-lg font-bold gradient-text">{projeto.progresso}%</span>
+                </div>
+                <Slider 
+                  value={[projeto.progresso]} 
+                  onValueChange={handleProgressChange} 
+                  onValueCommit={saveProgresso} 
+                  max={100} 
+                  step={5} 
+                  className="w-full"
+                  disabled={projeto.progresso >= 100}
+                />
+                <p className="text-xs text-white/40 mt-2">
+                  {projeto.progresso >= 100 
+                    ? "🔒 Projeto finalizado - Barra de progresso bloqueada" 
+                    : "Ajuste o progresso conforme necessário. A barra só avança e não volta."
+                  }
+                </p>
               </CardContent>
             </Card>
 
