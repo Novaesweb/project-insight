@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault } from "lucide-react";
+import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,10 +61,16 @@ interface PerfilCliente {
   trial_ends_at?: string;
 }
 
+interface Counts {
+  projetos: number;
+  faturas: number;
+  tickets: number;
+}
+
 export default function ClienteDashboard() {
   const cliente: PerfilCliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const cId = cliente.id;
-  const [counts, setCounts] = useState({ projetos: 0, extras: 0, faturas: 0, tickets: 0 });
+  const [counts, setCounts] = useState<Counts>({ projetos: 0, faturas: 0, tickets: 0 });
   const [proximaReuniao, setProximaReuniao] = useState<Reuniao | null>(null);
   const [atualizacoes, setAtualizacoes] = useState<Atualizacao[]>([]);
   const [perfil, setPerfil] = useState<PerfilCliente>(cliente);
@@ -77,10 +83,9 @@ export default function ClienteDashboard() {
     if (!cId) return;
     Promise.all([
       supabase.from("projetos").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "cancelado"),
-      supabase.from("extras_clientes").select("id", { count: "exact", head: true }).eq("cliente_id", cId).eq("status", "ativo"),
       supabase.from("financeiro").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "pago"),
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
-    ]).then(([p, e, f, t]) => setCounts({ projetos: p.count || 0, extras: e.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
+    ]).then(([p, f, t]) => setCounts({ projetos: p.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
 
     supabase.from("projetos").select("*").eq("cliente_id", cId).neq("status", "cancelado").order("created_at", { ascending: false }).limit(1)
       .then(({ data }) => {
@@ -170,13 +175,11 @@ export default function ClienteDashboard() {
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("financeiro", load);
   useRealtimeSubscription("tickets", load);
-  useRealtimeSubscription("extras_clientes", load);
   useRealtimeSubscription("reunioes", load);
   useRealtimeSubscription("projeto_atualizacoes", load);
 
   const kpis = [
     { label: "Soluções Ativas", value: counts.projetos, icon: FolderKanban },
-    { label: "Módulos Injetados", value: counts.extras, icon: Plus },
     { label: "Fluxo de Valor", value: counts.faturas, icon: Receipt },
     { label: "Dossiês de Evolução", value: counts.tickets, icon: Headphones },
   ];
