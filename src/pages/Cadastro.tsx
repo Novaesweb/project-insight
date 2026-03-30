@@ -575,7 +575,7 @@ export default function Cadastro() {
 
 /* ===================== Sub-components ===================== */
 
-function InputStep({ step, form, errors, updateForm, onNext, direction }: {
+function InputStep({ step, form, errors, updateForm, onNext, direction, ...rest }: {
   step: number;
   form: Record<string, string>;
   errors: Record<string, string>;
