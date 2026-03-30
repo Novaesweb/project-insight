@@ -303,33 +303,92 @@ export default function Extras() {
       return;
     }
 
-    const extrasDoCliente = (await supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", clienteSel).eq("status", "ativo")).data || [];
+    const extrasDoCliente = (await supabase.from("extras_clientes").select("*, extras_catalogo(nome, categoria)").eq("cliente_id", clienteSel).eq("status", "ativo")).data || [];
     
     if (extrasDoCliente.length === 0) {
       toast({ title: "Nenhum extra", description: "Este cliente não possui extras ativos para faturar.", variant: "destructive" });
       return;
     }
 
-    const valorTotal = extrasDoCliente.reduce((acc, e) => acc + Number(e.preco_ativacao || 0), 0);
-    const nomes = extrasDoCliente.map(e => (e as any).extras_catalogo?.nome).join(", ");
+    // Calcular valor total (ativação + mensalidades)
+    const valorTotalAtivacao = extrasDoCliente.reduce((acc, e) => acc + Number(e.preco_ativacao || 0), 0);
+    const valorTotalMensal = extrasDoCliente.reduce((acc, e) => acc + Number(e.preco_mensal || 0), 0);
+    const valorTotal = valorTotalAtivacao + valorTotalMensal;
     
-    setSaving(true);
-    const { error } = await supabase.from("financeiro").insert({
-      cliente_id: clienteSel,
-      tipo: "receita",
-      categoria: "Extras",
-      valor: valorTotal,
-      descricao: `Ativação de Módulos Extras: ${nomes}`,
-      data: new Date().toISOString().split("T")[0],
-      status: "pendente",
-      metodo: "asaas"
-    });
-    setSaving(false);
+    const nomes = extrasDoCliente.map(e => (e as any).extras_catalogo?.nome).join(", ");
+    const detalhes = extrasDoCliente.map(e => 
+      `• ${(e as any).extras_catalogo?.nome}: R$ ${Number(e.preco_ativacao || 0).toFixed(2)}${e.preco_mensal > 0 ? ` + R$ ${Number(e.preco_mensal || 0).toFixed(2)}/mês` : ''}`
+    ).join('\n');
 
-    if (error) {
-      toast({ title: "Erro ao gerar fatura", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Fatura Gerada!", description: `Valor total de R$ ${valorTotal.toFixed(2)} lançado no financeiro.` });
+    try {
+      setSaving(true);
+
+      // 1. Buscar dados completos do cliente
+      const { data: clienteData } = await supabase.from("clientes").select("*").eq("id", clienteSel).single();
+      
+      if (!clienteData) {
+        toast({ title: "Erro", description: "Cliente não encontrado", variant: "destructive" });
+        return;
+      }
+
+      // 2. Criar fatura consolidada no financeiro
+      const financeiroData = {
+        cliente_id: clienteSel,
+        descricao: `Fatura Consolidada - ${extrasDoCliente.length} Extras\n${detalhes}`,
+        tipo: "entrada",
+        valor: valorTotal,
+        vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 dias
+        status: "pendente"
+      };
+
+      const { data: financeiroRecord } = await supabase.from("financeiro").insert(financeiroData).select().single();
+
+      // 3. Gerar fatura no Asaas automaticamente
+      if (financeiroRecord) {
+        const { AsaasService } = await import("@/lib/asaas-service");
+        
+        try {
+          // Criar cliente no Asaas
+          const asaasCustomer = await AsaasService.getOrCreateCustomer({
+            name: clienteData.nome,
+            email: clienteData.email,
+            cpfCnpj: clienteData.documento || undefined,
+            phone: clienteData.whatsapp || undefined,
+            externalReference: clienteData.id
+          });
+
+          // Gerar cobrança consolidada
+          const payment = await AsaasService.createPayment({
+            customer: asaasCustomer.id,
+            billingType: "UNDEFINED",
+            value: valorTotal,
+            dueDate: financeiroData.vencimento,
+            description: `Fatura Consolidada - ${extrasDoCliente.length} Extras (${nomes})`
+          });
+
+          // Atualizar descrição com link do Asaas
+          const novaDescricao = `${financeiroData.descricao}\n(Asaas: ${payment.invoiceUrl})`;
+          await supabase.from("financeiro").update({ descricao: novaDescricao }).eq("id", financeiroRecord.id);
+
+          toast({ 
+            title: "✅ Fatura Consolidada Gerada!", 
+            description: `${extrasDoCliente.length} extras - Valor: R$ ${valorTotal.toFixed(2)} - Fatura Asaas criada` 
+          });
+        } catch (asaasError) {
+          console.error("Erro ao gerar fatura Asaas:", asaasError);
+          toast({ 
+            title: "⚠️ Fatura Consolidada Criada!", 
+            description: `${extrasDoCliente.length} extras - Valor: R$ ${valorTotal.toFixed(2)} - Erro ao gerar link Asaas. Verifique o financeiro.` 
+          });
+        }
+      }
+
+      setSaving(false);
+      
+    } catch (error) {
+      console.error("Erro ao gerar fatura consolidada:", error);
+      toast({ title: "Erro", description: "Não foi possível gerar fatura consolidada", variant: "destructive" });
+      setSaving(false);
     }
   };
 
