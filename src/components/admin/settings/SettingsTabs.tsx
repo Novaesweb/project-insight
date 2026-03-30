@@ -1,4 +1,5 @@
-import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users, MousePointerClick, Zap } from "lucide-react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users, MousePointerClick, Zap, Eye, EyeOff, X } from "lucide-react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,6 +141,12 @@ export function PermissionsTable({ data, onSave }: any) {
 }
 
 export function IntegrationsForm({ items, values, setValues, onSave, saving }: any) {
+  const [showValues, setShowValues] = useState<Record<string, boolean>>({});
+
+  const toggleVisibility = (key: string) => {
+    setShowValues(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="space-y-4">
       {items.map((integ: any) => (
@@ -155,12 +162,24 @@ export function IntegrationsForm({ items, values, setValues, onSave, saving }: a
               </div>
             </div>
             <div className="flex gap-2">
-              <Input
-                className="glass-input border-white/5 text-white text-sm h-10 flex-1"
-                placeholder={integ.placeholder}
-                value={values[integ.key] || ""}
-                onChange={e => setValues(prev => ({ ...prev, [integ.key]: e.target.value }))}
-              />
+              <div className="relative flex-1">
+                <Input
+                  type={integ.type === "password" && !showValues[integ.key] ? "password" : "text"}
+                  className="glass-input border-white/5 text-white text-sm h-10 w-full pr-10"
+                  placeholder={integ.placeholder}
+                  value={values[integ.key] || ""}
+                  onChange={e => setValues((prev: any) => ({ ...prev, [integ.key]: e.target.value }))}
+                />
+                {integ.type === "password" && (
+                  <button
+                    type="button"
+                    onClick={() => toggleVisibility(integ.key)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                  >
+                    {showValues[integ.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
               <Button
                 size="sm"
                 className="gradient-primary border-0 text-white h-10 px-6 rounded-xl font-bold uppercase text-[9px] tracking-widest"
