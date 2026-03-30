@@ -11,7 +11,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
 
   return (
-    <section id="home" className="relative min-h-[95vh] flex items-center justify-center overflow-hidden pt-20 pb-12">
+    <section id="home" className="relative min-h-[95vh] flex items-center justify-center overflow-hidden pt-32 pb-12">
       {/* Subtle background orbs — muted tones */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.07]" style={{ background: 'radial-gradient(circle, #a855f7, transparent 70%)', willChange: 'transform', transform: 'translateZ(0)' }} />
@@ -32,7 +32,7 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-white/60 text-[10px] font-black uppercase tracking-[0.3em] mb-8"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-white/60 text-[10px] font-black uppercase tracking-[0.3em] mb-10"
           >
             <Zap className="w-3 h-3 text-purple-400" />
             Architect v10.0 — Engenharia Digital

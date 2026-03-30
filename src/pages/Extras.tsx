@@ -49,13 +49,23 @@ export default function Extras() {
   const [calPlanoBase, setCalPlanoBase] = useState("express");
   const [calExtras, setCalExtras] = useState<string[]>([]);
   const [calDesconto, setCalDesconto] = useState("0");
-  const [calNomeCliente, setCalNomeCliente] = useState("");
+  const [calClienteId, setCalClienteId] = useState("");
+  const [calPrecoBaseAtivacao, setCalPrecoBaseAtivacao] = useState("180");
+  const [calPrecoBaseMensal, setCalPrecoBaseMensal] = useState("60");
 
   const basePlans: Record<string, { nome: string; ativacao: number; mensal: number }> = {
     express: { nome: "Arquitetura Express", ativacao: 180, mensal: 60 },
-    gestao: { nome: "Arquitetura de Gestão", ativacao: 1500, mensal: 150 },
-    sobmedida: { nome: "Arquitetura sob Medida", ativacao: 3000, mensal: 250 },
+    gestao: { nome: "Arquitetura de Gestão", ativacao: 0, mensal: 0 },
+    sobmedida: { nome: "Arquitetura sob Medida", ativacao: 0, mensal: 0 },
   };
+
+  // Sync manual price when plan changes
+  useEffect(() => {
+    if (calPlanoBase === "express") {
+      setCalPrecoBaseAtivacao("180");
+      setCalPrecoBaseMensal("60");
+    }
+  }, [calPlanoBase]);
 
   const [showNewPacote, setShowNewPacote] = useState(false);
   const [pacoteForm, setPacoteForm] = useState({ nome: "", descricao: "", preco_total: "", itens: [] as string[] });
@@ -256,9 +266,13 @@ export default function Extras() {
   const generatePDF = () => {
     const doc = new jsPDF();
     const plano = basePlans[calPlanoBase];
+    const clienteObj = clientes.find(c => c.id === calClienteId);
     const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
-    const totalAtivacao = plano.ativacao + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
-    const totalMensal = plano.mensal + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
+    
+    const baseAtiv = Number(calPrecoBaseAtivacao);
+    const baseMens = Number(calPrecoBaseMensal);
+    const totalAtivacao = baseAtiv + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
+    const totalMensal = baseMens + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
@@ -271,7 +285,7 @@ export default function Extras() {
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(`Cliente: ${calNomeCliente || "Proposta NovaesWeb"}`, 20, 50);
+    doc.text(`Cliente: ${clienteObj?.nome || "Proposta NovaesWeb"}`, 20, 50);
     doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 20, 57);
     
     doc.line(20, 65, 190, 65);
@@ -304,15 +318,19 @@ export default function Extras() {
       doc.text(`Desconto aplicado: R$ ${Number(calDesconto).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 25, y);
     }
     
-    doc.save(`Orçamento_${calNomeCliente || "NovaesWeb"}.pdf`);
+    doc.save(`Orçamento_${clienteObj?.nome || "NovaesWeb"}.pdf`);
     toast({ title: "PDF Gerado com sucesso!" });
   };
 
   const generateWord = async () => {
     const plano = basePlans[calPlanoBase];
+    const clienteObj = clientes.find(c => c.id === calClienteId);
     const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
-    const totalAtivacao = plano.ativacao + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
-    const totalMensal = plano.mensal + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
+    
+    const baseAtiv = Number(calPrecoBaseAtivacao);
+    const baseMens = Number(calPrecoBaseMensal);
+    const totalAtivacao = baseAtiv + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
+    const totalMensal = baseMens + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
 
     const doc = new Document({
       sections: [{
@@ -321,7 +339,7 @@ export default function Extras() {
           new Paragraph({ text: "NOVAESWEB", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }),
           new Paragraph({ text: "PROPOSTA COMERCIAL", heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER }),
           new Paragraph({ text: "" }),
-          new Paragraph({ children: [new TextRun({ text: `Cliente: `, bold: true }), new TextRun(calNomeCliente || "Proposta NovaesWeb")] }),
+          new Paragraph({ children: [new TextRun({ text: `Cliente: `, bold: true }), new TextRun(clienteObj?.nome || "Proposta NovaesWeb")] }),
           new Paragraph({ children: [new TextRun({ text: `Data: `, bold: true }), new TextRun(new Date().toLocaleDateString("pt-BR"))] }),
           new Paragraph({ text: "" }),
           new Paragraph({ text: "Resumo da Solução:", heading: HeadingLevel.HEADING_3 }),
@@ -330,26 +348,31 @@ export default function Extras() {
           new Paragraph({ text: "" }),
           new Paragraph({ text: "Investimento:", heading: HeadingLevel.HEADING_3 }),
           new Paragraph({ children: [new TextRun({ text: "Setup (Ativação Única): ", bold: true }), new TextRun(`R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)] }),
-          new Paragraph({ children: [new TextRun({ text: "Manutenção (Mensalidade): ", bold: true }), new TextRun(`R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`)] }),
+          new Paragraph({ children: [new TextRun({ text: "Manutenção (Mensalidade TOTAL): ", bold: true }), new TextRun(`R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`)] }),
+          ...(totalMensal > 0 ? [new Paragraph({ children: [new TextRun({ text: "*(Este valor recorrente garante a sustentação, segurança e evolução da sua engenharia digital)", italics: true })] })] : []),
           ...(Number(calDesconto) > 0 ? [new Paragraph({ children: [new TextRun({ text: "Desconto aplicado: ", bold: true, color: "E8334A" }), new TextRun(`R$ ${Number(calDesconto).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)] })] : []),
         ],
       }],
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Orçamento_${calNomeCliente || "NovaesWeb"}.docx`);
+    saveAs(blob, `Orçamento_${clienteObj?.nome || "NovaesWeb"}.docx`);
     toast({ title: "Word (.docx) Gerado com sucesso!" });
   };
 
   const copyWhatsApp = () => {
     const plano = basePlans[calPlanoBase];
+    const clienteObj = clientes.find(c => c.id === calClienteId);
     const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
-    const totalAtivacao = plano.ativacao + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
-    const totalMensal = plano.mensal + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
+    
+    const baseAtiv = Number(calPrecoBaseAtivacao);
+    const baseMens = Number(calPrecoBaseMensal);
+    const totalAtivacao = baseAtiv + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
+    const totalMensal = baseMens + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
 
     const text = `*Orçamento NovaesWeb - Transformação Digital* 🚀
 
-Olá, segue o resumo do projeto para *${calNomeCliente || "você"}*:
+Olá, segue o resumo do projeto para *${clienteObj?.nome || "você"}*:
 
 *Arquitetura Base:* ${plano.nome}
 *Opcionais Inclusos:* ${itensSelecionados.length > 0 ? "" : "Nenhum"}
@@ -357,7 +380,7 @@ ${itensSelecionados.map(i => `✅ ${i.nome}`).join('\n')}
 
 ---
 💰 *Investimento Setup:* R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-📊 *Mensalidade:* R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês
+📊 *Mensalidade Recorrente:* R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês
 ---
 
 Qualquer dúvida estou à disposição! 👋`;
@@ -514,13 +537,13 @@ Qualquer dúvida estou à disposição! 👋`;
                 <CardContent className="p-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] text-white/40 uppercase">Nome do Cliente (Opcional)</Label>
-                      <Input 
-                        placeholder="Ex: João Silva ou Pizzaria XPTO" 
-                        className="glass-input border-white/10 text-white text-xs h-9"
-                        value={calNomeCliente}
-                        onChange={e => setCalNomeCliente(e.target.value)}
-                      />
+                      <Label className="text-[10px] text-white/40 uppercase">Cliente Ativo</Label>
+                      <Select value={calClienteId} onValueChange={setCalClienteId}>
+                        <SelectTrigger className="glass-input border-white/10 text-white text-xs h-9"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                        <SelectContent>
+                          {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-[10px] text-white/40 uppercase">Arquitetura Base</Label>
@@ -528,10 +551,31 @@ Qualquer dúvida estou à disposição! 👋`;
                         <SelectTrigger className="glass-input border-white/10 text-white text-xs h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="express">Express (Iniciante)</SelectItem>
-                          <SelectItem value="gestao">Gestão (Profissional)</SelectItem>
-                          <SelectItem value="sobmedida">Sob Medida (Enterprise)</SelectItem>
+                          <SelectItem value="gestao">Gestão (Personalizado)</SelectItem>
+                          <SelectItem value="sobmedida">Sob Medida (Personalizado)</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-white/40 uppercase">Valor Ativação do Plano (R$)</Label>
+                      <Input 
+                        type="number" 
+                        disabled={calPlanoBase === "express"}
+                        className="glass-input border-white/10 text-white text-xs h-9"
+                        value={calPrecoBaseAtivacao}
+                        onChange={e => setCalPrecoBaseAtivacao(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-white/40 uppercase">Mensalidade do Plano (R$)</Label>
+                      <Input 
+                        type="number" 
+                        disabled={calPlanoBase === "express"}
+                        className="glass-input border-white/10 text-white text-xs h-9"
+                        value={calPrecoBaseMensal}
+                        onChange={e => setCalPrecoBaseMensal(e.target.value)}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -594,8 +638,8 @@ Qualquer dúvida estou à disposição! 👋`;
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
-                        <span className="text-white/40">Ativação Base ({basePlans[calPlanoBase].nome})</span>
-                        <span className="text-white">R$ {basePlans[calPlanoBase].ativacao.toFixed(2)}</span>
+                        <span className="text-white/40">Plano Base ({basePlans[calPlanoBase].nome})</span>
+                        <span className="text-white">R$ {Number(calPrecoBaseAtivacao).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-white/40">Total de Extras ({calExtras.length} itens)</span>
@@ -615,12 +659,12 @@ Qualquer dúvida estou à disposição! 👋`;
                   <CardContent className="p-5 flex flex-col justify-center h-full">
                     <p className="text-[10px] text-white/60 uppercase font-black italic">Total Setup Final</p>
                     <p className="text-2xl font-black text-white italic leading-tight">
-                      R$ {(basePlans[calPlanoBase].ativacao + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      R$ {(Number(calPrecoBaseAtivacao) + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </p>
                     <div className="h-[1px] bg-white/10 my-3" />
                     <p className="text-[10px] text-white/60 uppercase font-black italic">Manutenção Mensal</p>
                     <p className="text-lg font-black text-white italic">
-                      R$ {(basePlans[calPlanoBase].mensal + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_mensal), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}<span className="text-xs">/mês</span>
+                      R$ {(Number(calPrecoBaseMensal) + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_mensal), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}<span className="text-xs">/mês</span>
                     </p>
                   </CardContent>
                 </Card>
