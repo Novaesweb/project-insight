@@ -121,6 +121,39 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (!cliente) { navigate("/cliente"); return; }
+
+    // Canal de Realtime para vigiar exclusão do cliente
+    const channel = supabase
+      .channel('cliente-deleted')
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'clientes',
+          filter: `id=eq.${cliente.id}`
+        },
+        (payload) => {
+          console.log('Cliente deletado, desconectando...', payload);
+          
+          // Limpar dados locais
+          localStorage.removeItem("clienteLogado");
+          
+          // Alerta de acesso revogado
+          alert("⚠️ Acesso Revogado\n\nSeu acesso foi desativado pelo administrador. Você será redirecionado para a página de login.");
+          
+          // Redirecionar imediatamente
+          navigate("/cliente");
+          
+          // Forçar reload da página para limpar qualquer estado residual
+          window.location.reload();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [cliente, navigate]);
 
   if (!cliente) return null;
