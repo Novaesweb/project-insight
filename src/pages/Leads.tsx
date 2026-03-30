@@ -220,7 +220,7 @@ export default function Leads() {
                 onClick={() => setSelectedLead(lead)}
               >
                 <div className={cn(
-                  "glass-panel-premium h-full p-8 rounded-[2.5rem] border border-white/5 transition-all cursor-pointer relative overflow-hidden group-hover:border-primary/20",
+                  "glass-panel-premium h-full p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-white/5 transition-all cursor-pointer relative overflow-hidden group-hover:border-primary/20",
                   !lead.visualizado && "bg-primary/[0.03] border-primary/20"
                 )}>
                   {/* Status & Data */}
