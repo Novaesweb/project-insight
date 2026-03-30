@@ -9,7 +9,7 @@ interface HeroSectionProps {
 }
 
 // Floating particle component
-function FloatingParticle({ delay, x, y, size }: { delay: number; x: string; y: string; size: number }) {
+function FloatingParticle({ delay, x, y, size, ...rest }: { delay: number; x: string; y: string; size: number; [key: string]: any }) {
   return (
     <motion.div
       className="absolute rounded-full"
