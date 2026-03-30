@@ -27,7 +27,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         borderBottom: '1px solid hsl(var(--border))',
       }}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-3 min-w-0 ml-12 md:ml-0">
         <div className="flex flex-col min-w-0">
           <h1 className="text-sm md:text-base font-bold tracking-tight text-foreground truncate" role="heading" aria-level={1}>
             {pageTitle}
