@@ -150,7 +150,7 @@ export default function AdminRecurrentBilling() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="glass-card border-[0.5px]">
           <CardContent className="p-4 text-center">
             <div className="p-2 rounded-lg bg-emerald-500/10 w-fit mx-auto mb-2">
