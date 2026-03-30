@@ -85,12 +85,12 @@ export default function ClienteFaturas() {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-10 pb-20">
       {/* Header Premium */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center justify-center bg-white/5 p-1.5 rounded-xl border border-white/10 mr-2 shadow-inner">
-            <img src={logoImg} alt="Novaes Web" className="h-8 w-auto object-contain" />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-center bg-white/5 p-1.5 rounded-xl border border-white/10 shadow-inner shrink-0">
+            <img src={logoImg} alt="Novaes Web" className="h-7 sm:h-8 w-auto object-contain" />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tighter flex items-center gap-3">
               <Wallet className="w-8 h-8 text-primary" /> Minhas Faturas
             </h1>
             <p className="text-white/40 font-medium text-sm mt-1">Gerencie seus pagamentos com transparência total.</p>

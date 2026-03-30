@@ -212,10 +212,10 @@ export default function ClienteDashboard() {
           <p className="text-sm text-white/50">Seu Ecossistema Digital está sendo potencializado.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center justify-center bg-white/5 p-1.5 rounded-xl border border-white/10 mr-2 shadow-inner">
-            <img src={logoImg} alt="Novaes Web" className="h-8 w-auto object-contain" />
+          <div className="flex items-center justify-center bg-white/5 p-1.5 rounded-xl border border-white/10 mr-1 sm:mr-2 shadow-inner">
+            <img src={logoImg} alt="Novaes Web" className="h-7 sm:h-8 w-auto object-contain" />
           </div>
-          <span className="px-3 py-1.5 rounded-full border border-white/10 text-[9px] font-black text-white uppercase tracking-[0.15em]" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.2), rgba(255,215,0,0.1))" }}>
+          <span className="px-2 sm:px-3 py-1.5 rounded-full border border-white/10 text-[8px] sm:text-[9px] font-black text-white uppercase tracking-[0.10em] sm:tracking-[0.15em]" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.2), rgba(255,215,0,0.1))" }}>
             <span style={{ background: "linear-gradient(90deg, #c084fc, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>v10.0 ARCHITECT PRO</span>
           </span>
         </div>
