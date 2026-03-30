@@ -39,12 +39,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 overflow-hidden"
           style={{ background: 'hsl(var(--background))', borderRight: '1px solid hsl(var(--border))' }}>
-          <div className="h-full">
-            <AdminSidebar
-              isCollapsed={false}
-              onToggle={() => {}}
-              branding={branding}
-            />
+          <div className="h-full flex flex-col">
+            <MobileSidebar branding={branding} onClose={() => setOpen(false)} />
           </div>
         </SheetContent>
       </Sheet>
