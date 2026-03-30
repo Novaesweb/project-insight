@@ -126,7 +126,7 @@ export class RecurrentBillingService {
             name: cliente.nome,
             email: cliente.email,
             cpfCnpj: cliente.documento || undefined,
-            phone: cliente.whatsapp || undefined,
+            mobilePhone: (cliente as any).whatsapp || undefined,
             externalReference: clienteId
           });
 
