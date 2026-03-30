@@ -28,11 +28,11 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
       }}
     >
       <div className="flex items-center gap-3 min-w-0">
-        <div className="hidden md:flex flex-col min-w-0">
-          <h1 className="text-base font-bold tracking-tight text-foreground truncate" role="heading" aria-level={1}>
+        <div className="flex flex-col min-w-0">
+          <h1 className="text-sm md:text-base font-bold tracking-tight text-foreground truncate" role="heading" aria-level={1}>
             {pageTitle}
           </h1>
-          <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">{pageSubtitle}</p>
+          <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase hidden sm:block">{pageSubtitle}</p>
         </div>
       </div>
 
