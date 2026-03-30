@@ -204,6 +204,7 @@ export default function Extras() {
           preco_ativacao: fullExtra?.preco_ativacao || 0,
           preco_mensal: fullExtra?.preco_mensal || 0,
           observacao: observacao || null,
+          status: "ativo"
         } as any;
       });
       await supabase.from("extras_clientes").insert(batch);
@@ -211,6 +212,7 @@ export default function Extras() {
       await supabase.from("extras_clientes").insert({
         cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
         preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
+        status: "ativo"
       });
     }
 
@@ -218,6 +220,42 @@ export default function Extras() {
     fetchData();
     setShowAtribuir(false);
     toast({ title: "Extra(s) atribuídos!" });
+  };
+
+  const handleGerarFaturaConsolidada = async () => {
+    if (!clienteSel) {
+      toast({ title: "Selecione um cliente", description: "Escolha um cliente para faturar os extras.", variant: "destructive" });
+      return;
+    }
+
+    const extrasDoCliente = (await supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", clienteSel).eq("status", "ativo")).data || [];
+    
+    if (extrasDoCliente.length === 0) {
+      toast({ title: "Nenhum extra", description: "Este cliente não possui extras ativos para faturar.", variant: "destructive" });
+      return;
+    }
+
+    const valorTotal = extrasDoCliente.reduce((acc, e) => acc + Number(e.preco_ativacao || 0), 0);
+    const nomes = extrasDoCliente.map(e => (e as any).extras_catalogo?.nome).join(", ");
+    
+    setSaving(true);
+    const { error } = await supabase.from("financeiro").insert({
+      cliente_id: clienteSel,
+      tipo: "receita",
+      categoria: "Extras",
+      valor: valorTotal,
+      descricao: `Ativação de Módulos Extras: ${nomes}`,
+      data: new Date().toISOString().split("T")[0],
+      status: "pendente",
+      metodo: "asaas"
+    });
+    setSaving(false);
+
+    if (error) {
+      toast({ title: "Erro ao gerar fatura", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Fatura Gerada!", description: `Valor total de R$ ${valorTotal.toFixed(2)} lançado no financeiro.` });
+    }
   };
 
   const config = categoriaSel === "pacotes"
@@ -280,6 +318,34 @@ export default function Extras() {
           </div>
 
           <div className="grid grid-cols-1 gap-3">
+            {/* Seção de Gestão por Cliente */}
+            <Card className="border-[0.5px] border-[rgba(232,51,74,0.3)] shadow-lg" style={{ background: "rgba(232,51,74,0.05)" }}>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-red-500/10"><DollarSign className="w-4 h-4 text-primary" /></div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-wider">Faturar Extras</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  <Select value={clienteSel} onValueChange={setClienteSel}>
+                    <SelectTrigger className="border-white/10 text-white h-10 bg-black/40"><SelectValue placeholder="Escolha o cliente..." /></SelectTrigger>
+                    <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    className="w-full h-10 gradient-primary border-0 text-white font-bold text-xs" 
+                    onClick={handleGerarFaturaConsolidada}
+                    disabled={saving || !clienteSel}
+                  >
+                    {saving ? "Processando..." : (
+                      <span className="flex items-center gap-2 italic"><Zap className="w-3.5 h-3.5 fill-current" /> Gerar Fatura Consolidada</span>
+                    )}
+                  </Button>
+                  <p className="text-[9px] text-center text-white/30 italic">Lote de extras ativos serão somados e lançados no financeiro.</p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-white/5"><Package className="w-4 h-4 text-white/60" /></div>
