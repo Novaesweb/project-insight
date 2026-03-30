@@ -51,7 +51,15 @@ export class AsaasService {
 
     if (error) {
       console.error("Erro na Edge Function:", error);
-      throw new Error("Falha na ponte de comunicação com o Asaas.");
+      // Tenta extrair a mensagem de erro detalhada
+      let errorMessage = "Falha na ponte de comunicação com o Asaas.";
+      try {
+        const errorJson = await error.context?.json();
+        errorMessage = errorJson?.error || errorJson?.errors?.[0]?.description || error.message;
+      } catch (e) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
 
     if (data?.errors) {

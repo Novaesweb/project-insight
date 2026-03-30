@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { TrendingUp, AlertTriangle, DollarSign, Plus, FileDown, FileText, FileSpreadsheet, Pencil, Trash2, MoreVertical } from "lucide-react";
+import { TrendingUp, AlertTriangle, DollarSign, Plus, FileDown, FileText, FileSpreadsheet, Pencil, Trash2, MoreVertical, CheckCircle2, XCircle } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -275,12 +275,24 @@ export default function Financeiro() {
                           size="sm" 
                           variant="outline" 
                           className={cn(
-                            "h-7 px-2 text-[10px] uppercase font-bold border-white/10 transition-all",
-                            f.status === "pago" ? "hover:bg-amber-500/20 hover:text-amber-400" : "hover:bg-emerald-500/20 hover:text-emerald-400"
+                            "h-7 px-3 text-[10px] uppercase font-bold transition-all gap-1.5 rounded-lg border-0",
+                            f.status === "pago" 
+                              ? "bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                              : "bg-white/5 text-white/40 hover:bg-emerald-500/20 hover:text-emerald-400"
                           )}
                           onClick={() => toggleStatus(f.id, f.status)}
                         >
-                          {f.status === "pago" ? "Pendente" : "Pagar"}
+                          {f.status === "pago" ? (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Pago
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-3.5 h-3.5" />
+                              Pagar
+                            </>
+                          )}
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -291,6 +303,9 @@ export default function Financeiro() {
                           <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
                             <DropdownMenuItem onClick={() => openEdit(f)} className="text-xs gap-2 cursor-pointer">
                               <Pencil className="w-3 h-3 text-blue-400" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => toggleStatus(f.id, f.status)} className="text-xs gap-2 cursor-pointer">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Alternar Status
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-white/5" />
                             <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
