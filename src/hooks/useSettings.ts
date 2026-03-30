@@ -29,6 +29,7 @@ export function useSettings() {
     social_proof_active: "true",
     asaas_api_key: "",
     asaas_environment: "sandbox",
+    asaas_wallet_id: "",
   });
 
   const loadSettings = useCallback(async () => {
@@ -42,7 +43,7 @@ export function useSettings() {
       "nome", "cnpj", "email", "telefone", "endereco", "logo",
       "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color",
       "urgency_active", "urgency_text", "urgency_hours", "social_proof_active",
-      "asaas_api_key", "asaas_environment"
+      "asaas_api_key", "asaas_environment", "asaas_wallet_id"
     ];
 
     const { data } = await supabase.from("app_config").select("key, value").in("key", keys);
