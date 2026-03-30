@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, BarChart3, Vault, LayoutDashboard } from "lucide-react";
+import { FolderKanban, Plus, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ export default function ClienteDashboard() {
     Promise.all([
       supabase.from("projetos").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "cancelado"),
       supabase.from("extras_clientes").select("id", { count: "exact", head: true }).eq("cliente_id", cId).eq("status", "ativo"),
-      supabase.from("faturas").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "paga"),
+      supabase.from("financeiro").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "pago"),
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
     ]).then(([p, e, f, t]) => setCounts({ projetos: p.count || 0, extras: e.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
 
@@ -167,7 +167,7 @@ export default function ClienteDashboard() {
 
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("projetos", load);
-  useRealtimeSubscription("faturas", load);
+  useRealtimeSubscription("financeiro", load);
   useRealtimeSubscription("tickets", load);
   useRealtimeSubscription("extras_clientes", load);
   useRealtimeSubscription("reunioes", load);
@@ -206,7 +206,7 @@ export default function ClienteDashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            Olá, {cliente.nome?.split(" ")[0]}! <motion.span animate={{ rotate: [0, 20, 0] }} transition={{ repeat: Infinity, duration: 2 }}>👋</motion.span>
+            Olá, {perfil.nome?.split(" ")[0]}! <motion.span animate={{ rotate: [0, 20, 0] }} transition={{ repeat: Infinity, duration: 2 }}>👋</motion.span>
           </h1>
           <p className="text-sm text-white/50">Seu Ecossistema Digital está sendo potencializado.</p>
         </div>

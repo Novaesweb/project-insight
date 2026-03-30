@@ -1,169 +1,205 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileText, FileSpreadsheet, FileDown, CreditCard, Copy, CheckCircle2, QrCode } from "lucide-react";
+import { FileText, FileSpreadsheet, FileDown, CreditCard, CheckCircle2, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
-const statusColors: Record<string, string> = { paga: "#4ade80", pendente: "#facc15", atrasada: "#ef4444" };
-const statusLabels: Record<string, string> = { paga: "Paga", pendente: "Pendente", atrasada: "Atrasada" };
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  pago: { label: "Pago", color: "text-emerald-400 font-black", bg: "bg-emerald-500/10 border-emerald-500/20" },
+  pendente: { label: "Pendente", color: "text-amber-400 font-black", bg: "bg-amber-500/10 border-amber-500/20" },
+  em_atraso: { label: "Em Atraso", color: "text-rose-400 font-black", bg: "bg-rose-500/10 border-rose-500/20" },
+};
 
 export default function ClienteFaturas() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const { toast } = useToast();
   const [faturas, setFaturas] = useState<any[]>([]);
-  const [pixKey, setPixKey] = useState("");
-  const [showPixModal, setShowPixModal] = useState(false);
-  const [selectedFatura, setSelectedFatura] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     if (!cliente.id) return;
-    supabase.from("faturas").select("*").eq("cliente_id", cliente.id).order("vencimento", { ascending: false })
-      .then(({ data }) => setFaturas(data || []));
-    
-    // Carregar chave pix das configurações
-    supabase.from("app_config").select("value").eq("key", "pix_key").single()
-      .then(({ data }) => { if (data) setPixKey(data.value); });
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("financeiro")
+      .select("*")
+      .eq("cliente_id", cliente.id)
+      .order("vencimento", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao carregar faturas:", error);
+    } else {
+      setFaturas(data || []);
+    }
+    setLoading(false);
   }, [cliente.id]);
 
   useEffect(() => { load(); }, [load]);
-  useRealtimeSubscription("faturas", load);
+  useRealtimeSubscription("financeiro", load);
 
-  const totalPendente = faturas.filter(f => f.status === "pendente").reduce((a, f) => a + Number(f.valor), 0);
-  const totalAtrasado = faturas.filter(f => f.status === "atrasada").reduce((a, f) => a + Number(f.valor), 0);
+  const totalPendente = faturas.filter(f => f.status !== "pago").reduce((a, f) => a + Number(f.valor), 0);
 
   const handleExport = async (f: any, type: "pdf" | "word" | "csv") => {
-    const data = { descricao: f.descricao, valor: Number(f.valor), vencimento: f.vencimento, data_emissao: f.data_emissao, status: f.status, clienteNome: cliente.nome };
+    const data = { 
+      descricao: f.descricao, 
+      valor: Number(f.valor), 
+      vencimento: f.vencimento, 
+      data_emissao: f.created_at, 
+      status: f.status, 
+      clienteNome: cliente.nome 
+    };
     try {
       if (type === "pdf") exportFaturaPDF(data);
       else if (type === "word") await exportFaturaWord(data);
       else exportFaturaCSV(data);
-      toast({ title: `Fatura exportada em ${type.toUpperCase()}!` });
-    } catch { toast({ title: "Erro ao exportar", variant: "destructive" }); }
+      toast({ title: `💎 Fatura exportada em ${type.toUpperCase()}!` });
+    } catch { 
+      toast({ title: "Erro ao exportar", variant: "destructive" }); 
+    }
   };
 
-  const openPayment = (f: any) => {
-    setSelectedFatura(f);
-    setShowPixModal(true);
+  const payFatura = (descricao: string) => {
+    const asaasUrl = descricao.includes("Asaas: ") ? descricao.split("Asaas: ")[1].replace(")", "") : null;
+    if (asaasUrl) {
+      window.open(asaasUrl, "_blank");
+    } else {
+      toast({ 
+        title: "Link em geração", 
+        description: "A nossa equipe está preparando o seu checkout. Tente novamente em breve!",
+        variant: "default"
+      });
+    }
   };
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6 pb-10">
-      <h1 className="text-lg font-bold text-white">Minhas Faturas</h1>
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-          <CardContent className="p-4">
-            <p className="text-[10px] text-white/40 uppercase font-bold tracking-wider mb-1">Total pendente</p>
-            <p className="text-lg font-bold text-yellow-400">R$ {totalPendente.toLocaleString("pt-BR")}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
-          <CardContent className="p-4">
-            <p className="text-[10px] text-white/40 uppercase font-bold tracking-wider mb-1">Total em atraso</p>
-            <p className="text-lg font-bold text-red-400">R$ {totalAtrasado.toLocaleString("pt-BR")}</p>
-          </CardContent>
-        </Card>
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-10 pb-20">
+      {/* Header Premium */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
+            <Wallet className="w-8 h-8 text-primary" /> Minhas Faturas
+          </h1>
+          <p className="text-white/40 font-medium text-sm mt-1">Gerencie seus pagamentos com transparência total.</p>
+        </div>
+
+        <div className="p-1 px-6 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-xl flex items-center h-14">
+           <p className="text-xs font-black text-white/40 uppercase tracking-widest mr-4">Total em Aberto</p>
+           <p className="text-2xl font-black text-white">R$ {totalPendente.toLocaleString("pt-BR")}</p>
+        </div>
       </div>
 
-      <div className="space-y-3">
-        {faturas.map(f => (
-          <Card key={f.id} className={`border-[0.5px] ${f.status === "atrasada" ? "border-red-500/30" : "border-white/[0.08]"}`} style={{ background: "rgba(255,255,255,0.04)" }}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-white">{f.descricao}</span>
-                <Badge variant="outline" className="text-[10px] border-0 px-2 font-bold" style={{ backgroundColor: statusColors[f.status] + "22", color: statusColors[f.status] }}>
-                  {statusLabels[f.status]}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center gap-4 text-[11px] text-white/40">
-                  <span className="text-white font-bold">R$ {Number(f.valor).toLocaleString("pt-BR")}</span>
-                  <span>Vencimento: {f.vencimento}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {f.status !== "paga" && (
-                    <Button
-                      size="sm"
-                      className="h-7 text-[10px] gradient-primary border-0 text-white font-bold rounded-lg"
-                      onClick={() => openPayment(f)}
-                    >
-                      <CreditCard className="w-3 h-3 mr-1" /> Pagar Agora
-                    </Button>
-                  )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="ghost" className="text-white/40 text-[10px] h-7 px-2 hover:text-white">
-                        <FileDown className="w-3 h-3 mr-1" /> Exportar
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
-                      <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
-                        <FileText className="w-3 h-3 text-red-400" /> Baixar PDF
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer">
-                        <FileText className="w-3 h-3 text-blue-400" /> Baixar Word
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
-                        <FileSpreadsheet className="w-3 h-3 text-green-400" /> Baixar CSV
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {faturas.length === 0 && <p className="text-sm text-white/40 text-center py-8">Nenhuma fatura encontrada</p>}
-      </div>
-
-      <Dialog open={showPixModal} onOpenChange={setShowPixModal}>
-        <DialogContent className="glass-card border-white/10 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-white">Pagamento via Pix</DialogTitle>
-            <DialogDescription className="text-white/40 text-xs">
-              Valor a pagar: <span className="text-white font-bold">R$ {selectedFatura ? Number(selectedFatura.valor).toLocaleString("pt-BR") : "0,00"}</span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center p-6 space-y-6">
-            <div className="w-40 h-40 bg-white p-2 rounded-xl flex items-center justify-center relative group">
-               <QrCode className="w-32 h-32 text-slate-900" />
-               <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
-                  <p className="text-[10px] font-bold text-white text-center px-4 uppercase">Chave Pix abaixo habilitada</p>
-               </div>
-            </div>
-            
-            <div className="w-full space-y-2">
-              <p className="text-[10px] text-center text-white/30 uppercase font-black tracking-widest">Copia e Cola / Chave Pix</p>
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 break-all text-center">
-                 <p className="text-xs text-white/80 font-mono select-all">{pixKey || "Chave não configurada"}</p>
-              </div>
-              <Button 
-                className="w-full gradient-primary border-0 text-white gap-2 mt-2"
-                onClick={() => {
-                  navigator.clipboard.writeText(pixKey);
-                  toast({ title: "Chave Pix copiada!", description: "Agora basta colar no seu banco." });
-                }}
-              >
-                <Copy className="w-4 h-4" /> Copiar Chave Pix
-              </Button>
-            </div>
-            
-            <p className="text-[10px] text-white/40 text-center italic">
-               Após realizar o pagamento, o status será atualizado automaticamente em até 24h.
-            </p>
+      <div className="grid grid-cols-1 gap-4">
+        {loading ? (
+          <div className="py-20 text-center"><p className="text-white/20 animate-pulse font-black uppercase text-xs tracking-widest">Sincronizando faturas...</p></div>
+        ) : faturas.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-40 glass-card rounded-[3rem] border-white/5">
+             <FileText className="w-16 h-16 text-white/10 mb-4" />
+             <p className="text-white/40 font-bold">Nenhuma fatura encontrada no momento.</p>
           </div>
-        </DialogContent>
-      </Dialog>
+        ) : (
+          <div className="space-y-4">
+            {faturas.map(f => {
+              const config = statusConfig[f.status] || statusConfig.pendente;
+              const hasAsaasLink = f.descricao.includes("Asaas: ");
+
+              return (
+                <motion.div key={f.id} variants={fadeUp} className="group cursor-default">
+                  <Card className={cn(
+                    "glass-card-premium p-6 rounded-[2rem] border border-white/5 transition-all overflow-hidden relative",
+                    f.status === "em_atraso" && "border-rose-500/20"
+                  )}>
+                    {/* Background Glow */}
+                    <div className="absolute -right-20 -top-20 w-40 h-40 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-3">
+                           <h3 className="text-lg font-black text-white tracking-tight uppercase">
+                             {f.descricao.split(" (Asaas:")[0]}
+                           </h3>
+                           <Badge variant="outline" className={cn("px-4 py-1 rounded-full border-[0.5px] uppercase text-[9px] tracking-widest", config.bg, config.color)}>
+                              {config.label}
+                           </Badge>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-4 text-[11px] text-white/30 font-bold uppercase tracking-widest">
+                           <span className="flex items-center gap-1.5"><CreditCard className="w-3 h-3" /> R$ {Number(f.valor).toLocaleString("pt-BR")}</span>
+                           <span className="flex items-center gap-1.5"><ArrowRight className="w-3 h-3" /> Vencimento {f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "A Definir"}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 w-full md:w-auto">
+                        {f.status !== "pago" && (
+                          <Button
+                            className={cn(
+                              "flex-1 md:flex-none h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs transition-all",
+                              hasAsaasLink ? "gradient-primary text-white shadow-lg shadow-primary/20" : "bg-white/5 text-white/40"
+                            )}
+                            onClick={() => payFatura(f.descricao)}
+                          >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            {hasAsaasLink ? "Pagar Agora" : "Gerando Pagamento"}
+                          </Button>
+                        )}
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-12 w-12 rounded-xl bg-white/5 border border-white/5 text-white/30 hover:text-white hover:bg-white/10">
+                              <FileDown className="w-5 h-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="glass-card border-white/5 text-white p-2 w-48">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-white/20 p-2 border-b border-white/5 mb-2">Exportar Comprovante</p>
+                            <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="rounded-lg gap-2 text-xs font-bold py-2.5 cursor-pointer">
+                              <FileText className="w-4 h-4 text-rose-400" /> Baixar PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(f, "word")} className="rounded-lg gap-2 text-xs font-bold py-2.5 cursor-pointer">
+                              <FileText className="w-4 h-4 text-blue-400" /> Baixar Word
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="rounded-lg gap-2 text-xs font-bold py-2.5 cursor-pointer">
+                              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> Baixar CSV
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+
+                    {f.status === "pago" && (
+                       <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <p className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Pagamento validado com sucesso. Obrigado!</p>
+                       </div>
+                    )}
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="p-8 rounded-[3rem] bg-white/[0.02] border border-white/5 flex flex-col md:flex-row items-center gap-6 justify-between">
+           <div className="flex items-center gap-4 text-center md:text-left">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                  <AlertCircle className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-white font-black text-sm uppercase tracking-tight leading-tight">Dúvidas sobre o financeiro?</p>
+                 <p className="text-white/40 text-[11px] font-medium tracking-tight mt-1">Nossa equipe de suporte está online para te ajudar agora mesmo.</p>
+              </div>
+           </div>
+           <Button variant="ghost" className="h-12 px-8 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10">
+              Falar com o Financeiro
+           </Button>
+        </div>
+      </div>
     </motion.div>
   );
 }
-
-
-
