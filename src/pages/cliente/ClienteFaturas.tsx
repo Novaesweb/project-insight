@@ -10,6 +10,7 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import logoImg from "@/assets/novaesweb-logo-premium.png";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
@@ -84,11 +85,16 @@ export default function ClienteFaturas() {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-10 pb-20">
       {/* Header Premium */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
-            <Wallet className="w-8 h-8 text-primary" /> Minhas Faturas
-          </h1>
-          <p className="text-white/40 font-medium text-sm mt-1">Gerencie seus pagamentos com transparência total.</p>
+        <div className="flex items-center gap-4">
+          <div className="hidden md:block">
+            <img src={logoImg} alt="Novaes Web" className="w-12 h-12 rounded-2xl border border-white/10 shadow-2xl" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
+              <Wallet className="w-8 h-8 text-primary" /> Minhas Faturas
+            </h1>
+            <p className="text-white/40 font-medium text-sm mt-1">Gerencie seus pagamentos com transparência total.</p>
+          </div>
         </div>
 
         <div className="p-1 px-6 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-xl flex items-center h-14">

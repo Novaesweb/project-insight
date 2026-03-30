@@ -12,6 +12,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useBranding } from "@/hooks/useBranding";
 import jsPDF from "jspdf";
+import logoImg from "@/assets/novaesweb-logo-premium.png";
 
 const kpiGradients = [
   "linear-gradient(135deg, #a78bfa, #7c3aed)",
@@ -211,6 +212,9 @@ export default function ClienteDashboard() {
           <p className="text-sm text-white/50">Seu Ecossistema Digital está sendo potencializado.</p>
         </div>
         <div className="flex items-center gap-3">
+          <div className="hidden md:block mr-2">
+            <img src={logoImg} alt="Novaes Web" className="w-10 h-10 rounded-xl border border-white/10 shadow-lg" />
+          </div>
           <span className="px-3 py-1.5 rounded-full border border-white/10 text-[9px] font-black text-white uppercase tracking-[0.15em]" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.2), rgba(255,215,0,0.1))" }}>
             <span style={{ background: "linear-gradient(90deg, #c084fc, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>v10.0 ARCHITECT PRO</span>
           </span>
@@ -434,12 +438,13 @@ export default function ClienteDashboard() {
             <CardContent className="p-5">
               <h3 className="text-[10px] uppercase tracking-[0.2em] text-purple-400 font-bold mb-4">Meu Perfil</h3>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold shrink-0" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}>
-                  {perfil?.nome?.charAt(0) || "?"}
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-lg font-black shrink-0 relative overflow-hidden group" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)", boxShadow: "0 8px 20px -5px rgba(123,31,162,0.5)" }}>
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="relative z-10">{perfil?.nome?.charAt(0) || "?"}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{perfil?.nome}</p>
-                  <p className="text-[11px] text-white/40 truncate">{perfil?.email}</p>
+                  <p className="text-sm font-black text-white truncate leading-tight uppercase tracking-tight">{perfil?.nome}</p>
+                  <p className="text-[10px] text-white/30 truncate font-medium">{perfil?.email}</p>
                 </div>
               </div>
               <Link to="/cliente/dados" className="mt-4 block text-center text-[11px] font-semibold py-2 rounded-xl border border-white/10 text-white/60 hover:bg-white/5 transition-colors">
