@@ -305,19 +305,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                     <Input className="glass-input h-10" value={cliente.projeto_titulo || ""} onChange={e => setCliente({ ...cliente, projeto_titulo: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] text-white/30 uppercase font-black">Valor Estimado</Label>
-                    <Input type="number" className="glass-input h-10" value={cliente.projeto_valor || ""} onChange={e => setCliente({ ...cliente, projeto_valor: e.target.value })} />
+                    <Label className="text-[10px] text-white/30 uppercase font-black">Escopo/Briefing</Label>
+                    <Textarea className="glass-input min-h-[120px]" value={cliente.projeto_briefing || ""} onChange={e => setCliente({ ...cliente, projeto_briefing: e.target.value })} />
                   </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] text-white/30 uppercase font-black">Escopo/Briefing</Label>
-                  <Textarea className="glass-input min-h-[120px]" value={cliente.projeto_briefing || ""} onChange={e => setCliente({ ...cliente, projeto_briefing: e.target.value })} />
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" className="h-10 text-xs border-white/10" onClick={async () => {
                     const { error } = await supabase.from("clientes").update({
                       projeto_titulo: cliente.projeto_titulo,
-                      projeto_valor: cliente.projeto_valor,
                       projeto_briefing: cliente.projeto_briefing
                     } as any).eq("id", clienteId);
                     if (!error) toast({ title: "Briefing salvo!" });
@@ -326,7 +321,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                      const { error } = await supabase.from("projetos").insert({
                        titulo: cliente.projeto_titulo,
                        cliente_id: clienteId,
-                       valor: Number(cliente.projeto_valor) || 0,
                        status: "briefing",
                        progresso: 10
                      });

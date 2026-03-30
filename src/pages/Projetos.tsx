@@ -195,28 +195,15 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-[0.5px] relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="p-5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Valor de Ativo Estimado</p>
-                  <p className="text-2xl font-black text-white italic tracking-tighter">R$ {((projeto.progresso * 250) + 1500).toLocaleString('pt-BR')},00</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]">
-                  <DollarSign className="w-5 h-5 text-primary" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="glass-card border-[0.5px]">
               <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold text-white flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Briefing do Cliente</CardTitle></CardHeader>
               <CardContent>
                 <p className="text-xs text-white/60 leading-relaxed whitespace-pre-wrap">{(projeto as any).briefing || "O cliente ainda não preencheu o briefing."}</p>
               </CardContent>
             </Card>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="glass-card border-[0.5px]">
               <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold text-white flex items-center gap-2"><List className="w-4 h-4 text-primary" /> Referências & Inspirações</CardTitle></CardHeader>
               <CardContent>
