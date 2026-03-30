@@ -231,7 +231,7 @@ export class RecurrentBillingService {
       // 2. Buscar assinaturas Asaas do cliente
       const { data: cliente } = await supabase
         .from("clientes")
-        .select("asaas_customer_id")
+        .select("id, nome")
         .eq("id", clienteId)
         .single();
 
