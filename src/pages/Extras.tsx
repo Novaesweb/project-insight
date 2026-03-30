@@ -8,10 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2, Rocket } from "lucide-react";
+import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2, Rocket, Sparkles, Send, FileText, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { jsPDF } from "jspdf";
+import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from "docx";
+import { saveAs } from "file-saver";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type CategoriaExtra = "fixo" | "intermediario" | "mensal";
 
@@ -37,9 +41,21 @@ export default function Extras() {
   const [pacoteItens, setPacoteItens] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [extrasClientes, setExtrasClientes] = useState<any[]>([]);
-  const [categoriaSel, setCategoriaSel] = useState<CategoriaExtra | "pacotes">("fixo");
+  const [categoriaSel, setCategoriaSel] = useState<CategoriaExtra | "pacotes" | "calculadora">("fixo");
   const [buscaGeral, setBuscaGeral] = useState("");
   const [buscaCategoria, setBuscaCategoria] = useState("");
+
+  // Calculadora States
+  const [calPlanoBase, setCalPlanoBase] = useState("express");
+  const [calExtras, setCalExtras] = useState<string[]>([]);
+  const [calDesconto, setCalDesconto] = useState("0");
+  const [calNomeCliente, setCalNomeCliente] = useState("");
+
+  const basePlans: Record<string, { nome: string; ativacao: number; mensal: number }> = {
+    express: { nome: "Arquitetura Express", ativacao: 180, mensal: 60 },
+    gestao: { nome: "Arquitetura de Gestão", ativacao: 1500, mensal: 150 },
+    sobmedida: { nome: "Arquitetura sob Medida", ativacao: 3000, mensal: 250 },
+  };
 
   const [showNewPacote, setShowNewPacote] = useState(false);
   const [pacoteForm, setPacoteForm] = useState({ nome: "", descricao: "", preco_total: "", itens: [] as string[] });
@@ -96,6 +112,12 @@ export default function Extras() {
       let list = [...pacotes];
       if (buscaGeral) list = list.filter(p => p.nome.toLowerCase().includes(buscaGeral.toLowerCase()));
       if (buscaCategoria) list = list.filter(p => p.nome.toLowerCase().includes(buscaCategoria.toLowerCase()));
+      return list;
+    }
+    if (categoriaSel === "calculadora") {
+      let list = [...extras];
+      if (buscaGeral) list = list.filter(e => e.nome.toLowerCase().includes(buscaGeral.toLowerCase()));
+      if (buscaCategoria) list = list.filter(e => e.nome.toLowerCase().includes(buscaCategoria.toLowerCase()));
       return list;
     }
     let list = extras.filter(e => e.categoria === categoriaSel);
@@ -226,7 +248,128 @@ export default function Extras() {
 
   const config = categoriaSel === "pacotes"
     ? { label: "Pacote", plural: "Pacotes Premium", color: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10", icon: Rocket }
-    : catConfig[categoriaSel as CategoriaExtra];
+    : categoriaSel === "calculadora"
+      ? { label: "Simulador", plural: "Calculadora de Orçamentos", color: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10", icon: DollarSign }
+      : catConfig[categoriaSel as CategoriaExtra];
+
+  // Export functions
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const plano = basePlans[calPlanoBase];
+    const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
+    const totalAtivacao = plano.ativacao + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
+    const totalMensal = plano.mensal + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(232, 51, 74);
+    doc.text("NOVAESWEB", 105, 20, { align: "center" });
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text("PROPOSTA COMERCIAL", 105, 35, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Cliente: ${calNomeCliente || "Proposta NovaesWeb"}`, 20, 50);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 20, 57);
+    
+    doc.line(20, 65, 190, 65);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("Resumo da Solução:", 20, 75);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text(`- Plano Base: ${plano.nome}`, 25, 85);
+    let y = 92;
+    itensSelecionados.forEach(item => {
+      doc.text(`- Extra: ${item.nome}`, 25, y);
+      y += 7;
+    });
+    
+    doc.line(20, y + 5, 190, y + 5);
+    y += 15;
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("Investimento:", 20, y);
+    y += 10;
+    doc.setFont("helvetica", "normal");
+    doc.text(`Setup (Ativação Única): R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 25, y);
+    y += 7;
+    doc.text(`Manutenção (Mensalidade): R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`, 25, y);
+    
+    if (Number(calDesconto) > 0) {
+      y += 7;
+      doc.setTextColor(232, 51, 74);
+      doc.text(`Desconto aplicado: R$ ${Number(calDesconto).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 25, y);
+    }
+    
+    doc.save(`Orçamento_${calNomeCliente || "NovaesWeb"}.pdf`);
+    toast({ title: "PDF Gerado com sucesso!" });
+  };
+
+  const generateWord = async () => {
+    const plano = basePlans[calPlanoBase];
+    const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
+    const totalAtivacao = plano.ativacao + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
+    const totalMensal = plano.mensal + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({ text: "NOVAESWEB", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }),
+          new Paragraph({ text: "PROPOSTA COMERCIAL", heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER }),
+          new Paragraph({ text: "" }),
+          new Paragraph({ children: [new TextRun({ text: `Cliente: `, bold: true }), new TextRun(calNomeCliente || "Proposta NovaesWeb")] }),
+          new Paragraph({ children: [new TextRun({ text: `Data: `, bold: true }), new TextRun(new Date().toLocaleDateString("pt-BR"))] }),
+          new Paragraph({ text: "" }),
+          new Paragraph({ text: "Resumo da Solução:", heading: HeadingLevel.HEADING_3 }),
+          new Paragraph({ text: `• Plano Base: ${plano.nome}`, bullet: { level: 0 } }),
+          ...itensSelecionados.map(item => new Paragraph({ text: `• Extra: ${item.nome}`, bullet: { level: 0 } })),
+          new Paragraph({ text: "" }),
+          new Paragraph({ text: "Investimento:", heading: HeadingLevel.HEADING_3 }),
+          new Paragraph({ children: [new TextRun({ text: "Setup (Ativação Única): ", bold: true }), new TextRun(`R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)] }),
+          new Paragraph({ children: [new TextRun({ text: "Manutenção (Mensalidade): ", bold: true }), new TextRun(`R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`)] }),
+          ...(Number(calDesconto) > 0 ? [new Paragraph({ children: [new TextRun({ text: "Desconto aplicado: ", bold: true, color: "E8334A" }), new TextRun(`R$ ${Number(calDesconto).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)] })] : []),
+        ],
+      }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `Orçamento_${calNomeCliente || "NovaesWeb"}.docx`);
+    toast({ title: "Word (.docx) Gerado com sucesso!" });
+  };
+
+  const copyWhatsApp = () => {
+    const plano = basePlans[calPlanoBase];
+    const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
+    const totalAtivacao = plano.ativacao + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
+    const totalMensal = plano.mensal + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
+
+    const text = `*Orçamento NovaesWeb - Transformação Digital* 🚀
+
+Olá, segue o resumo do projeto para *${calNomeCliente || "você"}*:
+
+*Arquitetura Base:* ${plano.nome}
+*Opcionais Inclusos:* ${itensSelecionados.length > 0 ? "" : "Nenhum"}
+${itensSelecionados.map(i => `✅ ${i.nome}`).join('\n')}
+
+---
+💰 *Investimento Setup:* R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+📊 *Mensalidade:* R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês
+---
+
+Qualquer dúvida estou à disposição! 👋`;
+
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copiado para o WhatsApp!", description: "O resumo foi copiado para sua área de transferência." });
+  };
+
+  const toggleCalExtra = (id: string) => {
+    setCalExtras(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
 
   return (
     <motion.div className="space-y-0 h-full" initial="hidden" animate="show" variants={stagger}>
@@ -271,6 +414,23 @@ export default function Extras() {
                 <p className="text-[11px] text-white/40">Combos de funcionalidades</p>
               </div>
               <span className="text-xl font-bold text-purple-400">{pacotes.length}</span>
+            </CardContent>
+          </Card>
+
+          <Card
+            className={`cursor-pointer transition-all border-[0.5px] ${categoriaSel === "calculadora" ? "border-orange-500/50 shadow-lg" : "border-orange-500/10"} hover:border-orange-500/30`}
+            style={{ background: categoriaSel === "calculadora" ? "rgba(249,115,22,0.08)" : "rgba(255,255,255,0.04)" }}
+            onClick={() => setCategoriaSel("calculadora")}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-orange-500/10">
+                <DollarSign className="w-5 h-5 text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-orange-400">Calculadora</h3>
+                <p className="text-[11px] text-white/40">Geração de Orçamentos</p>
+              </div>
+              <Sparkles className="w-4 h-4 text-orange-400" />
             </CardContent>
           </Card>
 
@@ -348,6 +508,124 @@ export default function Extras() {
           {/* Cards grid */}
           {filtrados.length === 0 ? (
             <p className="text-center text-sm text-white/40 py-16">Nenhum {categoriaSel === "pacotes" ? "pacote" : "extra"} encontrado</p>
+          ) : categoriaSel === "calculadora" ? (
+            <div className="space-y-6">
+              <Card className="glass-card border-orange-500/20 bg-orange-500/5 overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-white/40 uppercase">Nome do Cliente (Opcional)</Label>
+                      <Input 
+                        placeholder="Ex: João Silva ou Pizzaria XPTO" 
+                        className="glass-input border-white/10 text-white text-xs h-9"
+                        value={calNomeCliente}
+                        onChange={e => setCalNomeCliente(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-white/40 uppercase">Arquitetura Base</Label>
+                      <Select value={calPlanoBase} onValueChange={setCalPlanoBase}>
+                        <SelectTrigger className="glass-input border-white/10 text-white text-xs h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="express">Express (Iniciante)</SelectItem>
+                          <SelectItem value="gestao">Gestão (Profissional)</SelectItem>
+                          <SelectItem value="sobmedida">Sob Medida (Enterprise)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Lista para seleção */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-1 custom-scrollbar">
+                {filtrados.map(extra => {
+                  const isSelected = calExtras.includes(extra.id);
+                  return (
+                    <Card 
+                      key={extra.id} 
+                      className={`border-[0.5px] cursor-pointer transition-all ${isSelected ? "border-orange-500/40 bg-orange-500/10" : "border-white/5 bg-white/[0.02]"}`}
+                      onClick={() => toggleCalExtra(extra.id)}
+                    >
+                      <CardContent className="p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Checkbox checked={isSelected} onCheckedChange={() => toggleCalExtra(extra.id)} className="border-white/20 data-[state=checked]:bg-orange-500" />
+                          <div>
+                            <p className="text-[11px] font-bold text-white leading-none mb-1">{extra.nome}</p>
+                            <p className="text-[9px] text-white/40">+{extra.categoria}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {Number(extra.preco_ativacao) > 0 && <p className="text-[10px] text-emerald-400">+R$ {Number(extra.preco_ativacao).toFixed(0)}</p>}
+                          {Number(extra.preco_mensal) > 0 && <p className="text-[10px] text-amber-400">+R$ {Number(extra.preco_mensal).toFixed(0)}/mês</p>}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Resumo Final */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <Card className="lg:col-span-2 border-dashed border-white/10 bg-transparent">
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-white/60">Desconto manual (R$)</Label>
+                        <Input 
+                          type="number"
+                          className="w-24 glass-input border-white/10 text-white text-xs h-7"
+                          value={calDesconto}
+                          onChange={e => setCalDesconto(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" className="h-8 text-[10px] text-orange-400 hover:bg-orange-500/10" onClick={copyWhatsApp}>
+                          <Send className="w-3 h-3 mr-1.5" /> Copiar WhatsApp
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 text-[10px] text-blue-400 hover:bg-blue-500/10" onClick={generateWord}>
+                          <FileText className="w-3 h-3 mr-1.5" /> Word
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 text-[10px] text-emerald-400 hover:bg-emerald-500/10" onClick={generatePDF}>
+                          <Download className="w-3 h-3 mr-1.5" /> PDF
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/40">Ativação Base ({basePlans[calPlanoBase].nome})</span>
+                        <span className="text-white">R$ {basePlans[calPlanoBase].ativacao.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/40">Total de Extras ({calExtras.length} itens)</span>
+                        <span className="text-white">R$ {extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_ativacao), 0).toFixed(2)}</span>
+                      </div>
+                      {Number(calDesconto) > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-red-400 font-bold">Desconto Aplicado</span>
+                          <span className="text-red-400 font-bold">- R$ {Number(calDesconto).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="gradient-primary border-0 shadow-lg shadow-primary/20">
+                  <CardContent className="p-5 flex flex-col justify-center h-full">
+                    <p className="text-[10px] text-white/60 uppercase font-black italic">Total Setup Final</p>
+                    <p className="text-2xl font-black text-white italic leading-tight">
+                      R$ {(basePlans[calPlanoBase].ativacao + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
+                    <div className="h-[1px] bg-white/10 my-3" />
+                    <p className="text-[10px] text-white/60 uppercase font-black italic">Manutenção Mensal</p>
+                    <p className="text-lg font-black text-white italic">
+                      R$ {(basePlans[calPlanoBase].mensal + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_mensal), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}<span className="text-xs">/mês</span>
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           ) : categoriaSel === "pacotes" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
               {filtrados.map(pkg => {
