@@ -8,13 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2, Rocket, Sparkles, Send, FileText, Download } from "lucide-react";
+import { Search, Plus, Zap, Star, CalendarDays, Pencil, UserPlus, Package, DollarSign, TrendingUp, Trash2, Rocket, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { jsPDF } from "jspdf";
-import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from "docx";
-import { saveAs } from "file-saver";
 import { Checkbox } from "@/components/ui/checkbox";
 
 type CategoriaExtra = "fixo" | "intermediario" | "mensal";
@@ -41,31 +38,9 @@ export default function Extras() {
   const [pacoteItens, setPacoteItens] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
   const [extrasClientes, setExtrasClientes] = useState<any[]>([]);
-  const [categoriaSel, setCategoriaSel] = useState<CategoriaExtra | "pacotes" | "calculadora">("fixo");
+  const [categoriaSel, setCategoriaSel] = useState<CategoriaExtra | "pacotes">("fixo");
   const [buscaGeral, setBuscaGeral] = useState("");
   const [buscaCategoria, setBuscaCategoria] = useState("");
-
-  // Calculadora States
-  const [calPlanoBase, setCalPlanoBase] = useState("express");
-  const [calExtras, setCalExtras] = useState<string[]>([]);
-  const [calDesconto, setCalDesconto] = useState("0");
-  const [calClienteId, setCalClienteId] = useState("");
-  const [calPrecoBaseAtivacao, setCalPrecoBaseAtivacao] = useState("180");
-  const [calPrecoBaseMensal, setCalPrecoBaseMensal] = useState("60");
-
-  const basePlans: Record<string, { nome: string; ativacao: number; mensal: number }> = {
-    express: { nome: "Arquitetura Express", ativacao: 180, mensal: 60 },
-    gestao: { nome: "Arquitetura de Gestão", ativacao: 0, mensal: 0 },
-    sobmedida: { nome: "Arquitetura sob Medida", ativacao: 0, mensal: 0 },
-  };
-
-  // Sync manual price when plan changes
-  useEffect(() => {
-    if (calPlanoBase === "express") {
-      setCalPrecoBaseAtivacao("180");
-      setCalPrecoBaseMensal("60");
-    }
-  }, [calPlanoBase]);
 
   const [showNewPacote, setShowNewPacote] = useState(false);
   const [pacoteForm, setPacoteForm] = useState({ nome: "", descricao: "", preco_total: "", itens: [] as string[] });
@@ -100,7 +75,6 @@ export default function Extras() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Counts
   const countByExtra = useMemo(() => {
     const map: Record<string, number> = {};
     extrasClientes.forEach(ec => { map[ec.extra_id] = (map[ec.extra_id] || 0) + 1; });
@@ -116,18 +90,11 @@ export default function Extras() {
   const receitaFixos = useMemo(() => extras.filter(e => e.categoria === "fixo").reduce((s, e) => s + Number(e.preco_ativacao || 0), 0), [extras]);
   const receitaMensal = useMemo(() => extras.filter(e => e.categoria === "mensal" || e.categoria === "intermediario").reduce((s, e) => s + Number(e.preco_mensal || 0), 0), [extras]);
 
-  // Filtered extras
   const filtrados = useMemo(() => {
     if (categoriaSel === "pacotes") {
       let list = [...pacotes];
       if (buscaGeral) list = list.filter(p => p.nome.toLowerCase().includes(buscaGeral.toLowerCase()));
       if (buscaCategoria) list = list.filter(p => p.nome.toLowerCase().includes(buscaCategoria.toLowerCase()));
-      return list;
-    }
-    if (categoriaSel === "calculadora") {
-      let list = [...extras];
-      if (buscaGeral) list = list.filter(e => e.nome.toLowerCase().includes(buscaGeral.toLowerCase()));
-      if (buscaCategoria) list = list.filter(e => e.nome.toLowerCase().includes(buscaCategoria.toLowerCase()));
       return list;
     }
     let list = extras.filter(e => e.categoria === categoriaSel);
@@ -136,7 +103,6 @@ export default function Extras() {
     return list;
   }, [extras, pacotes, categoriaSel, buscaGeral, buscaCategoria]);
 
-  // Handlers
   const handleSave = async () => {
     if (!form.nome) return;
     setSaving(true);
@@ -214,7 +180,6 @@ export default function Extras() {
   const handleDelete = async () => {
     if (!extraSel) return;
     setSaving(true);
-    // Remove atribuições primeiro
     await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
     const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
     setSaving(false);
@@ -229,7 +194,6 @@ export default function Extras() {
     if (!clienteSel || !extraSel) return;
     setSaving(true);
 
-    // Se extraSel tiver 'itens', é um pacote
     if (extraSel.preco_total !== undefined) {
       const items = pacoteItens.filter(pi => pi.pacote_id === extraSel.id);
       const batch = items.map(pi => {
@@ -258,146 +222,11 @@ export default function Extras() {
 
   const config = categoriaSel === "pacotes"
     ? { label: "Pacote", plural: "Pacotes Premium", color: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10", icon: Rocket }
-    : categoriaSel === "calculadora"
-      ? { label: "Simulador", plural: "Calculadora de Orçamentos", color: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10", icon: DollarSign }
-      : catConfig[categoriaSel as CategoriaExtra];
-
-  // Export functions
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    const plano = basePlans[calPlanoBase];
-    const clienteObj = clientes.find(c => c.id === calClienteId);
-    const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
-    
-    const baseAtiv = Number(calPrecoBaseAtivacao);
-    const baseMens = Number(calPrecoBaseMensal);
-    const totalAtivacao = baseAtiv + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
-    const totalMensal = baseMens + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.setTextColor(232, 51, 74);
-    doc.text("NOVAESWEB", 105, 20, { align: "center" });
-    
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    doc.text("PROPOSTA COMERCIAL", 105, 35, { align: "center" });
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Cliente: ${clienteObj?.nome || "Proposta NovaesWeb"}`, 20, 50);
-    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 20, 57);
-    
-    doc.line(20, 65, 190, 65);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text("Resumo da Solução:", 20, 75);
-    
-    doc.setFont("helvetica", "normal");
-    doc.text(`- Plano Base: ${plano.nome}`, 25, 85);
-    let y = 92;
-    itensSelecionados.forEach(item => {
-      doc.text(`- Extra: ${item.nome}`, 25, y);
-      y += 7;
-    });
-    
-    doc.line(20, y + 5, 190, y + 5);
-    y += 15;
-    
-    doc.setFont("helvetica", "bold");
-    doc.text("Investimento:", 20, y);
-    y += 10;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Setup (Ativação Única): R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 25, y);
-    y += 7;
-    doc.text(`Manutenção (Mensalidade): R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`, 25, y);
-    
-    if (Number(calDesconto) > 0) {
-      y += 7;
-      doc.setTextColor(232, 51, 74);
-      doc.text(`Desconto aplicado: R$ ${Number(calDesconto).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 25, y);
-    }
-    
-    doc.save(`Orçamento_${clienteObj?.nome || "NovaesWeb"}.pdf`);
-    toast({ title: "PDF Gerado com sucesso!" });
-  };
-
-  const generateWord = async () => {
-    const plano = basePlans[calPlanoBase];
-    const clienteObj = clientes.find(c => c.id === calClienteId);
-    const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
-    
-    const baseAtiv = Number(calPrecoBaseAtivacao);
-    const baseMens = Number(calPrecoBaseMensal);
-    const totalAtivacao = baseAtiv + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
-    const totalMensal = baseMens + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
-
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: [
-          new Paragraph({ text: "NOVAESWEB", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }),
-          new Paragraph({ text: "PROPOSTA COMERCIAL", heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER }),
-          new Paragraph({ text: "" }),
-          new Paragraph({ children: [new TextRun({ text: `Cliente: `, bold: true }), new TextRun(clienteObj?.nome || "Proposta NovaesWeb")] }),
-          new Paragraph({ children: [new TextRun({ text: `Data: `, bold: true }), new TextRun(new Date().toLocaleDateString("pt-BR"))] }),
-          new Paragraph({ text: "" }),
-          new Paragraph({ text: "Resumo da Solução:", heading: HeadingLevel.HEADING_3 }),
-          new Paragraph({ text: `• Plano Base: ${plano.nome}`, bullet: { level: 0 } }),
-          ...itensSelecionados.map(item => new Paragraph({ text: `• Extra: ${item.nome}`, bullet: { level: 0 } })),
-          new Paragraph({ text: "" }),
-          new Paragraph({ text: "Investimento:", heading: HeadingLevel.HEADING_3 }),
-          new Paragraph({ children: [new TextRun({ text: "Setup (Ativação Única): ", bold: true }), new TextRun(`R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)] }),
-          new Paragraph({ children: [new TextRun({ text: "Manutenção (Mensalidade TOTAL): ", bold: true }), new TextRun(`R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`)] }),
-          ...(totalMensal > 0 ? [new Paragraph({ children: [new TextRun({ text: "*(Este valor recorrente garante a sustentação, segurança e evolução da sua engenharia digital)", italics: true })] })] : []),
-          ...(Number(calDesconto) > 0 ? [new Paragraph({ children: [new TextRun({ text: "Desconto aplicado: ", bold: true, color: "E8334A" }), new TextRun(`R$ ${Number(calDesconto).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`)] })] : []),
-        ],
-      }],
-    });
-
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Orçamento_${clienteObj?.nome || "NovaesWeb"}.docx`);
-    toast({ title: "Word (.docx) Gerado com sucesso!" });
-  };
-
-  const copyWhatsApp = () => {
-    const plano = basePlans[calPlanoBase];
-    const clienteObj = clientes.find(c => c.id === calClienteId);
-    const itensSelecionados = extras.filter(e => calExtras.includes(e.id));
-    
-    const baseAtiv = Number(calPrecoBaseAtivacao);
-    const baseMens = Number(calPrecoBaseMensal);
-    const totalAtivacao = baseAtiv + itensSelecionados.reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto);
-    const totalMensal = baseMens + itensSelecionados.reduce((s, e) => s + Number(e.preco_mensal), 0);
-
-    const text = `*Orçamento NovaesWeb - Transformação Digital* 🚀
-
-Olá, segue o resumo do projeto para *${clienteObj?.nome || "você"}*:
-
-*Arquitetura Base:* ${plano.nome}
-*Opcionais Inclusos:* ${itensSelecionados.length > 0 ? "" : "Nenhum"}
-${itensSelecionados.map(i => `✅ ${i.nome}`).join('\n')}
-
----
-💰 *Investimento Setup:* R$ ${totalAtivacao.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-📊 *Mensalidade Recorrente:* R$ ${totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês
----
-
-Qualquer dúvida estou à disposição! 👋`;
-
-    navigator.clipboard.writeText(text);
-    toast({ title: "Copiado para o WhatsApp!", description: "O resumo foi copiado para sua área de transferência." });
-  };
-
-  const toggleCalExtra = (id: string) => {
-    setCalExtras(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
-
+    : catConfig[categoriaSel as CategoriaExtra];
 
   return (
     <motion.div className="space-y-0 h-full" initial="hidden" animate="show" variants={stagger}>
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* LEFT SIDE — Categories & Summary */}
         <motion.div className="w-full lg:w-[40%] space-y-4" variants={fadeUp}>
           {(["fixo", "intermediario", "mensal"] as const).map(cat => {
             const c = catConfig[cat];
@@ -440,24 +269,6 @@ Qualquer dúvida estou à disposição! 👋`;
             </CardContent>
           </Card>
 
-          <Card
-            className={`cursor-pointer transition-all border-[0.5px] ${categoriaSel === "calculadora" ? "border-orange-500/50 shadow-lg" : "border-orange-500/10"} hover:border-orange-500/30`}
-            style={{ background: categoriaSel === "calculadora" ? "rgba(249,115,22,0.08)" : "rgba(255,255,255,0.04)" }}
-            onClick={() => setCategoriaSel("calculadora")}
-          >
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-orange-500/10">
-                <DollarSign className="w-5 h-5 text-orange-400" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-orange-400">Calculadora</h3>
-                <p className="text-[11px] text-white/40">Geração de Orçamentos</p>
-              </div>
-              <Sparkles className="w-4 h-4 text-orange-400" />
-            </CardContent>
-          </Card>
-
-          {/* Search global */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <Input
@@ -468,7 +279,6 @@ Qualquer dúvida estou à disposição! 👋`;
             />
           </div>
 
-          {/* Financial summary */}
           <div className="grid grid-cols-1 gap-3">
             <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -500,9 +310,7 @@ Qualquer dúvida estou à disposição! 👋`;
           </div>
         </motion.div>
 
-        {/* RIGHT SIDE — Cards grid */}
         <motion.div className="w-full lg:w-[60%] space-y-4" variants={fadeUp}>
-          {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <h2 className={`text-lg font-bold ${config.color}`}>{config.plural}</h2>
             <div className="flex gap-2">
@@ -528,474 +336,214 @@ Qualquer dúvida estou à disposição! 👋`;
             </div>
           </div>
 
-          {/* Cards grid */}
           {filtrados.length === 0 ? (
             <p className="text-center text-sm text-white/40 py-16">Nenhum {categoriaSel === "pacotes" ? "pacote" : "extra"} encontrado</p>
-          ) : categoriaSel === "calculadora" ? (
-            <div className="space-y-6">
-              <Card className="glass-card border-orange-500/20 bg-orange-500/5 overflow-hidden">
-                <CardContent className="p-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] text-white/40 uppercase">Cliente Ativo</Label>
-                      <Select value={calClienteId} onValueChange={setCalClienteId}>
-                        <SelectTrigger className="glass-input border-white/10 text-white text-xs h-9"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-                        <SelectContent>
-                          {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] text-white/40 uppercase">Arquitetura Base</Label>
-                      <Select value={calPlanoBase} onValueChange={setCalPlanoBase}>
-                        <SelectTrigger className="glass-input border-white/10 text-white text-xs h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="express">Express (Iniciante)</SelectItem>
-                          <SelectItem value="gestao">Gestão (Personalizado)</SelectItem>
-                          <SelectItem value="sobmedida">Sob Medida (Personalizado)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] text-white/40 uppercase">Valor Ativação do Plano (R$)</Label>
-                      <Input 
-                        type="number" 
-                        disabled={calPlanoBase === "express"}
-                        className="glass-input border-white/10 text-white text-xs h-9"
-                        value={calPrecoBaseAtivacao}
-                        onChange={e => setCalPrecoBaseAtivacao(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] text-white/40 uppercase">Mensalidade do Plano (R$)</Label>
-                      <Input 
-                        type="number" 
-                        disabled={calPlanoBase === "express"}
-                        className="glass-input border-white/10 text-white text-xs h-9"
-                        value={calPrecoBaseMensal}
-                        onChange={e => setCalPrecoBaseMensal(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Lista para seleção */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-1 custom-scrollbar">
-                {filtrados.map(extra => {
-                  const isSelected = calExtras.includes(extra.id);
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
+              {filtrados.map(item => {
+                if (categoriaSel === "pacotes") {
+                  const itensPkg = pacoteItens.filter(pi => pi.pacote_id === item.id);
                   return (
-                    <Card 
-                      key={extra.id} 
-                      className={`border-[0.5px] cursor-pointer transition-all ${isSelected ? "border-orange-500/40 bg-orange-500/10" : "border-white/5 bg-white/[0.02]"}`}
-                      onClick={() => toggleCalExtra(extra.id)}
-                    >
-                      <CardContent className="p-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Checkbox checked={isSelected} onCheckedChange={() => toggleCalExtra(extra.id)} className="border-white/20 data-[state=checked]:bg-orange-500" />
-                          <div>
-                            <p className="text-[11px] font-bold text-white leading-none mb-1">{extra.nome}</p>
-                            <p className="text-[9px] text-white/40">+{extra.categoria}</p>
-                          </div>
+                    <Card key={item.id} className="border-[0.5px] border-purple-500/30 hover:border-purple-500/50 transition-all bg-white/[0.04]">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-sm font-bold text-purple-400 leading-tight flex-1 pr-2">{item.nome}</h4>
+                          <Rocket className="w-4 h-4 text-purple-400/40" />
                         </div>
-                        <div className="text-right">
-                          {Number(extra.preco_ativacao) > 0 && <p className="text-[10px] text-emerald-400">+R$ {Number(extra.preco_ativacao).toFixed(0)}</p>}
-                          {Number(extra.preco_mensal) > 0 && <p className="text-[10px] text-amber-400">+R$ {Number(extra.preco_mensal).toFixed(0)}/mês</p>}
+                        <p className="text-[11px] text-white/40 mb-3 line-clamp-2">{item.descricao}</p>
+                        <div className="space-y-1 mb-4">
+                          <p className="text-[10px] text-white/20 uppercase font-semibold">Itens inclusos:</p>
+                          <ul className="text-[10px] text-white/60 list-disc list-inside">
+                            {itensPkg.map(pi => {
+                              const ex = extras.find(e => e.id === pi.extra_id);
+                              return <li key={pi.id}>{ex?.nome}</li>;
+                            })}
+                          </ul>
+                        </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-sm font-bold text-purple-400">R$ {Number(item.preco_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                          <Badge variant="outline" className="text-[9px] border-purple-500/20 text-purple-400 bg-purple-500/5">Pacote Econômico</Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(item)}>
+                            <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar a Cliente
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => deletePacote(item.id)}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
                   );
-                })}
-              </div>
-
-              {/* Resumo Final */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <Card className="lg:col-span-2 border-dashed border-white/10 bg-transparent">
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs text-white/60">Desconto manual (R$)</Label>
-                        <Input 
-                          type="number"
-                          className="w-24 glass-input border-white/10 text-white text-xs h-7"
-                          value={calDesconto}
-                          onChange={e => setCalDesconto(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 text-[10px] text-orange-400 hover:bg-orange-500/10" onClick={copyWhatsApp}>
-                          <Send className="w-3 h-3 mr-1.5" /> Copiar WhatsApp
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 text-[10px] text-blue-400 hover:bg-blue-500/10" onClick={generateWord}>
-                          <FileText className="w-3 h-3 mr-1.5" /> Word
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 text-[10px] text-emerald-400 hover:bg-emerald-500/10" onClick={generatePDF}>
-                          <Download className="w-3 h-3 mr-1.5" /> PDF
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-white/40">Plano Base ({basePlans[calPlanoBase].nome})</span>
-                        <span className="text-white">R$ {Number(calPrecoBaseAtivacao).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-white/40">Total de Extras ({calExtras.length} itens)</span>
-                        <span className="text-white">R$ {extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_ativacao), 0).toFixed(2)}</span>
-                      </div>
-                      {Number(calDesconto) > 0 && (
-                        <div className="flex justify-between text-xs">
-                          <span className="text-red-400 font-bold">Desconto Aplicado</span>
-                          <span className="text-red-400 font-bold">- R$ {Number(calDesconto).toFixed(2)}</span>
+                } else {
+                  const clientesCount = countByExtra[item.id] || 0;
+                  return (
+                    <Card key={item.id} className={`border-[0.5px] transition-all ${item.status === "inativo" ? "opacity-50" : ""} ${config.border} hover:border-white/20`} style={{ background: "rgba(255,255,255,0.04)" }}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-sm font-medium text-white leading-tight flex-1 pr-2">{item.nome}</h4>
+                          <Switch checked={item.status === "ativo"} onCheckedChange={() => toggleStatus(item)} className="scale-75" />
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="gradient-primary border-0 shadow-lg shadow-primary/20">
-                  <CardContent className="p-5 flex flex-col justify-center h-full">
-                    <p className="text-[10px] text-white/60 uppercase font-black italic">Total Setup Final</p>
-                    <p className="text-2xl font-black text-white italic leading-tight">
-                      R$ {(Number(calPrecoBaseAtivacao) + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_ativacao), 0) - Number(calDesconto)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
-                    <div className="h-[1px] bg-white/10 my-3" />
-                    <p className="text-[10px] text-white/60 uppercase font-black italic">Manutenção Mensal</p>
-                    <p className="text-lg font-black text-white italic">
-                      R$ {(Number(calPrecoBaseMensal) + extras.filter(e => calExtras.includes(e.id)).reduce((s, e) => s + Number(e.preco_mensal), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}<span className="text-xs">/mês</span>
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          ) : categoriaSel === "pacotes" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
-              {filtrados.map(pkg => {
-                const itensPkg = pacoteItens.filter(pi => pi.pacote_id === pkg.id);
-                return (
-                  <Card key={pkg.id} className="border-[0.5px] border-purple-500/30 hover:border-purple-500/50 transition-all bg-white/[0.04]">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="text-sm font-bold text-purple-400 leading-tight flex-1 pr-2">{pkg.nome}</h4>
-                        <Rocket className="w-4 h-4 text-purple-400/40" />
-                      </div>
-                      <p className="text-[11px] text-white/40 mb-3 line-clamp-2">{pkg.descricao}</p>
-
-                      <div className="space-y-1 mb-4">
-                        <p className="text-[10px] text-white/20 uppercase font-semibold">Itens inclusos:</p>
-                        <ul className="text-[10px] text-white/60 list-disc list-inside">
-                          {itensPkg.map(pi => {
-                            const ex = extras.find(e => e.id === pi.extra_id);
-                            return <li key={pi.id}>{ex?.nome}</li>;
-                          })}
-                        </ul>
-                      </div>
-
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm font-bold text-purple-400">R$ {Number(pkg.preco_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                        <Badge variant="outline" className="text-[9px] border-purple-500/20 text-purple-400 bg-purple-500/5">Pacote Econômico</Badge>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(pkg)}>
-                          <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar a Cliente
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => deletePacote(pkg.id)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
-              {filtrados.map(extra => {
-                const clientesCount = countByExtra[extra.id] || 0;
-                return (
-                  <Card
-                    key={extra.id}
-                    className={`border-[0.5px] transition-all ${extra.status === "inativo" ? "opacity-50" : ""} ${config.border} hover:border-white/20`}
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="text-sm font-medium text-white leading-tight flex-1 pr-2">{extra.nome}</h4>
-                        <Switch
-                          checked={extra.status === "ativo"}
-                          onCheckedChange={() => toggleStatus(extra)}
-                          className="scale-75"
-                        />
-                      </div>
-
-                      {extra.descricao && <p className="text-[11px] text-white/40 mb-2 line-clamp-2">{extra.descricao}</p>}
-
-                      <div className="space-y-1 mb-3">
-                        {Number(extra.preco_ativacao) > 0 && (
-                          <p className="text-sm">
-                            <span className="text-white/40 text-xs">Ativação: </span>
-                            <span className="text-emerald-400 font-semibold">R$ {Number(extra.preco_ativacao).toFixed(2).replace(".", ",")}</span>
-                          </p>
-                        )}
-                        {Number(extra.preco_mensal) > 0 && (
-                          <p className="text-sm">
-                            <span className="text-white/40 text-xs">Mensal: </span>
-                            <span className="text-amber-400 font-semibold">R$ {Number(extra.preco_mensal).toFixed(2).replace(".", ",")}/mês</span>
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between mb-3">
-                        <Badge variant="outline" className={`text-[9px] ${config.color} ${config.border}`}>{config.label}</Badge>
-                        <span className="text-[10px] text-white/30">{clientesCount} {clientesCount === 1 ? "cliente" : "clientes"}</span>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" className="flex-1 h-8 text-xs text-white/60 hover:text-white border border-white/10 hover:border-white/20" onClick={() => abrirEditar(extra)}>
-                          <Pencil className="w-3 h-3 mr-1.5" /> Editar
-                        </Button>
-                        <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(extra)}>
-                          <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => { setExtraSel(extra); setShowDelete(true); }}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
+                        {item.descricao && <p className="text-[11px] text-white/40 mb-2 line-clamp-2">{item.descricao}</p>}
+                        <div className="space-y-1 mb-3">
+                          {Number(item.preco_ativacao) > 0 && <p className="text-sm"><span className="text-white/40 text-xs">Ativação: </span><span className="text-emerald-400 font-semibold">R$ {Number(item.preco_ativacao).toFixed(2).replace(".", ",")}</span></p>}
+                          {Number(item.preco_mensal) > 0 && <p className="text-sm"><span className="text-white/40 text-xs">Mensal: </span><span className="text-amber-400 font-semibold">R$ {Number(item.preco_mensal).toFixed(2).replace(".", ",")}/mês</span></p>}
+                        </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge variant="outline" className={`text-[9px] ${config.color} ${config.border}`}>{config.label}</Badge>
+                          <span className="text-[10px] text-white/30">{clientesCount} {clientesCount === 1 ? "cliente" : "clientes"}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" className="flex-1 h-8 text-xs text-white/60 hover:text-white border border-white/10 hover:border-white/20" onClick={() => abrirEditar(item)}>
+                            <Pencil className="w-3 h-3 mr-1.5" /> Editar
+                          </Button>
+                          <Button size="sm" className="flex-1 h-8 text-xs gradient-primary border-0 text-white" onClick={() => abrirAtribuir(item)}>
+                            <UserPlus className="w-3 h-3 mr-1.5" /> Adicionar
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10" onClick={() => { setExtraSel(item); setShowDelete(true); }}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
               })}
             </div>
           )}
         </motion.div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-8 pt-4 border-t border-white/5 text-center">
-        <p className="text-[11px] text-white/20">novaesweb © 2025 — v2.4.8 Premium — Painel Administrativo</p>
-      </div>
-
-      {/* MODAL — Novo Extra */}
       <Dialog open={showNew} onOpenChange={setShowNew}>
         <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
           <DialogHeader><DialogTitle className="text-white">Novo Extra</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
               <Label className="text-xs text-white/50">Nome</Label>
-              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
+              <Input className="glass-input border-white/10 text-white h-9" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Categoria principal</Label>
-              <Select value={form.categoria} onValueChange={v => setForm({ ...form, categoria: v as CategoriaExtra, subcategoria: "" })}>
-                <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixo">Fixo</SelectItem>
-                  <SelectItem value="intermediario">Intermediário</SelectItem>
-                  <SelectItem value="mensal">Mensal</SelectItem>
-                </SelectContent>
+              <Label className="text-xs text-white/50">Categoria</Label>
+              <Select value={form.categoria} onValueChange={v => setForm({ ...form, categoria: v as CategoriaExtra })}>
+                <SelectTrigger className="glass-input border-white/10 text-white"><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="fixo">Fixo</SelectItem><SelectItem value="intermediario">Intermediário</SelectItem><SelectItem value="mensal">Mensal</SelectItem></SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Subcategoria</Label>
-              <Select value={form.subcategoria} onValueChange={v => setForm({ ...form, subcategoria: v })}>
-                <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {subcategorias[form.categoria].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label className="text-xs text-white/50">Descrição</Label>
+              <Textarea className="glass-input border-white/10 text-white min-h-[50px]" value={form.descricao} onChange={e => setForm({ ...form, descricao: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Descrição curta</Label>
-              <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[50px]" value={form.descricao} onChange={e => setForm({ ...form, descricao: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Preço de ativação (R$)</Label>
-              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.preco_ativacao} onChange={e => setForm({ ...form, preco_ativacao: e.target.value })} />
+              <Label className="text-xs text-white/50">Ativação (R$)</Label>
+              <Input type="number" className="glass-input border-white/10 text-white h-9" value={form.preco_ativacao} onChange={e => setForm({ ...form, preco_ativacao: e.target.value })} />
             </div>
             {(form.categoria === "intermediario" || form.categoria === "mensal") && (
               <div className="space-y-1.5">
-                <Label className="text-xs text-white/50">Preço mensal (R$)</Label>
-                <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={form.preco_mensal} onChange={e => setForm({ ...form, preco_mensal: e.target.value })} />
+                <Label className="text-xs text-white/50">Mensal (R$)</Label>
+                <Input type="number" className="glass-input border-white/10 text-white h-9" value={form.preco_mensal} onChange={e => setForm({ ...form, preco_mensal: e.target.value })} />
               </div>
             )}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Status</Label>
-              <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
-                <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button className="gradient-primary border-0 text-white w-full rounded-lg" onClick={handleSave} disabled={saving || !form.nome}>
-              {saving ? "Salvando..." : "Salvar Extra"}
-            </Button>
+            <Button className="gradient-primary border-0 text-white w-full" onClick={handleSave} disabled={saving || !form.nome}>{saving ? "Salvando..." : "Salvar Extra"}</Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* MODAL — Editar Extra */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
           <DialogHeader><DialogTitle className="text-white">Editar Extra</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
               <Label className="text-xs text-white/50">Nome</Label>
-              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.nome} onChange={e => setEditForm({ ...editForm, nome: e.target.value })} />
+              <Input className="glass-input border-white/10 text-white h-9" value={editForm.nome} onChange={e => setEditForm({ ...editForm, nome: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-white/50">Categoria</Label>
               <Select value={editForm.categoria} onValueChange={v => setEditForm({ ...editForm, categoria: v as CategoriaExtra })}>
-                <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixo">Fixo</SelectItem>
-                  <SelectItem value="intermediario">Intermediário</SelectItem>
-                  <SelectItem value="mensal">Mensal</SelectItem>
-                </SelectContent>
+                <SelectTrigger className="glass-input border-white/10 text-white"><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="fixo">Fixo</SelectItem><SelectItem value="intermediario">Intermediário</SelectItem><SelectItem value="mensal">Mensal</SelectItem></SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-white/50">Descrição</Label>
-              <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[50px]" value={editForm.descricao} onChange={e => setEditForm({ ...editForm, descricao: e.target.value })} />
+              <Textarea className="glass-input border-white/10 text-white min-h-[50px]" value={editForm.descricao} onChange={e => setEditForm({ ...editForm, descricao: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Preço de ativação (R$)</Label>
-              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.preco_ativacao} onChange={e => setEditForm({ ...editForm, preco_ativacao: e.target.value })} />
+              <Label className="text-xs text-white/50">Ativação (R$)</Label>
+              <Input type="number" className="glass-input border-white/10 text-white h-9" value={editForm.preco_ativacao} onChange={e => setEditForm({ ...editForm, preco_ativacao: e.target.value })} />
             </div>
             {(editForm.categoria === "intermediario" || editForm.categoria === "mensal") && (
               <div className="space-y-1.5">
-                <Label className="text-xs text-white/50">Preço mensal (R$)</Label>
-                <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={editForm.preco_mensal} onChange={e => setEditForm({ ...editForm, preco_mensal: e.target.value })} />
+                <Label className="text-xs text-white/50">Mensal (R$)</Label>
+                <Input type="number" className="glass-input border-white/10 text-white h-9" value={editForm.preco_mensal} onChange={e => setEditForm({ ...editForm, preco_mensal: e.target.value })} />
               </div>
             )}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Status</Label>
-              <Select value={editForm.status} onValueChange={v => setEditForm({ ...editForm, status: v })}>
-                <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button className="gradient-primary border-0 text-white w-full rounded-lg" onClick={handleEdit} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
-            </Button>
+            <Button className="gradient-primary border-0 text-white w-full" onClick={handleEdit} disabled={saving}>{saving ? "Salvando..." : "Salvar alterações"}</Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* MODAL — Atribuir a Cliente */}
       <Dialog open={showAtribuir} onOpenChange={setShowAtribuir}>
         <DialogContent className="glass-card border-[0.5px] text-white max-w-md">
           <DialogHeader><DialogTitle className="text-white">Adicionar a Cliente</DialogTitle></DialogHeader>
           {extraSel && (
             <div className="space-y-4 mt-2">
-              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-sm font-medium text-white">{extraSel.nome}</p>
                 <div className="flex gap-3 mt-1 text-xs text-white/40">
-                  <span className={catConfig[extraSel.categoria as CategoriaExtra]?.color}>{catConfig[extraSel.categoria as CategoriaExtra]?.label}</span>
-                  {Number(extraSel.preco_ativacao) > 0 && <span className="text-emerald-400">Ativação: R$ {Number(extraSel.preco_ativacao).toFixed(2).replace(".", ",")}</span>}
-                  {Number(extraSel.preco_mensal) > 0 && <span className="text-amber-400">Mensal: R$ {Number(extraSel.preco_mensal).toFixed(2).replace(".", ",")}/mês</span>}
+                  <span className={catConfig[extraSel.categoria as CategoriaExtra]?.color || "text-purple-400"}>
+                    {catConfig[extraSel.categoria as CategoriaExtra]?.label || "Pacote"}
+                  </span>
+                  {Number(extraSel.preco_ativacao || extraSel.preco_total) > 0 && <span>Valor: R$ {Number(extraSel.preco_ativacao || extraSel.preco_total).toFixed(2)}</span>}
                 </div>
               </div>
-
               <div className="space-y-1.5">
                 <Label className="text-xs text-white/50">Cliente</Label>
                 <Select value={clienteSel} onValueChange={setClienteSel}>
-                  <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-white"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-                  <SelectContent>
-                    {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome} — {c.email}</SelectItem>)}
-                  </SelectContent>
+                  <SelectTrigger className="glass-input border-white/10 text-white"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                  <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-1.5">
-                <Label className="text-xs text-white/50">Observação (opcional)</Label>
-                <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[50px]" placeholder="Ex: Cortesia por 3 meses..." value={observacao} onChange={e => setObservacao(e.target.value)} />
+                <Label className="text-xs text-white/50">Observação</Label>
+                <Textarea className="glass-input border-white/10 text-white text-sm" value={observacao} onChange={e => setObservacao(e.target.value)} />
               </div>
-
-              <Button className="gradient-primary border-0 text-white w-full rounded-lg" onClick={handleAtribuir} disabled={!clienteSel || saving}>
-                {saving ? "Salvando..." : "Confirmar atribuição"}
-              </Button>
+              <Button className="gradient-primary border-0 text-white w-full" onClick={handleAtribuir} disabled={!clienteSel || saving}>{saving ? "Salvando..." : "Confirmar"}</Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* MODAL — Confirmar Exclusão */}
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent className="glass-card border-[0.5px] text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-white">Excluir Extra</DialogTitle>
-            <DialogDescription className="text-white/50">
-              Tem certeza que deseja excluir <strong className="text-white">{extraSel?.nome}</strong>? Esta ação também removerá todas as atribuições a clientes e não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 mt-2">
-            <Button variant="ghost" className="border border-white/10 text-white/60" onClick={() => setShowDelete(false)}>Cancelar</Button>
-            <Button className="bg-red-600 hover:bg-red-700 text-white border-0" onClick={handleDelete} disabled={saving}>
-              {saving ? "Excluindo..." : "Excluir"}
-            </Button>
-          </DialogFooter>
+          <DialogHeader><DialogTitle className="text-white">Excluir Extra</DialogTitle><DialogDescription className="text-white/50">Tem certeza que deseja excluir este item?</DialogDescription></DialogHeader>
+          <DialogFooter className="gap-2"><Button variant="ghost" onClick={() => setShowDelete(false)}>Cancelar</Button><Button className="bg-red-600 border-0" onClick={handleDelete} disabled={saving}>Excluir</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* MODAL — Novo Pacote */}
       <Dialog open={showNewPacote} onOpenChange={setShowNewPacote}>
-        <DialogContent className="glass-card border-[0.5px] text-white max-w-lg overflow-y-auto max-h-[90vh]">
+        <DialogContent className="glass-card border-[0.5px] text-white max-w-lg">
           <DialogHeader><DialogTitle className="text-white">Criar Novo Pacote</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Nome do Pacote</Label>
-              <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={pacoteForm.nome} onChange={e => setPacoteForm({ ...pacoteForm, nome: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Descrição</Label>
-              <Textarea className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm min-h-[50px]" value={pacoteForm.descricao} onChange={e => setPacoteForm({ ...pacoteForm, descricao: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/50">Preço Sugerido (R$)</Label>
-              <Input type="number" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9" value={pacoteForm.preco_total} onChange={e => setPacoteForm({ ...pacoteForm, preco_total: e.target.value })} />
-            </div>
-
+            <div className="space-y-1.5"><Label className="text-xs text-white/50">Nome</Label><Input className="glass-input border-white/10 text-white h-9" value={pacoteForm.nome} onChange={e => setPacoteForm({ ...pacoteForm, nome: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label className="text-xs text-white/50">Preço Total (R$)</Label><Input type="number" className="glass-input border-white/10 text-white h-9" value={pacoteForm.preco_total} onChange={e => setPacoteForm({ ...pacoteForm, preco_total: e.target.value })} /></div>
             <div className="space-y-2">
-              <Label className="text-xs text-white/50 font-bold">Selecionar Itens inclusos</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 rounded bg-black/20 border border-white/5">
-                {extras.map(ex => {
-                  const isSelected = pacoteForm.itens.includes(ex.id);
-                  return (
-                    <div
-                      key={ex.id}
-                      onClick={() => {
-                        const newItens = isSelected
-                          ? pacoteForm.itens.filter(id => id !== ex.id)
-                          : [...pacoteForm.itens, ex.id];
-                        setPacoteForm({ ...pacoteForm, itens: newItens });
-                      }}
-                      className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all border ${isSelected ? "bg-purple-500/20 border-purple-500/50" : "bg-white/5 border-transparent hover:border-white/10"}`}
-                    >
-                      <div className={`w-3.5 h-3.5 rounded-sm border ${isSelected ? "bg-purple-500 border-purple-400" : "border-white/20"}`} />
-                      <span className="text-[10px] text-white/70 truncate">{ex.nome}</span>
-                    </div>
-                  );
-                })}
+              <Label className="text-xs text-white/50">Itens Inclusos</Label>
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-black/20 rounded border border-white/10">
+                {extras.map(ex => (
+                  <label key={ex.id} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox checked={pacoteForm.itens.includes(ex.id)} onCheckedChange={(checked) => {
+                      const newItens = checked ? [...pacoteForm.itens, ex.id] : pacoteForm.itens.filter(id => id !== ex.id);
+                      setPacoteForm({ ...pacoteForm, itens: newItens });
+                    }} />
+                    <span className="text-[10px] text-white/70 truncate">{ex.nome}</span>
+                  </label>
+                ))}
               </div>
             </div>
-
-            <Button className="gradient-primary border-0 text-white w-full rounded-lg" onClick={handleSavePacote} disabled={saving || !pacoteForm.nome}>
-              {saving ? "Criando..." : "Criar Pacote Premium"}
-            </Button>
+            <Button className="gradient-primary border-0 text-white w-full" onClick={handleSavePacote} disabled={saving || !pacoteForm.nome}>Criar Pacote</Button>
           </div>
         </DialogContent>
       </Dialog>
     </motion.div>
   );
 }
-
-
-

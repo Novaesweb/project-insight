@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function SplashScreen({ onComplete }: { onComplete: () => void }) {
+export default function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   const [progress, setProgress] = useState(0);
   const [text, setText] = useState("");
   const [visible, setVisible] = useState(true);
