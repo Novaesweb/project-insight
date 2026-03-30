@@ -165,20 +165,35 @@ export function IntegrationsForm({ items, values, setValues, onSave, saving }: a
               <div className="relative flex-1">
                 <Input
                   type={integ.type === "password" && !showValues[integ.key] ? "password" : "text"}
-                  className="glass-input border-white/5 text-white text-sm h-10 w-full pr-10"
+                  className={cn(
+                    "glass-input border-white/5 text-white text-sm h-10 w-full",
+                    integ.type === "password" ? "pr-16" : "pr-10"
+                  )}
                   placeholder={integ.placeholder}
                   value={values[integ.key] || ""}
                   onChange={e => setValues((prev: any) => ({ ...prev, [integ.key]: e.target.value }))}
                 />
-                {integ.type === "password" && (
-                  <button
-                    type="button"
-                    onClick={() => toggleVisibility(integ.key)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-                  >
-                    {showValues[integ.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                )}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  {values[integ.key] && (
+                    <button
+                      type="button"
+                      onClick={() => setValues((prev: any) => ({ ...prev, [integ.key]: "" }))}
+                      className="text-white/20 hover:text-red-400 transition-colors"
+                      title="Limpar campo"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {integ.type === "password" && (
+                    <button
+                      type="button"
+                      onClick={() => toggleVisibility(integ.key)}
+                      className="text-white/30 hover:text-white/60 transition-colors"
+                    >
+                      {showValues[integ.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  )}
+                </div>
               </div>
               <Button
                 size="sm"

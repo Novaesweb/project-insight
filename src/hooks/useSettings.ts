@@ -77,9 +77,16 @@ export function useSettings() {
 
   const handleSaveInteg = async (key: string, value: string) => {
     setIntegSaving(key);
-    await supabase.from("app_config").upsert({ key, value }, { onConflict: "key" });
+    
+    if (!value || value.trim() === "") {
+      // Se estiver vazio, deletamos a configuração para limpeza real
+      await supabase.from("app_config").delete().eq("key", key);
+    } else {
+      await supabase.from("app_config").upsert({ key, value }, { onConflict: "key" });
+    }
+    
     setIntegSaving(null);
-    toast({ title: "Integração salva!" });
+    toast({ title: value ? "Integração salva!" : "Integração removida!" });
   };
 
   const handleTogglePush = async () => {
