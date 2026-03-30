@@ -21,7 +21,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
   return (
     <header
-      className="h-16 flex items-center justify-between px-5 lg:px-8 sticky top-0 z-40 backdrop-blur-xl"
+      className="h-14 md:h-16 flex items-center justify-between px-3 sm:px-5 lg:px-8 sticky top-0 z-40 backdrop-blur-xl"
       style={{
         background: 'hsl(var(--background) / 0.85)',
         borderBottom: '1px solid hsl(var(--border))',
