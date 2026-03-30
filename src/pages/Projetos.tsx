@@ -679,8 +679,8 @@ export default function Projetos() {
         </DragDropContext>
       ) : (
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="pt-6">
-            <Table>
+          <CardContent className="pt-6 overflow-x-auto">
+            <Table className="min-w-[600px]">
               <TableHeader><TableRow className="border-white/5"><TableHead className="text-white/40">Projeto</TableHead><TableHead className="text-white/40">Cliente</TableHead><TableHead className="text-white/40">Progresso</TableHead><TableHead className="text-white/40">Status</TableHead></TableRow></TableHeader>
               <TableBody>
                 {projetos.map(p => (
