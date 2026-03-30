@@ -86,8 +86,8 @@ export default function ClienteFaturas() {
       {/* Header Premium */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="hidden md:block">
-            <img src={logoImg} alt="Novaes Web" className="w-12 h-12 rounded-2xl border border-white/10 shadow-2xl" />
+          <div className="hidden md:flex items-center justify-center bg-white/5 p-1.5 rounded-xl border border-white/10 mr-2 shadow-inner">
+            <img src={logoImg} alt="Novaes Web" className="h-8 w-auto object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
