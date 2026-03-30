@@ -19,11 +19,12 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  const options: NotificationOptions = {
+  // @ts-ignore - extended notification options for mobile
+  const options = {
     body: data.body,
     icon: data.icon || '/push-icon-192.png',
     badge: '/push-icon-192.png',
-    // @ts-ignore vibrate is valid for mobile
+    vibrate: [200, 100, 200],
     data: {
       url: data.url || '/',
     },
