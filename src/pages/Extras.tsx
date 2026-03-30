@@ -194,32 +194,107 @@ export default function Extras() {
     if (!clienteSel || !extraSel) return;
     setSaving(true);
 
-    if (extraSel.preco_total !== undefined) {
-      const items = pacoteItens.filter(pi => pi.pacote_id === extraSel.id);
-      const batch = items.map(pi => {
-        const fullExtra = extras.find(e => e.id === pi.extra_id);
-        return {
-          cliente_id: clienteSel, extra_id: pi.extra_id, pacote_id: extraSel.id,
-          categoria: (fullExtra?.categoria as any) || 'fixo',
-          preco_ativacao: fullExtra?.preco_ativacao || 0,
-          preco_mensal: fullExtra?.preco_mensal || 0,
-          observacao: observacao || null,
-          status: "ativo"
-        } as any;
-      });
-      await supabase.from("extras_clientes").insert(batch);
-    } else {
-      await supabase.from("extras_clientes").insert({
-        cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
-        preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, observacao: observacao || null,
-        status: "ativo"
-      });
-    }
+    try {
+      // 1. Buscar dados completos do cliente
+      const { data: clienteData } = await supabase.from("clientes").select("*").eq("id", clienteSel).single();
+      
+      if (!clienteData) {
+        toast({ title: "Erro", description: "Cliente não encontrado", variant: "destructive" });
+        return;
+      }
 
-    setSaving(false);
-    fetchData();
-    setShowAtribuir(false);
-    toast({ title: "Extra(s) atribuídos!" });
+      // 2. Adicionar extra ao cliente
+      let extraData;
+      if (extraSel.preco_total !== undefined) {
+        const items = pacoteItens.filter(pi => pi.pacote_id === extraSel.id);
+        const batch = items.map(pi => {
+          const fullExtra = extras.find(e => e.id === pi.extra_id);
+          return {
+            cliente_id: clienteSel, extra_id: pi.extra_id, pacote_id: extraSel.id,
+            categoria: (fullExtra?.categoria as any) || 'fixo',
+            preco_ativacao: fullExtra?.preco_ativacao || 0,
+            preco_mensal: fullExtra?.preco_mensal || 0,
+            observacao: observacao || null,
+            status: "ativo"
+          } as any;
+        });
+        await supabase.from("extras_clientes").insert(batch);
+        extraData = batch[0]; // Pegar primeiro item para financeiro
+      } else {
+        const extraInsert = {
+          cliente_id: clienteSel, extra_id: extraSel.id, categoria: extraSel.categoria,
+          preco_ativacao: Number(extraSel.preco_ativacao) || 0, preco_mensal: Number(extraSel.preco_mensal) || 0, 
+          observacao: observacao || null, status: "ativo"
+        };
+        await supabase.from("extras_clientes").insert(extraInsert);
+        extraData = extraInsert;
+      }
+
+      // 3. Criar registro financeiro automaticamente
+      const valorTotal = extraData.preco_ativacao + extraData.preco_mensal;
+      if (valorTotal > 0) {
+        const financeiroData = {
+          cliente_id: clienteSel,
+          descricao: `Extra: ${extraSel.nome} - ${extraSel.categoria === 'fixo' ? 'Ativação' : extraSel.categoria === 'mensal' ? 'Mensalidade' : 'Pro'}`,
+          tipo: "entrada",
+          valor: valorTotal,
+          vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 dias
+          status: "pendente"
+        };
+
+        const { data: financeiroRecord } = await supabase.from("financeiro").insert(financeiroData).select().single();
+
+        // 4. Gerar fatura no Asaas automaticamente
+        if (financeiroRecord) {
+          const { AsaasService } = await import("@/lib/asaas-service");
+          
+          try {
+            // Criar cliente no Asaas
+            const asaasCustomer = await AsaasService.getOrCreateCustomer({
+              name: clienteData.nome,
+              email: clienteData.email,
+              cpfCnpj: clienteData.documento || undefined,
+              phone: clienteData.whatsapp || undefined,
+              externalReference: clienteData.id
+            });
+
+            // Gerar cobrança
+            const payment = await AsaasService.createPayment({
+              customer: asaasCustomer.id,
+              billingType: "UNDEFINED",
+              value: valorTotal,
+              dueDate: financeiroData.vencimento,
+              description: `Extra: ${extraSel.nome} (${extraSel.categoria})`
+            });
+
+            // Atualizar descrição com link do Asaas
+            const novaDescricao = `${financeiroData.descricao} (Asaas: ${payment.invoiceUrl})`;
+            await supabase.from("financeiro").update({ descricao: novaDescricao }).eq("id", financeiroRecord.id);
+
+            toast({ 
+              title: "✅ Extra ativado e fatura gerada!", 
+              description: `Valor: R$ ${valorTotal.toFixed(2)} - Fatura Asaas criada automaticamente` 
+            });
+          } catch (asaasError) {
+            console.error("Erro ao gerar fatura Asaas:", asaasError);
+            toast({ 
+              title: "⚠️ Extra ativado!", 
+              description: "Extra adicionado, mas houve erro ao gerar fatura Asaas. Verifique o financeiro." 
+            });
+          }
+        }
+      }
+
+      setSaving(false);
+      fetchData();
+      setShowAtribuir(false);
+      toast({ title: "Extra(s) atribuídos com sucesso!" });
+      
+    } catch (error) {
+      console.error("Erro em handleAtribuir:", error);
+      toast({ title: "Erro", description: "Não foi possível atribuir o extra", variant: "destructive" });
+      setSaving(false);
+    }
   };
 
   const handleGerarFaturaConsolidada = async () => {
