@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, MessageCircle, Globe, Layers, Rocket, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle, MessageCircle, Globe, Layers, Rocket, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,11 +9,8 @@ const stagger = { show: { transition: { staggerChildren: 0.15 } } };
 const plans = [
   {
     tag: "Express",
-    tagColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     icon: Globe,
-    iconColor: "bg-emerald-500/15 text-emerald-400",
-    glowColor: "rgba(16,185,129,0.08)",
-    accentColor: "#10b981",
+    accentHsl: "var(--success)",
     title: "Arquitetura Express",
     desc: "Presença digital imediata e profissional.",
     promo: true,
@@ -34,11 +31,8 @@ const plans = [
   },
   {
     tag: "Pro",
-    tagColor: "text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/20",
     icon: Layers,
-    iconColor: "bg-[hsl(var(--primary))]/15 text-[hsl(var(--primary))]",
-    glowColor: "rgba(232,51,74,0.1)",
-    accentColor: "hsl(var(--primary))",
+    accentHsl: "var(--primary)",
     title: "Arquitetura de Gestão",
     desc: "Ecossistema completo para escalar resultados.",
     popular: true,
@@ -58,11 +52,8 @@ const plans = [
   },
   {
     tag: "Sob Medida",
-    tagColor: "text-purple-400 bg-purple-500/10 border-purple-500/20",
     icon: Rocket,
-    iconColor: "bg-purple-500/15 text-purple-400",
-    glowColor: "rgba(168,85,247,0.08)",
-    accentColor: "#a855f7",
+    accentHsl: "var(--accent)",
     title: "Arquitetura sob Medida",
     desc: "Engenharia dedicada para projetos complexos.",
     features: [
@@ -82,14 +73,19 @@ const plans = [
 export default function PlanosSection() {
   return (
     <motion.section id="planos" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[hsl(var(--primary))]/5 rounded-full blur-[200px]" />
-      </div>
-
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div variants={fade} className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 px-4 py-1.5 rounded-full">Investimento Estratégico</span>
-          <h2 className="text-4xl sm:text-6xl font-black text-foreground mt-8 leading-[0.9] tracking-tighter">
+          <span
+            className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full inline-block mb-8"
+            style={{
+              background: 'hsl(var(--primary) / 0.08)',
+              border: '1px solid hsl(var(--primary) / 0.15)',
+              color: 'hsl(var(--primary))',
+            }}
+          >
+            Investimento Estratégico
+          </span>
+          <h2 className="text-4xl sm:text-6xl font-black text-foreground/90 leading-[0.9] tracking-tighter">
             Planos feitos para <br />
             <span className="gradient-text">escalar o seu negócio</span>
           </h2>
@@ -103,47 +99,65 @@ export default function PlanosSection() {
             <motion.div
               key={plan.tag}
               variants={fade}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className={cn(
-                "relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col border transition-all duration-500 group",
-                plan.popular
-                  ? "border-[hsl(var(--primary))]/30 bg-white/[0.04] md:scale-[1.03] md:-my-2 shadow-2xl shadow-[hsl(var(--primary))]/10"
-                  : "border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
+                "relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group",
+                plan.popular && "md:scale-[1.03] md:-my-2"
               )}
+              style={{
+                background: plan.popular ? 'hsl(var(--primary) / 0.04)' : 'hsl(var(--card))',
+                border: `1px solid ${plan.popular ? 'hsl(var(--primary) / 0.25)' : 'hsl(var(--border))'}`,
+                boxShadow: plan.popular ? '0 20px 60px hsl(var(--primary) / 0.1)' : undefined,
+              }}
             >
-              {/* Top glow for popular */}
+              {/* Top accent line for popular */}
               {plan.popular && (
                 <>
-                  <div className="absolute -top-px left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary)), hsl(var(--accent)), transparent)" }} />
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-white bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] px-4 py-1 rounded-full shadow-lg flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3" /> Mais popular
+                  <div className="absolute -top-px left-0 right-0 h-[2px]" style={{ background: 'var(--gradient-primary)' }} />
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-white px-4 py-1 rounded-full shadow-lg flex items-center gap-1.5"
+                      style={{ background: 'var(--gradient-primary)' }}>
+                      <Star className="w-3 h-3" /> Mais popular
                     </span>
                   </div>
                 </>
               )}
 
-              {/* Background ambient */}
-              <div className="absolute inset-0 rounded-[1.75rem] overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] opacity-30" style={{ background: plan.glowColor }} />
+              {/* Hover glow */}
+              <div className="absolute inset-0 rounded-[1.75rem] overflow-hidden pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] opacity-20" style={{ background: `hsl(${plan.accentHsl})` }} />
               </div>
 
               {/* Header */}
-              <div className="flex items-start gap-3 mb-4 mt-1">
-                <div className={`w-11 h-11 rounded-xl ${plan.iconColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500`}>
-                  <plan.icon className="w-5 h-5" />
+              <div className="flex items-start gap-3 mb-4 mt-1 relative">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500"
+                  style={{ background: `hsl(${plan.accentHsl} / 0.1)` }}
+                >
+                  <plan.icon className="w-5 h-5" style={{ color: `hsl(${plan.accentHsl})` }} />
                 </div>
                 <div className="min-w-0">
-                  <span className={`text-[9px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full border ${plan.tagColor}`}>{plan.tag}</span>
+                  <span
+                    className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full"
+                    style={{
+                      background: `hsl(${plan.accentHsl} / 0.08)`,
+                      border: `1px solid hsl(${plan.accentHsl} / 0.2)`,
+                      color: `hsl(${plan.accentHsl})`,
+                    }}
+                  >
+                    {plan.tag}
+                  </span>
                   <h3 className="text-base font-extrabold text-foreground mt-1.5 tracking-tight">{plan.title}</h3>
                 </div>
               </div>
 
-              <p className="text-sm text-muted-foreground leading-relaxed mb-5 font-medium">{plan.desc}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5 font-medium relative">{plan.desc}</p>
 
               {/* Promo badge */}
               {plan.promo && (
-                <div className="mb-4">
-                  <span className="text-[9px] font-bold uppercase px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                <div className="mb-4 relative">
+                  <span className="text-[9px] font-bold uppercase px-3 py-1 rounded-full"
+                    style={{ background: 'hsl(var(--warning) / 0.1)', border: '1px solid hsl(var(--warning) / 0.2)', color: 'hsl(var(--warning))' }}>
                     ✨ Promoção ativa
                   </span>
                 </div>
@@ -151,45 +165,41 @@ export default function PlanosSection() {
 
               {/* Price */}
               {plan.price && (
-                <div className="flex items-center gap-3 mb-5 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                <div className="flex items-center gap-3 mb-5 p-3.5 rounded-xl relative"
+                  style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}>
                   <div className="text-center flex-1">
                     <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">{plan.priceLabel}</p>
-                    <p className="text-xl font-black text-emerald-400">{plan.price}</p>
+                    <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>{plan.price}</p>
                   </div>
-                  <div className="h-8 w-px bg-white/[0.08]" />
+                  <div className="h-8 w-px" style={{ background: 'hsl(var(--border))' }} />
                   <div className="text-center flex-1">
                     <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Mensal</p>
-                    <p className="text-xl font-black text-emerald-400">{plan.monthly}<span className="text-[10px] font-medium text-muted-foreground">/mês</span></p>
+                    <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>
+                      {plan.monthly}<span className="text-[10px] font-medium text-muted-foreground">/mês</span>
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Features */}
-              <ul className="space-y-2.5 mb-6 flex-1">
+              <ul className="space-y-2.5 mb-6 flex-1 relative">
                 {plan.features.map((item) => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-muted-foreground">
-                    <CheckCircle className="w-4 h-4 text-[hsl(var(--primary))]/50 shrink-0 mt-0.5" />
+                    <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: `hsl(${plan.accentHsl} / 0.5)` }} />
                     {item}
                   </li>
                 ))}
               </ul>
 
-              <p className="text-[10px] text-muted-foreground/40 italic mb-4 font-medium">{plan.note}</p>
+              <p className="text-[10px] text-muted-foreground/40 italic mb-4 font-medium relative">{plan.note}</p>
 
               {/* CTA */}
-              <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`} target="_blank" rel="noopener noreferrer">
-                <Button className={cn(
-                  "w-full h-12 rounded-xl font-bold text-sm group/btn border-0 text-white transition-all",
-                  plan.popular
-                    ? "shadow-lg shadow-[hsl(var(--primary))]/20"
-                    : ""
-                )} style={{
-                  background: plan.popular
-                    ? "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))"
-                    : i === 0
-                      ? "linear-gradient(135deg, #10b981, #059669)"
-                      : "linear-gradient(135deg, #a855f7, #7c3aed)"
-                }}>
+              <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`} target="_blank" rel="noopener noreferrer" className="relative">
+                <Button className="w-full h-12 rounded-xl font-bold text-sm text-white border-0 group/btn transition-all hover:scale-[1.02]"
+                  style={{
+                    background: plan.popular ? 'var(--gradient-primary)' : `hsl(${plan.accentHsl})`,
+                    boxShadow: `0 10px 30px hsl(${plan.accentHsl} / 0.2)`,
+                  }}>
                   {plan.cta}
                   {plan.ctaIcon ? <plan.ctaIcon className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />}
                 </Button>
