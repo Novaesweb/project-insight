@@ -34,6 +34,8 @@ export default function Configuracoes() {
   const integrationItems = [
     { key: "whatsapp_webhook", nome: "WhatsApp / n8n Webhook", descricao: "URL n8n para automação de mensagens.", placeholder: "https://...", icon: "💬" },
     { key: "pix_key", nome: "Chave Pix", descricao: "Exibida em faturas no portal.", placeholder: "Sua chave...", icon: "💰" },
+    { key: "asaas_api_key", nome: "Asaas API Key", descricao: "Chave de acesso do Asaas para cobranças.", placeholder: "$asaas_...", icon: "💳", type: "password" },
+    { key: "asaas_environment", nome: "Ambiente Asaas", descricao: "Escolha entre Sandbox (testes) ou Produção.", placeholder: "sandbox ou production", icon: "🌐" },
     { key: "google_analytics_id", nome: "GA4 ID", descricao: "Rastreamento de métricas (ex: G-XXX).", placeholder: "G-XXXXXXXXXX", icon: "📊" },
   ];
 

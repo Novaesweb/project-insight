@@ -26,11 +26,9 @@ export function useSettings() {
     whatsapp_webhook: "",
     pix_key: "",
     google_analytics_id: "",
-    primary_color: "#e8334a",
-    urgency_active: "false",
-    urgency_text: "",
-    urgency_hours: "2",
     social_proof_active: "true",
+    asaas_api_key: "",
+    asaas_environment: "sandbox",
   });
 
   const loadSettings = useCallback(async () => {
@@ -43,7 +41,8 @@ export function useSettings() {
     const keys = [
       "nome", "cnpj", "email", "telefone", "endereco", "logo",
       "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color",
-      "urgency_active", "urgency_text", "urgency_hours", "social_proof_active"
+      "urgency_active", "urgency_text", "urgency_hours", "social_proof_active",
+      "asaas_api_key", "asaas_environment"
     ];
 
     const { data } = await supabase.from("app_config").select("key, value").in("key", keys);

@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { sendPushToAdmins } from "@/lib/push-notifications";
+import { AsaasService } from "@/lib/asaas-service";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const emptyForm = { descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" };
@@ -115,6 +116,50 @@ export default function Financeiro() {
       else exportFaturaCSV(data);
       toast({ title: `Exportado em ${type.toUpperCase()}!` });
     } catch { toast({ title: "Erro ao exportar", variant: "destructive" }); }
+  };
+
+  const handleAsaas = async (f: any) => {
+    if (!f.cliente_id) {
+      toast({ title: "Selecione um cliente primeiro", variant: "destructive" });
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      // 1. Buscar detalhes completo do cliente
+      const { data: cliente } = await supabase.from("clientes").select("*").eq("id", f.cliente_id).single();
+      if (!cliente) throw new Error("Cliente não encontrado.");
+
+      // 2. Garantir cliente no Asaas
+      const asaasCustomer = await AsaasService.getOrCreateCustomer({
+        name: cliente.nome,
+        email: cliente.email,
+        cpfCnpj: cliente.documento || undefined,
+        mobilePhone: cliente.telefone || undefined,
+        externalReference: cliente.id
+      });
+
+      // 3. Gerar Cobrança
+      const payment = await AsaasService.createPayment({
+        customer: asaasCustomer.id,
+        billingType: "UNDEFINED", // Deixa o cliente escolher (Boleto, Pix, Cartão)
+        value: Number(f.valor),
+        dueDate: f.vencimento || new Date().toISOString().split('T')[0],
+        description: f.descricao,
+        externalReference: f.id
+      });
+
+      // 4. Salvar ID no registro (como nota na descrição já que não podemos mudar o banco)
+      const novaDescricao = `${f.descricao} (Asaas: ${payment.invoiceUrl})`;
+      await supabase.from("financeiro").update({ descricao: novaDescricao }).eq("id", f.id);
+      
+      toast({ title: "Fatura Asaas Gerada!", description: "O link de pagamento foi vinculado à descrição." });
+      load();
+    } catch (err: any) {
+      toast({ title: "Erro no Asaas", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filtrados = financeiro.filter(f => {
@@ -257,6 +302,19 @@ export default function Financeiro() {
                             <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
                               <FileDown className="w-3 h-3 text-green-400" /> CSV
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                            {f.descricao.includes("Asaas:") ? (
+                              <DropdownMenuItem 
+                                onClick={() => window.open(f.descricao.split("Asaas: ")[1].replace(")", ""), "_blank")} 
+                                className="text-xs gap-2 cursor-pointer text-emerald-400"
+                              >
+                                <DollarSign className="w-3 h-3" /> Ver Fatura Asaas
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleAsaas(f)} className="text-xs gap-2 cursor-pointer">
+                                <DollarSign className="w-3 h-3 text-amber-400" /> Gerar no Asaas
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator className="bg-white/5" />
                             <DropdownMenuItem
                               onClick={() => { if (confirm("Excluir este lançamento?")) handleDelete(f.id); }}
