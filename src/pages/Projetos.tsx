@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign, Target, BarChart3, Users, Globe, Copy } from "lucide-react";
+import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign, Target, BarChart3, Users, Globe, Copy, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,6 +196,40 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
       toast({ title: "Ativo removido da arquitetura" });
       loadData();
     } catch (error: any) { toast({ title: "Erro na remoção", description: error.message, variant: "destructive" }); }
+  };
+
+  const deleteProjeto = async (projetoId: string, projetoTitulo: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o projeto "${projetoTitulo}"? Esta ação não pode ser desfeita.`)) return;
+    
+    try {
+      // 1. Excluir arquivos do projeto
+      const { data: arquivos } = await (supabase.from("projeto_arquivos" as any) as any).select("url").eq("projeto_id", projetoId);
+      if (arquivos && arquivos.length > 0) {
+        for (const arquivo of arquivos) {
+          const path = arquivo.url.split("projeto-arquivos/").pop();
+          if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+        }
+      }
+      await (supabase.from("projeto_arquivos" as any) as any).delete().eq("projeto_id", projetoId);
+      
+      // 2. Excluir atualizações do projeto
+      await (supabase.from("projeto_atualizacoes") as any).delete().eq("projeto_id", projetoId);
+      
+      // 3. Excluir o projeto
+      const { error } = await supabase.from("projetos").delete().eq("id", projetoId);
+      
+      if (error) throw error;
+      
+      toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
+      load(); // Recarregar lista de projetos
+      
+      // Se estiver visualizando o projeto excluído, voltar para lista
+      if (selectedProjeto === projetoId) {
+        setSelectedProjeto(null);
+      }
+    } catch (error: any) {
+      toast({ title: "Erro ao excluir projeto", description: error.message, variant: "destructive" });
+    }
   };
 
   const enviarAtualizacao = async () => {
@@ -591,7 +625,20 @@ export default function Projetos() {
                                   onClick={() => !snapshot.isDragging && setSelectedProjeto(p.id)}
                                 >
                                   <CardContent className="p-4 space-y-3">
-                                    <p className="font-bold text-sm text-white group-hover:text-primary transition-colors">{p.titulo}</p>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <p className="font-bold text-sm text-white group-hover:text-primary transition-colors">{p.titulo}</p>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-7 w-7 text-red-500/40 hover:text-red-500 hover:bg-red-500/10"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteProjeto(p.id, p.titulo);
+                                        }}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
                                     <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden"><div className="h-full gradient-primary" style={{ width: `${p.progresso}%` }} /></div>
                                     <div className="flex items-center justify-between text-[10px] text-white/40 font-mono"><p className="truncate pr-2">{p.clientes?.nome}</p><p>{p.progresso}%</p></div>
                                   </CardContent>
@@ -616,11 +663,24 @@ export default function Projetos() {
               <TableHeader><TableRow className="border-white/5"><TableHead className="text-white/40">Projeto</TableHead><TableHead className="text-white/40">Cliente</TableHead><TableHead className="text-white/40">Progresso</TableHead><TableHead className="text-white/40">Status</TableHead></TableRow></TableHeader>
               <TableBody>
                 {projetos.map(p => (
-                  <TableRow key={p.id} className="border-white/5 cursor-pointer hover:bg-white/5" onClick={() => setSelectedProjeto(p.id)}>
+                  <TableRow key={p.id} className="border-white/5 cursor-pointer hover:bg-white/5">
                     <TableCell className="font-medium text-white">{p.titulo}</TableCell>
                     <TableCell className="text-white/60">{p.clientes?.nome}</TableCell>
                     <TableCell><div className="flex items-center gap-2"><div className="w-16 h-1 rounded-full bg-white/5"><div className="h-full gradient-primary" style={{ width: `${p.progresso}%` }} /></div><span className="text-[10px]">{p.progresso}%</span></div></TableCell>
                     <TableCell><StatusBadge status={p.status} /></TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-red-500/40 hover:text-red-500 hover:bg-red-500/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteProjeto(p.id, p.titulo);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
