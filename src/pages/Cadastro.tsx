@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Check, MessageCircle, Building, Store,
   Loader2, Rocket, Globe, Mail, X,
-  Users, Layout, Target, Instagram, Search, HelpCircle, ArrowRight, ArrowLeft, Sparkles
+  Users, Layout, Target, Instagram, Search, HelpCircle,
+  ArrowRight, ArrowLeft, Sparkles, Phone, User, Briefcase, ChevronRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
-import novaeswebPremiumLogo from "@/assets/novaesweb-logo-admin.webp";
 
 const NECESSIDADES = [
   { id: "site", label: "Site Profissional", icon: Globe, desc: "Presença online de alto impacto" },
@@ -24,11 +24,11 @@ const NECESSIDADES = [
 ];
 
 const VOLUMES = [
-  { id: "baixa", label: "Até 50/mês", emoji: "📦" },
-  { id: "media", label: "50 a 500/mês", emoji: "📊" },
-  { id: "alta", label: "500 a 1.000/mês", emoji: "🚀" },
-  { id: "expert", label: "Mais de 1.000/mês", emoji: "⚡" },
-  { id: "nao_sei", label: "Não sei ainda", emoji: "🤔" },
+  { id: "baixa", label: "Até 50/mês", emoji: "📦", desc: "Começando agora" },
+  { id: "media", label: "50 a 500/mês", emoji: "📊", desc: "Em crescimento" },
+  { id: "alta", label: "500 a 1.000/mês", emoji: "🚀", desc: "Alta escala" },
+  { id: "expert", label: "Mais de 1.000/mês", emoji: "⚡", desc: "Enterprise" },
+  { id: "nao_sei", label: "Não sei ainda", emoji: "🤔", desc: "Sem problema" },
 ];
 
 const ORIGENS = [
@@ -40,9 +40,15 @@ const ORIGENS = [
   { id: "outro", label: "Outro", icon: HelpCircle },
 ];
 
-const STEPS_SIDEBAR = [
-  "Identificação", "E-mail", "WhatsApp", "Negócio",
-  "Necessidade", "Volume", "Origem", "Briefing"
+const STEPS_META = [
+  { num: 1, label: "Nome", icon: User },
+  { num: 2, label: "E-mail", icon: Mail },
+  { num: 3, label: "WhatsApp", icon: Phone },
+  { num: 4, label: "Negócio", icon: Briefcase },
+  { num: 5, label: "Necessidade", icon: Target },
+  { num: 6, label: "Volume", icon: Rocket },
+  { num: 7, label: "Origem", icon: Search },
+  { num: 8, label: "Briefing", icon: MessageCircle },
 ];
 
 const formatWhatsApp = (value: string) => {
@@ -54,10 +60,17 @@ const formatWhatsApp = (value: string) => {
 
 const validateWhatsApp = (w: string) => w.replace(/\D/g, "").length >= 10;
 
+const slideVariants = {
+  enter: (direction: number) => ({ x: direction > 0 ? 80 : -80, opacity: 0, filter: "blur(4px)" }),
+  center: { x: 0, opacity: 1, filter: "blur(0px)" },
+  exit: (direction: number) => ({ x: direction > 0 ? -80 : 80, opacity: 0, filter: "blur(4px)" }),
+};
+
 export default function Cadastro() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
@@ -65,10 +78,10 @@ export default function Cadastro() {
     necessidade: "", volume: "", origem: "", mensagem: "", _fax: ""
   });
 
-  const updateForm = (field: string, value: string) => {
+  const updateForm = useCallback((field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
-  };
+  }, [errors]);
 
   const validateStep = (step: number): boolean => {
     const errs: Record<string, string> = {};
@@ -86,6 +99,7 @@ export default function Cadastro() {
 
   const handleNext = () => {
     if (currentStep === 0 || validateStep(currentStep)) {
+      setDirection(1);
       if (currentStep < 9) setCurrentStep(prev => prev + 1);
       if (currentStep === 8) handleSubmit();
     } else {
@@ -93,28 +107,22 @@ export default function Cadastro() {
     }
   };
 
-  const handlePrev = () => { if (currentStep > 0) setCurrentStep(prev => prev - 1); };
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setDirection(-1);
+      setCurrentStep(prev => prev - 1);
+    }
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
-
-    if (form._fax) {
-      setTimeout(() => {
-        setLoading(false);
-        setCurrentStep(9);
-      }, 1500);
-      return;
-    }
+    if (form._fax) { setTimeout(() => { setLoading(false); setCurrentStep(9); }, 1500); return; }
 
     const now = Date.now();
     const rateLimitStr = localStorage.getItem("cadastro_rate_limit");
     let rateData = rateLimitStr ? JSON.parse(rateLimitStr) : { count: 0, firstAt: now };
-
-    if (now - rateData.firstAt > 10 * 60 * 1000) {
-      rateData = { count: 1, firstAt: now };
-    } else {
-      rateData.count += 1;
-    }
+    if (now - rateData.firstAt > 10 * 60 * 1000) rateData = { count: 1, firstAt: now };
+    else rateData.count += 1;
     localStorage.setItem("cadastro_rate_limit", JSON.stringify(rateData));
 
     if (rateData.count > 3) {
@@ -141,279 +149,415 @@ export default function Cadastro() {
     }
   };
 
-  const inputField = (step: number) => {
-    const config: Record<number, { field: string; placeholder: string; label: string; icon?: typeof Mail }> = {
-      1: { field: "nome", placeholder: "Nome e Sobrenome", label: "Qual seu nome completo?" },
-      2: { field: "email", placeholder: "seu@email.com", label: "Qual seu melhor e-mail?", icon: Mail },
-      3: { field: "whatsapp", placeholder: "(00) 00000-0000", label: "Seu WhatsApp direto?" },
-      4: { field: "empresa", placeholder: "Marca / Empresa", label: "Qual o nome do negócio?", icon: Building },
-    };
-    const c = config[step];
-    if (!c) return null;
-    const val = form[c.field as keyof typeof form];
-    return (
-      <motion.div key={`s${step}`} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.4, ease: "easeOut" }} className="space-y-6 w-full max-w-xl">
-        <StepHeader step={step} label={c.label} />
-        <div className="relative group">
-          {c.icon && <c.icon className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10 group-focus-within:text-[hsl(var(--primary))]/60 transition-colors duration-300" />}
-          <Input
-            autoFocus
-            className="h-16 lg:h-20 bg-white/[0.03] border-white/[0.08] rounded-2xl text-xl lg:text-2xl font-bold px-6 focus:border-[hsl(var(--primary))]/40 focus:bg-white/[0.05] transition-all placeholder:text-white/10 text-white"
-            placeholder={c.placeholder}
-            value={val}
-            onChange={(e) => {
-              const v = e.target.value;
-              updateForm(c.field, step === 3 ? formatWhatsApp(v) : v);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handleNext()}
-          />
-        </div>
-        {errors[c.field] && (
-          <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-xs font-bold tracking-wider pl-2">
-            {errors[c.field]}
-          </motion.p>
-        )}
-      </motion.div>
-    );
-  };
-
   const progress = currentStep === 0 ? 0 : Math.min((currentStep / 9) * 100, 100);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 lg:p-8 font-sans text-white overflow-hidden relative" style={{ background: "linear-gradient(145deg, #07060a 0%, #0d0a1a 40%, #1a0a12 70%, #0a0a0f 100%)" }}>
-      {/* Close / Exit button */}
-      <button
+    <div className="min-h-screen flex font-sans text-foreground overflow-hidden relative" style={{ background: "hsl(var(--background))" }}>
+      {/* Close button */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
         onClick={() => navigate(-1)}
-        className="fixed top-5 right-5 z-50 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
+        className="fixed top-5 right-5 z-50 w-10 h-10 rounded-full flex items-center justify-center transition-all group"
+        style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}
         aria-label="Fechar"
       >
-        <X className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
-      </button>
+        <X className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </motion.button>
 
-      {/* Ambient orbs */}
-      <div className="absolute top-[-30%] left-[-15%] w-[600px] h-[600px] rounded-full opacity-[0.07] blur-[150px]" style={{ background: "radial-gradient(circle, hsl(var(--primary)), transparent 70%)" }} />
-      <div className="absolute bottom-[-25%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-[0.05] blur-[130px]" style={{ background: "radial-gradient(circle, hsl(var(--accent)), transparent 70%)" }} />
-      <div className="absolute top-[50%] left-[60%] w-[300px] h-[300px] rounded-full opacity-[0.04] blur-[100px]" style={{ background: "radial-gradient(circle, #FFD700, transparent 70%)" }} />
+      {/* LEFT PANEL — Brand & Progress */}
+      <div className="hidden lg:flex w-[420px] shrink-0 flex-col relative overflow-hidden"
+        style={{ background: "linear-gradient(180deg, hsl(var(--background)) 0%, hsl(260 20% 6%) 100%)" }}>
+        
+        {/* Decorative gradient orbs */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-[15%] left-[20%] w-[300px] h-[300px] rounded-full blur-[120px] opacity-[0.08]"
+            style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }} />
+          <div className="absolute bottom-[20%] right-[10%] w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.06]"
+            style={{ background: 'radial-gradient(circle, hsl(var(--accent)), transparent 70%)' }} />
+        </div>
 
-      {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        {/* Right edge line */}
+        <div className="absolute top-0 bottom-0 right-0 w-px"
+          style={{ background: 'linear-gradient(180deg, transparent, hsl(var(--border)), transparent)' }} />
 
-      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}
-        className="w-full max-w-[1100px] min-h-[640px] flex flex-col lg:flex-row rounded-[28px] overflow-hidden relative z-10 border border-white/[0.06]"
-        style={{ background: "linear-gradient(160deg, rgba(255,255,255,0.03), rgba(10,10,15,0.8))", boxShadow: "0 40px 100px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)" }}
-      >
-        {/* Sidebar */}
-        <div className="hidden lg:flex w-[280px] flex-col justify-between p-8 relative overflow-hidden shrink-0"
-          style={{ background: "linear-gradient(180deg, rgba(232,51,74,0.12) 0%, rgba(123,31,162,0.12) 50%, rgba(10,10,15,0.95) 100%)" }}>
-          <div className="absolute inset-0 backdrop-blur-sm" />
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }} />
-          <div className="absolute top-0 bottom-0 right-0 w-px" style={{ background: "linear-gradient(180deg, rgba(232,51,74,0.2), rgba(123,31,162,0.1), transparent)" }} />
-          
-          <div className="relative z-10 space-y-8">
-            {/* Logo */}
-            <div className="flex flex-col items-center text-center pt-2">
-              <div className="relative mb-4">
-                <div className="absolute inset-0 rounded-2xl blur-2xl opacity-30" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }} />
-                <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-0.5 overflow-hidden relative backdrop-blur-xl">
-                  <img src={novaeswebPremiumLogo} alt="novaesweb" className="w-full h-full object-cover rounded-xl" />
-                </div>
+        <div className="relative z-10 flex flex-col h-full p-10">
+          {/* Logo area */}
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'var(--gradient-primary)' }}>
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-extrabold tracking-[0.15em] text-white">novaesweb</span>
-              <span className="text-[9px] font-bold uppercase tracking-[0.5em] text-white/25 mt-1">Elite CRM</span>
+              <div>
+                <h2 className="text-lg font-extrabold tracking-tight text-foreground">novaesweb</h2>
+                <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-muted-foreground">Engenharia Digital</p>
+              </div>
             </div>
+          </div>
 
-            {/* Steps */}
-            <div className="space-y-3">
-              {STEPS_SIDEBAR.map((label, i) => {
-                const stepNum = i + 1;
-                const isActive = currentStep === stepNum;
-                const isCompleted = currentStep > stepNum;
+          {/* Motivational text */}
+          <div className="mb-10">
+            <h3 className="text-2xl font-extrabold tracking-tight leading-snug text-foreground/90 mb-3">
+              Sua empresa merece<br />
+              <span className="gradient-text">a melhor estrutura digital.</span>
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Nós temos a solução para criar a presença online que o seu estabelecimento merece. Preencha o formulário e nossa equipe entrará em contato.
+            </p>
+          </div>
+
+          {/* Step navigator */}
+          <div className="flex-1">
+            <div className="space-y-1">
+              {STEPS_META.map((step, i) => {
+                const isActive = currentStep === step.num;
+                const isCompleted = currentStep > step.num;
+                const isFuture = currentStep < step.num;
                 return (
-                  <div key={i} className={cn("flex items-center gap-3 py-1.5 px-2 rounded-xl transition-all duration-400",
-                    isActive ? "bg-white/[0.06]" : "")}>
-                    <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all duration-400 shrink-0",
-                      isActive ? "bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white shadow-lg shadow-[hsl(var(--primary))]/20" :
-                      isCompleted ? "bg-white/10 text-white" : "bg-white/[0.03] text-white/20 border border-white/[0.06]")}>
-                      {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3px]" /> : stepNum}
+                  <motion.div
+                    key={step.num}
+                    initial={false}
+                    animate={{
+                      backgroundColor: isActive ? 'hsl(var(--secondary))' : 'transparent',
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-300 cursor-default",
+                    )}
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-black transition-all duration-400 shrink-0",
+                      isActive && "shadow-lg",
+                      isCompleted && "bg-emerald-500/15 text-emerald-400",
+                      isFuture && "text-muted-foreground/40"
+                    )}
+                      style={isActive ? { background: 'var(--gradient-primary)' } : isFuture ? { background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' } : {}}
+                    >
+                      {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3px]" /> :
+                        isActive ? <step.icon className="w-3.5 h-3.5 text-white" /> :
+                        <span>{step.num}</span>}
                     </div>
-                    <span className={cn("text-[11px] font-semibold tracking-wide transition-all duration-400",
-                      isActive ? "text-white" : isCompleted ? "text-white/50" : "text-white/20")}>
-                      {label}
+                    <span className={cn(
+                      "text-xs font-semibold tracking-wide transition-all duration-300",
+                      isActive ? "text-foreground" : isCompleted ? "text-muted-foreground" : "text-muted-foreground/40"
+                    )}>
+                      {step.label}
                     </span>
-                  </div>
+                    {isActive && (
+                      <motion.div layoutId="step-indicator" className="ml-auto">
+                        <ChevronRight className="w-3.5 h-3.5 text-primary" />
+                      </motion.div>
+                    )}
+                  </motion.div>
                 );
               })}
             </div>
           </div>
 
-          <div className="relative z-10 text-[9px] font-bold uppercase tracking-[0.4em] text-white/15 text-center">
-            v3.4.0
+          {/* Progress bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Progresso</span>
+              <span className="text-xs font-black text-foreground/60">{Math.round(progress)}%</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'hsl(var(--secondary))' }}>
+              <motion.div
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="h-full rounded-full"
+                style={{ background: 'var(--gradient-primary)' }}
+              />
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col relative">
-          {/* Mobile progress bar */}
-          <div className="lg:hidden h-1 w-full bg-white/[0.04]">
-            <motion.div animate={{ width: `${progress}%` }} transition={{ duration: 0.5, ease: "easeOut" }}
-              className="h-full rounded-r-full" style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)))" }} />
+      {/* RIGHT PANEL — Form content */}
+      <div className="flex-1 flex flex-col relative">
+        {/* Mobile header */}
+        <div className="lg:hidden">
+          <div className="h-1 w-full" style={{ background: 'hsl(var(--secondary))' }}>
+            <motion.div animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }}
+              className="h-full rounded-r-full" style={{ background: 'var(--gradient-primary)' }} />
           </div>
-
-          {/* Mobile step counter */}
           {currentStep > 0 && currentStep < 9 && (
-            <div className="lg:hidden flex items-center justify-between px-6 pt-4">
-              <span className="text-[10px] font-bold text-white/30 tracking-wider">{currentStep} / 8</span>
-              <div className="flex gap-1">
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
+                <span className="text-xs font-extrabold text-foreground">novaesweb</span>
+              </div>
+              <div className="flex items-center gap-1.5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className={cn("h-1 rounded-full transition-all duration-300",
-                    i < currentStep ? "w-4 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))]" : "w-1.5 bg-white/10")} />
+                    i < currentStep ? "w-5" : "w-1.5")}
+                    style={{ background: i < currentStep ? 'hsl(var(--primary))' : 'hsl(var(--secondary))' }}
+                  />
                 ))}
               </div>
             </div>
           )}
+        </div>
 
-          <div className="flex-1 px-8 lg:px-14 py-10 lg:py-14 flex flex-col justify-center relative">
-            <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
-            <AnimatePresence mode="wait">
-              {/* Step 0: Welcome */}
-              {currentStep === 0 && (
-                <motion.div key="s0" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }}
-                  className="space-y-8 max-w-lg">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
-                    style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
-                    <div className="absolute inset-0 rounded-2xl blur-xl opacity-40" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }} />
-                    <Rocket className="w-8 h-8 text-white relative z-10" />
-                  </div>
-                  <div className="space-y-3">
-                    <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.05]">
-                      Vamos <span className="italic text-white/20">decolar</span><br />seu projeto?
-                    </h1>
-                    <p className="text-white/35 text-base lg:text-lg font-medium max-w-sm leading-relaxed">
-                      Sua empresa precisa de um site e nós temos a solução para criar a melhor estrutura, do jeito que o seu estabelecimento merece.
-                    </p>
-                    <p className="text-white/20 text-sm font-medium max-w-sm leading-relaxed">
-                      Responda algumas perguntas rápidas e nossa equipe entra em contato com a solução ideal.
-                    </p>
-                  </div>
-                  <Button onClick={handleNext}
-                    className="h-14 px-10 rounded-2xl font-bold text-sm text-white border-0 hover:scale-[1.03] active:scale-[0.97] transition-all group flex items-center gap-3"
-                    style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))", boxShadow: "0 15px 40px -10px rgba(232,51,74,0.3)" }}>
-                    <Sparkles className="w-4 h-4" />
-                    Começar agora
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+        {/* Form area */}
+        <div className="flex-1 flex items-center justify-center px-6 sm:px-10 lg:px-16 py-10 lg:py-14 relative">
+          {/* Honeypot */}
+          <input type="text" name="_fax" tabIndex={-1} autoComplete="none" className="opacity-0 absolute -z-10 w-0 h-0" value={form._fax} onChange={(e) => updateForm("_fax", e.target.value)} />
+
+          <AnimatePresence mode="wait" custom={direction}>
+            {/* Step 0: Welcome */}
+            {currentStep === 0 && (
+              <motion.div
+                key="welcome"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter" animate="center" exit="exit"
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-lg space-y-8"
+              >
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="w-20 h-20 rounded-3xl flex items-center justify-center relative"
+                  style={{ background: 'var(--gradient-primary)' }}
+                >
+                  <div className="absolute inset-0 rounded-3xl blur-2xl opacity-30" style={{ background: 'var(--gradient-primary)' }} />
+                  <Rocket className="w-10 h-10 text-white relative z-10" />
                 </motion.div>
-              )}
 
-              {/* Steps 1-4: Input fields */}
-              {[1, 2, 3, 4].includes(currentStep) && inputField(currentStep)}
+                <div className="space-y-4">
+                  <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-[1.05] text-foreground">
+                    Vamos construir<br />
+                    <span className="gradient-text">algo incrível?</span>
+                  </h1>
+                  <p className="text-base lg:text-lg text-muted-foreground font-medium leading-relaxed max-w-md">
+                    Sua empresa precisa de um site e nós temos a solução para criar a melhor estrutura, do jeito que o seu estabelecimento merece.
+                  </p>
+                </div>
 
-              {/* Step 5 & 7: Card selection */}
-              {[5, 7].includes(currentStep) && (
-                <motion.div key={`s${currentStep}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4 }} className="space-y-6 w-full max-w-xl">
-                  <StepHeader step={currentStep} label={currentStep === 5 ? "O que você precisa agora?" : "Como nos conheceu?"} />
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                    {(currentStep === 5 ? NECESSIDADES : ORIGENS).map(opt => {
-                      const selected = (currentStep === 5 ? form.necessidade : form.origem) === opt.id;
-                      return (
-                        <button key={opt.id} onClick={() => { updateForm(currentStep === 5 ? "necessidade" : "origem", opt.id); setTimeout(handleNext, 350); }}
-                          className={cn("flex flex-col items-center justify-center p-5 rounded-2xl border transition-all duration-300 gap-2.5 group relative overflow-hidden",
-                            selected ? "bg-white/[0.08] border-[hsl(var(--primary))]/50 shadow-lg shadow-[hsl(var(--primary))]/10" :
-                            "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15")}>
-                          {selected && <div className="absolute inset-0 opacity-10 rounded-2xl" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }} />}
-                          <opt.icon className={cn("w-6 h-6 transition-all duration-300 relative z-10",
-                            selected ? "text-[hsl(var(--primary))]" : "text-white/20 group-hover:text-white/40")} />
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-center leading-tight relative z-10">
-                            {opt.label}
-                          </span>
-                          {"desc" in opt && <span className="text-[8px] text-white/25 font-medium relative z-10">{(opt as any).desc}</span>}
-                        </button>
-                      );
-                    })}
+                <div className="flex flex-col sm:flex-row items-start gap-3">
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Button onClick={handleNext}
+                      className="h-14 px-10 rounded-2xl font-bold text-white border-0 group flex items-center gap-3 text-base"
+                      style={{ background: 'var(--gradient-primary)', boxShadow: '0 15px 40px -10px hsl(var(--primary) / 0.35)' }}>
+                      <Sparkles className="w-4 h-4" />
+                      Começar agora
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </motion.div>
+                </div>
+
+                <div className="flex items-center gap-6 pt-4" style={{ color: 'hsl(var(--muted-foreground) / 0.5)' }}>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+                    <Check className="w-3 h-3" /> Gratuito
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+                    <Check className="w-3 h-3" /> 2 min
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+                    <Check className="w-3 h-3" /> Sem compromisso
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Steps 1-4: Input fields */}
+            {[1, 2, 3, 4].includes(currentStep) && (
+              <InputStep
+                key={`input-${currentStep}`}
+                step={currentStep}
+                form={form}
+                errors={errors}
+                updateForm={updateForm}
+                onNext={handleNext}
+                direction={direction}
+              />
+            )}
+
+            {/* Step 5 & 7: Card selection */}
+            {[5, 7].includes(currentStep) && (
+              <motion.div
+                key={`select-${currentStep}`}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter" animate="center" exit="exit"
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-xl space-y-8"
+              >
+                <StepHeader step={currentStep} label={currentStep === 5 ? "O que você precisa agora?" : "Como nos conheceu?"} />
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {(currentStep === 5 ? NECESSIDADES : ORIGENS).map((opt, idx) => {
+                    const selected = (currentStep === 5 ? form.necessidade : form.origem) === opt.id;
+                    return (
+                      <motion.button
+                        key={opt.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => { updateForm(currentStep === 5 ? "necessidade" : "origem", opt.id); setTimeout(handleNext, 300); }}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-5 rounded-2xl transition-all duration-300 gap-2.5 group relative overflow-hidden",
+                          selected
+                            ? "shadow-lg"
+                            : "hover:bg-secondary/80"
+                        )}
+                        style={{
+                          background: selected ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--secondary))',
+                          border: `1px solid ${selected ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--border))'}`,
+                          boxShadow: selected ? '0 8px 30px hsl(var(--primary) / 0.15)' : undefined,
+                        }}
+                      >
+                        <opt.icon className={cn("w-6 h-6 transition-all duration-300",
+                          selected ? "text-primary" : "text-muted-foreground/40 group-hover:text-muted-foreground")} />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-center leading-tight">
+                          {opt.label}
+                        </span>
+                        {"desc" in opt && <span className="text-[8px] text-muted-foreground/50 font-medium">{(opt as any).desc}</span>}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 6: Volume */}
+            {currentStep === 6 && (
+              <motion.div
+                key="volume"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter" animate="center" exit="exit"
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-xl space-y-8"
+              >
+                <StepHeader step={6} label="Qual seu volume atual de pedidos?" />
+                <div className="space-y-2">
+                  {VOLUMES.map((opt, idx) => (
+                    <motion.button
+                      key={opt.id}
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.06 }}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { updateForm("volume", opt.id); setTimeout(handleNext, 300); }}
+                      className={cn(
+                        "w-full p-4 rounded-2xl text-left transition-all duration-300 flex items-center gap-4 group relative overflow-hidden",
+                      )}
+                      style={{
+                        background: form.volume === opt.id ? 'hsl(var(--primary) / 0.08)' : 'hsl(var(--secondary))',
+                        border: `1px solid ${form.volume === opt.id ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--border))'}`,
+                        boxShadow: form.volume === opt.id ? '0 4px 20px hsl(var(--primary) / 0.1)' : undefined,
+                      }}
+                    >
+                      <span className="text-2xl">{opt.emoji}</span>
+                      <div>
+                        <span className="text-sm font-bold tracking-wide block">{opt.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{opt.desc}</span>
+                      </div>
+                      <ChevronRight className={cn("w-4 h-4 ml-auto transition-all",
+                        form.volume === opt.id ? "text-primary opacity-100" : "text-muted-foreground/20 opacity-0 group-hover:opacity-100"
+                      )} />
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 8: Briefing */}
+            {currentStep === 8 && (
+              <motion.div
+                key="briefing"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter" animate="center" exit="exit"
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-xl space-y-6"
+              >
+                <StepHeader step={8} label="Fale mais sobre seu projeto..." isLast />
+                <Textarea
+                  autoFocus
+                  className="min-h-[180px] lg:min-h-[220px] rounded-2xl p-6 text-base lg:text-lg font-medium leading-relaxed resize-none transition-all"
+                  style={{
+                    background: 'hsl(var(--secondary))',
+                    border: '1px solid hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                  placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
+                  value={form.mensagem}
+                  onChange={(e) => updateForm("mensagem", e.target.value)}
+                />
+                {errors.mensagem && (
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
+                    className="text-destructive text-xs font-bold tracking-wider pl-2">
+                    {errors.mensagem}
+                  </motion.p>
+                )}
+              </motion.div>
+            )}
+
+            {/* Step 9: Success */}
+            {currentStep === 9 && (
+              <motion.div
+                key="success"
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, type: "spring", stiffness: 150 }}
+                className="text-center space-y-8 flex flex-col items-center max-w-md mx-auto"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 rounded-full blur-3xl opacity-20" style={{ background: 'hsl(var(--success))' }} />
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center relative"
+                    style={{ background: 'hsl(var(--success) / 0.1)', border: '2px solid hsl(var(--success) / 0.4)' }}>
+                    <Check className="w-12 h-12 stroke-[3px]" style={{ color: 'hsl(var(--success))' }} />
                   </div>
                 </motion.div>
-              )}
+                <div className="space-y-3">
+                  <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                    Enviado com <span className="gradient-text">sucesso!</span>
+                  </h1>
+                  <p className="text-muted-foreground text-base font-medium leading-relaxed">
+                    Um membro da equipe já vai entrar em contato.<br />Prepare-se para decolar! 🚀
+                  </p>
+                </div>
+                <Button onClick={() => window.location.href = "/"}
+                  className="h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all"
+                  style={{
+                    background: 'hsl(var(--secondary))',
+                    border: '1px solid hsl(var(--border))',
+                    color: 'hsl(var(--muted-foreground))',
+                  }}>
+                  Voltar ao início
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-              {/* Step 6: Volume */}
-              {currentStep === 6 && (
-                <motion.div key="s6" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
-                  transition={{ duration: 0.4 }} className="space-y-6 w-full max-w-xl">
-                  <StepHeader step={6} label="Qual seu volume atual de pedidos?" />
-                  <div className="space-y-2.5">
-                    {VOLUMES.map(opt => (
-                      <button key={opt.id} onClick={() => { updateForm("volume", opt.id); setTimeout(handleNext, 350); }}
-                        className={cn("w-full p-5 rounded-2xl border text-left transition-all duration-300 flex items-center gap-4 group relative overflow-hidden",
-                          form.volume === opt.id
-                            ? "bg-white/[0.08] border-[hsl(var(--primary))]/50 shadow-lg shadow-[hsl(var(--primary))]/10"
-                            : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15")}>
-                        {form.volume === opt.id && <div className="absolute inset-0 opacity-10 rounded-2xl" style={{ background: "linear-gradient(90deg, hsl(var(--primary)), transparent)" }} />}
-                        <span className="text-xl relative z-10">{opt.emoji}</span>
-                        <span className="text-sm font-bold tracking-wide relative z-10">{opt.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 8: Briefing */}
-              {currentStep === 8 && (
-                <motion.div key="s8" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.4 }} className="space-y-6 w-full max-w-xl">
-                  <StepHeader step={8} label="Fale mais sobre seu projeto..." isLast />
-                  <Textarea
-                    autoFocus
-                    className="min-h-[160px] lg:min-h-[200px] bg-white/[0.03] border-white/[0.08] rounded-2xl p-6 text-base lg:text-lg font-medium focus:border-[hsl(var(--primary))]/40 transition-all placeholder:text-white/10 leading-relaxed text-white resize-none"
-                    placeholder="Quais seus objetivos, desafios ou sonhos para este projeto?"
-                    value={form.mensagem}
-                    onChange={(e) => updateForm("mensagem", e.target.value)}
-                  />
-                  {errors.mensagem && (
-                    <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-xs font-bold tracking-wider pl-2">
-                      {errors.mensagem}
-                    </motion.p>
-                  )}
-                </motion.div>
-              )}
-
-              {/* Step 9: Success */}
-              {currentStep === 9 && (
-                <motion.div key="s9" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="text-center space-y-6 flex flex-col items-center max-w-md mx-auto">
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-full blur-2xl opacity-30" style={{ background: "radial-gradient(circle, #22c55e, transparent 70%)" }} />
-                    <div className="w-20 h-20 rounded-full bg-emerald-500/15 border-2 border-emerald-500/50 flex items-center justify-center relative">
-                      <Check className="w-10 h-10 text-emerald-400 stroke-[3px]" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">
-                      Enviado com <span style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>sucesso!</span>
-                    </h1>
-                    <p className="text-white/40 text-base font-medium leading-relaxed">
-                      Um membro da equipe já vai entrar em contato. Prepare-se para decolar! 🚀
-                    </p>
-                  </div>
-                  <Button onClick={() => window.location.href = "/"}
-                    className="h-12 px-8 rounded-xl bg-white/5 border border-white/10 font-bold text-xs uppercase tracking-widest text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                    Voltar ao início
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation buttons */}
-          {currentStep > 0 && currentStep < 9 && (
-            <div className="px-8 lg:px-14 pb-8 flex items-center justify-between">
-              <Button variant="ghost" onClick={handlePrev}
-                className="h-10 text-white/25 hover:text-white/60 font-semibold text-xs tracking-wider gap-2 px-0 hover:bg-transparent">
-                <ArrowLeft className="w-3.5 h-3.5" /> Voltar
-              </Button>
+        {/* Navigation buttons */}
+        {currentStep > 0 && currentStep < 9 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="px-6 sm:px-10 lg:px-16 pb-8 flex items-center justify-between"
+          >
+            <Button variant="ghost" onClick={handlePrev}
+              className="h-10 text-muted-foreground hover:text-foreground font-semibold text-xs tracking-wider gap-2 px-0 hover:bg-transparent">
+              <ArrowLeft className="w-3.5 h-3.5" /> Voltar
+            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button onClick={handleNext} disabled={loading}
-                className={cn("h-12 lg:h-14 px-8 rounded-xl font-bold text-xs tracking-wider text-white border-0 flex items-center gap-2.5 group hover:scale-[1.02] active:scale-[0.98] transition-all",
+                className={cn("h-12 lg:h-14 px-8 rounded-xl font-bold text-sm tracking-wider text-white border-0 flex items-center gap-2.5 group",
                   loading && "opacity-50")}
-                style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))", boxShadow: "0 10px 30px -8px rgba(232,51,74,0.25)" }}>
+                style={{ background: 'var(--gradient-primary)', boxShadow: '0 10px 30px -8px hsl(var(--primary) / 0.3)' }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                   <>
                     {currentStep === 8 ? "Finalizar" : "Próximo"}
@@ -421,27 +565,91 @@ export default function Cadastro() {
                   </>
                 )}
               </Button>
-            </div>
-          )}
-        </div>
-      </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
 
-function StepHeader({ step, label, isLast }: { step: number; label: string; isLast?: boolean }) {
+/* ===================== Sub-components ===================== */
+
+function InputStep({ step, form, errors, updateForm, onNext, direction }: {
+  step: number;
+  form: Record<string, string>;
+  errors: Record<string, string>;
+  updateForm: (f: string, v: string) => void;
+  onNext: () => void;
+  direction: number;
+}) {
+  const config: Record<number, { field: string; placeholder: string; label: string; subtitle: string; icon: typeof Mail }> = {
+    1: { field: "nome", placeholder: "Nome e Sobrenome", label: "Qual seu nome?", subtitle: "Como devemos te chamar", icon: User },
+    2: { field: "email", placeholder: "seu@email.com", label: "Seu melhor e-mail?", subtitle: "Para envio da proposta", icon: Mail },
+    3: { field: "whatsapp", placeholder: "(00) 00000-0000", label: "Seu WhatsApp direto?", subtitle: "Para contato rápido", icon: Phone },
+    4: { field: "empresa", placeholder: "Marca / Empresa", label: "Nome do negócio?", subtitle: "Ou projeto que deseja criar", icon: Building },
+  };
+  const c = config[step];
+  if (!c) return null;
+  const val = form[c.field];
+
+  return (
+    <motion.div
+      key={`input-${step}`}
+      custom={direction}
+      variants={slideVariants}
+      initial="enter" animate="center" exit="exit"
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="w-full max-w-xl space-y-6"
+    >
+      <StepHeader step={step} label={c.label} subtitle={c.subtitle} />
+      <div className="relative group">
+        <c.icon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/30 group-focus-within:text-primary transition-colors duration-300" />
+        <Input
+          autoFocus
+          className="h-16 lg:h-[72px] rounded-2xl text-xl lg:text-2xl font-bold pl-14 pr-6 transition-all placeholder:text-muted-foreground/20"
+          style={{
+            background: 'hsl(var(--secondary))',
+            border: '1px solid hsl(var(--border))',
+            color: 'hsl(var(--foreground))',
+          }}
+          placeholder={c.placeholder}
+          value={val}
+          onChange={(e) => {
+            const v = e.target.value;
+            updateForm(c.field, step === 3 ? formatWhatsApp(v) : v);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && onNext()}
+        />
+      </div>
+      {errors[c.field] && (
+        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
+          className="text-destructive text-xs font-bold tracking-wider pl-2">
+          {errors[c.field]}
+        </motion.p>
+      )}
+      <p className="text-[10px] text-muted-foreground/40 font-medium pl-2">
+        Pressione <kbd className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}>Enter ↵</kbd> para continuar
+      </p>
+    </motion.div>
+  );
+}
+
+function StepHeader({ step, label, subtitle, isLast }: { step: number; label: string; subtitle?: string; isLast?: boolean }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <div className="h-px flex-1 max-w-[24px]" style={{ background: "linear-gradient(90deg, hsl(var(--primary)), transparent)" }} />
-        <span className="text-[10px] font-bold uppercase tracking-[0.3em]"
-          style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <div className="h-px w-6" style={{ background: 'var(--gradient-primary)' }} />
+        <span className="text-[10px] font-black uppercase tracking-[0.3em] gradient-text">
           {isLast ? "Passo Final" : `Passo ${step} de 8`}
         </span>
       </div>
-      <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight text-white">
+      <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight text-foreground">
         {label}
       </h1>
+      {subtitle && (
+        <p className="text-sm text-muted-foreground font-medium">{subtitle}</p>
+      )}
     </div>
   );
 }
