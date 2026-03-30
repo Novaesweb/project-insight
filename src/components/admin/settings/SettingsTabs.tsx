@@ -177,7 +177,10 @@ export function IntegrationsForm({ items, values, setValues, onSave, saving }: a
                   {values[integ.key] && (
                     <button
                       type="button"
-                      onClick={() => setValues((prev: any) => ({ ...prev, [integ.key]: "" }))}
+                      onClick={() => {
+                        setValues((prev: any) => ({ ...prev, [integ.key]: "" }));
+                        onSave(integ.key, "");
+                      }}
                       className="text-white/20 hover:text-red-400 transition-colors"
                       title="Limpar campo"
                     >

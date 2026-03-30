@@ -50,16 +50,22 @@ export function useSettings() {
     
     if (data) {
       const newEmpresa = { ...defaultEmpresa };
-      const newIntegs = { ...integValues };
+      // Inicializamos com valores vazios para os campos de integração
+      const newIntegs: any = {
+        whatsapp_webhook: "", pix_key: "", google_analytics_id: "", primary_color: "#e8334a",
+        urgency_active: "false", urgency_text: "", urgency_hours: "2", social_proof_active: "true",
+        asaas_api_key: "", asaas_environment: "sandbox", asaas_wallet_id: ""
+      };
+
       data.forEach(row => {
         if ((newEmpresa as any)[row.key] !== undefined) (newEmpresa as any)[row.key] = row.value;
-        if ((newIntegs as any)[row.key] !== undefined) (newIntegs as any)[row.key] = row.value;
+        if (newIntegs[row.key] !== undefined) newIntegs[row.key] = row.value;
       });
       setEmpresa(newEmpresa);
       setIntegValues(newIntegs);
     }
     setLoading(false);
-  }, [integValues]);
+  }, []); // Sem dependência de integValues para evitar loops
 
   useEffect(() => { loadSettings(); }, [loadSettings]);
 
