@@ -14,6 +14,7 @@ interface OptimizedImageProps {
   blurDataURL?: string;
   onLoad?: () => void;
   onError?: () => void;
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export const OptimizedImage = React.memo<OptimizedImageProps>(({
@@ -25,6 +26,7 @@ export const OptimizedImage = React.memo<OptimizedImageProps>(({
   quality = 75,
   format = 'auto',
   loading = 'lazy',
+  fetchPriority = 'auto',
   placeholder = 'blur',
   blurDataURL,
   onLoad,
@@ -158,6 +160,7 @@ export const OptimizedImage = React.memo<OptimizedImageProps>(({
         width={width}
         height={height}
         loading={loading}
+        {...(fetchPriority ? { fetchpriority: fetchPriority } : {})}
         decoding="async"
         className={cn(
           'transition-all duration-300',

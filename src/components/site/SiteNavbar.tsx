@@ -27,6 +27,7 @@ const companyLinks = [
 
 
 import { scrollTo } from "@/lib/utils";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,7 +66,14 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             whileHover={{ rotate: 10, scale: 1.1 }}
             className="relative"
           >
-            <img src={novaeswebSymbol} alt="novaesweb" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" />
+            <OptimizedImage 
+              src={novaeswebSymbol} 
+              alt="novaesweb" 
+              width={32}
+              height={32}
+              loading="eager"
+              className="w-8 h-8 rounded-lg shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" 
+            />
           </motion.div>
             <span className="gradient-text">NovaesWeb</span>
         </Link>
@@ -148,7 +156,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
               <div className="mb-12 rounded-[28px] border border-white/10 bg-[hsl(var(--background))] px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img src={novaeswebSymbol} alt="novaesweb" className="w-10 h-10 rounded-full shrink-0" />
+                    <OptimizedImage 
+                      src={novaeswebSymbol} 
+                      alt="novaesweb" 
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full shrink-0" 
+                    />
                     <span className="text-2xl font-black gradient-text tracking-tighter truncate">Explorar</span>
                   </div>
                   <button 

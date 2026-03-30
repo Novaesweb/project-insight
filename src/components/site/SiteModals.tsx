@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Eye, Heart, Users, Globe, Shield, Zap, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import aboutPhoto from "@/assets/about-novaesweb.webp";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
@@ -71,7 +72,13 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sobre a novaesweb</h2>
                 </div>
                 <div className="rounded-2xl overflow-hidden mb-6">
-                  <img src={aboutPhoto} alt="novaesweb" className="w-full h-48 object-cover" />
+                  <OptimizedImage 
+                    src={aboutPhoto} 
+                    alt="novaesweb" 
+                    width={600}
+                    height={192}
+                    className="w-full h-48 rounded-2xl" 
+                  />
                 </div>
                 <div className="space-y-4 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
                   <p>A novaesweb é um projeto focado no desenvolvimento de sites, sistemas web e soluções digitais para empresas que desejam melhorar sua presença na internet e organizar melhor seus serviços.</p>
@@ -212,7 +219,13 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                     >
                       {item.imagem_url && (
                         <motion.div className="w-full h-28 overflow-hidden" whileHover={{ scale: 1.05 }} transition={{ duration: 0.4 }}>
-                          <img src={item.imagem_url} alt={item.nome} className="w-full h-full object-cover" />
+                          <OptimizedImage 
+                            src={item.imagem_url} 
+                            alt={item.nome} 
+                            width={500}
+                            height={112}
+                            className="w-full h-full" 
+                          />
                         </motion.div>
                       )}
                       <div className="p-5">

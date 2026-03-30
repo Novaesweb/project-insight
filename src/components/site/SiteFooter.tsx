@@ -4,6 +4,7 @@ import codethioLogo from "@/assets/codethio-logo.webp";
 import sealImg from "@/assets/novaesweb-v10-seal-final.webp";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
 import { scrollTo } from "@/lib/utils";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 interface SiteFooterProps {
   onOpenModal: (id: string) => void;
@@ -16,7 +17,13 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-20">
           {/* Brand */}
           <div className="space-y-8">
-            <img src={novaeswebSymbol} alt="NovaesWeb" className="w-10 h-10 rounded-full object-cover shadow-lg shadow-purple-500/15" />
+            <OptimizedImage 
+              src={novaeswebSymbol} 
+              alt="NovaesWeb" 
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-full shadow-lg shadow-purple-500/15" 
+            />
             <span className="text-xl font-black text-white/85 tracking-tighter">
               novaesweb
             </span>
@@ -65,7 +72,13 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
           <div className="group p-6 rounded-[2.5rem] border border-emerald-500/[0.08] bg-emerald-500/[0.02] flex items-center justify-between hover:border-emerald-500/20 transition-all cursor-default relative overflow-hidden">
             <div className="flex items-center gap-6 relative z-10">
               <div className="relative">
-                <img src={codethioLogo} alt="CodeThio" className="w-16 h-16 rounded-full border-2 border-emerald-500/15 group-hover:border-emerald-500/30 transition-all p-1 bg-[hsl(var(--background))]" />
+                <OptimizedImage 
+                  src={codethioLogo} 
+                  alt="CodeThio" 
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 rounded-full border-2 border-emerald-500/15 group-hover:border-emerald-500/30 transition-all p-1 bg-[hsl(var(--background))]" 
+                />
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[hsl(var(--background))]" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
                   <ShieldCheck className="w-3 h-3 text-white" />
                 </div>
@@ -85,7 +98,13 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
           <div className="group p-6 rounded-[2.5rem] border border-purple-500/[0.08] bg-purple-500/[0.02] flex items-center justify-between hover:border-purple-500/20 transition-all cursor-default relative overflow-hidden">
             <div className="flex items-center gap-6 relative z-10">
               <div className="relative">
-                <img src={sealImg} alt="Engenharia v9.0" className="w-16 h-16 object-contain group-hover:scale-110 transition-transform duration-500" />
+                <OptimizedImage 
+                  src={sealImg} 
+                  alt="Engenharia v9.0" 
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-contain group-hover:scale-110 transition-transform duration-500" 
+                />
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[hsl(var(--background))]" style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)' }}>
                   <Sparkles className="w-3 h-3 text-white" />
                 </div>

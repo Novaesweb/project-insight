@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Layout, PenTool, TrendingUp, Cpu, Network, CheckCircle2 } from "lucide-react";
 import experienceImg from "@/assets/experience-hero.webp";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export default function ExperienceSection() {
   const pillars = [
@@ -92,13 +93,14 @@ export default function ExperienceSection() {
           <div className="grid md:grid-cols-2 gap-0">
             {/* Image side */}
             <div className="relative h-64 md:h-auto min-h-[300px]">
-              <img 
+              <OptimizedImage 
                 src={experienceImg} 
                 alt="Arquitetura digital novaesweb" 
-                loading="lazy" 
+                loading="eager"
+                fetchPriority="high"
                 width={1024} 
                 height={768}
-                className="absolute inset-0 w-full h-full object-cover rounded-t-[3rem] md:rounded-l-[3rem] md:rounded-tr-none"
+                className="absolute inset-0 w-full h-full rounded-t-[3rem] md:rounded-l-[3rem] md:rounded-tr-none shadow-2xl" 
               />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/60 hidden md:block" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />

@@ -24,10 +24,11 @@ import HttpsRedirect from "@/components/HttpsRedirect";
 import { getQueryClient } from "@/lib/query-client";
 
 // Importações críticas em memória (carregados no bundle principal)
-import Site from "./pages/Site";
-import Index from "./pages/Index";
+// Nenhuma página pesada deve estar aqui agora
 
 // Divisões Assíncronas (Lazy Loaded Chunks)
+const Site = React.lazy(() => import("./pages/Site"));
+const Index = React.lazy(() => import("./pages/Index"));
 const Clientes = React.lazy(() => import("./pages/Clientes"));
 const Projetos = React.lazy(() => import("./pages/Projetos"));
 const Pedidos = React.lazy(() => import("./pages/Pedidos"));

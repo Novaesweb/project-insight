@@ -12,6 +12,7 @@ export default function SignaturePad({ onSave, onCancel, label = "Assine abaixo"
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
+  const rectRef = useRef<DOMRect | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,7 +29,7 @@ export default function SignaturePad({ onSave, onCancel, label = "Assine abaixo"
 
   const getPos = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current!;
-    const rect = canvas.getBoundingClientRect();
+    const rect = rectRef.current || canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     if ("touches" in e) {
@@ -45,9 +46,12 @@ export default function SignaturePad({ onSave, onCancel, label = "Assine abaixo"
 
   const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    rectRef.current = canvas.getBoundingClientRect();
     setIsDrawing(true);
     setHasDrawn(true);
-    const ctx = canvasRef.current?.getContext("2d");
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const pos = getPos(e);
     ctx.beginPath();
@@ -64,7 +68,10 @@ export default function SignaturePad({ onSave, onCancel, label = "Assine abaixo"
     ctx.stroke();
   };
 
-  const endDraw = () => setIsDrawing(false);
+  const endDraw = () => {
+    setIsDrawing(false);
+    rectRef.current = null;
+  };
 
   const clear = () => {
     const canvas = canvasRef.current;
