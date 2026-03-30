@@ -564,7 +564,14 @@ export default function Clientes() {
   const [criarConta, setCriarConta] = useState(true);
   const [senhaCliente, setSenhaCliente] = useState("");
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "" });
+  const [form, setForm] = useState({ 
+    nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "",
+    // Campos do Onboarding de Elite
+    projeto_titulo: "",
+    projeto_valor: "",
+    projeto_tipo: "site",
+    gerar_fatura: true
+  });
   const [saving, setSaving] = useState(false);
 
   const fetchClientes = useCallback(async () => {
@@ -591,18 +598,68 @@ export default function Clientes() {
     }
     setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const { error } = await supabase.from("clientes").insert({ ...form, avatar, senha: senhaCliente });
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); setSaving(false); return; }
+    
+    // 1. Inserir Cliente
+    const { data: novoCliente, error } = await supabase.from("clientes").insert({ 
+      nome: form.nome, email: form.email, telefone: form.telefone, documento: form.documento,
+      endereco: form.endereco, cidade: form.cidade, estado: form.estado, status: form.status,
+      site_url: form.site_url, avatar, senha: senhaCliente 
+    } as any).select().single();
+
+    if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); setSaving(false); return; }
  
+    // 2. Se houver projeto, criar Pedido + Projeto + Financeiro
+    if (form.projeto_titulo) {
+      const valor = Number(form.projeto_valor) || 0;
+      const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+      // Criar Pedido
+      const { data: novoPedido } = await supabase.from("pedidos").insert({
+        cliente_id: novoCliente.id,
+        codigo: codigoPed,
+        tipo: form.projeto_titulo,
+        valor,
+        status: "pendente",
+        data: new Date().toISOString().split("T")[0]
+      }).select().single();
+
+      // Criar Projeto
+      await supabase.from("projetos").insert({
+        cliente_id: novoCliente.id,
+        titulo: form.projeto_titulo,
+        valor: valor,
+        status: "briefing",
+        progresso: 10,
+        descricao: `Projeto inicial: ${form.projeto_titulo}`
+      });
+
+      // Lançar no Financeiro
+      if (form.gerar_fatura && valor > 0) {
+        await supabase.from("financeiro").insert({
+          cliente_id: novoCliente.id,
+          tipo: "receita",
+          categoria: "Projetos",
+          valor,
+          descricao: `Contrato Inicial: ${form.projeto_titulo} (${codigoPed})`,
+          data: new Date().toISOString().split("T")[0],
+          status: "pendente",
+          metodo: "asaas"
+        });
+      }
+    }
+
     if (criarConta && senhaCliente.length >= 6) {
       const link = `${window.location.origin}/cliente`;
       setContaCriada({ email: form.email, senha: senhaCliente, link });
     }
 
-    toast({ title: "Cliente criado!" });
-    sendPushToAdmins("👤 Novo Cliente", `${form.nome} foi cadastrado no sistema.`, "/admin/clientes");
+    toast({ title: "Onboarding Concluído!", description: "Cliente, Projeto e Financeiro configurados." });
+    sendPushToAdmins("🚀 Novo Contrato Elite", `${form.nome} - ${form.projeto_titulo}`, "/admin/clientes");
     setShowNew(false);
-    setForm({ nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "" });
+    setForm({ 
+      nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "",
+      projeto_titulo: "", projeto_valor: "", projeto_tipo: "site", gerar_fatura: true
+    });
     setSenhaCliente("");
     setCriarConta(true);
     setSaving(false);
@@ -649,10 +706,52 @@ export default function Clientes() {
               ))}
             </div>
 
-            <div className="mt-4 p-3 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] space-y-3">
+            <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4">
+               <div className="flex items-center gap-2 mb-2">
+                 <Sparkles className="w-4 h-4 text-primary" />
+                 <h3 className="text-xs font-black text-white uppercase tracking-wider">🚀 Ativar Primeiro Projeto</h3>
+               </div>
+               
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="space-y-1.5">
+                   <Label className="text-[10px] text-white/50 uppercase font-bold">Título do Projeto</Label>
+                   <Input 
+                     className="glass-input h-9 text-xs" 
+                     placeholder="Ex: Landing Page Master" 
+                     value={form.projeto_titulo} 
+                     onChange={e => setForm({...form, projeto_titulo: e.target.value})} 
+                   />
+                 </div>
+                 <div className="space-y-1.5">
+                   <Label className="text-[10px] text-white/50 uppercase font-bold">Valor do Contrato (R$)</Label>
+                   <Input 
+                     type="number" 
+                     className="glass-input h-9 text-xs" 
+                     placeholder="0.00" 
+                     value={form.projeto_valor} 
+                     onChange={e => setForm({...form, projeto_valor: e.target.value})} 
+                   />
+                 </div>
+               </div>
+
+               <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="gf"
+                      checked={form.gerar_fatura} 
+                      onChange={e => setForm({...form, gerar_fatura: e.target.checked})} 
+                      className="rounded accent-primary" 
+                    />
+                    <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar fatura pendente no financeiro</Label>
+                  </div>
+               </div>
+            </div>
+
+            <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
               <div className="flex items-center gap-2">
-                <input type="checkbox" checked={criarConta} onChange={e => setCriarConta(e.target.checked)} className="rounded" />
-                <Label className="text-xs text-white cursor-pointer">Criar conta de acesso ao Portal do Cliente</Label>
+                <input type="checkbox" id="cc" checked={criarConta} onChange={e => setCriarConta(e.target.checked)} className="rounded" />
+                <Label htmlFor="cc" className="text-xs text-white cursor-pointer">Liberar acesso ao Painel do Cliente</Label>
               </div>
               {criarConta && (
                 <div className="space-y-1.5">
