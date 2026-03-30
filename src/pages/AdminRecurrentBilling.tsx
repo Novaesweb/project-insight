@@ -92,10 +92,11 @@ export default function AdminRecurrentBilling() {
     try {
       await RecurrentBillingService.generateMonthlyRecurrentBills();
       
-      await supabase.from("logs_sistema").insert({
-        acao: "GERACAO_COBRANCAS_RECURRENTES",
+      // Log de execução (usando tabela existente)
+      await (supabase.from("notificacoes") as any).insert({
+        titulo: "GERACAO_COBRANCAS_RECURRENTES",
         descricao: "Geração automática de cobranças recorrentes mensais",
-        usuario_id: "system"
+        tipo: "sistema"
       });
 
       toast({ 
