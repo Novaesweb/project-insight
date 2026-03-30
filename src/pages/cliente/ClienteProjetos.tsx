@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Circle, Clock, CalendarDays, Flag } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Clock, CalendarDays, Flag, Globe, ExternalLink, Copy } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +93,59 @@ export default function ClienteProjetos() {
           <h1 className="text-lg font-bold text-white">{selected.titulo}</h1>
           <p className="text-sm text-white/50 mt-1">{selected.descricao}</p>
         </motion.div>
+
+        {/* URL do Site */}
+        {(selected as any).url_site && (
+          <motion.div variants={fadeUp}>
+            <Card className="border-[0.5px] border-emerald-500/30 bg-emerald-500/5">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-emerald-400" />
+                    <h2 className="text-sm font-semibold text-white">URL do Projeto</h2>
+                  </div>
+                  <Badge className="bg-emerald-500/10 text-emerald-400 border-0 text-xs">
+                    Site Finalizado
+                  </Badge>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                  <p className="text-xs text-white/60 mb-2">Acesse seu site finalizado:</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-white font-mono truncate flex-1">{(selected as any).url_site}</p>
+                    <div className="flex gap-1">
+                      <Button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText((selected as any).url_site);
+                            alert("URL copiada com sucesso!");
+                          } catch {
+                            alert("Erro ao copiar URL");
+                          }
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-3 border-white/20 text-white hover:bg-white/10"
+                      >
+                        <Copy className="w-3 h-3 mr-1" />
+                        Copiar
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        className="h-8 px-3 gradient-primary text-white"
+                      >
+                        <a href={(selected as any).url_site} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Acessar
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Progress bar */}
         <motion.div variants={fadeUp}>

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign, Target, BarChart3, Users } from "lucide-react";
+import { List, LayoutGrid, Calendar, User, ArrowLeft, Send, Clock, FileText, Download, Trash2, Upload, Loader2, Paperclip, Sparkles, ExternalLink, DollarSign, Target, BarChart3, Users, Globe, Copy } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,11 +37,13 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   const [visivelCliente, setVisivelCliente] = useState(true);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [urlSite, setUrlSite] = useState("");
 
   const loadData = useCallback(async () => {
     const { data: proj } = await supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single();
     setProjeto(proj);
     if (proj) {
+      setUrlSite((proj as any).url_site || "");
       const { data: pedData } = await supabase.from("pedidos").select("codigo").eq("projeto_id", proj.id).maybeSingle();
       setPedido(pedData);
       
@@ -70,6 +72,37 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
   const saveProgresso = async (value: number[]) => {
     const { error } = await supabase.from("projetos").update({ progresso: value[0] }).eq("id", projetoId);
     if (!error) toast({ title: `Engenharia de Solução em ${value[0]}%` });
+  };
+
+  const saveUrlSite = async () => {
+    if (!urlSite.trim()) {
+      toast({ title: "URL inválida", description: "Digite uma URL válida para o site", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { error } = await (supabase.from("projetos") as any).update({ url_site: urlSite.trim() }).eq("id", projetoId);
+      if (error) throw error;
+      
+      setProjeto((prev: any) => ({ ...prev, url_site: urlSite.trim() }));
+      toast({ title: "URL do site atualizada!", description: "O cliente já pode acessar o link do projeto" });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar URL", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const copiarUrl = async () => {
+    if (!urlSite.trim()) {
+      toast({ title: "URL não definida", description: "Primeiro defina a URL para o site", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(urlSite.trim());
+      toast({ title: "URL copiada!", description: "URL do site copiada para a área de transferência" });
+    } catch (error) {
+      toast({ title: "Erro ao copiar", description: "Não foi possível copiar a URL", variant: "destructive" });
+    }
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,6 +247,62 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
           <Card className="glass-card border-[0.5px]">
             <CardHeader><CardTitle className="text-sm font-semibold text-white">Descrição Interna</CardTitle></CardHeader>
             <CardContent><p className="text-xs text-white/60 leading-relaxed">{projeto.descricao || "Sem descrição."}</p></CardContent>
+          </Card>
+
+          <Card className="glass-card border-[0.5px] border-emerald-500/30 bg-emerald-500/5">
+            <CardHeader>
+              <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-400" /> URL do Site
+              </CardTitle>
+              <CardDescription className="text-[10px] text-white/40">Link para o cliente acessar o site finalizado</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="https://exemplo.com.br"
+                  value={urlSite}
+                  onChange={(e) => setUrlSite(e.target.value)}
+                  className="flex-1 glass-input border-white/10 text-white text-sm"
+                />
+                <Button 
+                  onClick={saveUrlSite}
+                  className="gradient-primary text-white"
+                  size="sm"
+                >
+                  Salvar
+                </Button>
+              </div>
+              
+              {urlSite && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex-1">
+                    <p className="text-xs text-white/60 mb-1">URL do Projeto</p>
+                    <p className="text-sm text-white font-mono truncate">{urlSite}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      onClick={copiarUrl}
+                      size="sm"
+                      variant="outline"
+                      className="h-8 px-3 border-white/20 text-white hover:bg-white/10"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      Copiar
+                    </Button>
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="h-8 px-3 border-white/20 text-white hover:bg-white/10"
+                    >
+                      <a href={urlSite} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
           </Card>
 
           <Card className="glass-card border-[0.5px] border-primary/20 bg-primary/5 relative overflow-hidden">
