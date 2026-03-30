@@ -19,25 +19,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const branding = useBranding();
 
   return (
-    <div className="flex h-screen bg-[var(--admin-bg)] text-foreground font-sora selection:bg-primary/30 overflow-hidden">
-      {/* Sidebar Desktop */}
+    <div className="flex h-screen text-foreground font-sora selection:bg-primary/30 overflow-hidden"
+      style={{ background: 'hsl(var(--background))' }}>
+      
+      {/* Desktop Sidebar */}
       <AdminSidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         branding={branding}
       />
 
-      {/* Mobile Trigger */}
+      {/* Mobile Sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild className="md:hidden absolute top-4 left-4 z-50">
-          <Button variant="ghost" size="icon" className="bg-[var(--admin-surface)] border border-white/10 rounded-xl">
+        <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
+          <Button variant="ghost" size="icon" className="rounded-xl"
+            style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}>
             <Menu className="w-5 h-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 bg-[var(--admin-surface)] border-r border-white/10 p-0 overflow-hidden">
-          <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-[#7b1fa2] via-[#c2185b] to-[#FFB800] opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#7b1fa2]/[0.04] via-transparent to-[#FFB800]/[0.03] pointer-events-none" />
-          <div className="p-8 relative">
+        <SheetContent side="left" className="w-72 p-0 overflow-hidden"
+          style={{ background: 'hsl(var(--background))', borderRight: '1px solid hsl(var(--border))' }}>
+          <div className="h-full">
             <AdminSidebar
               isCollapsed={false}
               onToggle={() => {}}
@@ -47,7 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </SheetContent>
       </Sheet>
 
-      {/* Main Content Area */}
+      {/* Main Area */}
       <main className="flex-1 relative flex flex-col min-w-0">
         <SupabaseHeartbeat />
         <TopProgressBar />
