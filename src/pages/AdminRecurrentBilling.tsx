@@ -71,10 +71,10 @@ export default function AdminRecurrentBilling() {
         proximasCobrancas: upcoming.length
       });
 
-      const { data: lastExec } = await supabase
-        .from("logs_sistema")
+      const { data: lastExec } = await (supabase
+        .from("financeiro") as any)
         .select("created_at")
-        .eq("acao", "GERACAO_COBRANCAS_RECURRENTES")
+        .like("descricao", "%RECURRENTE%")
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
