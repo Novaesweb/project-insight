@@ -682,81 +682,68 @@ export default function Clientes() {
           <DialogTrigger asChild>
             <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
           </DialogTrigger>
-          <DialogContent className="glass-card border-[0.5px] text-white max-w-lg">
+          <DialogContent className="glass-card border-[0.5px] text-white max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="text-white">Novo Cliente</DialogTitle></DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               {[
                 { key: "nome", label: "Nome completo" }, { key: "email", label: "E-mail" },
                 { key: "telefone", label: "Telefone" }, { key: "documento", label: "CPF/CNPJ" },
-                { key: "endereco", label: "Endereço" }, { key: "cidade", label: "Cidade" },
-                { key: "estado", label: "Estado" },
-                { key: "site_url", label: "URL do Site (ex: https://...)" },
+                { key: "cidade", label: "Cidade" }, { key: "estado", label: "Estado" },
               ].map((f) => (
-                <div key={f.key} className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">{f.label}</Label>
+                <div key={f.key} className="space-y-1">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{f.label}</Label>
+                  <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                    value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+                </div>
+              ))}
+              {[
+                { key: "endereco", label: "Endereço" },
+                { key: "site_url", label: "URL do Site" },
+              ].map((f) => (
+                <div key={f.key} className="space-y-1 sm:col-span-2">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{f.label}</Label>
                   <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
                     value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4">
-               <div className="flex items-center gap-2 mb-2">
+            <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+               <div className="flex items-center gap-2">
                  <Sparkles className="w-4 h-4 text-primary" />
-                 <h3 className="text-xs font-black text-white uppercase tracking-wider">🚀 Ativar Primeiro Projeto</h3>
+                 <h3 className="text-[10px] font-black text-white uppercase tracking-wider">🚀 Primeiro Projeto</h3>
                </div>
-               
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-1.5">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                 <div className="space-y-1">
                    <Label className="text-[10px] text-white/50 uppercase font-bold">Título do Projeto</Label>
-                   <Input 
-                     className="glass-input h-9 text-xs" 
-                     placeholder="Ex: Landing Page Master" 
-                     value={form.projeto_titulo} 
-                     onChange={e => setForm({...form, projeto_titulo: e.target.value})} 
-                   />
+                   <Input className="glass-input h-9 text-xs" placeholder="Ex: Landing Page" value={form.projeto_titulo} onChange={e => setForm({...form, projeto_titulo: e.target.value})} />
                  </div>
-                 <div className="space-y-1.5">
-                   <Label className="text-[10px] text-white/50 uppercase font-bold">Valor do Contrato (R$)</Label>
-                   <Input 
-                     type="number" 
-                     className="glass-input h-9 text-xs" 
-                     placeholder="0.00" 
-                     value={form.projeto_valor} 
-                     onChange={e => setForm({...form, projeto_valor: e.target.value})} 
-                   />
+                 <div className="space-y-1">
+                   <Label className="text-[10px] text-white/50 uppercase font-bold">Valor (R$)</Label>
+                   <Input type="number" className="glass-input h-9 text-xs" placeholder="0.00" value={form.projeto_valor} onChange={e => setForm({...form, projeto_valor: e.target.value})} />
                  </div>
                </div>
-
-               <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="gf"
-                      checked={form.gerar_fatura} 
-                      onChange={e => setForm({...form, gerar_fatura: e.target.checked})} 
-                      className="rounded accent-primary" 
-                    />
-                    <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar fatura pendente no financeiro</Label>
-                  </div>
+               <div className="flex items-center gap-2">
+                 <input type="checkbox" id="gf" checked={form.gerar_fatura} onChange={e => setForm({...form, gerar_fatura: e.target.checked})} className="rounded accent-primary" />
+                 <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar fatura pendente</Label>
                </div>
             </div>
 
-            <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+            <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="cc" checked={criarConta} onChange={e => setCriarConta(e.target.checked)} className="rounded" />
-                <Label htmlFor="cc" className="text-xs text-white cursor-pointer">Liberar acesso ao Painel do Cliente</Label>
+                <Label htmlFor="cc" className="text-xs text-white cursor-pointer">Liberar acesso ao Painel</Label>
               </div>
               {criarConta && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Senha de acesso (mín. 6 caracteres)</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))]">Senha (mín. 6 caracteres)</Label>
                   <Input type="text" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
-                    value={senhaCliente} onChange={e => setSenhaCliente(e.target.value)} placeholder="Defina a senha do cliente" />
+                    value={senhaCliente} onChange={e => setSenhaCliente(e.target.value)} placeholder="Senha do cliente" />
                 </div>
               )}
             </div>
 
-            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave} disabled={saving}>
+            <Button className="gradient-primary border-0 text-white w-full mt-3 rounded-lg" onClick={handleSave} disabled={saving}>
               {saving ? "Salvando..." : "Salvar Cliente"}
             </Button>
           </DialogContent>
