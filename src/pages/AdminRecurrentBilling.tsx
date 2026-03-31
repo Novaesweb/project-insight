@@ -234,7 +234,7 @@ export default function AdminRecurrentBilling() {
     }
   };
 
-  const handleGenerateBills = useCallback(async () => {
+  const handleGenerateBills = async () => {
     console.log("🚀 handleGenerateBills chamado!");
     
     if (selected.size === 0) {
