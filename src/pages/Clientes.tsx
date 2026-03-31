@@ -586,6 +586,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...detailDeleteProps} />
     </motion.div>
   );
 }
