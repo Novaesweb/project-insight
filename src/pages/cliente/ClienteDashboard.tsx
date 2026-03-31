@@ -443,9 +443,7 @@ export default function ClienteDashboard() {
                   <p className="text-[10px] text-white/30 truncate font-medium">{perfil?.email}</p>
                 </div>
               </div>
-              <Link to="/cliente/dados" className="mt-4 block text-center text-[11px] font-semibold py-2 rounded-xl border border-white/10 text-white/60 hover:bg-white/5 transition-colors">
-                Editar Meus Dados →
-              </Link>
+              {/* Link removido - ClienteDados não existe mais */}
             </CardContent>
           </Card>
 
