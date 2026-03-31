@@ -89,7 +89,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
     if (c) setCliente(c);
 
-    const { data: e } = await (supabase.from("clientes_extras" as any) as any).select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
+    const { data: e } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
     if (e) setExtras(e);
 
     const { data: p } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
@@ -108,10 +108,10 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     if (!extraSelecionado) return;
     setSavingExtra(true);
     const sel = catalogo.find(c => c.id === extraSelecionado);
-    const { error } = await (supabase.from("clientes_extras" as any) as any).insert({
+    const { error } = await supabase.from("extras_clientes").insert({
       cliente_id: clienteId,
       extra_id: extraSelecionado,
-      categoria: sel?.categoria || "vendas",
+      categoria: sel?.categoria || "fixo",
       preco_ativacao: sel?.preco_ativacao || 0,
       preco_mensal: sel?.preco_mensal || 0,
       observacao,
@@ -444,7 +444,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           </TabsContent>
 
           <TabsContent value="extras" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <Card className="glass-card bg-blue-500/[0.05] border-blue-500/10">
                   <CardContent className="p-4 flex items-center justify-between">
                      <div>
@@ -464,20 +464,67 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                   </CardContent>
                </Card>
             </div>
-            <div className="flex justify-end"><Button className="gradient-primary h-9 text-xs" onClick={() => setShowAddExtra(true)}><Plus className="w-3.5 h-3.5 mr-2" /> Adicionar Recurso</Button></div>
-            <div className="rounded-xl border border-white/5 overflow-hidden">
-               <Table>
-                 <TableHeader className="bg-white/5"><TableRow className="border-white/5">{["Recurso", "Status"].map(h => (<TableHead key={h} className="text-[10px] text-white/50 uppercase font-black">{h}</TableHead>))}</TableRow></TableHeader>
-                 <TableBody className="bg-white/[0.02]">
-                   {extras.length === 0 ? (<TableRow><TableCell colSpan={2} className="text-center py-10 text-xs text-white/20 italic">Sem recursos ativos.</TableCell></TableRow>) : extras.map((e: any) => (
-                     <TableRow key={e.id} className="border-white/5">
-                       <TableCell className="py-3 text-xs font-bold text-white">{e.extras_catalogo?.nome || "Serviço"}</TableCell>
-                       <TableCell><StatusBadge status={e.status} /></TableCell>
-                     </TableRow>
-                   ))}
-                 </TableBody>
-               </Table>
+            <div className="flex justify-end">
+              <Button className="gradient-primary h-9 text-xs" onClick={() => setShowAddExtra(true)}>
+                <Plus className="w-3.5 h-3.5 mr-2" /> Adicionar Extra
+              </Button>
             </div>
+
+            {extras.length === 0 ? (
+              <div className="text-center py-10 text-xs text-white/20 italic">Nenhum extra vinculado a este cliente.</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {extras.map((e: any) => {
+                  const isRecorrente = Number(e.preco_mensal) > 0;
+                  const statusConfig: any = {
+                    pendente: { color: "text-amber-400 bg-amber-400/10 border-amber-400/20", label: "Pendente" },
+                    faturado: { color: "text-blue-400 bg-blue-400/10 border-blue-400/20", label: "Faturado" },
+                    pago: { color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", label: "Pago" },
+                    ativo: { color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", label: "Ativo" },
+                    cancelado: { color: "text-red-400 bg-red-400/10 border-red-400/20", label: "Cancelado" },
+                  };
+                  const sc = statusConfig[e.status] || statusConfig.pendente;
+
+                  return (
+                    <Card key={e.id} className="glass-card border-[0.5px] overflow-hidden">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-white truncate">{e.extras_catalogo?.nome || "Extra"}</p>
+                            {e.extras_catalogo?.descricao && (
+                              <p className="text-[10px] text-white/40 mt-0.5 line-clamp-2">{e.extras_catalogo.descricao}</p>
+                            )}
+                          </div>
+                          <Badge variant="outline" className={`${sc.color} text-[9px] uppercase border-[0.5px] shrink-0`}>
+                            {sc.label}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <Badge variant="outline" className={`text-[9px] uppercase border-[0.5px] ${isRecorrente ? 'text-blue-400 bg-blue-400/10 border-blue-400/20' : 'text-purple-400 bg-purple-400/10 border-purple-400/20'}`}>
+                            {isRecorrente ? "Recorrente" : "Avulso"}
+                          </Badge>
+                          {Number(e.preco_ativacao) > 0 && (
+                            <span className="text-[10px] text-white/50">
+                              Ativação: <span className="text-white font-bold">R$ {Number(e.preco_ativacao).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                            </span>
+                          )}
+                          {isRecorrente && (
+                            <span className="text-[10px] text-white/50">
+                              Mensal: <span className="text-white font-bold">R$ {Number(e.preco_mensal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {e.observacao && (
+                          <p className="text-[10px] text-white/30 italic border-t border-white/5 pt-2">{e.observacao}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="projetos">
@@ -682,81 +729,68 @@ export default function Clientes() {
           <DialogTrigger asChild>
             <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
           </DialogTrigger>
-          <DialogContent className="glass-card border-[0.5px] text-white max-w-lg">
+          <DialogContent className="glass-card border-[0.5px] text-white max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="text-white">Novo Cliente</DialogTitle></DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               {[
                 { key: "nome", label: "Nome completo" }, { key: "email", label: "E-mail" },
                 { key: "telefone", label: "Telefone" }, { key: "documento", label: "CPF/CNPJ" },
-                { key: "endereco", label: "Endereço" }, { key: "cidade", label: "Cidade" },
-                { key: "estado", label: "Estado" },
-                { key: "site_url", label: "URL do Site (ex: https://...)" },
+                { key: "cidade", label: "Cidade" }, { key: "estado", label: "Estado" },
               ].map((f) => (
-                <div key={f.key} className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">{f.label}</Label>
+                <div key={f.key} className="space-y-1">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{f.label}</Label>
+                  <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                    value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+                </div>
+              ))}
+              {[
+                { key: "endereco", label: "Endereço" },
+                { key: "site_url", label: "URL do Site" },
+              ].map((f) => (
+                <div key={f.key} className="space-y-1 sm:col-span-2">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{f.label}</Label>
                   <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
                     value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-4">
-               <div className="flex items-center gap-2 mb-2">
+            <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+               <div className="flex items-center gap-2">
                  <Sparkles className="w-4 h-4 text-primary" />
-                 <h3 className="text-xs font-black text-white uppercase tracking-wider">🚀 Ativar Primeiro Projeto</h3>
+                 <h3 className="text-[10px] font-black text-white uppercase tracking-wider">🚀 Primeiro Projeto</h3>
                </div>
-               
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-1.5">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                 <div className="space-y-1">
                    <Label className="text-[10px] text-white/50 uppercase font-bold">Título do Projeto</Label>
-                   <Input 
-                     className="glass-input h-9 text-xs" 
-                     placeholder="Ex: Landing Page Master" 
-                     value={form.projeto_titulo} 
-                     onChange={e => setForm({...form, projeto_titulo: e.target.value})} 
-                   />
+                   <Input className="glass-input h-9 text-xs" placeholder="Ex: Landing Page" value={form.projeto_titulo} onChange={e => setForm({...form, projeto_titulo: e.target.value})} />
                  </div>
-                 <div className="space-y-1.5">
-                   <Label className="text-[10px] text-white/50 uppercase font-bold">Valor do Contrato (R$)</Label>
-                   <Input 
-                     type="number" 
-                     className="glass-input h-9 text-xs" 
-                     placeholder="0.00" 
-                     value={form.projeto_valor} 
-                     onChange={e => setForm({...form, projeto_valor: e.target.value})} 
-                   />
+                 <div className="space-y-1">
+                   <Label className="text-[10px] text-white/50 uppercase font-bold">Valor (R$)</Label>
+                   <Input type="number" className="glass-input h-9 text-xs" placeholder="0.00" value={form.projeto_valor} onChange={e => setForm({...form, projeto_valor: e.target.value})} />
                  </div>
                </div>
-
-               <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="gf"
-                      checked={form.gerar_fatura} 
-                      onChange={e => setForm({...form, gerar_fatura: e.target.checked})} 
-                      className="rounded accent-primary" 
-                    />
-                    <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar fatura pendente no financeiro</Label>
-                  </div>
+               <div className="flex items-center gap-2">
+                 <input type="checkbox" id="gf" checked={form.gerar_fatura} onChange={e => setForm({...form, gerar_fatura: e.target.checked})} className="rounded accent-primary" />
+                 <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar fatura pendente</Label>
                </div>
             </div>
 
-            <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+            <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="cc" checked={criarConta} onChange={e => setCriarConta(e.target.checked)} className="rounded" />
-                <Label htmlFor="cc" className="text-xs text-white cursor-pointer">Liberar acesso ao Painel do Cliente</Label>
+                <Label htmlFor="cc" className="text-xs text-white cursor-pointer">Liberar acesso ao Painel</Label>
               </div>
               {criarConta && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Senha de acesso (mín. 6 caracteres)</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))]">Senha (mín. 6 caracteres)</Label>
                   <Input type="text" className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
-                    value={senhaCliente} onChange={e => setSenhaCliente(e.target.value)} placeholder="Defina a senha do cliente" />
+                    value={senhaCliente} onChange={e => setSenhaCliente(e.target.value)} placeholder="Senha do cliente" />
                 </div>
               )}
             </div>
 
-            <Button className="gradient-primary border-0 text-white w-full mt-4 rounded-lg" onClick={handleSave} disabled={saving}>
+            <Button className="gradient-primary border-0 text-white w-full mt-3 rounded-lg" onClick={handleSave} disabled={saving}>
               {saving ? "Salvando..." : "Salvar Cliente"}
             </Button>
           </DialogContent>
@@ -782,8 +816,8 @@ export default function Clientes() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
+          <CardContent className="overflow-x-auto">
+            <Table className="min-w-[650px]">
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
                   {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (

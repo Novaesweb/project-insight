@@ -27,7 +27,7 @@ const kanbanColumns = [
   { key: "concluido", label: "🚀 Finalizado", color: "border-emerald-500/50" },
 ];
 
-function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () => void }) {
+function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSelectedProjeto }: { projetoId: string; onBack: () => void; onReload: () => void; selectedProjeto: string | null; setSelectedProjeto: (id: string | null) => void }) {
   const { toast } = useToast();
   const [projeto, setProjeto] = useState<any>(null);
   const [pedido, setPedido] = useState<any>(null);
@@ -221,7 +221,7 @@ function ProjetoDetalhes({ projetoId, onBack }: { projetoId: string; onBack: () 
       if (error) throw error;
       
       toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
-      load(); // Recarregar lista de projetos
+      onReload();
       
       // Se estiver visualizando o projeto excluído, voltar para lista
       if (selectedProjeto === projetoId) {
@@ -578,12 +578,33 @@ export default function Projetos() {
     }
   };
 
-  if (selectedProjeto) return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} />;
+  const deleteProjeto = async (projetoId: string, projetoTitulo: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o projeto "${projetoTitulo}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      const { data: arquivos } = await (supabase.from("projeto_arquivos" as any) as any).select("url").eq("projeto_id", projetoId);
+      if (arquivos && arquivos.length > 0) {
+        for (const arquivo of arquivos) {
+          const path = arquivo.url.split("projeto-arquivos/").pop();
+          if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+        }
+      }
+      await (supabase.from("projeto_arquivos" as any) as any).delete().eq("projeto_id", projetoId);
+      await (supabase.from("projeto_atualizacoes") as any).delete().eq("projeto_id", projetoId);
+      const { error } = await supabase.from("projetos").delete().eq("id", projetoId);
+      if (error) throw error;
+      toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
+      load();
+    } catch (error: any) {
+      toast({ title: "Erro ao excluir projeto", description: error.message, variant: "destructive" });
+    }
+  };
+
+  if (selectedProjeto) return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} onReload={load} selectedProjeto={selectedProjeto} setSelectedProjeto={setSelectedProjeto} />;
 
   return (
     <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-white tracking-tighter uppercase italic">Engenharia de Soluções</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tighter uppercase italic">Engenharia de Soluções</h1>
         <div className="flex gap-1 p-1 rounded-lg glass-card border-[0.5px]">
           <Button variant="ghost" size="sm" className={view === "lista" ? "gradient-primary text-white" : "text-white/40"} onClick={() => setView("lista")}><List className="w-4 h-4" /></Button>
           <Button variant="ghost" size="sm" className={view === "kanban" ? "gradient-primary text-white" : "text-white/40"} onClick={() => setView("kanban")}><LayoutGrid className="w-4 h-4" /></Button>
@@ -592,7 +613,7 @@ export default function Projetos() {
 
       {view === "kanban" ? (
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-start">
             {kanbanColumns.map(col => {
               const items = projetos.filter(p => p.status === col.key);
               return (
@@ -658,8 +679,8 @@ export default function Projetos() {
         </DragDropContext>
       ) : (
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="pt-6">
-            <Table>
+          <CardContent className="pt-6 overflow-x-auto">
+            <Table className="min-w-[600px]">
               <TableHeader><TableRow className="border-white/5"><TableHead className="text-white/40">Projeto</TableHead><TableHead className="text-white/40">Cliente</TableHead><TableHead className="text-white/40">Progresso</TableHead><TableHead className="text-white/40">Status</TableHead></TableRow></TableHeader>
               <TableBody>
                 {projetos.map(p => (

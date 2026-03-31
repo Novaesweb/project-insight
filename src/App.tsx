@@ -64,7 +64,7 @@ const NotFound = React.lazy(() => import("@/pages/NotFound"));
 const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
 const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
 const AdminRecurrentBilling = React.lazy(() => import("@/pages/AdminRecurrentBilling"));
-const ExtrasAtivos = React.lazy(() => import("@/pages/ExtrasAtivos"));
+
 const ClientePedidosFome = React.lazy(() => import("./pages/cliente/ClientePedidosFome"));
 const AdminLogin = React.lazy(() => import("./pages/AdminLogin"));
 const ClienteLayout = React.lazy(() => import("@/components/ClienteLayout"));
@@ -116,7 +116,7 @@ function AdminWithSplash() {
           <Route path="/menu" element={<AdminMenu />} />
           <Route path="/configuracoes" element={<AdminConfig />} />
           <Route path="/recurrent-billing" element={<AdminRecurrentBilling />} />
-          <Route path="/extras-ativos" element={<ExtrasAtivos />} />
+          
             <Route path="*" element={<React.Suspense fallback={<SplashScreen />}><NotFound /></React.Suspense>} />
           </Routes>
         </React.Suspense>

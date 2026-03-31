@@ -243,8 +243,8 @@ export default function Financeiro() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
+          <CardContent className="overflow-x-auto">
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow className="border-[rgba(255,255,255,0.06)]">
                   {["Descrição", "Tipo", "Valor", "Vencimento", "Cliente", "Status", "Ações"].map((h) => (

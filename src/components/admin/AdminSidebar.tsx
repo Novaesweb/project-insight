@@ -31,8 +31,6 @@ const navGroups: NavGroup[] = [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
       { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
       { href: "/admin/extras", label: "Extras", icon: Puzzle, accent: true },
-      { href: "/admin/extras-ativos", label: "Extras Ativos", icon: Users },
-      { href: "/admin/calculadora", label: "Calculadora", icon: DollarSign, accent: true },
       { href: "/admin/recurrent-billing", label: "Cobranças Recorrentes", icon: TrendingUp },
     ],
   },

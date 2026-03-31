@@ -126,7 +126,7 @@ export class RecurrentBillingService {
             name: cliente.nome,
             email: cliente.email,
             cpfCnpj: cliente.documento || undefined,
-            phone: cliente.whatsapp || undefined,
+            mobilePhone: (cliente as any).whatsapp || undefined,
             externalReference: clienteId
           });
 
@@ -231,13 +231,13 @@ export class RecurrentBillingService {
       // 2. Buscar assinaturas Asaas do cliente
       const { data: cliente } = await supabase
         .from("clientes")
-        .select("asaas_customer_id")
+        .select("id, nome")
         .eq("id", clienteId)
         .single();
 
-      if (cliente?.asaas_customer_id) {
+      if (cliente) {
         // 3. Cancelar assinaturas no Asaas (se houver API para isso)
-        // await AsaasService.cancelSubscriptions(customer.asaas_customer_id);
+        // await AsaasService.cancelSubscriptions(cliente.id);
       }
 
       console.log(`✅ Assinatura recorrente cancelada para cliente ${clienteId}, extra ${extraId}`);
