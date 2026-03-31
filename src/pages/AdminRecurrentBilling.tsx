@@ -263,7 +263,7 @@ export default function AdminRecurrentBilling() {
       }
 
       // Verificar se já existe cobrança para este mês
-      const { data: existingHistory } = await supabase
+      const { data: existingHistory } = await (supabase as any)
         .from("recurrent_billing_history")
         .select("id")
         .eq("cliente_id", clienteId)
