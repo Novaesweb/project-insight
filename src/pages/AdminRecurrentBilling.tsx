@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
-  DollarSign, TrendingUp, CheckCircle2, RefreshCw, Users, FileText, Loader2, Eye, Phone, Mail, IdCard, MapPin
+  DollarSign, TrendingUp, CheckCircle2, RefreshCw, Users, FileText, Loader2, Eye, Phone, Mail, IdCard, MapPin, CreditCard
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,10 +25,6 @@ interface ClienteRecorrente {
   cliente_email: string;
   cliente_documento?: string;
   cliente_telefone?: string;
-  cliente_endereco?: string;
-  cliente_cidade?: string;
-  cliente_uf?: string;
-  cliente_cep?: string;
   extras: {
     id: string;
     nome: string;
@@ -45,6 +41,7 @@ export default function AdminRecurrentBilling() {
   const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
+  const [generatingIndividual, setGeneratingIndividual] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -79,7 +76,7 @@ export default function AdminRecurrentBilling() {
     
     const { data: clientesData, error: clientesError } = await supabase
       .from("clientes")
-      .select("id, nome, email, documento, telefone, endereco, cidade, uf, cep")
+      .select("id, nome, email, documento, telefone")
       .in("id", clienteIds);
 
     if (clientesError) {
@@ -107,10 +104,6 @@ export default function AdminRecurrentBilling() {
           cliente_email: c.email,
           cliente_documento: c.documento,
           cliente_telefone: c.telefone,
-          cliente_endereco: c.endereco,
-          cliente_cidade: c.cidade,
-          cliente_uf: c.uf,
-          cliente_cep: c.cep,
           extras: [],
           totalMensal: 0,
         });
@@ -152,7 +145,96 @@ export default function AdminRecurrentBilling() {
     }
   };
 
-  const handleGenerateBills = async () => {
+  // Função para gerar cobrança Asaas individual
+  const handleGerarAsaasIndividual = async (cliente: ClienteRecorrente) => {
+    setGeneratingIndividual(cliente.cliente_id);
+    try {
+      // 1. Buscar detalhes completo do cliente
+      console.log("🔍 Buscando dados completos do cliente...");
+      const { data: clienteCompleto } = await supabase.from("clientes").select("*").eq("id", cliente.cliente_id).single();
+      
+      if (!clienteCompleto) {
+        toast({ title: "Cliente não encontrado", description: `O cliente ${cliente.cliente_nome} não foi encontrado no banco de dados.`, variant: "destructive" });
+        return;
+      }
+
+      // 2. Verificar se cliente tem CPF/CNPJ
+      if (!clienteCompleto.documento) {
+        toast({ title: "Cliente sem documento", description: `O cliente ${cliente.cliente_nome} não possui CPF/CNPJ cadastrado.`, variant: "destructive" });
+        return;
+      }
+
+      // 3. Garantir cliente no Asaas
+      console.log("👤 Criando/atualizando cliente no Asaas...");
+      const asaasCustomer = await AsaasService.getOrCreateCustomer({
+        name: clienteCompleto.nome,
+        email: clienteCompleto.email,
+        cpfCnpj: clienteCompleto.documento || undefined,
+        mobilePhone: clienteCompleto.telefone || undefined,
+        externalReference: cliente.cliente_id
+      });
+
+      // 4. Gerar fatura consolidada no banco
+      console.log("📄 Criando fatura no banco...");
+      const financeiroData = {
+        cliente_id: cliente.cliente_id,
+        tipo: "receita",
+        valor: cliente.totalMensal,
+        descricao: `Cobrança Recorrente — ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}\n` + 
+          cliente.extras.map(extra => 
+            `• ${extra.nome}: R$ ${Number(extra.preco_mensal).toFixed(2)}/mês`
+          ).join('\n'),
+        data: new Date().toISOString().split("T")[0],
+        vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
+        status: "pendente",
+      };
+      
+      const { data: financeiroRecord } = await supabase
+        .from("financeiro")
+        .insert(financeiroData)
+        .select()
+        .single();
+
+      if (financeiroRecord) {
+        // 5. Gerar cobrança no Asaas
+        console.log("💳 Gerando cobrança no Asaas...");
+        const paymentData = {
+          customer: asaasCustomer.id,
+          billingType: "UNDEFINED" as const,
+          value: cliente.totalMensal,
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0],
+          description: `Cobrança Recorrente - ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} - ${cliente.extras.length} Extras`,
+          externalReference: financeiroRecord.id
+        };
+        
+        const payment = await AsaasService.createPayment(paymentData);
+
+        // 6. Salvar ID na descrição
+        const novaDescricao = `${financeiroData.descricao} (Asaas: ${payment.invoiceUrl})`;
+        await supabase
+          .from("financeiro")
+          .update({ descricao: novaDescricao })
+          .eq("id", financeiroRecord.id);
+
+        toast({ 
+          title: "✅ Cobrança Asaas gerada!", 
+          description: `Cobrança para ${cliente.cliente_nome} criada com sucesso.` 
+        });
+      }
+
+    } catch (error: any) {
+      console.error("❌ Erro ao gerar cobrança Asaas individual:", error);
+      toast({ 
+        title: "Erro ao gerar cobrança", 
+        description: error.message || "Não foi possível gerar a cobrança Asaas", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingIndividual(null);
+    }
+  };
+
+  const handleGenerateBills = useCallback(async () => {
     console.log("🚀 handleGenerateBills chamado!");
     
     if (selected.size === 0) {
@@ -404,7 +486,7 @@ export default function AdminRecurrentBilling() {
                   <TableHead className="text-[10px] text-white/50 uppercase">Cliente</TableHead>
                   <TableHead className="text-[10px] text-white/50 uppercase">Extras</TableHead>
                   <TableHead className="text-[10px] text-white/50 uppercase text-right">Valor Mensal</TableHead>
-                  <TableHead className="text-[10px] text-white/50 uppercase text-center">Dados</TableHead>
+                  <TableHead className="text-[10px] text-white/50 uppercase text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -439,123 +521,113 @@ export default function AdminRecurrentBilling() {
                       </span>
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()} className="text-center">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 w-7 text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/10"
-                            onClick={() => setSelectedCliente(c)}
-                          >
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="text-white">Dados Completos do Cliente</DialogTitle>
-                          </DialogHeader>
-                          {selectedCliente && (
-                            <div className="space-y-6">
-                              {/* Informações Básicas */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-3">
-                                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações Básicas</h3>
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <IdCard className="w-4 h-4 text-blue-400" />
-                                      <span className="text-sm text-white/80">Nome:</span>
-                                      <span className="text-sm font-medium text-white">{selectedCliente.cliente_nome}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Mail className="w-4 h-4 text-green-400" />
-                                      <span className="text-sm text-white/80">Email:</span>
-                                      <span className="text-sm font-medium text-white">{selectedCliente.cliente_email}</span>
-                                    </div>
-                                    {selectedCliente.cliente_documento && (
+                      <div className="flex items-center gap-1 justify-center">
+                        {/* Botão Ver Dados */}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/10"
+                              onClick={() => setSelectedCliente(c)}
+                            >
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle className="text-white">Dados Completos do Cliente</DialogTitle>
+                            </DialogHeader>
+                            {selectedCliente && (
+                              <div className="space-y-6">
+                                {/* Informações Básicas */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-3">
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações Básicas</h3>
+                                    <div className="space-y-2">
                                       <div className="flex items-center gap-2">
-                                        <IdCard className="w-4 h-4 text-purple-400" />
-                                        <span className="text-sm text-white/80">CPF/CNPJ:</span>
-                                        <span className="text-sm font-medium text-white">{selectedCliente.cliente_documento}</span>
+                                        <IdCard className="w-4 h-4 text-blue-400" />
+                                        <span className="text-sm text-white/80">Nome:</span>
+                                        <span className="text-sm font-medium text-white">{selectedCliente.cliente_nome}</span>
                                       </div>
-                                    )}
-                                    {selectedCliente.cliente_telefone && (
                                       <div className="flex items-center gap-2">
-                                        <Phone className="w-4 h-4 text-amber-400" />
-                                        <span className="text-sm text-white/80">Telefone:</span>
-                                        <span className="text-sm font-medium text-white">{selectedCliente.cliente_telefone}</span>
+                                        <Mail className="w-4 h-4 text-green-400" />
+                                        <span className="text-sm text-white/80">Email:</span>
+                                        <span className="text-sm font-medium text-white">{selectedCliente.cliente_email}</span>
                                       </div>
-                                    )}
+                                      {selectedCliente.cliente_documento && (
+                                        <div className="flex items-center gap-2">
+                                          <IdCard className="w-4 h-4 text-purple-400" />
+                                          <span className="text-sm text-white/80">CPF/CNPJ:</span>
+                                          <span className="text-sm font-medium text-white">{selectedCliente.cliente_documento}</span>
+                                        </div>
+                                      )}
+                                      {selectedCliente.cliente_telefone && (
+                                        <div className="flex items-center gap-2">
+                                          <Phone className="w-4 h-4 text-amber-400" />
+                                          <span className="text-sm text-white/80">Telefone:</span>
+                                          <span className="text-sm font-medium text-white">{selectedCliente.cliente_telefone}</span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                                 
-                                {/* Endereço */}
-                                {(selectedCliente.cliente_endereco || selectedCliente.cliente_cidade || selectedCliente.cliente_uf || selectedCliente.cliente_cep) && (
-                                  <div className="space-y-3">
-                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Endereço</h3>
-                                    <div className="space-y-2">
-                                      {selectedCliente.cliente_endereco && (
-                                        <div className="flex items-center gap-2">
-                                          <MapPin className="w-4 h-4 text-red-400" />
-                                          <span className="text-sm text-white/80">Endereço:</span>
-                                          <span className="text-sm font-medium text-white">{selectedCliente.cliente_endereco}</span>
+                                {/* Extras Recorrentes */}
+                                <div className="space-y-3">
+                                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Extras Recorrentes</h3>
+                                  <div className="space-y-2">
+                                    {selectedCliente.extras.map((extra) => (
+                                      <div key={extra.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/5">
+                                        <div>
+                                          <span className="text-sm font-medium text-white">{extra.nome}</span>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-xs px-2 py-1 rounded-full bg-green-400/10 text-green-400 border border-green-400/20">
+                                              {extra.status}
+                                            </span>
+                                          </div>
                                         </div>
-                                      )}
-                                      {(selectedCliente.cliente_cidade || selectedCliente.cliente_uf) && (
-                                        <div className="flex items-center gap-2">
-                                          <MapPin className="w-4 h-4 text-red-400" />
-                                          <span className="text-sm text-white/80">Cidade/UF:</span>
-                                          <span className="text-sm font-medium text-white">
-                                            {selectedCliente.cliente_cidade}{selectedCliente.cliente_uf && `/${selectedCliente.cliente_uf}`}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {selectedCliente.cliente_cep && (
-                                        <div className="flex items-center gap-2">
-                                          <MapPin className="w-4 h-4 text-red-400" />
-                                          <span className="text-sm text-white/80">CEP:</span>
-                                          <span className="text-sm font-medium text-white">{selectedCliente.cliente_cep}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Extras Recorrentes */}
-                              <div className="space-y-3">
-                                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Extras Recorrentes</h3>
-                                <div className="space-y-2">
-                                  {selectedCliente.extras.map((extra) => (
-                                    <div key={extra.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/5">
-                                      <div>
-                                        <span className="text-sm font-medium text-white">{extra.nome}</span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <span className="text-xs px-2 py-1 rounded-full bg-green-400/10 text-green-400 border border-green-400/20">
-                                            {extra.status}
-                                          </span>
-                                        </div>
+                                        <span className="text-sm font-bold text-green-400">
+                                          R$ {Number(extra.preco_mensal).toFixed(2)}/mês
+                                        </span>
                                       </div>
-                                      <span className="text-sm font-bold text-green-400">
-                                        R$ {Number(extra.preco_mensal).toFixed(2)}/mês
-                                      </span>
-                                    </div>
-                                  ))}
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                {/* Resumo Financeiro */}
+                                <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-white/80">Total Mensal:</span>
+                                    <span className="text-lg font-bold text-primary">
+                                      R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                              
-                              {/* Resumo Financeiro */}
-                              <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium text-white/80">Total Mensal:</span>
-                                  <span className="text-lg font-bold text-primary">
-                                    R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {/* Botão Gerar no Asaas */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 text-green-400/60 hover:text-green-400 hover:bg-green-400/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleGerarAsaasIndividual(c);
+                          }}
+                          disabled={generatingIndividual === c.cliente_id}
+                          title="Gerar cobrança no Asaas"
+                        >
+                          {generatingIndividual === c.cliente_id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <CreditCard className="w-3 h-3" />
                           )}
-                        </DialogContent>
-                      </Dialog>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
