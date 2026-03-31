@@ -18,7 +18,6 @@ const menuItems = [
   { label: "Módulos Injetados", icon: Zap, path: "/cliente/extras" },
   { label: "Blindagem de Ativos", icon: ShieldCheck, path: "/cliente/contratos" },
   { label: "Fluxo de Valor", icon: Receipt, path: "/cliente/faturas" },
-  { label: "Agendas & Reuniões", icon: CalendarDays, path: "/cliente/reunioes" },
   { label: "Engenharia de Evolução", icon: Headphones, path: "/cliente/suporte" },
   { label: "Meus Parâmetros", icon: User, path: "/cliente/dados" },
 ];
