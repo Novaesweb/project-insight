@@ -364,7 +364,7 @@ export default function AdminRecurrentExtras() {
                 <div>
                   <p className="text-white/60 text-sm">Total a Cobrar</p>
                   <p className="text-2xl font-bold text-white">
-                    R$ {totalSelecionado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    R$ {Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </p>
                 </div>
                 <DollarSign className="w-8 h-8 text-yellow-400" />
