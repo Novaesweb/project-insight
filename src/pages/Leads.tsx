@@ -471,6 +471,7 @@ export default function Leads() {
           )}
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </div>
   );
 }

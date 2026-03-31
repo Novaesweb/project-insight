@@ -919,6 +919,7 @@ export default function Clientes() {
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }

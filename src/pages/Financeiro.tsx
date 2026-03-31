@@ -411,6 +411,7 @@ export default function Financeiro() {
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }

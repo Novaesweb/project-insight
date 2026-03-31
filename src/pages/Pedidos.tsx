@@ -283,6 +283,7 @@ export default function Pedidos() {
           </Card>
         ))}
       </motion.div>
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }
