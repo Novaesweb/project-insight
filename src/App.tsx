@@ -65,6 +65,7 @@ const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
 const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
 const AdminRecurrentBilling = React.lazy(() => import("@/pages/AdminRecurrentBilling"));
 const AdminRecurrentHistory = React.lazy(() => import("@/pages/AdminRecurrentHistory"));
+const AdminRecurrentExtras = React.lazy(() => import("@/pages/AdminRecurrentExtras"));
 
 const ClientePedidosFome = React.lazy(() => import("./pages/cliente/ClientePedidosFome"));
 const AdminLogin = React.lazy(() => import("./pages/AdminLogin"));
