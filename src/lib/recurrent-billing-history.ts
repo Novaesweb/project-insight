@@ -24,7 +24,7 @@ export class RecurrentBillingHistoryService {
    * Busca histórico de cobranças recorrentes de um cliente
    */
   static async getHistoryByClient(clienteId: string): Promise<RecurrentBillingHistory[]> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .select("*")
       .eq("cliente_id", clienteId)
@@ -36,7 +36,7 @@ export class RecurrentBillingHistoryService {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as RecurrentBillingHistory[];
   }
 
   /**
