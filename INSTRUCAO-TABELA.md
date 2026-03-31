@@ -11,11 +11,12 @@ O painel admin está com tela preta porque a tabela `recurrent_billing_history` 
 
 ### 2. Vá para SQL Editor
 - No menu lateral, clique em "SQL Editor"
+- Cole o código abaixo
 
 ### 3. Execute o SQL
 
 ```sql
--- Criar tabela de histórico de cobranças recorrentes
+-- Criar tabela de histórico de cobranças recorrentes (se não existir)
 CREATE TABLE IF NOT EXISTS public.recurrent_billing_history (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     cliente_id UUID NOT NULL REFERENCES public.clientes(id) ON DELETE CASCADE,
@@ -43,13 +44,15 @@ CREATE INDEX IF NOT EXISTS idx_recurrent_billing_created_at ON public.recurrent_
 -- Habilitar RLS (Row Level Security)
 ALTER TABLE public.recurrent_billing_history ENABLE ROW LEVEL SECURITY;
 
--- Criar política de acesso para admin
+-- Criar política de acesso para admin (se não existir)
+DROP POLICY IF EXISTS "Admin full access" ON public.recurrent_billing_history;
 CREATE POLICY "Admin full access" ON public.recurrent_billing_history
     FOR ALL
     TO authenticated
     USING (auth.jwt()->>'role' = 'admin');
 
--- Criar política de acesso para leitura
+-- Criar política de acesso para leitura (se não existir)
+DROP POLICY IF EXISTS "Read access" ON public.recurrent_billing_history;
 CREATE POLICY "Read access" ON public.recurrent_billing_history
     FOR SELECT
     TO authenticated
@@ -61,15 +64,36 @@ CREATE POLICY "Read access" ON public.recurrent_billing_history
 - O painel admin deve funcionar
 - O histórico de cobranças recorrentes estará disponível
 
-### 5. Atualizar o Código (IMPORTANTE!)
-- Depois de criar a tabela, remova o código temporário do `AdminRecurrentHistory.tsx`
-- Substitua `TempHistory` por `RecurrentBillingHistory` importado do `recurrent-billing-history.ts`
-- Descomente a linha: `// import { RecurrentBillingHistory, RecurrentBillingHistoryService } from "@/lib/recurrent-billing-history";`
-
 ## Importante
 - Execute isso URGENTEMENTE no Supabase
 - Sem isso, o painel admin continuará com tela preta
 - O sistema completo depende desta tabela
+
+## ⚠️ SE DER ERRO DE POLÍTICA JÁ EXISTE
+Se aparecer o erro: `A política "Acesso total de administrador" para a tabela "recurrent_billing_history" já existe`
+
+### Execute este SQL Corrigido:
+```sql
+-- Remover políticas existentes
+DROP POLICY IF EXISTS "Admin full access" ON public.recurrent_billing_history;
+DROP POLICY IF EXISTS "Read access" ON public.recurrent_billing_history;
+
+-- Criar políticas novas
+CREATE POLICY "Admin full access" ON public.recurrent_billing_history
+    FOR ALL
+    TO authenticated
+    USING (auth.jwt()->>'role' = 'admin');
+
+CREATE POLICY "Read access" ON public.recurrent_billing_history
+    FOR SELECT
+    TO authenticated
+    USING (auth.jwt()->>'role' IN ('admin', 'authenticated'));
+```
+
+### 5. Atualizar o Código
+- Depois de criar a tabela, remova o código temporário do `AdminRecurrentHistory.tsx`
+- Substitua `TempHistory` por `RecurrentBillingHistory` importado do `recurrent-billing-history.ts`
+- Descomente a linha: `// import { RecurrentBillingHistory, RecurrentBillingHistoryService } from "@/lib/recurrent-billing-history";`
 
 ## ✅ SQL CORRIGIDO
 - **Erro anterior**: `WITH CHECK cannot be applied to SELECT or DELETE`

@@ -1,4 +1,4 @@
--- Criar tabela de histórico de cobranças recorrentes
+-- Criar tabela de histórico de cobranças recorrentes (se não existir)
 CREATE TABLE IF NOT EXISTS public.recurrent_billing_history (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     cliente_id UUID NOT NULL REFERENCES public.clientes(id) ON DELETE CASCADE,
@@ -26,13 +26,15 @@ CREATE INDEX IF NOT EXISTS idx_recurrent_billing_created_at ON public.recurrent_
 -- Habilitar RLS (Row Level Security)
 ALTER TABLE public.recurrent_billing_history ENABLE ROW LEVEL SECURITY;
 
--- Criar política de acesso para admin
+-- Criar política de acesso para admin (se não existir)
+DROP POLICY IF EXISTS "Admin full access" ON public.recurrent_billing_history;
 CREATE POLICY "Admin full access" ON public.recurrent_billing_history
     FOR ALL
     TO authenticated
     USING (auth.jwt()->>'role' = 'admin');
 
--- Criar política de acesso para leitura
+-- Criar política de acesso para leitura (se não existir)
+DROP POLICY IF EXISTS "Read access" ON public.recurrent_billing_history;
 CREATE POLICY "Read access" ON public.recurrent_billing_history
     FOR SELECT
     TO authenticated
