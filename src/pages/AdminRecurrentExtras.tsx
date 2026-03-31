@@ -402,7 +402,7 @@ export default function AdminRecurrentExtras() {
         {[
           { icon: Users, label: "Clientes", value: clientes.length, color: "text-blue-500" },
           { icon: CheckCircle2, label: "Selecionados", value: selectedClientes.size, color: "text-emerald-500" },
-          { icon: DollarSign, label: "Total Sel.", value: `R$ ${totalSelecionado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "text-amber-500" },
+          { icon: DollarSign, label: "Total Sel.", value: `R$ ${Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "text-amber-500" },
         ].map((s, i) => (
           <Card key={i}>
             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
