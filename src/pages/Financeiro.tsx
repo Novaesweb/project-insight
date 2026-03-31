@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { AsaasService } from "@/lib/asaas-service";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const emptyForm = { descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" };
