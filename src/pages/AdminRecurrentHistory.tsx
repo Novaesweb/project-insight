@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarDays, CreditCard, DollarSign, Eye, RefreshCw } from "lucide-react";
+import { CalendarDays, CreditCard, DollarSign, Eye, RefreshCw, ArrowLeft, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface ClienteRecorrente {
   cliente_id: string;
@@ -34,11 +35,11 @@ interface HistoryRecord {
   created_at: string | null;
 }
 
-const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-  pendente: { label: "Pendente", color: "text-amber-400", bg: "bg-amber-500/10" },
-  pago_manualmente: { label: "Pago Manualmente", color: "text-blue-400", bg: "bg-blue-500/10" },
-  pago_asaas: { label: "Pago pelo Asaas", color: "text-green-400", bg: "bg-green-500/10" },
-  em_atraso: { label: "Em Atraso", color: "text-red-400", bg: "bg-red-500/10" },
+const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  pendente: { label: "Pendente", variant: "secondary" },
+  pago_manualmente: { label: "Pago Manualmente", variant: "default" },
+  pago_asaas: { label: "Pago pelo Asaas", variant: "default" },
+  em_atraso: { label: "Em Atraso", variant: "destructive" },
 };
 
 const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -50,6 +51,7 @@ function formatMes(mes: string) {
 
 export default function AdminRecurrentHistory() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
@@ -115,12 +117,13 @@ export default function AdminRecurrentHistory() {
     }
   };
 
-  const handleUpdateStatus = async (recordId: string, newStatus: string) => {
-    setUpdatingStatus(recordId);
+  const handleUpdateStatus = async (record: HistoryRecord, newStatus: string) => {
+    setUpdatingStatus(record.id);
     try {
       const formaPagamento = newStatus === "pago_manualmente" ? "manual" : newStatus === "pago_asaas" ? "asaas" : null;
       const dataPagamento = newStatus.includes("pago") ? new Date().toISOString().split("T")[0] : null;
 
+      // 1. Atualizar histórico recorrente
       const { error } = await (supabase as any)
         .from("recurrent_billing_history")
         .update({
@@ -129,15 +132,24 @@ export default function AdminRecurrentHistory() {
           data_pagamento: dataPagamento,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", recordId);
+        .eq("id", record.id);
 
       if (error) throw error;
 
+      // 2. Atualizar status no financeiro (se vinculado)
+      if (record.financeiro_id) {
+        const finStatus = newStatus.includes("pago") ? "pago" : "pendente";
+        await supabase
+          .from("financeiro")
+          .update({ status: finStatus })
+          .eq("id", record.financeiro_id);
+      }
+
       setHistorico(prev => prev.map(r =>
-        r.id === recordId ? { ...r, status: newStatus, forma_pagamento: formaPagamento, data_pagamento: dataPagamento } : r
+        r.id === record.id ? { ...r, status: newStatus, forma_pagamento: formaPagamento, data_pagamento: dataPagamento } : r
       ));
 
-      toast({ title: "Status atualizado!" });
+      toast({ title: "Status atualizado!", description: `${formatMes(record.mes)} → ${statusMap[newStatus]?.label || newStatus}` });
     } catch (error) {
       console.error("Erro:", error);
       toast({ title: "Erro ao atualizar", variant: "destructive" });
@@ -151,9 +163,14 @@ export default function AdminRecurrentHistory() {
   return (
     <motion.div className="space-y-6 p-3 sm:p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Histórico de Cobranças Recorrentes</h1>
-          <p className="text-xs text-muted-foreground">Clique em um cliente para ver o histórico mensal</p>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/recurrent-billing")}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Histórico Recorrente</h1>
+            <p className="text-xs text-muted-foreground">Clique em um cliente para ver as cobranças mês a mês</p>
+          </div>
         </div>
         <Button onClick={loadClientes} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
@@ -221,101 +238,98 @@ export default function AdminRecurrentHistory() {
                   <p className="text-lg font-bold text-foreground">R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-secondary">
-                  <p className="text-xs text-muted-foreground">Extras</p>
+                  <p className="text-xs text-muted-foreground">Extras Ativos</p>
                   <p className="text-lg font-bold text-foreground">{selectedCliente.extras.length}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-secondary col-span-2 md:col-span-1">
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium text-foreground truncate">{selectedCliente.cliente_email}</p>
+                  <p className="text-xs text-muted-foreground">Meses Registrados</p>
+                  <p className="text-lg font-bold text-foreground">{historico.length}</p>
                 </div>
               </div>
 
-              {/* Extras do cliente */}
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Extras Ativos</p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedCliente.extras.map(e => (
-                    <span key={e.id} className="inline-flex items-center text-xs border rounded-full px-2 py-0.5 border-border text-muted-foreground">
-                      {e.nome} — R$ {e.preco_mensal.toFixed(2)}/mês
-                    </span>
-                  ))}
-                </div>
+              {/* Extras */}
+              <div className="flex flex-wrap gap-2">
+                {selectedCliente.extras.map(e => (
+                  <span key={e.id} className="inline-flex items-center text-xs border rounded-full px-2 py-0.5 border-border text-muted-foreground">
+                    {e.nome} — R$ {e.preco_mensal.toFixed(2)}/mês
+                  </span>
+                ))}
               </div>
 
               {/* Tabela de meses */}
               <Card>
                 <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Mês</TableHead>
-                        <TableHead className="text-xs">Valor</TableHead>
-                        <TableHead className="text-xs">Status</TableHead>
-                        <TableHead className="text-xs">Pagamento</TableHead>
-                        <TableHead className="text-xs">Data Pgto</TableHead>
-                        <TableHead className="text-xs text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {historico.length === 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                            Nenhum registro encontrado. As cobranças aparecerão aqui quando forem geradas.
-                          </TableCell>
+                          <TableHead className="text-xs">Competência</TableHead>
+                          <TableHead className="text-xs">Valor</TableHead>
+                          <TableHead className="text-xs">Status</TableHead>
+                          <TableHead className="text-xs">Pagamento</TableHead>
+                          <TableHead className="text-xs">Data Pgto</TableHead>
+                          <TableHead className="text-xs text-right">Ações</TableHead>
                         </TableRow>
-                      ) : (
-                        historico.map((r) => {
-                          const st = statusMap[r.status] || statusMap.pendente;
-                          return (
-                            <TableRow key={r.id}>
-                              <TableCell className="font-medium text-foreground">{formatMes(r.mes)}</TableCell>
-                              <TableCell className="text-foreground">R$ {Number(r.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
-                              <TableCell>
-                                <Badge className={`text-xs ${st.bg} ${st.color} border-0`}>{st.label}</Badge>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground text-sm">
-                                {r.forma_pagamento === "asaas" ? "Asaas" : r.forma_pagamento === "manual" ? "Manual" : "-"}
-                              </TableCell>
-                              <TableCell className="text-muted-foreground text-sm">
-                                {r.data_pagamento ? new Date(r.data_pagamento).toLocaleDateString("pt-BR") : "-"}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center gap-1 justify-end flex-wrap">
-                                  {r.status === "pendente" && (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleUpdateStatus(r.id, "pago_manualmente")}
-                                        disabled={updatingStatus === r.id}
-                                        className="text-xs h-7"
-                                      >
-                                        {updatingStatus === r.id ? "..." : "Manual"}
+                      </TableHeader>
+                      <TableBody>
+                        {historico.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                              Nenhuma cobrança gerada ainda. Gere faturas na tela de Cobranças Recorrentes.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          historico.map((r) => {
+                            const st = statusMap[r.status] || statusMap.pendente;
+                            return (
+                              <TableRow key={r.id}>
+                                <TableCell className="font-medium text-foreground">{formatMes(r.mes)}</TableCell>
+                                <TableCell className="text-foreground">R$ {Number(r.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                                <TableCell>
+                                  <Badge variant={st.variant} className="text-xs">{st.label}</Badge>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-sm">
+                                  {r.forma_pagamento === "asaas" ? "Asaas" : r.forma_pagamento === "manual" ? "Manual" : "—"}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-sm">
+                                  {r.data_pagamento ? new Date(r.data_pagamento).toLocaleDateString("pt-BR") : "—"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex items-center gap-1 justify-end flex-wrap">
+                                    {r.status === "pendente" && (
+                                      <>
+                                        <Button
+                                          size="sm" variant="outline"
+                                          onClick={() => handleUpdateStatus(r, "pago_manualmente")}
+                                          disabled={updatingStatus === r.id}
+                                          className="text-xs h-7"
+                                        >
+                                          {updatingStatus === r.id ? "..." : "Manual"}
+                                        </Button>
+                                        <Button
+                                          size="sm" variant="outline"
+                                          onClick={() => handleUpdateStatus(r, "pago_asaas")}
+                                          disabled={updatingStatus === r.id}
+                                          className="text-xs h-7"
+                                        >
+                                          {updatingStatus === r.id ? "..." : "Asaas"}
+                                        </Button>
+                                      </>
+                                    )}
+                                    {r.asaas_invoice_url && (
+                                      <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => window.open(r.asaas_invoice_url!, "_blank")}>
+                                        <ExternalLink className="w-3 h-3 mr-1" /> Fatura
                                       </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleUpdateStatus(r.id, "pago_asaas")}
-                                        disabled={updatingStatus === r.id}
-                                        className="text-xs h-7"
-                                      >
-                                        {updatingStatus === r.id ? "..." : "Asaas"}
-                                      </Button>
-                                    </>
-                                  )}
-                                  {r.asaas_invoice_url && (
-                                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => window.open(r.asaas_invoice_url!, "_blank")}>
-                                      Ver Fatura
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      )}
-                    </TableBody>
-                  </Table>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
             </div>
