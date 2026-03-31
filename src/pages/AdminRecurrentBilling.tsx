@@ -376,7 +376,7 @@ export default function AdminRecurrentBilling() {
             .eq("id", financeiroRecord.id);
 
           // 7. Criar registro no histórico
-          await supabase
+          await (supabase as any)
             .from("recurrent_billing_history")
             .insert({
               cliente_id: clienteId,
