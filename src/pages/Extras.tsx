@@ -171,12 +171,14 @@ export default function Extras() {
     fetchData();
   };
 
-  const deletePacote = async (id: string) => {
-    setSaving(true);
-    await (supabase.from as any)("pacotes").delete().eq("id", id);
-    setSaving(false);
-    fetchData();
-    toast({ title: "Pacote excluído" });
+  const deletePacote = (id: string) => {
+    requestDelete(async () => {
+      setSaving(true);
+      await (supabase.from as any)("pacotes").delete().eq("id", id);
+      setSaving(false);
+      fetchData();
+      toast({ title: "Pacote excluído" });
+    }, "Excluir Pacote", "Este pacote será removido permanentemente.");
   };
 
   const handleDelete = async () => {
