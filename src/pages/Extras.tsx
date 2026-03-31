@@ -181,17 +181,19 @@ export default function Extras() {
     }, "Excluir Pacote", "Este pacote será removido permanentemente.");
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!extraSel) return;
-    setSaving(true);
-    await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
-    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
-    setSaving(false);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Extra excluído!" });
-    setShowDelete(false);
-    setExtraSel(null);
-    fetchData();
+    requestDelete(async () => {
+      setSaving(true);
+      await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
+      const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
+      setSaving(false);
+      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Extra excluído!" });
+      setShowDelete(false);
+      setExtraSel(null);
+      fetchData();
+    }, "Excluir Extra", `O extra "${extraSel.nome}" será removido permanentemente.`);
   };
 
   const handleAtribuir = async () => {
