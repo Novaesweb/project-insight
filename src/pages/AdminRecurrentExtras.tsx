@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Users,
-  FileText, ArrowLeft, Loader2, RefreshCw, Send, Eye, ExternalLink, Plus
+  FileText, ArrowLeft, Loader2, RefreshCw, Send, Eye, ExternalLink, Plus, Trash2, Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -107,6 +107,11 @@ export default function AdminRecurrentExtras() {
   const [faturasMes, setFaturasMes] = useState<FaturaMes[]>([]);
   const [enviandoFinanceiro, setEnviandoFinanceiro] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [deletingFatura, setDeletingFatura] = useState<string | null>(null);
+  const [editingFatura, setEditingFatura] = useState<FaturaMes | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editValor, setEditValor] = useState("");
+  const [editDescricao, setEditDescricao] = useState("");
 
   // ── Load data ──
   const loadClientes = useCallback(async () => {
@@ -386,6 +391,114 @@ export default function AdminRecurrentExtras() {
       toast({ title: "Erro ao atualizar status", variant: "destructive" });
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  // ── Delete fatura ──
+  const handleDeleteFatura = async (fatura: FaturaMes) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a fatura de ${formatMes(fatura.mes)}?`)) {
+      return;
+    }
+    
+    setDeletingFatura(fatura.id);
+    try {
+      console.log("Excluindo fatura:", fatura.id);
+      
+      // Remover do financeiro se existir
+      if (fatura.financeiro_id) {
+        await supabase.from("financeiro").delete().eq("id", fatura.financeiro_id);
+        console.log("Fatura do financeiro removida:", fatura.financeiro_id);
+      }
+      
+      // Remover do recurrent_billing_history
+      const { error } = await (supabase as any).from("recurrent_billing_history").delete().eq("id", fatura.id);
+      
+      if (error) {
+        console.error("Erro ao excluir fatura:", error);
+        throw error;
+      }
+      
+      console.log("Fatura excluída com sucesso");
+      
+      // Atualizar estado local
+      setFaturasMes(prev => prev.filter(f => f.id !== fatura.id));
+      
+      toast({ 
+        title: "Fatura excluída!", 
+        description: `Fatura de ${formatMes(fatura.mes)} foi removida com sucesso.` 
+      });
+    } catch (err: any) {
+      console.error("Erro ao excluir fatura:", err);
+      toast({ 
+        title: "Erro ao excluir fatura", 
+        description: err?.message || "Tente novamente",
+        variant: "destructive" 
+      });
+    } finally {
+      setDeletingFatura(null);
+    }
+  };
+
+  // ── Edit fatura ──
+  const handleEditFatura = (fatura: FaturaMes) => {
+    setEditingFatura(fatura);
+    setEditValor(fatura.valor_total.toString());
+    setEditDescricao(fatura.descricao || "");
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingFatura) return;
+    
+    try {
+      const novoValor = parseFloat(editValor);
+      if (isNaN(novoValor) || novoValor <= 0) {
+        toast({ title: "Valor inválido", description: "Digite um valor maior que 0", variant: "destructive" });
+        return;
+      }
+      
+      console.log("Editando fatura:", editingFatura.id, "Novo valor:", novoValor);
+      
+      const { error } = await (supabase as any).from("recurrent_billing_history").update({
+        valor_total: novoValor,
+        descricao: editDescricao,
+        updated_at: new Date().toISOString(),
+      }).eq("id", editingFatura.id);
+      
+      if (error) {
+        console.error("Erro ao editar fatura:", error);
+        throw error;
+      }
+      
+      // Atualizar financeiro se existir
+      if (editingFatura.financeiro_id) {
+        await supabase.from("financeiro").update({
+          valor: novoValor,
+          descricao: editDescricao || `Cobrança Recorrente — ${formatMes(editingFatura.mes)}`,
+        }).eq("id", editingFatura.financeiro_id);
+      }
+      
+      // Atualizar estado local
+      setFaturasMes(prev => prev.map(f => f.id === editingFatura.id ? {
+        ...f, valor_total: novoValor, descricao: editDescricao,
+      } : f));
+      
+      setShowEditDialog(false);
+      setEditingFatura(null);
+      setEditValor("");
+      setEditDescricao("");
+      
+      toast({ 
+        title: "Fatura atualizada!", 
+        description: `Fatura de ${formatMes(editingFatura.mes)} foi atualizada com sucesso.` 
+      });
+    } catch (err: any) {
+      console.error("Erro ao editar fatura:", err);
+      toast({ 
+        title: "Erro ao editar fatura", 
+        description: err?.message || "Tente novamente",
+        variant: "destructive" 
+      });
     }
   };
 
@@ -682,6 +795,31 @@ export default function AdminRecurrentExtras() {
 
                           {/* Actions */}
                           <div className="flex flex-wrap gap-2">
+                            {/* Editar - Apenas para rascunho e pendente */}
+                            {(isRascunho || isPendente) && (
+                              <Button
+                                size="sm" variant="outline" className="text-xs h-8"
+                                onClick={() => handleEditFatura(f)}
+                              >
+                                <Edit className="w-3 h-3 mr-1" /> Editar
+                              </Button>
+                            )}
+
+                            {/* Excluir - Apenas para rascunho */}
+                            {isRascunho && (
+                              <Button
+                                size="sm" variant="destructive" className="text-xs h-8"
+                                disabled={deletingFatura === f.id}
+                                onClick={() => handleDeleteFatura(f)}
+                              >
+                                {deletingFatura === f.id ? (
+                                  <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Excluindo...</>
+                                ) : (
+                                  <><Trash2 className="w-3 h-3 mr-1" /> Excluir</>
+                                )}
+                              </Button>
+                            )}
+
                             {isRascunho && (
                               <Button
                                 size="sm" className="text-xs h-8 flex-1 sm:flex-none"
@@ -730,6 +868,62 @@ export default function AdminRecurrentExtras() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Editar Fatura ── */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground text-sm sm:text-base flex items-center gap-2">
+              <Edit className="w-4 h-4" /> Editar Fatura
+            </DialogTitle>
+          </DialogHeader>
+          {editingFatura && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-secondary">
+                <p className="text-xs text-muted-foreground mb-1">Mês</p>
+                <p className="text-lg font-bold text-foreground">{formatMes(editingFatura.mes)}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-foreground">Valor Total</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={editValor}
+                  onChange={e => setEditValor(e.target.value)}
+                  className="text-foreground"
+                  placeholder="0,00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-foreground">Descrição</Label>
+                <textarea
+                  className="w-full p-2 border rounded-md text-sm text-foreground bg-background resize-none"
+                  rows={3}
+                  value={editDescricao}
+                  onChange={e => setEditDescricao(e.target.value)}
+                  placeholder="Descrição da fatura..."
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleSaveEdit} className="flex-1">
+                  <Edit className="w-4 h-4 mr-2" /> Salvar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowEditDialog(false)} 
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
