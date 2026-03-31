@@ -20,6 +20,7 @@ interface ClienteRecorrente {
 }
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  rascunho: { label: "Rascunho", variant: "outline" },
   pendente: { label: "Pendente", variant: "secondary" },
   pago_manualmente: { label: "Pago Manual", variant: "default" },
   pago_asaas: { label: "Pago Asaas", variant: "default" },
