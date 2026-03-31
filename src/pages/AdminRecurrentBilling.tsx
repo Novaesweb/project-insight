@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
-  DollarSign, TrendingUp, CheckCircle2, RefreshCw, Users, FileText, Loader2, Eye, Phone, Mail, IdCard, MapPin, CreditCard
+  DollarSign, TrendingUp, CheckCircle2, RefreshCw, Users, FileText, Loader2, Eye, Phone, Mail, IdCard, CreditCard, CalendarDays, History
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AsaasService } from "@/lib/asaas-service";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -36,6 +36,7 @@ interface ClienteRecorrente {
 
 export default function AdminRecurrentBilling() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
@@ -43,67 +44,42 @@ export default function AdminRecurrentBilling() {
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
   const [generatingIndividual, setGeneratingIndividual] = useState<string | null>(null);
 
+  const mesAtual = `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
+  const mesDisplay = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
   const loadData = useCallback(async () => {
     setLoading(true);
-    console.log("🔍 Carregando dados de cobrança recorrente...");
-
-    // Buscar extras recorrentes (preco_mensal > 0 e status ativo)
-    console.log("📊 Buscando extras recorrentes...");
-    const { data: extras, error: extrasError } = await supabase
+    const { data: extras } = await supabase
       .from("extras_clientes")
       .select("id, cliente_id, preco_mensal, status, extras_catalogo(nome)")
       .gt("preco_mensal", 0)
       .eq("status", "ativo");
 
-    if (extrasError) {
-      console.error("❌ Erro ao buscar extras:", extrasError);
-    }
-
-    console.log("📋 Extras encontrados:", extras?.length || 0);
-
     if (!extras || extras.length === 0) {
-      console.log("⚠️ Nenhum extra recorrente encontrado");
       setClientes([]);
       setLoading(false);
       return;
     }
 
-    console.log("💰 Extras:", extras);
-
-    // Buscar nomes dos clientes
     const clienteIds = [...new Set(extras.map(e => e.cliente_id))];
-    console.log("👥 Buscando dados dos clientes:", clienteIds);
-    
-    const { data: clientesData, error: clientesError } = await supabase
+    const { data: clientesData } = await supabase
       .from("clientes")
       .select("id, nome, email, documento, telefone")
       .in("id", clienteIds);
 
-    if (clientesError) {
-      console.error("❌ Erro ao buscar clientes:", clientesError);
-    }
-
-    console.log("👤 Clientes encontrados:", clientesData?.length || 0);
-    console.log("📋 Dados completos dos clientes:", clientesData);
-
     const clienteMap = new Map(clientesData?.map(c => [c.id, c]) || []);
-
-    // Agrupar por cliente
     const grouped = new Map<string, ClienteRecorrente>();
+
     for (const e of extras) {
       const c = clienteMap.get(e.cliente_id);
-      if (!c) {
-        console.error("❌ Cliente não encontrado para extra:", e.cliente_id);
-        continue;
-      }
-
+      if (!c) continue;
       if (!grouped.has(e.cliente_id)) {
         grouped.set(e.cliente_id, {
           cliente_id: e.cliente_id,
           cliente_nome: c.nome,
           cliente_email: c.email,
-          cliente_documento: c.documento,
-          cliente_telefone: c.telefone,
+          cliente_documento: c.documento ?? undefined,
+          cliente_telefone: c.telefone ?? undefined,
           extras: [],
           totalMensal: 0,
         });
@@ -118,11 +94,7 @@ export default function AdminRecurrentBilling() {
       grupo.totalMensal += Number(e.preco_mensal);
     }
 
-    const clientesArray = Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome));
-    console.log("📊 Clientes com cobranças recorrentes:", clientesArray.length);
-    console.log("💰 Totais mensais:", clientesArray.map(c => ({ nome: c.cliente_nome, total: c.totalMensal })));
-
-    setClientes(clientesArray);
+    setClientes(Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome)));
     setLoading(false);
   }, []);
 
@@ -131,300 +103,123 @@ export default function AdminRecurrentBilling() {
   const toggleSelect = (id: string) => {
     setSelected(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
 
   const toggleAll = () => {
-    if (selected.size === clientes.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(clientes.map(c => c.cliente_id)));
-    }
+    setSelected(selected.size === clientes.length ? new Set() : new Set(clientes.map(c => c.cliente_id)));
   };
 
-  // Função para gerar cobrança Asaas individual
-  const handleGerarAsaasIndividual = async (cliente: ClienteRecorrente) => {
-    setGeneratingIndividual(cliente.cliente_id);
-    try {
-      // 1. Buscar detalhes completo do cliente
-      console.log("🔍 Buscando dados completos do cliente...");
-      const { data: clienteCompleto } = await supabase.from("clientes").select("*").eq("id", cliente.cliente_id).single();
-      
-      if (!clienteCompleto) {
-        toast({ title: "Cliente não encontrado", description: `O cliente ${cliente.cliente_nome} não foi encontrado no banco de dados.`, variant: "destructive" });
-        return;
-      }
+  // Gerar fatura no financeiro + histórico (sem Asaas)
+  const gerarFaturaFinanceiro = async (cliente: ClienteRecorrente): Promise<boolean> => {
+    // Verificar se já existe cobrança para este mês
+    const { data: existing } = await (supabase as any)
+      .from("recurrent_billing_history")
+      .select("id")
+      .eq("cliente_id", cliente.cliente_id)
+      .eq("mes", mesAtual)
+      .single();
 
-      // 2. Verificar se cliente tem CPF/CNPJ
-      if (!clienteCompleto.documento) {
-        toast({ title: "Cliente sem documento", description: `O cliente ${cliente.cliente_nome} não possui CPF/CNPJ cadastrado.`, variant: "destructive" });
-        return;
-      }
+    if (existing) {
+      toast({ title: "Cobrança já existe", description: `${cliente.cliente_nome} já tem cobrança para ${mesDisplay}`, variant: "destructive" });
+      return false;
+    }
 
-      // 3. Garantir cliente no Asaas
-      console.log("👤 Criando/atualizando cliente no Asaas...");
-      const asaasCustomer = await AsaasService.getOrCreateCustomer({
-        name: clienteCompleto.nome,
-        email: clienteCompleto.email,
-        cpfCnpj: clienteCompleto.documento || undefined,
-        mobilePhone: clienteCompleto.telefone || undefined,
-        externalReference: cliente.cliente_id
-      });
+    const descricao = `Cobrança Recorrente — ${mesDisplay}\n` +
+      cliente.extras.map(e => `• ${e.nome}: R$ ${Number(e.preco_mensal).toFixed(2)}/mês`).join('\n');
 
-      // 4. Gerar fatura consolidada no banco
-      console.log("📄 Criando fatura no banco...");
-      const financeiroData = {
+    const vencimento = new Date();
+    vencimento.setDate(vencimento.getDate() + 10);
+
+    // 1. Criar no financeiro
+    const { data: fin, error: finError } = await supabase
+      .from("financeiro")
+      .insert({
         cliente_id: cliente.cliente_id,
-        tipo: "receita",
+        tipo: "entrada",
         valor: cliente.totalMensal,
-        descricao: `Cobrança Recorrente — ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}\n` + 
-          cliente.extras.map(extra => 
-            `• ${extra.nome}: R$ ${Number(extra.preco_mensal).toFixed(2)}/mês`
-          ).join('\n'),
+        descricao,
         data: new Date().toISOString().split("T")[0],
-        vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
+        vencimento: vencimento.toISOString().split("T")[0],
         status: "pendente",
-      };
-      
-      const { data: financeiroRecord } = await supabase
-        .from("financeiro")
-        .insert(financeiroData)
-        .select()
-        .single();
+      })
+      .select()
+      .single();
 
-      if (financeiroRecord) {
-        // 5. Gerar cobrança no Asaas
-        console.log("💳 Gerando cobrança no Asaas...");
-        const paymentData = {
-          customer: asaasCustomer.id,
-          billingType: "UNDEFINED" as const,
-          value: cliente.totalMensal,
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0],
-          description: `Cobrança Recorrente - ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} - ${cliente.extras.length} Extras`,
-          externalReference: financeiroRecord.id
-        };
-        
-        const payment = await AsaasService.createPayment(paymentData);
-
-        // 6. Salvar ID na descrição
-        const novaDescricao = `${financeiroData.descricao} (Asaas: ${payment.invoiceUrl})`;
-        await supabase
-          .from("financeiro")
-          .update({ descricao: novaDescricao })
-          .eq("id", financeiroRecord.id);
-
-        toast({ 
-          title: "✅ Cobrança Asaas gerada!", 
-          description: `Cobrança para ${cliente.cliente_nome} criada com sucesso.` 
-        });
-      }
-
-    } catch (error: any) {
-      console.error("❌ Erro ao gerar cobrança Asaas individual:", error);
-      toast({ 
-        title: "Erro ao gerar cobrança", 
-        description: error.message || "Não foi possível gerar a cobrança Asaas", 
-        variant: "destructive" 
-      });
-    } finally {
-      setGeneratingIndividual(null);
+    if (finError || !fin) {
+      console.error("Erro ao criar financeiro:", finError);
+      return false;
     }
+
+    // 2. Criar no histórico recorrente
+    await (supabase as any)
+      .from("recurrent_billing_history")
+      .insert({
+        cliente_id: cliente.cliente_id,
+        mes: mesAtual,
+        ano: new Date().getFullYear(),
+        mes_numero: new Date().getMonth() + 1,
+        valor_total: cliente.totalMensal,
+        status: "pendente",
+        financeiro_id: fin.id,
+        extras_count: cliente.extras.length,
+        descricao,
+      });
+
+    return true;
   };
 
+  // Gerar faturas em lote (financeiro apenas)
   const handleGenerateBills = async () => {
-    console.log("🚀 handleGenerateBills chamado!");
-    
     if (selected.size === 0) {
-      console.log("❌ Nenhum cliente selecionado");
       toast({ title: "Selecione ao menos um cliente", variant: "destructive" });
       return;
     }
 
-    const mesAtual = `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
-    
-    console.log("🚀 Iniciando geração de cobranças Asaas...");
-    console.log("📊 Clientes selecionados:", selected.size);
-    console.log("� Mês atual:", mesAtual);
-    console.log("�👥 IDs dos clientes:", Array.from(selected));
-    console.log("👥 Clientes disponíveis:", clientes.map(c => ({ id: c.cliente_id, nome: c.cliente_nome })));
-
     setGenerating(true);
-    let successCount = 0;
-    let errorCount = 0;
+    let success = 0, errors = 0;
 
     for (const clienteId of selected) {
       const cliente = clientes.find(c => c.cliente_id === clienteId);
-      if (!cliente) {
-        console.error("❌ Cliente não encontrado:", clienteId);
-        continue;
-      }
-
-      // Verificar se já existe cobrança para este mês
-      const { data: existingHistory } = await (supabase as any)
-        .from("recurrent_billing_history")
-        .select("id")
-        .eq("cliente_id", clienteId)
-        .eq("mes", mesAtual)
-        .single();
-
-      if (existingHistory) {
-        console.log(`⚠️ Cliente ${cliente.cliente_nome} já possui cobrança para ${mesAtual}`);
-        continue;
-      }
-
-      console.log(`🔄 Processando cliente: ${cliente.cliente_nome} (${clienteId})`);
-      console.log(`💰 Valor total: R$ ${cliente.totalMensal.toFixed(2)}`);
-      console.log(`📧 Email do cliente: ${cliente.cliente_email}`);
-      console.log(`📋 CPF/CNPJ do cliente: ${cliente.cliente_documento || 'NÃO CADASTRADO'}`);
-      console.log(`📋 Extras do cliente:`, cliente.extras);
+      if (!cliente) continue;
 
       try {
-        // 1. Buscar detalhes completo do cliente
-        console.log("🔍 Buscando dados completos do cliente...");
-        const { data: clienteCompleto } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
-        
-        if (!clienteCompleto) {
-          errorCount++;
-          console.error("❌ Cliente não encontrado no banco:", clienteId);
-          toast({ 
-            title: "Cliente não encontrado", 
-            description: `O cliente ${cliente.cliente_nome} não foi encontrado no banco de dados.`, 
-            variant: "destructive" 
-          });
-          continue;
-        }
-
-        console.log("📋 Dados completos do cliente:", clienteCompleto);
-
-        // 2. Verificar se cliente tem CPF/CNPJ
-        if (!clienteCompleto.documento) {
-          errorCount++;
-          console.error("❌ Cliente sem CPF/CNPJ:", clienteCompleto.nome);
-          toast({ 
-            title: "Cliente sem documento", 
-            description: `O cliente ${clienteCompleto.nome} não possui CPF/CNPJ cadastrado. Cadastre o documento para gerar cobranças Asaas.`, 
-            variant: "destructive" 
-          });
-          continue;
-        }
-
-        // 3. Garantir cliente no Asaas
-        console.log("👤 Criando/atualizando cliente no Asaas...");
-        const asaasCustomer = await AsaasService.getOrCreateCustomer({
-          name: clienteCompleto.nome,
-          email: clienteCompleto.email,
-          cpfCnpj: clienteCompleto.documento || undefined,
-          mobilePhone: clienteCompleto.telefone || undefined,
-          externalReference: clienteId
-        });
-        console.log("✅ Cliente Asaas criado/atualizado:", asaasCustomer.id);
-
-        // 4. Gerar fatura consolidada no banco
-        console.log("📄 Criando fatura no banco...");
-        const financeiroData = {
-          cliente_id: clienteId,
-          tipo: "receita",
-          valor: cliente.totalMensal,
-          descricao: `Cobrança Recorrente — ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}\n` + 
-            cliente.extras.map(extra => 
-              `• ${extra.nome}: R$ ${Number(extra.preco_mensal).toFixed(2)}/mês`
-            ).join('\n'),
-          data: new Date().toISOString().split("T")[0],
-          vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
-          status: "pendente",
-        };
-        console.log("📋 Dados da fatura:", financeiroData);
-        
-        const { data: financeiroRecord, error: financeiroError } = await supabase
-          .from("financeiro")
-          .insert(financeiroData)
-          .select()
-          .single();
-
-        if (financeiroError) {
-          errorCount++;
-          console.error("❌ Erro ao criar fatura:", financeiroError);
-          continue;
-        }
-
-        console.log("✅ Fatura criada no banco:", financeiroRecord.id);
-
-        // 5. Gerar cobrança no Asaas
-        if (financeiroRecord) {
-          console.log("💳 Gerando cobrança no Asaas...");
-          const paymentData = {
-            customer: asaasCustomer.id,
-            billingType: "UNDEFINED" as const,
-            value: cliente.totalMensal,
-            dueDate: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0],
-            description: `Cobrança Recorrente - ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} - ${cliente.extras.length} Extras`,
-            externalReference: financeiroRecord.id
-          };
-          console.log("💳 Dados do pagamento:", paymentData);
-          
-          const payment = await AsaasService.createPayment(paymentData);
-          console.log("✅ Cobrança Asaas criada:", payment.id);
-
-          // 6. Salvar ID na descrição
-          const novaDescricao = `${financeiroData.descricao} (Asaas: ${payment.invoiceUrl})`;
-          await supabase
-            .from("financeiro")
-            .update({ descricao: novaDescricao })
-            .eq("id", financeiroRecord.id);
-
-          // 7. Criar registro no histórico
-          await (supabase as any)
-            .from("recurrent_billing_history")
-            .insert({
-              cliente_id: clienteId,
-              mes: mesAtual,
-              ano: new Date().getFullYear(),
-              mes_numero: new Date().getMonth() + 1,
-              valor_total: cliente.totalMensal,
-              status: "pendente",
-              forma_pagamento: "asaas",
-              financeiro_id: financeiroRecord.id,
-              asaas_payment_id: payment.id,
-              asaas_invoice_url: payment.invoiceUrl,
-              extras_count: cliente.extras.length,
-              descricao: financeiroData.descricao
-            });
-
-          successCount++;
-          console.log(`🎉 Cobrança Asaas gerada para ${clienteCompleto.nome} - Mês: ${mesAtual}`);
-        }
-
-      } catch (error) {
-        errorCount++;
-        console.error("❌ Erro ao gerar cobrança Asaas:", error);
-        console.error("❌ Stack trace:", error instanceof Error ? error.stack : 'No stack trace');
-        console.error("❌ Error details:", JSON.stringify(error, null, 2));
-        
-        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-        
-        toast({ 
-          title: "Erro no Asaas", 
-          description: `Cliente: ${cliente.cliente_nome}\nErro: ${errorMessage}`, 
-          variant: "destructive" 
-        });
+        const ok = await gerarFaturaFinanceiro(cliente);
+        if (ok) success++; else errors++;
+      } catch (err) {
+        console.error("Erro:", err);
+        errors++;
       }
     }
 
-    console.log(`📊 RESULTADO: ${successCount} sucesso, ${errorCount} erros`);
-
     setGenerating(false);
+    setSelected(new Set());
 
-    if (errorCount > 0) {
-      toast({ title: `${successCount} cobranças geradas, ${errorCount} erros`, variant: "destructive" });
-    } else {
-      toast({ title: `${successCount} cobranças Asaas geradas!`, description: `Para ${selected.size} cliente(s) selecionado(s). Mês: ${mesAtual}` });
+    if (success > 0) {
+      toast({ title: `${success} fatura(s) gerada(s) no Financeiro!`, description: `Competência: ${mesDisplay}` });
+    }
+    if (errors > 0) {
+      toast({ title: `${errors} erro(s) ao gerar`, variant: "destructive" });
     }
 
-    setSelected(new Set());
-    loadData(); // Recarregar dados
+    loadData();
+  };
+
+  // Gerar fatura individual
+  const handleGerarIndividual = async (cliente: ClienteRecorrente) => {
+    setGeneratingIndividual(cliente.cliente_id);
+    try {
+      const ok = await gerarFaturaFinanceiro(cliente);
+      if (ok) {
+        toast({ title: "Fatura gerada!", description: `${cliente.cliente_nome} — ${mesDisplay}` });
+      }
+    } catch (err: any) {
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    } finally {
+      setGeneratingIndividual(null);
+    }
   };
 
   const totalGeralMensal = clientes.reduce((acc, c) => acc + c.totalMensal, 0);
@@ -434,229 +229,155 @@ export default function AdminRecurrentBilling() {
     <motion.div className="space-y-6 p-3 sm:p-6" initial="hidden" animate="show" variants={fadeUp}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Cobranças Recorrentes</h1>
-          <p className="text-xs text-white/50">Selecione os clientes e gere as cobranças com Asaas</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Cobranças Recorrentes</h1>
+          <p className="text-xs text-muted-foreground">Selecione clientes e gere faturas no Financeiro — Competência: <strong>{mesDisplay}</strong></p>
         </div>
-
-        <Button
-          onClick={() => {
-            console.log("🖱️ Botão de gerar cobranças clicado!");
-            console.log("📊 Clientes selecionados:", selected.size);
-            console.log("👥 Selected set:", Array.from(selected));
-            console.log("👥 Clientes disponíveis:", clientes.length);
-            console.log("🔍 Botão habilitado?", !generating && selected.size > 0);
-            handleGenerateBills();
-          }}
-          disabled={generating || selected.size === 0}
-          className="gradient-primary border-0 text-white"
-        >
-          {generating ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
-          ) : (
-            <><FileText className="w-4 h-4 mr-2" /> Gerar Cobranças Asaas ({selected.size})</>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate("/admin/recurrent-history")} variant="outline" size="sm">
+            <History className="w-4 h-4 mr-2" /> Histórico
+          </Button>
+          <Button
+            onClick={handleGenerateBills}
+            disabled={generating || selected.size === 0}
+            className="bg-primary text-primary-foreground"
+            size="sm"
+          >
+            {generating ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
+            ) : (
+              <><FileText className="w-4 h-4 mr-2" /> Gerar Faturas ({selected.size})</>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-5 h-5 text-emerald-400" /></div>
-            <div>
-              <p className="text-xl font-black text-white">{clientes.length}</p>
-              <p className="text-[10px] text-white/50 uppercase font-bold">Clientes Recorrentes</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10"><TrendingUp className="w-5 h-5 text-blue-400" /></div>
-            <div>
-              <p className="text-xl font-black text-white">R$ {totalGeralMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-              <p className="text-[10px] text-white/50 uppercase font-bold">Total Mensal</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/10"><DollarSign className="w-5 h-5 text-amber-400" /></div>
-            <div>
-              <p className="text-xl font-black text-white">R$ {totalSelecionado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-              <p className="text-[10px] text-white/50 uppercase font-bold">Selecionado p/ Cobrança</p>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          { icon: Users, color: "text-emerald-400", bg: "bg-emerald-500/10", value: clientes.length, label: "Clientes Recorrentes" },
+          { icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-500/10", value: `R$ ${totalGeralMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, label: "Total Mensal" },
+          { icon: DollarSign, color: "text-amber-400", bg: "bg-amber-500/10", value: `R$ ${totalSelecionado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, label: "Selecionado p/ Cobrança" },
+        ].map((s, i) => (
+          <Card key={i}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${s.bg}`}><s.icon className={`w-5 h-5 ${s.color}`} /></div>
+              <div>
+                <p className="text-xl font-black text-foreground">{s.value}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">{s.label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Tabela de clientes recorrentes */}
-      <Card className="glass-card border-[0.5px]">
+      {/* Tabela */}
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
             <RefreshCw className="w-4 h-4 text-primary" /> Clientes com Extras Recorrentes
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {loading ? (
-            <div className="text-center py-10 text-white/40 text-xs">Carregando...</div>
+            <div className="text-center py-10 text-muted-foreground text-xs">Carregando...</div>
           ) : clientes.length === 0 ? (
             <div className="text-center py-10">
-              <CheckCircle2 className="w-10 h-10 text-white/10 mx-auto mb-3" />
-              <p className="text-xs text-white/30">Nenhum cliente com extras recorrentes ativos</p>
+              <CheckCircle2 className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">Nenhum cliente com extras recorrentes ativos</p>
             </div>
           ) : (
             <Table className="min-w-[500px]">
               <TableHeader>
-                <TableRow className="border-white/5">
+                <TableRow>
                   <TableHead className="w-10">
-                    <Checkbox
-                      checked={selected.size === clientes.length && clientes.length > 0}
-                      onCheckedChange={toggleAll}
-                    />
+                    <Checkbox checked={selected.size === clientes.length && clientes.length > 0} onCheckedChange={toggleAll} />
                   </TableHead>
-                  <TableHead className="text-[10px] text-white/50 uppercase">Cliente</TableHead>
-                  <TableHead className="text-[10px] text-white/50 uppercase">Extras</TableHead>
-                  <TableHead className="text-[10px] text-white/50 uppercase text-right">Valor Mensal</TableHead>
-                  <TableHead className="text-[10px] text-white/50 uppercase text-center">Ações</TableHead>
+                  <TableHead className="text-[10px] text-muted-foreground uppercase">Cliente</TableHead>
+                  <TableHead className="text-[10px] text-muted-foreground uppercase">Extras</TableHead>
+                  <TableHead className="text-[10px] text-muted-foreground uppercase text-right">Valor Mensal</TableHead>
+                  <TableHead className="text-[10px] text-muted-foreground uppercase text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {clientes.map((c) => (
                   <TableRow
                     key={c.cliente_id}
-                    className={`border-white/5 cursor-pointer transition-colors ${selected.has(c.cliente_id) ? 'bg-primary/5' : 'hover:bg-white/[0.02]'}`}
+                    className={`cursor-pointer transition-colors ${selected.has(c.cliente_id) ? 'bg-primary/5' : 'hover:bg-secondary/50'}`}
                     onClick={() => toggleSelect(c.cliente_id)}
                   >
                     <TableCell onClick={e => e.stopPropagation()}>
-                      <Checkbox
-                        checked={selected.has(c.cliente_id)}
-                        onCheckedChange={() => toggleSelect(c.cliente_id)}
-                      />
+                      <Checkbox checked={selected.has(c.cliente_id)} onCheckedChange={() => toggleSelect(c.cliente_id)} />
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm font-bold text-white">{c.cliente_nome}</p>
-                      <p className="text-[10px] text-white/30">{c.cliente_email}</p>
+                      <p className="text-sm font-bold text-foreground">{c.cliente_nome}</p>
+                      <p className="text-[10px] text-muted-foreground">{c.cliente_email}</p>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {c.extras.map((e) => (
-                          <span key={e.id} className="inline-flex items-center text-[9px] border border-blue-400/20 text-blue-400 bg-blue-400/5 rounded-full px-2 py-0.5">
-                            {e.nome}
-                          </span>
+                          <Badge key={e.id} variant="outline" className="text-[9px]">{e.nome}</Badge>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="text-sm font-bold text-white">
+                      <span className="text-sm font-bold text-foreground">
                         R$ {c.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </span>
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()} className="text-center">
                       <div className="flex items-center gap-1 justify-center">
-                        {/* Botão Ver Dados */}
+                        {/* Ver dados */}
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/10"
-                              onClick={() => setSelectedCliente(c)}
-                            >
+                            <Button size="sm" variant="ghost" className="h-7 w-7" onClick={() => setSelectedCliente(c)}>
                               <Eye className="w-3 h-3" />
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle className="text-white">Dados Completos do Cliente</DialogTitle>
+                              <DialogTitle className="text-foreground">Dados do Cliente</DialogTitle>
                             </DialogHeader>
                             {selectedCliente && (
-                              <div className="space-y-6">
-                                {/* Informações Básicas */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-3">
-                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações Básicas</h3>
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <IdCard className="w-4 h-4 text-blue-400" />
-                                        <span className="text-sm text-white/80">Nome:</span>
-                                        <span className="text-sm font-medium text-white">{selectedCliente.cliente_nome}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Mail className="w-4 h-4 text-green-400" />
-                                        <span className="text-sm text-white/80">Email:</span>
-                                        <span className="text-sm font-medium text-white">{selectedCliente.cliente_email}</span>
-                                      </div>
-                                      {selectedCliente.cliente_documento && (
-                                        <div className="flex items-center gap-2">
-                                          <IdCard className="w-4 h-4 text-purple-400" />
-                                          <span className="text-sm text-white/80">CPF/CNPJ:</span>
-                                          <span className="text-sm font-medium text-white">{selectedCliente.cliente_documento}</span>
-                                        </div>
-                                      )}
-                                      {selectedCliente.cliente_telefone && (
-                                        <div className="flex items-center gap-2">
-                                          <Phone className="w-4 h-4 text-amber-400" />
-                                          <span className="text-sm text-white/80">Telefone:</span>
-                                          <span className="text-sm font-medium text-white">{selectedCliente.cliente_telefone}</span>
-                                        </div>
-                                      )}
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2"><IdCard className="w-4 h-4 text-primary" /><span className="text-sm">{selectedCliente.cliente_nome}</span></div>
+                                  <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary" /><span className="text-sm">{selectedCliente.cliente_email}</span></div>
+                                  {selectedCliente.cliente_documento && <div className="flex items-center gap-2"><IdCard className="w-4 h-4 text-primary" /><span className="text-sm">{selectedCliente.cliente_documento}</span></div>}
+                                  {selectedCliente.cliente_telefone && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-primary" /><span className="text-sm">{selectedCliente.cliente_telefone}</span></div>}
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-xs font-bold text-muted-foreground uppercase">Extras</p>
+                                  {selectedCliente.extras.map(e => (
+                                    <div key={e.id} className="flex justify-between p-2 rounded-lg bg-secondary">
+                                      <span className="text-sm text-foreground">{e.nome}</span>
+                                      <span className="text-sm font-bold text-foreground">R$ {e.preco_mensal.toFixed(2)}/mês</span>
                                     </div>
-                                  </div>
+                                  ))}
                                 </div>
-                                
-                                {/* Extras Recorrentes */}
-                                <div className="space-y-3">
-                                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Extras Recorrentes</h3>
-                                  <div className="space-y-2">
-                                    {selectedCliente.extras.map((extra) => (
-                                      <div key={extra.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/5">
-                                        <div>
-                                          <span className="text-sm font-medium text-white">{extra.nome}</span>
-                                          <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs px-2 py-1 rounded-full bg-green-400/10 text-green-400 border border-green-400/20">
-                                              {extra.status}
-                                            </span>
-                                          </div>
-                                        </div>
-                                        <span className="text-sm font-bold text-green-400">
-                                          R$ {Number(extra.preco_mensal).toFixed(2)}/mês
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                {/* Resumo Financeiro */}
-                                <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-white/80">Total Mensal:</span>
-                                    <span className="text-lg font-bold text-primary">
-                                      R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                    </span>
-                                  </div>
+                                <div className="p-3 rounded-lg bg-primary/10 flex justify-between items-center">
+                                  <span className="text-sm text-foreground">Total Mensal:</span>
+                                  <span className="text-lg font-bold text-primary">R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                                 </div>
                               </div>
                             )}
                           </DialogContent>
                         </Dialog>
-                        
-                        {/* Botão Gerar no Asaas */}
+
+                        {/* Histórico */}
+                        <Button size="sm" variant="ghost" className="h-7 w-7" onClick={() => navigate("/admin/recurrent-history")} title="Ver histórico">
+                          <CalendarDays className="w-3 h-3" />
+                        </Button>
+
+                        {/* Gerar fatura individual */}
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 text-green-400/60 hover:text-green-400 hover:bg-green-400/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleGerarAsaasIndividual(c);
-                          }}
+                          className="h-7 w-7 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                          onClick={() => handleGerarIndividual(c)}
                           disabled={generatingIndividual === c.cliente_id}
-                          title="Gerar cobrança no Asaas"
+                          title="Gerar fatura no Financeiro"
                         >
-                          {generatingIndividual === c.cliente_id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <CreditCard className="w-3 h-3" />
-                          )}
+                          {generatingIndividual === c.cliente_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <DollarSign className="w-3 h-3" />}
                         </Button>
                       </div>
                     </TableCell>
@@ -669,17 +390,18 @@ export default function AdminRecurrentBilling() {
       </Card>
 
       {/* Instruções */}
-      <Card className="glass-card border-[0.5px]">
+      <Card>
         <CardContent className="p-4 space-y-2">
-          <h3 className="text-xs font-black text-white uppercase tracking-wider mb-3">Como funciona</h3>
+          <h3 className="text-xs font-black text-foreground uppercase tracking-wider mb-3">Como funciona</h3>
           {[
             { color: "bg-emerald-400", text: "Selecione os clientes que deseja cobrar este mês" },
-            { color: "bg-blue-400", text: "Clique em 'Gerar Cobranças' — as faturas vão para o Financeiro como pendentes" },
-            { color: "bg-amber-400", text: "Nenhuma cobrança é gerada automaticamente — você tem controle total" },
+            { color: "bg-blue-400", text: "Clique em 'Gerar Faturas' — a cobrança vai para o Financeiro como pendente" },
+            { color: "bg-amber-400", text: "No Histórico, marque cada mês como 'Pago Manualmente' ou 'Pago pelo Asaas'" },
+            { color: "bg-purple-400", text: "Nenhuma cobrança é gerada automaticamente — você tem controle total" },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className={`w-1.5 h-1.5 rounded-full ${item.color} shrink-0`} />
-              <p className="text-[11px] text-white/50">{item.text}</p>
+              <p className="text-[11px] text-muted-foreground">{item.text}</p>
             </div>
           ))}
         </CardContent>
