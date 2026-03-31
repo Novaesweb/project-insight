@@ -315,7 +315,7 @@ export default function AdminRecurrentBilling() {
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {c.extras.map((e) => (
-                          <Badge key={e.id} variant="outline" className="text-[9px]">{e.nome}</Badge>
+                          <span key={e.id} className="inline-flex items-center text-[9px] border rounded-full px-2 py-0.5 border-border text-muted-foreground">{e.nome}</span>
                         ))}
                       </div>
                     </TableCell>
