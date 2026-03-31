@@ -714,12 +714,15 @@ export default function Clientes() {
     toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
   };
 
-  const handleDeleteCliente = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este cliente e todos os seus dados?")) return;
-    const { error } = await supabase.from("clientes").delete().eq("id", id);
-    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Cliente excluído com sucesso!" });
-    fetchClientes();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
+
+  const handleDeleteCliente = (id: string) => {
+    requestDelete(async () => {
+      const { error } = await supabase.from("clientes").delete().eq("id", id);
+      if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Cliente excluído com sucesso!" });
+      fetchClientes();
+    }, "Excluir Cliente", "Este cliente e todos os seus dados serão removidos permanentemente.");
   };
 
   return (
