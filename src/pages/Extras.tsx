@@ -244,45 +244,11 @@ export default function Extras() {
 
         const { data: financeiroRecord } = await supabase.from("financeiro").insert(financeiroData).select().single();
 
-        // 4. Gerar fatura no Asaas automaticamente (só na ativação)
-        if (financeiroRecord) {
-          const { AsaasService } = await import("@/lib/asaas-service");
-          
-          try {
-            // Criar cliente no Asaas
-            const asaasCustomer = await AsaasService.getOrCreateCustomer({
-              name: clienteData.nome,
-              email: clienteData.email,
-              cpfCnpj: clienteData.documento || undefined,
-              mobilePhone: (clienteData as any).whatsapp || undefined,
-              externalReference: clienteData.id
-            });
-
-            // Gerar cobrança
-            const payment = await AsaasService.createPayment({
-              customer: asaasCustomer.id,
-              billingType: "UNDEFINED",
-              value: valorTotal,
-              dueDate: financeiroData.vencimento,
-              description: `Extra: ${extraSel.nome} (${extraSel.categoria})`
-            });
-
-            // Atualizar descrição com link do Asaas
-            const novaDescricao = `${financeiroData.descricao} (Asaas: ${payment.invoiceUrl})`;
-            await supabase.from("financeiro").update({ descricao: novaDescricao }).eq("id", financeiroRecord.id);
-
-            toast({ 
-              title: "✅ Extra ativado e fatura gerada!", 
-              description: `Valor: R$ ${valorTotal.toFixed(2)} - Fatura Asaas criada automaticamente` 
-            });
-          } catch (asaasError) {
-            console.error("Erro ao gerar fatura Asaas:", asaasError);
-            toast({ 
-              title: "⚠️ Extra ativado!", 
-              description: "Extra adicionado, mas houve erro ao gerar fatura Asaas. Verifique o financeiro." 
-            });
-          }
-        }
+        // 4. NÃO gerar fatura no Asaas automaticamente - controle manual como no Financeiro
+        toast({ 
+          title: "✅ Extra ativado!", 
+          description: `Valor: R$ ${valorTotal.toFixed(2)} - Fatura criada no Financeiro. Gere cobrança Asaas manualmente.` 
+        });
       }
 
       // 5. Se for recorrente, informar sobre cobranças futuras
@@ -351,45 +317,11 @@ export default function Extras() {
 
       const { data: financeiroRecord } = await supabase.from("financeiro").insert(financeiroData).select().single();
 
-      // 3. Gerar fatura no Asaas automaticamente
-      if (financeiroRecord) {
-        const { AsaasService } = await import("@/lib/asaas-service");
-        
-        try {
-          // Criar cliente no Asaas
-          const asaasCustomer = await AsaasService.getOrCreateCustomer({
-            name: clienteData.nome,
-            email: clienteData.email,
-            cpfCnpj: clienteData.documento || undefined,
-            mobilePhone: (clienteData as any).whatsapp || undefined,
-            externalReference: clienteData.id
-          });
-
-          // Gerar cobrança consolidada
-          const payment = await AsaasService.createPayment({
-            customer: asaasCustomer.id,
-            billingType: "UNDEFINED",
-            value: valorTotal,
-            dueDate: financeiroData.vencimento,
-            description: `Fatura Consolidada - ${extrasDoCliente.length} Extras (${nomes})`
-          });
-
-          // Atualizar descrição com link do Asaas
-          const novaDescricao = `${financeiroData.descricao}\n(Asaas: ${payment.invoiceUrl})`;
-          await supabase.from("financeiro").update({ descricao: novaDescricao }).eq("id", financeiroRecord.id);
-
-          toast({ 
-            title: "✅ Fatura Consolidada Gerada!", 
-            description: `${extrasDoCliente.length} extras - Valor: R$ ${valorTotal.toFixed(2)} - Fatura Asaas criada` 
-          });
-        } catch (asaasError) {
-          console.error("Erro ao gerar fatura Asaas:", asaasError);
-          toast({ 
-            title: "⚠️ Fatura Consolidada Criada!", 
-            description: `${extrasDoCliente.length} extras - Valor: R$ ${valorTotal.toFixed(2)} - Erro ao gerar link Asaas. Verifique o financeiro.` 
-          });
-        }
-      }
+      // 3. NÃO gerar fatura no Asaas automaticamente - controle manual como no Financeiro
+      toast({ 
+        title: "✅ Fatura Consolidada Criada!", 
+        description: `${extrasDoCliente.length} extras - Valor: R$ ${valorTotal.toFixed(2)} - Fatura criada no Financeiro. Gere cobrança Asaas manualmente.` 
+      });
 
       setSaving(false);
       
