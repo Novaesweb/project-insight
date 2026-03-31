@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Users, FileText, ArrowLeft } from "lucide-react";
+import { CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Users, FileText, ArrowLeft, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -15,15 +15,21 @@ interface ClienteRecorrente {
   cliente_id: string;
   cliente_nome: string;
   cliente_email: string;
-  cliente_documento?: string;
-  cliente_telefone?: string;
-  extras: {
-    id: string;
-    nome: string;
-    preco_mensal: number;
-    status: string;
-  }[];
+  extras: { id: string; nome: string; preco_mensal: number; status: string }[];
   totalMensal: number;
+}
+
+const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  pendente: { label: "Pendente", variant: "secondary" },
+  pago_manualmente: { label: "Pago Manual", variant: "default" },
+  pago_asaas: { label: "Pago Asaas", variant: "default" },
+  em_atraso: { label: "Em Atraso", variant: "destructive" },
+};
+
+const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+function formatMes(mes: string) {
+  const [ano, m] = mes.split("-");
+  return `${meses[parseInt(m) - 1]}/${ano}`;
 }
 
 export default function AdminRecurrentExtras() {
@@ -36,595 +42,403 @@ export default function AdminRecurrentExtras() {
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
   const [historico, setHistorico] = useState<any[]>([]);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
-  // Carregar clientes com extras recorrentes
   const loadClientes = useCallback(async () => {
     setLoading(true);
-    
     try {
-      // Buscar extras recorrentes
-      const { data: extras, error: extrasError } = await supabase
+      const { data: extras } = await supabase
         .from("extras_clientes")
         .select("id, cliente_id, preco_mensal, status, extras_catalogo(nome)")
         .gt("preco_mensal", 0)
         .eq("status", "ativo");
 
-      if (extrasError) throw extrasError;
-
-      // Buscar clientes
       const clienteIds = [...new Set(extras?.map(e => e.cliente_id) || [])];
-      if (clienteIds.length === 0) {
-        setClientes([]);
-        setLoading(false);
-        return;
-      }
+      if (clienteIds.length === 0) { setClientes([]); setLoading(false); return; }
 
-      const { data: clientesData, error: clientesError } = await supabase
+      const { data: clientesData } = await supabase
         .from("clientes")
-        .select("id, nome, email, documento, telefone")
+        .select("id, nome, email")
         .in("id", clienteIds);
 
-      if (clientesError) throw clientesError;
-
-      // Agrupar por cliente
-      const clienteMap = new Map(clientesData?.map(c => [c.id, c]) || []);
+      const cMap = new Map(clientesData?.map(c => [c.id, c]) || []);
       const grouped = new Map<string, ClienteRecorrente>();
 
       for (const e of extras || []) {
-        const c = clienteMap.get(e.cliente_id);
+        const c = cMap.get(e.cliente_id);
         if (!c) continue;
-
         if (!grouped.has(e.cliente_id)) {
-          grouped.set(e.cliente_id, {
-            cliente_id: e.cliente_id,
-            cliente_nome: c.nome,
-            cliente_email: c.email,
-            cliente_documento: c.documento,
-            cliente_telefone: c.telefone,
-            extras: [],
-            totalMensal: 0,
-          });
+          grouped.set(e.cliente_id, { cliente_id: e.cliente_id, cliente_nome: c.nome, cliente_email: c.email, extras: [], totalMensal: 0 });
         }
-
-        const grupo = grouped.get(e.cliente_id)!;
-        grupo.extras.push({
-          id: e.id,
-          nome: (e.extras_catalogo as any)?.nome || "Extra",
-          preco_mensal: Number(e.preco_mensal),
-          status: e.status,
-        });
-        grupo.totalMensal += Number(e.preco_mensal);
+        const g = grouped.get(e.cliente_id)!;
+        g.extras.push({ id: e.id, nome: (e.extras_catalogo as any)?.nome || "Extra", preco_mensal: Number(e.preco_mensal), status: e.status });
+        g.totalMensal += Number(e.preco_mensal);
       }
-
       setClientes(Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome)));
     } catch (error) {
-      console.error("Erro ao carregar clientes:", error);
+      console.error("Erro:", error);
       toast({ title: "Erro ao carregar clientes", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
-  // Gerar faturas para clientes selecionados
   const handleGenerateInvoices = async () => {
     if (selectedClientes.size === 0) {
-      toast({ title: "Nenhum cliente selecionado", description: "Selecione pelo menos um cliente para gerar faturas.", variant: "destructive" });
+      toast({ title: "Selecione pelo menos um cliente", variant: "destructive" });
       return;
     }
-
     setGeneratingInvoices(true);
-    
-    try {
-      const mesAtual = new Date().toISOString().slice(0, 7); // "2026-03"
-      const ano = new Date().getFullYear();
-      const mes = new Date().getMonth() + 1;
-      
-      let faturasGeradas = 0;
-      const erros: string[] = [];
+    const mesAtual = new Date().toISOString().slice(0, 7);
+    const ano = new Date().getFullYear();
+    const mes = new Date().getMonth() + 1;
+    let ok = 0, erros = 0;
 
-      for (const clienteId of selectedClientes) {
-        const cliente = clientes.find(c => c.cliente_id === clienteId);
-        if (!cliente) continue;
+    for (const clienteId of selectedClientes) {
+      const cliente = clientes.find(c => c.cliente_id === clienteId);
+      if (!cliente) continue;
+      try {
+        const { data: existing } = await (supabase as any)
+          .from("recurrent_billing_history").select("id").eq("cliente_id", clienteId).eq("mes", mesAtual).single();
+        if (existing) { erros++; continue; }
 
-        try {
-          // Verificar se já existe fatura para este mês
-          const { data: existingInvoice } = await supabase
-            .from("financeiro")
-            .select("*")
-            .eq("cliente_id", clienteId)
-            .eq("descricao", `Cobrança Recorrente — ${mesAtual}`)
-            .single();
+        const descricao = `Cobrança Recorrente — ${formatMes(mesAtual)}\n` +
+          cliente.extras.map(e => `• ${e.nome}: R$ ${Number(e.preco_mensal).toFixed(2)}/mês`).join('\n');
+        const vencimento = new Date(); vencimento.setDate(vencimento.getDate() + 10);
 
-          if (existingInvoice) {
-            erros.push(`${cliente.cliente_nome} - Fatura já existe para ${mesAtual}`);
-            continue;
-          }
+        const { data: fin } = await supabase.from("financeiro").insert({
+          cliente_id: clienteId, tipo: "entrada", valor: cliente.totalMensal, descricao,
+          data: new Date().toISOString().split("T")[0],
+          vencimento: vencimento.toISOString().split("T")[0], status: "pendente",
+        }).select().single();
 
-          // Criar fatura no Financeiro
-          const financeiroData = {
-            cliente_id: clienteId,
-            tipo: "receita",
-            valor: cliente.totalMensal,
-            descricao: `Cobrança Recorrente — ${mesAtual}\n` + 
-              cliente.extras.map(extra => 
-                `• ${extra.nome}: R$ ${Number(extra.preco_mensal).toFixed(2)}/mês`
-              ).join('\n'),
-            data: new Date().toISOString().split("T")[0],
-            vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
-            status: "pendente",
-          };
-          
-          const { data: financeiroRecord } = await supabase
-            .from("financeiro")
-            .insert(financeiroData)
-            .select()
-            .single();
-
-          if (financeiroRecord) {
-            // Criar registro no histórico recorrente
-            await supabase
-              .from("recurrent_billing_history")
-              .insert({
-                cliente_id: clienteId,
-                mes: mesAtual,
-                ano: ano,
-                mes_numero: mes,
-                valor_total: cliente.totalMensal,
-                status: "pendente",
-                forma_pagamento: null,
-                data_pagamento: null,
-                financeiro_id: financeiroRecord.id,
-                asaas_payment_id: null,
-                asaas_invoice_url: null,
-                extras_count: cliente.extras.length,
-                descricao: financeiroData.descricao
-              });
-
-            faturasGeradas++;
-          }
-        } catch (error) {
-          console.error(`Erro ao gerar fatura para ${cliente.cliente_nome}:`, error);
-          erros.push(`${cliente.cliente_nome} - Erro ao gerar fatura`);
+        if (fin) {
+          await (supabase as any).from("recurrent_billing_history").insert({
+            cliente_id: clienteId, mes: mesAtual, ano, mes_numero: mes,
+            valor_total: cliente.totalMensal, status: "pendente",
+            financeiro_id: fin.id, extras_count: cliente.extras.length, descricao,
+          });
+          ok++;
         }
-      }
-
-      // Mensagem de resultado
-      if (faturasGeradas > 0) {
-        toast({ 
-          title: "✅ Faturas geradas!", 
-          description: `${faturasGeradas} faturas criadas com sucesso para ${mesAtual}` 
-        });
-      }
-
-      if (erros.length > 0) {
-        toast({ 
-          title: "⚠️ Alguns erros ocorreram", 
-          description: erros.slice(0, 3).join("\n"), 
-          variant: "destructive" 
-        });
-      }
-
-      // Limpar seleção
-      setSelectedClientes(new Set());
-      
-      // Recarregar dados
-      await loadClientes();
-      
-    } catch (error) {
-      console.error("Erro ao gerar faturas:", error);
-      toast({ 
-        title: "Erro ao gerar faturas", 
-        description: "Não foi possível gerar as faturas selecionadas", 
-        variant: "destructive" 
-      });
-    } finally {
-      setGeneratingInvoices(false);
+      } catch { erros++; }
     }
+
+    setGeneratingInvoices(false);
+    setSelectedClientes(new Set());
+    if (ok > 0) toast({ title: `${ok} fatura(s) gerada(s)!`, description: `Competência: ${formatMes(mesAtual)}` });
+    if (erros > 0) toast({ title: `${erros} já existiam ou falharam`, variant: "destructive" });
+    loadClientes();
   };
 
-  // Carregar histórico de um cliente
   const loadHistorico = async (cliente: ClienteRecorrente) => {
     try {
-      const { data, error } = await supabase
-        .from("recurrent_billing_history")
-        .select("*")
+      const { data } = await (supabase as any)
+        .from("recurrent_billing_history").select("*")
         .eq("cliente_id", cliente.cliente_id)
-        .order("ano", { ascending: false })
-        .order("mes_numero", { ascending: false });
-
-      if (error) throw error;
+        .order("ano", { ascending: false }).order("mes_numero", { ascending: false });
       setHistorico(data || []);
       setSelectedCliente(cliente);
       setShowHistoryDialog(true);
-    } catch (error) {
-      console.error("Erro ao carregar histórico:", error);
+    } catch {
       toast({ title: "Erro ao carregar histórico", variant: "destructive" });
     }
   };
 
-  // Atualizar status de pagamento
   const handleUpdateStatus = async (recordId: string, status: string) => {
+    setUpdatingStatus(recordId);
     try {
       const formaPagamento = status === "pago_manualmente" ? "manual" : status === "pago_asaas" ? "asaas" : null;
       const dataPagamento = status.includes("pago") ? new Date().toISOString().split("T")[0] : null;
 
-      // Atualizar histórico recorrente
-      const { error } = await supabase
-        .from("recurrent_billing_history")
-        .update({
-          status: status,
-          forma_pagamento: formaPagamento,
-          data_pagamento: dataPagamento,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", recordId);
+      await (supabase as any).from("recurrent_billing_history").update({
+        status, forma_pagamento: formaPagamento, data_pagamento: dataPagamento, updated_at: new Date().toISOString(),
+      }).eq("id", recordId);
 
-      if (error) throw error;
-
-      // Atualizar status no financeiro (se vinculado)
       const record = historico.find(r => r.id === recordId);
       if (record?.financeiro_id) {
-        const finStatus = status.includes("pago") ? "pago" : "pendente";
-        await supabase
-          .from("financeiro")
-          .update({ status: finStatus })
-          .eq("id", record.financeiro_id);
+        await supabase.from("financeiro").update({ status: status.includes("pago") ? "pago" : "pendente" }).eq("id", record.financeiro_id);
       }
 
-      // Atualizar estado local
-      setHistorico(prev => prev.map(r =>
-        r.id === recordId ? { ...r, status, forma_pagamento: formaPagamento, data_pagamento: dataPagamento } : r
-      ));
-
-      toast({ title: "Status atualizado!", description: `Status de pagamento atualizado com sucesso.` });
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      toast({ title: "Erro ao atualizar status", variant: "destructive" });
+      setHistorico(prev => prev.map(r => r.id === recordId ? { ...r, status, forma_pagamento: formaPagamento, data_pagamento: dataPagamento } : r));
+      toast({ title: "Status atualizado!" });
+    } catch {
+      toast({ title: "Erro ao atualizar", variant: "destructive" });
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
-  useEffect(() => {
-    loadClientes();
-  }, [loadClientes]);
+  useEffect(() => { loadClientes(); }, [loadClientes]);
 
-  const totalSelecionado = Array.from(selectedClientes).reduce((total, clienteId) => {
-    const cliente = clientes.find(c => c.cliente_id === clienteId);
-    return total + (cliente?.totalMensal || 0);
+  const totalSelecionado = Array.from(selectedClientes).reduce((t, id) => {
+    const c = clientes.find(x => x.cliente_id === id);
+    return t + (c?.totalMensal || 0);
   }, 0);
 
+  const toggleCliente = (id: string) => {
+    setSelectedClientes(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/admin/dashboard")}
-              className="border-white/10 text-white/60 hover:text-white hover:bg-white/5"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Extras Recorrentes</h1>
-              <p className="text-white/60 mt-1">Gerencie cobranças mensais de extras recorrentes</p>
-            </div>
-          </div>
-          <Button
-            onClick={loadClientes}
-            variant="outline"
-            size="sm"
-            className="border-white/10 text-white/60 hover:text-white hover:bg-white/5"
-          >
-            <Clock className="w-4 h-4 mr-2" />
-            Atualizar
+    <motion.div className="space-y-4 sm:space-y-6 p-3 sm:p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      {/* Header */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-        </motion.div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-foreground">Extras Recorrentes</h1>
+            <p className="text-xs text-muted-foreground">Gerencie cobranças mensais dos extras</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={loadClientes} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-1.5" /> Atualizar
+          </Button>
+          <Button
+            onClick={handleGenerateInvoices}
+            disabled={selectedClientes.size === 0 || generatingInvoices}
+            size="sm"
+          >
+            {generatingInvoices ? (
+              <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Gerando...</>
+            ) : (
+              <><FileText className="w-4 h-4 mr-1.5" /> Gerar Faturas ({selectedClientes.size})</>
+            )}
+          </Button>
+        </div>
+      </div>
 
-        {/* Cards de Resumo */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-        >
-          <Card className="bg-slate-800/50 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/60 text-sm">Clientes com Extras</p>
-                  <p className="text-2xl font-bold text-white">{clientes.length}</p>
-                </div>
-                <Users className="w-8 h-8 text-blue-400" />
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        {[
+          { icon: Users, label: "Clientes", value: clientes.length, color: "text-blue-500" },
+          { icon: CheckCircle2, label: "Selecionados", value: selectedClientes.size, color: "text-emerald-500" },
+          { icon: DollarSign, label: "Total", value: `R$ ${Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "text-amber-500" },
+        ].map((s, i) => (
+          <Card key={i}>
+            <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+              <s.icon className={`w-5 h-5 ${s.color} shrink-0`} />
+              <div className="min-w-0">
+                <p className="text-sm sm:text-lg font-bold text-foreground truncate">{s.value}</p>
+                <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase font-bold truncate">{s.label}</p>
               </div>
             </CardContent>
           </Card>
+        ))}
+      </div>
 
-          <Card className="bg-slate-800/50 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/60 text-sm">Selecionados</p>
-                  <p className="text-2xl font-bold text-white">{selectedClientes.size}</p>
-                </div>
-                <CheckCircle2 className="w-8 h-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-slate-800/50 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/60 text-sm">Total a Cobrar</p>
-                  <p className="text-2xl font-bold text-white">
-                    R$ {Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <DollarSign className="w-8 h-8 text-yellow-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Lista de Clientes */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="bg-slate-800/50 border-white/10 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-white">Clientes com Extras Recorrentes</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => {
-                    if (selectedClientes.size === clientes.length) {
-                      setSelectedClientes(new Set());
-                    } else {
-                      setSelectedClientes(new Set(clientes.map(c => c.cliente_id)));
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+      {/* Lista de clientes */}
+      <Card>
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardTitle className="text-xs sm:text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-primary" /> Clientes Recorrentes
+          </CardTitle>
+          <Button
+            variant="ghost" size="sm"
+            onClick={() => {
+              if (selectedClientes.size === clientes.length) setSelectedClientes(new Set());
+              else setSelectedClientes(new Set(clientes.map(c => c.cliente_id)));
+            }}
+            className="text-xs text-muted-foreground"
+          >
+            {selectedClientes.size === clientes.length ? "Desmarcar" : "Marcar todos"}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="py-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" /></div>
+          ) : clientes.length === 0 ? (
+            <div className="py-12 text-center">
+              <AlertCircle className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">Nenhum cliente com extras recorrentes</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {clientes.map((c) => (
+                <div
+                  key={c.cliente_id}
+                  className={`p-3 sm:p-4 rounded-lg border transition-all cursor-pointer ${
+                    selectedClientes.has(c.cliente_id) ? "bg-primary/5 border-primary/30" : "bg-secondary/30 border-border hover:bg-secondary/60"
+                  }`}
+                  onClick={() => toggleCliente(c.cliente_id)}
                 >
-                  {selectedClientes.size === clientes.length ? "Desmarcar Todos" : "Marcar Todos"}
-                </Button>
-                <Button
-                  onClick={handleGenerateInvoices}
-                  disabled={selectedClientes.size === 0 || generatingInvoices}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {generatingInvoices ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
-                      Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Gerar Faturas
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Clock className="w-6 h-6 animate-spin text-white/60" />
-                </div>
-              ) : clientes.length === 0 ? (
-                <div className="text-center py-12">
-                  <AlertCircle className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                  <p className="text-white/60">Nenhum cliente com extras recorrentes encontrado.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {clientes.map((cliente) => (
-                    <div
-                      key={cliente.cliente_id}
-                      className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                        selectedClientes.has(cliente.cliente_id)
-                          ? "bg-blue-500/10 border-blue-500/30"
-                          : "bg-slate-700/30 border-white/5 hover:bg-slate-700/50"
-                      }`}
-                      onClick={() => {
-                        const newSelected = new Set(selectedClientes);
-                        if (newSelected.has(cliente.cliente_id)) {
-                          newSelected.delete(cliente.cliente_id);
-                        } else {
-                          newSelected.add(cliente.cliente_id);
-                        }
-                        setSelectedClientes(newSelected);
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <Checkbox
-                            checked={selectedClientes.has(cliente.cliente_id)}
-                            onChange={() => {}}
-                            className="border-white/20"
-                          />
-                          <div>
-                            <h3 className="text-white font-medium">{cliente.cliente_nome}</h3>
-                            <p className="text-white/60 text-sm">{cliente.cliente_email}</p>
-                          </div>
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedClientes.has(c.cliente_id)}
+                      onCheckedChange={() => toggleCliente(c.cliente_id)}
+                      className="mt-0.5 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-bold text-foreground truncate">{c.cliente_nome}</h3>
+                          <p className="text-[10px] text-muted-foreground truncate">{c.cliente_email}</p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                           <div className="text-right">
-                            <p className="text-white font-medium">
-                              R$ {cliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            <p className="text-sm font-bold text-foreground">
+                              R$ {c.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </p>
-                            <p className="text-white/60 text-sm">{cliente.extras.length} extras</p>
+                            <p className="text-[10px] text-muted-foreground">{c.extras.length} extras</p>
                           </div>
                           <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              loadHistorico(cliente);
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+                            size="sm" variant="outline" className="h-7 text-xs shrink-0"
+                            onClick={(e) => { e.stopPropagation(); loadHistorico(c); }}
                           >
-                            <CalendarDays className="w-4 h-4 mr-2" />
-                            Histórico
+                            <CalendarDays className="w-3 h-3 mr-1" /> Meses
                           </Button>
                         </div>
                       </div>
+                      {/* Extras tags */}
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {c.extras.map(e => (
+                          <span key={e.id} className="text-[9px] border border-border rounded-full px-1.5 py-0.5 text-muted-foreground">
+                            {e.nome} • R$ {e.preco_mensal.toFixed(2)}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Dialog de Histórico */}
-        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-foreground flex items-center gap-2">
-                <CalendarDays className="w-5 h-5" />
-                Histórico — {selectedCliente?.cliente_nome}
-              </DialogTitle>
-            </DialogHeader>
-
-            {selectedCliente && (
-              <div className="space-y-4">
-                {/* Resumo */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-lg bg-secondary">
-                    <p className="text-xs text-muted-foreground">Valor Mensal</p>
-                    <p className="text-lg font-bold text-foreground">
-                      R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-secondary">
-                    <p className="text-xs text-muted-foreground">Extras Ativos</p>
-                    <p className="text-lg font-bold text-foreground">{selectedCliente.extras.length}</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-secondary col-span-2 md:col-span-1">
-                    <p className="text-xs text-muted-foreground">Meses Registrados</p>
-                    <p className="text-lg font-bold text-foreground">{historico.length}</p>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-                {/* Extras */}
-                <div className="flex flex-wrap gap-2">
-                  {selectedCliente.extras.map(e => (
-                    <span key={e.id} className="inline-flex items-center text-xs border rounded-full px-2 py-0.5 border-border text-muted-foreground">
-                      {e.nome} — R$ {e.preco_mensal.toFixed(2)}/mês
-                    </span>
-                  ))}
+      {/* Dialog Histórico Mensal */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2 text-sm sm:text-base">
+              <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
+              Histórico — {selectedCliente?.cliente_nome}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedCliente && (
+            <div className="space-y-4">
+              {/* Resumo */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-2 sm:p-3 rounded-lg bg-secondary">
+                  <p className="text-[9px] sm:text-xs text-muted-foreground">Valor/mês</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground">
+                    R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
                 </div>
+                <div className="p-2 sm:p-3 rounded-lg bg-secondary">
+                  <p className="text-[9px] sm:text-xs text-muted-foreground">Extras</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground">{selectedCliente.extras.length}</p>
+                </div>
+                <div className="p-2 sm:p-3 rounded-lg bg-secondary">
+                  <p className="text-[9px] sm:text-xs text-muted-foreground">Meses</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground">{historico.length}</p>
+                </div>
+              </div>
 
-                {/* Tabela de meses */}
+              {/* Tabela — Mobile: cards, Desktop: table */}
+              <div className="hidden sm:block">
                 <Card>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Mês</TableHead>
-                            <TableHead>Valor</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Forma Pagamento</TableHead>
-                            <TableHead>Data Pagamento</TableHead>
-                            <TableHead>Ações</TableHead>
+                            <TableHead className="text-xs">Mês</TableHead>
+                            <TableHead className="text-xs">Valor</TableHead>
+                            <TableHead className="text-xs">Status</TableHead>
+                            <TableHead className="text-xs">Pagamento</TableHead>
+                            <TableHead className="text-xs">Data</TableHead>
+                            <TableHead className="text-xs text-right">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {historico.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center py-8">
-                                <p className="text-muted-foreground">Nenhum histórico encontrado.</p>
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs">
+                                Nenhum histórico. Gere faturas primeiro.
                               </TableCell>
                             </TableRow>
-                          ) : (
-                            historico.map((record) => {
-                              const statusDisplay = {
-                                pendente: { label: "Pendente", variant: "secondary" as const },
-                                pago_manualmente: { label: "Pago Manualmente", variant: "default" as const },
-                                pago_asaas: { label: "Pago pelo Asaas", variant: "default" as const },
-                                em_atraso: { label: "Em Atraso", variant: "destructive" as const },
-                              }[record.status] || { label: "Pendente", variant: "secondary" as const };
-
-                              return (
-                                <TableRow key={record.id}>
-                                  <TableCell className="font-medium">
-                                    {record.mes.replace('-', '/')}
-                                  </TableCell>
-                                  <TableCell>
-                                    R$ {record.valor_total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge variant={statusDisplay.variant}>
-                                      {statusDisplay.label}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-muted-foreground text-sm">
-                                    {record.forma_pagamento === 'asaas' ? 'Asaas' : 
-                                     record.forma_pagamento === 'manual' ? 'Manual' : '-'}
-                                  </TableCell>
-                                  <TableCell className="text-muted-foreground text-sm">
-                                    {record.data_pagamento ? new Date(record.data_pagamento).toLocaleDateString('pt-BR') : '-'}
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      {record.status === 'pendente' && (
-                                        <>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => handleUpdateStatus(record.id, 'pago_manualmente')}
-                                            className="text-xs"
-                                          >
-                                            Manual
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => handleUpdateStatus(record.id, 'pago_asaas')}
-                                            className="text-xs"
-                                          >
-                                            Asaas
-                                          </Button>
-                                        </>
-                                      )}
-                                      {record.asaas_invoice_url && (
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => window.open(record.asaas_invoice_url, '_blank')}
-                                          className="text-xs"
-                                        >
-                                          Ver Fatura
-                                        </Button>
-                                      )}
+                          ) : historico.map((r) => {
+                            const st = statusMap[r.status] || statusMap.pendente;
+                            return (
+                              <TableRow key={r.id}>
+                                <TableCell className="font-medium text-foreground text-sm">{formatMes(r.mes)}</TableCell>
+                                <TableCell className="text-foreground text-sm">R$ {Number(r.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                                <TableCell><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
+                                <TableCell className="text-muted-foreground text-xs">{r.forma_pagamento === "asaas" ? "Asaas" : r.forma_pagamento === "manual" ? "Manual" : "—"}</TableCell>
+                                <TableCell className="text-muted-foreground text-xs">{r.data_pagamento ? new Date(r.data_pagamento).toLocaleDateString("pt-BR") : "—"}</TableCell>
+                                <TableCell className="text-right">
+                                  {r.status === "pendente" && (
+                                    <div className="flex gap-1 justify-end">
+                                      <Button size="sm" variant="outline" className="text-xs h-7" disabled={updatingStatus === r.id}
+                                        onClick={() => handleUpdateStatus(r.id, "pago_manualmente")}>
+                                        {updatingStatus === r.id ? "..." : "Manual"}
+                                      </Button>
+                                      <Button size="sm" variant="outline" className="text-xs h-7" disabled={updatingStatus === r.id}
+                                        onClick={() => handleUpdateStatus(r.id, "pago_asaas")}>
+                                        {updatingStatus === r.id ? "..." : "Asaas"}
+                                      </Button>
                                     </div>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })
-                          )}
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
+
+              {/* Mobile: Cards */}
+              <div className="sm:hidden space-y-2">
+                {historico.length === 0 ? (
+                  <p className="text-center text-xs text-muted-foreground py-6">Nenhum histórico. Gere faturas primeiro.</p>
+                ) : historico.map((r) => {
+                  const st = statusMap[r.status] || statusMap.pendente;
+                  return (
+                    <Card key={r.id}>
+                      <CardContent className="p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-foreground">{formatMes(r.mes)}</span>
+                          <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>R$ {Number(r.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                          <span>{r.forma_pagamento === "asaas" ? "Asaas" : r.forma_pagamento === "manual" ? "Manual" : "—"}</span>
+                        </div>
+                        {r.data_pagamento && (
+                          <p className="text-[10px] text-muted-foreground">Pago em: {new Date(r.data_pagamento).toLocaleDateString("pt-BR")}</p>
+                        )}
+                        {r.status === "pendente" && (
+                          <div className="flex gap-2 pt-1">
+                            <Button size="sm" variant="outline" className="flex-1 text-xs h-8" disabled={updatingStatus === r.id}
+                              onClick={() => handleUpdateStatus(r.id, "pago_manualmente")}>
+                              {updatingStatus === r.id ? "..." : "Pago Manual"}
+                            </Button>
+                            <Button size="sm" variant="outline" className="flex-1 text-xs h-8" disabled={updatingStatus === r.id}
+                              onClick={() => handleUpdateStatus(r.id, "pago_asaas")}>
+                              {updatingStatus === r.id ? "..." : "Pago Asaas"}
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </motion.div>
   );
 }
