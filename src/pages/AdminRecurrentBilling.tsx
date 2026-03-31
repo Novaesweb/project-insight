@@ -1,281 +1,298 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, DollarSign, TrendingUp, AlertTriangle, CheckCircle2, Play, RefreshCw } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table";
+import {
+  DollarSign, TrendingUp, CheckCircle2, RefreshCw, Users, FileText, Loader2
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { RecurrentBillingService } from "@/lib/recurrent-billing";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-interface LogSistema {
-  id: string;
-  acao: string;
-  descricao: string;
-  usuario_id: string;
-  created_at: string;
-}
-
-interface Financeiro {
-  id: string;
-  valor: number;
-  descricao: string;
-  tipo: string;
-  vencimento: string;
-  status: string;
-  clientes: {
+interface ClienteRecorrente {
+  cliente_id: string;
+  cliente_nome: string;
+  cliente_email: string;
+  extras: {
+    id: string;
     nome: string;
-  };
+    preco_mensal: number;
+    status: string;
+  }[];
+  totalMensal: number;
 }
 
 export default function AdminRecurrentBilling() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [lastExecution, setLastExecution] = useState<string | null>(null);
-  const [upcomingBills, setUpcomingBills] = useState<Financeiro[]>([]);
-  const [stats, setStats] = useState({
-    totalClientes: 0,
-    totalMensalidades: 0,
-    proximasCobrancas: 0
-  });
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    loadData();
+  const loadData = useCallback(async () => {
+    setLoading(true);
+
+    // Buscar extras recorrentes (preco_mensal > 0 e status ativo)
+    const { data: extras } = await supabase
+      .from("extras_clientes")
+      .select("id, cliente_id, preco_mensal, status, extras_catalogo(nome)")
+      .gt("preco_mensal", 0)
+      .eq("status", "ativo");
+
+    if (!extras || extras.length === 0) {
+      setClientes([]);
+      setLoading(false);
+      return;
+    }
+
+    // Buscar nomes dos clientes
+    const clienteIds = [...new Set(extras.map(e => e.cliente_id))];
+    const { data: clientesData } = await supabase
+      .from("clientes")
+      .select("id, nome, email")
+      .in("id", clienteIds);
+
+    const clienteMap = new Map(clientesData?.map(c => [c.id, c]) || []);
+
+    // Agrupar por cliente
+    const grouped = new Map<string, ClienteRecorrente>();
+    for (const e of extras) {
+      const c = clienteMap.get(e.cliente_id);
+      if (!c) continue;
+
+      if (!grouped.has(e.cliente_id)) {
+        grouped.set(e.cliente_id, {
+          cliente_id: e.cliente_id,
+          cliente_nome: c.nome,
+          cliente_email: c.email,
+          extras: [],
+          totalMensal: 0,
+        });
+      }
+      const grupo = grouped.get(e.cliente_id)!;
+      grupo.extras.push({
+        id: e.id,
+        nome: (e.extras_catalogo as any)?.nome || "Extra",
+        preco_mensal: Number(e.preco_mensal),
+        status: e.status,
+      });
+      grupo.totalMensal += Number(e.preco_mensal);
+    }
+
+    setClientes(Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome)));
+    setLoading(false);
   }, []);
 
-  const loadData = async () => {
-    try {
-      const upcoming = await RecurrentBillingService.getUpcomingBills(15);
-      setUpcomingBills(upcoming);
+  useEffect(() => { loadData(); }, [loadData]);
 
-      const { data: clientes } = await supabase
-        .from("extras_clientes")
-        .select("cliente_id")
-        .eq("status", "ativo")
-        .in("categoria", ["mensal", "intermediario"])
-        .gt("preco_mensal", 0);
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-      const { data: financeiro } = await supabase
-        .from("financeiro")
-        .select("valor")
-        .like("descricao", "%RECURRENTE%")
-        .eq("tipo", "entrada");
-
-      const totalMensalidades = financeiro?.reduce((acc, f) => acc + Number(f.valor || 0), 0) || 0;
-
-      setStats({
-        totalClientes: new Set(clientes?.map(c => c.cliente_id)).size || 0,
-        totalMensalidades: totalMensalidades,
-        proximasCobrancas: upcoming.length
-      });
-
-      const { data: lastExec } = await (supabase
-        .from("financeiro") as any)
-        .select("created_at")
-        .like("descricao", "%RECURRENTE%")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      setLastExecution(lastExec?.created_at || null);
-
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+  const toggleAll = () => {
+    if (selected.size === clientes.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(clientes.map(c => c.cliente_id)));
     }
   };
 
-  const handleGenerateRecurrentBills = async () => {
-    setLoading(true);
-    
-    try {
-      await RecurrentBillingService.generateMonthlyRecurrentBills();
-      
-      // Log de execução (usando tabela existente)
-      await (supabase.from("notificacoes") as any).insert({
-        titulo: "GERACAO_COBRANCAS_RECURRENTES",
-        descricao: "Geração automática de cobranças recorrentes mensais",
-        tipo: "sistema"
-      });
-
-      toast({ 
-        title: "✅ Cobranças Recorrentes Geradas!", 
-        description: "Todas as mensalidades foram processadas com sucesso." 
-      });
-      
-      await loadData();
-      
-    } catch (error) {
-      console.error("Erro ao gerar cobranças recorrentes:", error);
-      toast({ 
-        title: "❌ Erro na Geração", 
-        description: "Não foi possível gerar as cobranças recorrentes.", 
-        variant: "destructive" 
-      });
-    } finally {
-      setLoading(false);
+  const handleGenerateBills = async () => {
+    if (selected.size === 0) {
+      toast({ title: "Selecione ao menos um cliente", variant: "destructive" });
+      return;
     }
+
+    setGenerating(true);
+    const mesAtual = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const clienteId of selected) {
+      const cliente = clientes.find(c => c.cliente_id === clienteId);
+      if (!cliente) continue;
+
+      // Gerar uma fatura por extra recorrente do cliente
+      for (const extra of cliente.extras) {
+        const { error } = await supabase.from("financeiro").insert({
+          cliente_id: clienteId,
+          tipo: "receita",
+          valor: extra.preco_mensal,
+          descricao: `Mensalidade: ${extra.nome} — ${mesAtual}`,
+          data: new Date().toISOString().split("T")[0],
+          vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
+          status: "pendente",
+        });
+
+        if (error) {
+          errorCount++;
+          console.error("Erro ao gerar fatura:", error.message);
+        } else {
+          successCount++;
+        }
+      }
+    }
+
+    setGenerating(false);
+
+    if (errorCount > 0) {
+      toast({ title: `${successCount} faturas geradas, ${errorCount} erros`, variant: "destructive" });
+    } else {
+      toast({ title: `${successCount} faturas geradas com sucesso!`, description: `Para ${selected.size} cliente(s) selecionado(s).` });
+    }
+
+    setSelected(new Set());
   };
 
-   return (
-    <motion.div 
-      className="space-y-6 p-3 sm:p-6" 
-      initial="hidden" 
-      animate="show" 
-      variants={fadeUp}
-    >
+  const totalGeralMensal = clientes.reduce((acc, c) => acc + c.totalMensal, 0);
+  const totalSelecionado = clientes.filter(c => selected.has(c.cliente_id)).reduce((acc, c) => acc + c.totalMensal, 0);
+
+  return (
+    <motion.div className="space-y-6 p-3 sm:p-6" initial="hidden" animate="show" variants={fadeUp}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Cobranças Recorrentes</h1>
-          <p className="text-sm text-white/60">Gerenciamento de faturamento mensal automático</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Cobranças Recorrentes</h1>
+          <p className="text-xs text-white/50">Selecione os clientes e gere as faturas manualmente</p>
         </div>
-        
-        <Button 
-          onClick={handleGenerateRecurrentBills}
-          disabled={loading}
+
+        <Button
+          onClick={handleGenerateBills}
+          disabled={generating || selected.size === 0}
           className="gradient-primary border-0 text-white"
         >
-          {loading ? (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Processando...
-            </>
+          {generating ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
           ) : (
-            <>
-              <Play className="w-4 h-4 mr-2" />
-              Gerar Cobranças do Mês
-            </>
+            <><FileText className="w-4 h-4 mr-2" /> Gerar Cobranças ({selected.size})</>
           )}
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 text-center">
-            <div className="p-2 rounded-lg bg-emerald-500/10 w-fit mx-auto mb-2">
-              <TrendingUp className="w-6 h-6 text-emerald-400" />
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-5 h-5 text-emerald-400" /></div>
+            <div>
+              <p className="text-xl font-black text-white">{clientes.length}</p>
+              <p className="text-[10px] text-white/50 uppercase font-bold">Clientes Recorrentes</p>
             </div>
-            <p className="text-2xl font-bold text-white">{stats.totalClientes}</p>
-            <p className="text-sm text-white/60">Clientes com Mensalidades</p>
           </CardContent>
         </Card>
-
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 text-center">
-            <div className="p-2 rounded-lg bg-blue-500/10 w-fit mx-auto mb-2">
-              <DollarSign className="w-6 h-6 text-blue-400" />
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-500/10"><TrendingUp className="w-5 h-5 text-blue-400" /></div>
+            <div>
+              <p className="text-xl font-black text-white">R$ {totalGeralMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+              <p className="text-[10px] text-white/50 uppercase font-bold">Total Mensal</p>
             </div>
-            <p className="text-2xl font-bold text-white">
-              R$ {stats.totalMensalidades.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-sm text-white/60">Receita Mensal Total</p>
           </CardContent>
         </Card>
-
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 text-center">
-            <div className="p-2 rounded-lg bg-amber-500/10 w-fit mx-auto mb-2">
-              <CalendarDays className="w-6 h-6 text-amber-400" />
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/10"><DollarSign className="w-5 h-5 text-amber-400" /></div>
+            <div>
+              <p className="text-xl font-black text-white">R$ {totalSelecionado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+              <p className="text-[10px] text-white/50 uppercase font-bold">Selecionado p/ Cobrança</p>
             </div>
-            <p className="text-2xl font-bold text-white">{stats.proximasCobrancas}</p>
-            <p className="text-sm text-white/60">Cobranças Próximas (15 dias)</p>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-4 text-center">
-            <div className="p-2 rounded-lg bg-purple-500/10 w-fit mx-auto mb-2">
-              <CheckCircle2 className="w-6 h-6 text-purple-400" />
-            </div>
-            <p className="text-sm font-bold text-white">
-              {lastExecution 
-                ? new Date(lastExecution).toLocaleDateString("pt-BR")
-                : "Nunca executado"
-              }
-            </p>
-            <p className="text-sm text-white/60">Última Execução</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Tabela de clientes recorrentes */}
       <Card className="glass-card border-[0.5px]">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-amber-400" />
-            Próximas Cobranças Recorrentes
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-primary" /> Clientes com Extras Recorrentes
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          {upcomingBills.length === 0 ? (
-            <div className="text-center py-8">
-              <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-4" />
-              <p className="text-white/60">Nenhuma cobrança recorrente próxima nos próximos 15 dias</p>
+        <CardContent className="overflow-x-auto">
+          {loading ? (
+            <div className="text-center py-10 text-white/40 text-xs">Carregando...</div>
+          ) : clientes.length === 0 ? (
+            <div className="text-center py-10">
+              <CheckCircle2 className="w-10 h-10 text-white/10 mx-auto mb-3" />
+              <p className="text-xs text-white/30">Nenhum cliente com extras recorrentes ativos</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {upcomingBills.map((bill) => (
-                <div key={bill.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-                  <div className="flex-1">
-                    <p className="text-white font-medium">{bill.clientes.nome}</p>
-                    <p className="text-sm text-white/60">
-                      Vencimento: {new Date(bill.vencimento).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-amber-400">
-                      R$ {Number(bill.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </p>
-                    <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-400">
-                      {new Date(bill.vencimento) <= new Date() ? "Vencida" : "A Vencer"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table className="min-w-[500px]">
+              <TableHeader>
+                <TableRow className="border-white/5">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={selected.size === clientes.length && clientes.length > 0}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
+                  <TableHead className="text-[10px] text-white/50 uppercase">Cliente</TableHead>
+                  <TableHead className="text-[10px] text-white/50 uppercase">Extras</TableHead>
+                  <TableHead className="text-[10px] text-white/50 uppercase text-right">Valor Mensal</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {clientes.map((c) => (
+                  <TableRow
+                    key={c.cliente_id}
+                    className={`border-white/5 cursor-pointer transition-colors ${selected.has(c.cliente_id) ? 'bg-primary/5' : 'hover:bg-white/[0.02]'}`}
+                    onClick={() => toggleSelect(c.cliente_id)}
+                  >
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selected.has(c.cliente_id)}
+                        onCheckedChange={() => toggleSelect(c.cliente_id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm font-bold text-white">{c.cliente_nome}</p>
+                      <p className="text-[10px] text-white/30">{c.cliente_email}</p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {c.extras.map((e) => (
+                          <span key={e.id} className="inline-flex items-center text-[9px] border border-blue-400/20 text-blue-400 bg-blue-400/5 rounded-full px-2 py-0.5">
+                            {e.nome}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-sm font-bold text-white">
+                        R$ {c.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
+      {/* Instruções */}
       <Card className="glass-card border-[0.5px]">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-blue-400" />
-            Como Funciona
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5" />
-            <div>
-              <p className="text-white font-medium">Geração Automática</p>
-              <p className="text-sm text-white/60">Clique no botão para gerar todas as cobranças mensais do mês atual</p>
+        <CardContent className="p-4 space-y-2">
+          <h3 className="text-xs font-black text-white uppercase tracking-wider mb-3">Como funciona</h3>
+          {[
+            { color: "bg-emerald-400", text: "Selecione os clientes que deseja cobrar este mês" },
+            { color: "bg-blue-400", text: "Clique em 'Gerar Cobranças' — as faturas vão para o Financeiro como pendentes" },
+            { color: "bg-amber-400", text: "Nenhuma cobrança é gerada automaticamente — você tem controle total" },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className={`w-1.5 h-1.5 rounded-full ${item.color} shrink-0`} />
+              <p className="text-[11px] text-white/50">{item.text}</p>
             </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5" />
-            <div>
-              <p className="text-white font-medium">Faturas Recorrentes</p>
-              <p className="text-sm text-white/60">Sistema cria faturas automáticas para clientes com extras mensais</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5" />
-            <div>
-              <p className="text-white font-medium">Integração Asaas</p>
-              <p className="text-sm text-white/60">Links de pagamento gerados automaticamente no Asaas</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 rounded-full bg-purple-400 mt-1.5" />
-            <div>
-              <p className="text-white font-medium">Controle de Duplicidade</p>
-              <p className="text-sm text-white/60">Sistema evita gerar faturas duplicadas para o mesmo mês</p>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
     </motion.div>
