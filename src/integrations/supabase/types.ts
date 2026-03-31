@@ -1053,6 +1053,7 @@ export type Database = {
           status: string
           updated_at: string | null
           valor_total: number
+          vencimento: string | null
         }
         Insert: {
           ano: number
@@ -1071,6 +1072,7 @@ export type Database = {
           status: string
           updated_at?: string | null
           valor_total: number
+          vencimento?: string | null
         }
         Update: {
           ano?: number
@@ -1089,6 +1091,7 @@ export type Database = {
           status?: string
           updated_at?: string | null
           valor_total?: number
+          vencimento?: string | null
         }
         Relationships: [
           {
