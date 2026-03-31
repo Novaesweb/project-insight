@@ -100,13 +100,17 @@ export default function Financeiro() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
-    const { error } = await supabase.from("financeiro").delete().eq("id", id);
-    setDeletingId(null);
-    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Lançamento excluído!" });
-    load();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
+
+  const handleDelete = (id: string) => {
+    requestDelete(async () => {
+      setDeletingId(id);
+      const { error } = await supabase.from("financeiro").delete().eq("id", id);
+      setDeletingId(null);
+      if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Lançamento excluído!" });
+      load();
+    }, "Excluir Lançamento", "Este lançamento será removido permanentemente.");
   };
 
   const handleExport = async (f: any, type: "pdf" | "word" | "csv") => {
