@@ -64,6 +64,11 @@ CREATE POLICY "Read access" ON public.recurrent_billing_history
 - O painel admin deve funcionar
 - O histórico de cobranças recorrentes estará disponível
 
+### 5. Atualizar o Código (IMPORTANTE!)
+- Depois de criar a tabela, remova o código temporário do `AdminRecurrentHistory.tsx`
+- Substitua `TempHistory` por `RecurrentBillingHistory` importado do `recurrent-billing-history.ts`
+- Descomente a linha: `// import { RecurrentBillingHistory, RecurrentBillingHistoryService } from "@/lib/recurrent-billing-history";`
+
 ## Importante
 - Execute isso URGENTEMENTE no Supabase
 - Sem isso, o painel admin continuará com tela preta
