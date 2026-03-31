@@ -473,7 +473,7 @@ export default function AdminRecurrentExtras() {
             { color: "bg-blue-500", text: `Extras adicionados após o dia ${DIA_CORTE} vão para o mês seguinte` },
             { color: "bg-emerald-500", text: "Selecione clientes → Gerar Fatura → escolha mês e vencimento" },
             { color: "bg-amber-500", text: "A fatura fica como RASCUNHO até você clicar 'Enviar ao Financeiro'" },
-            { color: "bg-purple-500", text: "Ao enviar, cria lançamento no Financeiro e gera cobrança no Asaas" },
+            { color: "bg-purple-500", text: "O Asaas é acionado automaticamente 3 dias antes do vencimento" },
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <div className={`w-1.5 h-1.5 rounded-full ${item.color} shrink-0 mt-1.5`} />
