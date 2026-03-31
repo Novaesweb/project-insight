@@ -76,7 +76,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
-  const { requestDelete, dialogProps: detailDeleteProps } = useDeleteConfirm();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);
   const [projetos, setProjetos] = useState<any[]>([]);
@@ -89,20 +89,32 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
 
   const loadData = useCallback(async () => {
     try {
-      const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+      console.log("Carregando dados do cliente:", clienteId);
+      
+      const { data: c, error: errorCliente } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+      if (errorCliente) {
+        console.error("Erro ao carregar cliente:", errorCliente);
+        throw errorCliente;
+      }
       if (c) setCliente(c);
 
-      const { data: e } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
+      const { data: e, error: errorExtras } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
+      if (errorExtras) console.error("Erro ao carregar extras:", errorExtras);
       if (e) setExtras(e);
 
-      const { data: p } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+      const { data: p, error: errorProjetos } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+      if (errorProjetos) console.error("Erro ao carregar projetos:", errorProjetos);
       if (p) setProjetos(p);
 
-      const { data: ped } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+      const { data: ped, error: errorPedidos } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+      if (errorPedidos) console.error("Erro ao carregar pedidos:", errorPedidos);
       if (ped) setPedidos(ped);
 
-      const { data: cat } = await supabase.from("extras_catalogo").select("*");
+      const { data: cat, error: errorCatalogo } = await supabase.from("extras_catalogo").select("*");
+      if (errorCatalogo) console.error("Erro ao carregar catálogo:", errorCatalogo);
       if (cat) setCatalogo(cat);
+      
+      console.log("Dados carregados com sucesso");
     } catch (error) {
       console.error("Erro ao carregar dados do cliente:", error);
       toast({ 
@@ -602,13 +614,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           </div>
         </DialogContent>
       </Dialog>
-      <DeleteConfirmDialog {...detailDeleteProps} />
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }
 
 export default function Clientes() {
   const { toast } = useToast();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
   const location = useLocation();
   const [clientes, setClientes] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
@@ -732,8 +745,6 @@ export default function Clientes() {
     window.open("/cliente/dashboard", "_blank");
     toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
   };
-
-  const { requestDelete, dialogProps } = useDeleteConfirm();
 
   const handleDeleteCliente = (id: string) => {
     requestDelete(async () => {
