@@ -97,7 +97,8 @@ export default function Leads() {
         fetchLeads();
       } else {
         toast({ title: "Erro ao limpar base", description: error.message, variant: "destructive" });
-    }
+      }
+    }, "Limpar toda a base de Leads", "ATENÇÃO: Todos os leads serão removidos permanentemente.");
   };
 
   const handleConvert = async () => {
