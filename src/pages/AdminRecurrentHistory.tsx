@@ -164,7 +164,7 @@ export default function AdminRecurrentHistory() {
     <motion.div className="space-y-6 p-3 sm:p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/admin/recurrent-billing")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/recurrent-billing")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
