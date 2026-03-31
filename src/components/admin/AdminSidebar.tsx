@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, ShieldCheck,
+  LogOut, Puzzle, ShieldCheck,
   ChevronLeft, ChevronRight, Sparkles, TrendingUp
 } from "lucide-react";
 import { useLeadCount } from "@/hooks/useLeadCount";
