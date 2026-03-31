@@ -270,51 +270,22 @@ export default function AdminRecurrentExtras() {
 
       if (finErr || !fin) throw finErr;
 
-      // 2. Atualizar recurrent_billing_history
+      // 2. Atualizar recurrent_billing_history (sem enviar ao Asaas — isso é automático 3 dias antes do vencimento)
       await (supabase as any).from("recurrent_billing_history").update({
         status: "pendente",
         financeiro_id: fin.id,
+        vencimento: venc,
         updated_at: new Date().toISOString(),
       }).eq("id", fatura.id);
-
-      // 3. Tentar gerar no Asaas via Edge Function
-      let asaasUrl: string | null = null;
-      let asaasPaymentId: string | null = null;
-      try {
-        const { data: asaasResult } = await supabase.functions.invoke("asaas-api", {
-          body: {
-            action: "create_payment",
-            cliente_id: fatura.cliente_id,
-            nome: selectedCliente.cliente_nome,
-            email: selectedCliente.cliente_email,
-            documento: selectedCliente.cliente_documento,
-            telefone: selectedCliente.cliente_telefone,
-            valor: fatura.valor_total,
-            vencimento: venc,
-            descricao: `Recorrente ${formatMes(fatura.mes)} — ${fatura.extras_count} extras`,
-          },
-        });
-        if (asaasResult?.invoiceUrl) {
-          asaasUrl = asaasResult.invoiceUrl;
-          asaasPaymentId = asaasResult.id;
-          await (supabase as any).from("recurrent_billing_history").update({
-            asaas_invoice_url: asaasUrl,
-            asaas_payment_id: asaasPaymentId,
-          }).eq("id", fatura.id);
-        }
-      } catch (asaasErr) {
-        console.warn("Asaas não disponível, fatura criada apenas no financeiro:", asaasErr);
-      }
 
       // Update local state
       setFaturasMes(prev => prev.map(f => f.id === fatura.id ? {
         ...f, status: "pendente", financeiro_id: fin.id,
-        asaas_invoice_url: asaasUrl ?? undefined, asaas_payment_id: asaasPaymentId ?? undefined,
       } : f));
 
       toast({
         title: "Enviado para o Financeiro!",
-        description: asaasUrl ? "Cobrança Asaas gerada com sucesso" : "Fatura criada no financeiro",
+        description: "Fatura criada. O Asaas será acionado automaticamente 3 dias antes do vencimento.",
       });
     } catch (err: any) {
       console.error("Erro ao enviar:", err);
@@ -502,7 +473,7 @@ export default function AdminRecurrentExtras() {
             { color: "bg-blue-500", text: `Extras adicionados após o dia ${DIA_CORTE} vão para o mês seguinte` },
             { color: "bg-emerald-500", text: "Selecione clientes → Gerar Fatura → escolha mês e vencimento" },
             { color: "bg-amber-500", text: "A fatura fica como RASCUNHO até você clicar 'Enviar ao Financeiro'" },
-            { color: "bg-purple-500", text: "Ao enviar, cria lançamento no Financeiro e gera cobrança no Asaas" },
+            { color: "bg-purple-500", text: "O Asaas é acionado automaticamente 3 dias antes do vencimento" },
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <div className={`w-1.5 h-1.5 rounded-full ${item.color} shrink-0 mt-1.5`} />
