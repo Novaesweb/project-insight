@@ -337,7 +337,7 @@ export default function Financeiro() {
                             )}
                             <DropdownMenuSeparator className="bg-white/5" />
                             <DropdownMenuItem
-                              onClick={() => { if (confirm("Excluir este lançamento?")) handleDelete(f.id); }}
+                              onClick={() => handleDelete(f.id)}
                               className="text-xs gap-2 cursor-pointer text-red-400 focus:text-red-400"
                               disabled={deletingId === f.id}
                             >

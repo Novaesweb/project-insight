@@ -71,11 +71,14 @@ export default function Pedidos() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este pedido?")) return;
-    const { error } = await supabase.from("pedidos").delete().eq("id", id);
-    if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
-    else { toast({ title: "Pedido excluído" }); load(); }
+  const { requestDelete, dialogProps } = useDeleteConfirm();
+
+  const handleDelete = (id: string) => {
+    requestDelete(async () => {
+      const { error } = await supabase.from("pedidos").delete().eq("id", id);
+      if (error) toast({ title: "Erro", description: error.message, variant: "destructive" });
+      else { toast({ title: "Pedido excluído" }); load(); }
+    }, "Excluir Pedido", "Este pedido será removido permanentemente.");
   };
 
   const openEdit = (pedido: any) => {
