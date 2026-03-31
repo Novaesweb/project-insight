@@ -9,7 +9,7 @@ declare global {
 
 import React, { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -192,19 +192,7 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminWithSplash />
                 </ProtectedRoute>
-              }>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="menu" element={<AdminMenu />} />
-                <Route path="config" element={<AdminConfig />} />
-                <Route path="revenda" element={<AdminRevenda />} />
-                <Route path="projects" element={<AdminProjects />} />
-                <Route path="extras" element={<AdminExtras />} />
-                <Route path="financeiro" element={<AdminFinanceiro />} />
-                <Route path="tickets" element={<AdminTickets />} />
-                <Route path="recurrent-billing" element={<AdminRecurrentBilling />} />
-                <Route path="recurrent-history" element={<AdminRecurrentHistory />} />
-              </Route>
+              } />
 
               {/* Reseller Portal */}
               <Route path="/revenda/*" element={

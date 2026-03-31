@@ -248,7 +248,7 @@ export default function AdminRecurrentHistory() {
       // Simulação - enquanto tabela não existe
       setHistorico(prev => prev.map(record => 
         record.id === historyId 
-          ? { ...record, status, forma_pagamento, data_pagamento, updated_at: new Date().toISOString() }
+          ? { ...record, status, forma_pagamento: formaPagamento, data_pagamento: dataPagamento, updated_at: new Date().toISOString() }
           : record
       ));
       

@@ -24,7 +24,7 @@ export class RecurrentBillingHistoryService {
    * Busca histórico de cobranças recorrentes de um cliente
    */
   static async getHistoryByClient(clienteId: string): Promise<RecurrentBillingHistory[]> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .select("*")
       .eq("cliente_id", clienteId)
@@ -36,33 +36,33 @@ export class RecurrentBillingHistoryService {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as RecurrentBillingHistory[];
   }
 
   /**
    * Busca histórico por mês específico
    */
   static async getHistoryByMonth(clienteId: string, mes: string): Promise<RecurrentBillingHistory | null> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .select("*")
       .eq("cliente_id", clienteId)
       .eq("mes", mes)
       .single();
 
-    if (error && error.code !== "PGRST116") { // PGRST116 = not found
+    if (error && error.code !== "PGRST116") {
       console.error("Erro ao buscar histórico do mês:", error);
       throw error;
     }
 
-    return data;
+    return data as RecurrentBillingHistory | null;
   }
 
   /**
    * Cria novo registro de histórico mensal
    */
   static async createHistoryRecord(record: Omit<RecurrentBillingHistory, "id" | "created_at" | "updated_at">): Promise<RecurrentBillingHistory> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .insert(record)
       .select()
@@ -73,7 +73,7 @@ export class RecurrentBillingHistoryService {
       throw error;
     }
 
-    return data;
+    return data as RecurrentBillingHistory;
   }
 
   /**
@@ -93,7 +93,7 @@ export class RecurrentBillingHistoryService {
     if (formaPagamento) updateData.forma_pagamento = formaPagamento;
     if (dataPagamento) updateData.data_pagamento = dataPagamento;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .update(updateData)
       .eq("id", id)
@@ -105,7 +105,7 @@ export class RecurrentBillingHistoryService {
       throw error;
     }
 
-    return data;
+    return data as RecurrentBillingHistory;
   }
 
   /**
