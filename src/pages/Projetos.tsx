@@ -16,6 +16,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToClient } from "@/lib/push-notifications";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -187,49 +188,41 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
     finally { setUploading(false); }
   };
 
-  const deleteArquivo = async (id: string, url: string) => {
-    if (!confirm("Excluir este arquivo?")) return;
-    try {
-      const path = url.split("projeto-arquivos/").pop();
-      if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
-      await (supabase.from("projeto_arquivos" as any) as any).delete().eq("id", id);
-      toast({ title: "Ativo removido da arquitetura" });
-      loadData();
-    } catch (error: any) { toast({ title: "Erro na remoção", description: error.message, variant: "destructive" }); }
+  const { requestDelete, dialogProps: deleteDialogProps } = useDeleteConfirm();
+
+  const deleteArquivo = (id: string, url: string) => {
+    requestDelete(async () => {
+      try {
+        const path = url.split("projeto-arquivos/").pop();
+        if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+        await (supabase.from("projeto_arquivos" as any) as any).delete().eq("id", id);
+        toast({ title: "Ativo removido da arquitetura" });
+        loadData();
+      } catch (error: any) { toast({ title: "Erro na remoção", description: error.message, variant: "destructive" }); }
+    }, "Excluir Arquivo", "Este arquivo será removido permanentemente.");
   };
 
-  const deleteProjeto = async (projetoId: string, projetoTitulo: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o projeto "${projetoTitulo}"? Esta ação não pode ser desfeita.`)) return;
-    
-    try {
-      // 1. Excluir arquivos do projeto
-      const { data: arquivos } = await (supabase.from("projeto_arquivos" as any) as any).select("url").eq("projeto_id", projetoId);
-      if (arquivos && arquivos.length > 0) {
-        for (const arquivo of arquivos) {
-          const path = arquivo.url.split("projeto-arquivos/").pop();
-          if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+  const deleteProjeto = (projetoId: string, projetoTitulo: string) => {
+    requestDelete(async () => {
+      try {
+        const { data: arquivos } = await (supabase.from("projeto_arquivos" as any) as any).select("url").eq("projeto_id", projetoId);
+        if (arquivos && arquivos.length > 0) {
+          for (const arquivo of arquivos) {
+            const path = arquivo.url.split("projeto-arquivos/").pop();
+            if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+          }
         }
+        await (supabase.from("projeto_arquivos" as any) as any).delete().eq("projeto_id", projetoId);
+        await (supabase.from("projeto_atualizacoes") as any).delete().eq("projeto_id", projetoId);
+        const { error } = await supabase.from("projetos").delete().eq("id", projetoId);
+        if (error) throw error;
+        toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
+        onReload();
+        if (selectedProjeto === projetoId) { setSelectedProjeto(null); }
+      } catch (error: any) {
+        toast({ title: "Erro ao excluir projeto", description: error.message, variant: "destructive" });
       }
-      await (supabase.from("projeto_arquivos" as any) as any).delete().eq("projeto_id", projetoId);
-      
-      // 2. Excluir atualizações do projeto
-      await (supabase.from("projeto_atualizacoes") as any).delete().eq("projeto_id", projetoId);
-      
-      // 3. Excluir o projeto
-      const { error } = await supabase.from("projetos").delete().eq("id", projetoId);
-      
-      if (error) throw error;
-      
-      toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
-      onReload();
-      
-      // Se estiver visualizando o projeto excluído, voltar para lista
-      if (selectedProjeto === projetoId) {
-        setSelectedProjeto(null);
-      }
-    } catch (error: any) {
-      toast({ title: "Erro ao excluir projeto", description: error.message, variant: "destructive" });
-    }
+    }, "Excluir Projeto", `O projeto "${projetoTitulo}" e todos os seus arquivos serão removidos permanentemente.`);
   };
 
   const enviarAtualizacao = async () => {
@@ -534,6 +527,7 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
           </Card>
         </TabsContent>
       </Tabs>
+      <DeleteConfirmDialog {...deleteDialogProps} />
     </motion.div>
   );
 }
@@ -578,28 +572,36 @@ export default function Projetos() {
     }
   };
 
-  const deleteProjeto = async (projetoId: string, projetoTitulo: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o projeto "${projetoTitulo}"? Esta ação não pode ser desfeita.`)) return;
-    try {
-      const { data: arquivos } = await (supabase.from("projeto_arquivos" as any) as any).select("url").eq("projeto_id", projetoId);
-      if (arquivos && arquivos.length > 0) {
-        for (const arquivo of arquivos) {
-          const path = arquivo.url.split("projeto-arquivos/").pop();
-          if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+  const { requestDelete: requestDeleteOuter, dialogProps: outerDeleteProps } = useDeleteConfirm();
+
+  const deleteProjeto = (projetoId: string, projetoTitulo: string) => {
+    requestDeleteOuter(async () => {
+      try {
+        const { data: arquivos } = await (supabase.from("projeto_arquivos" as any) as any).select("url").eq("projeto_id", projetoId);
+        if (arquivos && arquivos.length > 0) {
+          for (const arquivo of arquivos) {
+            const path = arquivo.url.split("projeto-arquivos/").pop();
+            if (path) await (supabase.storage.from("projeto-arquivos") as any).remove([path]);
+          }
         }
+        await (supabase.from("projeto_arquivos" as any) as any).delete().eq("projeto_id", projetoId);
+        await (supabase.from("projeto_atualizacoes") as any).delete().eq("projeto_id", projetoId);
+        const { error } = await supabase.from("projetos").delete().eq("id", projetoId);
+        if (error) throw error;
+        toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
+        load();
+      } catch (error: any) {
+        toast({ title: "Erro ao excluir projeto", description: error.message, variant: "destructive" });
       }
-      await (supabase.from("projeto_arquivos" as any) as any).delete().eq("projeto_id", projetoId);
-      await (supabase.from("projeto_atualizacoes") as any).delete().eq("projeto_id", projetoId);
-      const { error } = await supabase.from("projetos").delete().eq("id", projetoId);
-      if (error) throw error;
-      toast({ title: "Projeto excluído!", description: `"${projetoTitulo}" foi removido permanentemente.` });
-      load();
-    } catch (error: any) {
-      toast({ title: "Erro ao excluir projeto", description: error.message, variant: "destructive" });
-    }
+    }, "Excluir Projeto", `O projeto "${projetoTitulo}" será removido permanentemente.`);
   };
 
-  if (selectedProjeto) return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} onReload={load} selectedProjeto={selectedProjeto} setSelectedProjeto={setSelectedProjeto} />;
+  if (selectedProjeto) return (
+    <>
+      <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} onReload={load} selectedProjeto={selectedProjeto} setSelectedProjeto={setSelectedProjeto} />
+      <DeleteConfirmDialog {...outerDeleteProps} />
+    </>
+  );
 
   return (
     <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
@@ -709,6 +711,7 @@ export default function Projetos() {
           </CardContent>
         </Card>
       )}
+      <DeleteConfirmDialog {...outerDeleteProps} />
     </motion.div>
   );
 }

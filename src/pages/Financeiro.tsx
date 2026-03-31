@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { AsaasService } from "@/lib/asaas-service";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const emptyForm = { descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" };
@@ -99,13 +100,17 @@ export default function Financeiro() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
-    const { error } = await supabase.from("financeiro").delete().eq("id", id);
-    setDeletingId(null);
-    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Lançamento excluído!" });
-    load();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
+
+  const handleDelete = (id: string) => {
+    requestDelete(async () => {
+      setDeletingId(id);
+      const { error } = await supabase.from("financeiro").delete().eq("id", id);
+      setDeletingId(null);
+      if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Lançamento excluído!" });
+      load();
+    }, "Excluir Lançamento", "Este lançamento será removido permanentemente.");
   };
 
   const handleExport = async (f: any, type: "pdf" | "word" | "csv") => {
@@ -332,7 +337,7 @@ export default function Financeiro() {
                             )}
                             <DropdownMenuSeparator className="bg-white/5" />
                             <DropdownMenuItem
-                              onClick={() => { if (confirm("Excluir este lançamento?")) handleDelete(f.id); }}
+                              onClick={() => handleDelete(f.id)}
                               className="text-xs gap-2 cursor-pointer text-red-400 focus:text-red-400"
                               disabled={deletingId === f.id}
                             >
@@ -406,6 +411,7 @@ export default function Financeiro() {
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }

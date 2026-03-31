@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 
 type CategoriaExtra = "fixo" | "intermediario" | "mensal";
 
@@ -33,6 +34,7 @@ const subcategorias: Record<CategoriaExtra, string[]> = {
 
 export default function Extras() {
   const { toast } = useToast();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
   const [extras, setExtras] = useState<any[]>([]);
   const [pacotes, setPacotes] = useState<any[]>([]);
   const [pacoteItens, setPacoteItens] = useState<any[]>([]);
@@ -169,25 +171,29 @@ export default function Extras() {
     fetchData();
   };
 
-  const deletePacote = async (id: string) => {
-    setSaving(true);
-    await (supabase.from as any)("pacotes").delete().eq("id", id);
-    setSaving(false);
-    fetchData();
-    toast({ title: "Pacote excluído" });
+  const deletePacote = (id: string) => {
+    requestDelete(async () => {
+      setSaving(true);
+      await (supabase.from as any)("pacotes").delete().eq("id", id);
+      setSaving(false);
+      fetchData();
+      toast({ title: "Pacote excluído" });
+    }, "Excluir Pacote", "Este pacote será removido permanentemente.");
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!extraSel) return;
-    setSaving(true);
-    await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
-    const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
-    setSaving(false);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Extra excluído!" });
-    setShowDelete(false);
-    setExtraSel(null);
-    fetchData();
+    requestDelete(async () => {
+      setSaving(true);
+      await supabase.from("extras_clientes").delete().eq("extra_id", extraSel.id);
+      const { error } = await supabase.from("extras_catalogo").delete().eq("id", extraSel.id);
+      setSaving(false);
+      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Extra excluído!" });
+      setShowDelete(false);
+      setExtraSel(null);
+      fetchData();
+    }, "Excluir Extra", `O extra "${extraSel.nome}" será removido permanentemente.`);
   };
 
   const handleAtribuir = async () => {
@@ -684,6 +690,7 @@ export default function Extras() {
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }

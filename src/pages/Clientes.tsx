@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
 import { sendPushToAdmins } from "@/lib/push-notifications";
@@ -75,6 +76,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
+  const { requestDelete, dialogProps: detailDeleteProps } = useDeleteConfirm();
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);
   const [projetos, setProjetos] = useState<any[]>([]);
@@ -426,10 +428,11 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                                     size="sm" 
                                     variant="ghost" 
                                     className="h-7 w-7 p-0 text-red-500/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
-                                    onClick={async () => {
-                                       if (!confirm("Excluir fatura?")) return;
-                                       const { error } = await supabase.from("pedidos").delete().eq("id", p.id);
-                                       if (!error) { toast({ title: "Fatura Excluída!" }); loadData(); }
+                                    onClick={() => {
+                                       requestDelete(async () => {
+                                         const { error } = await supabase.from("pedidos").delete().eq("id", p.id);
+                                         if (!error) { toast({ title: "Fatura Excluída!" }); loadData(); }
+                                       }, "Excluir Fatura", "Esta fatura será removida permanentemente.");
                                     }}
                                   >
                                      <Trash2 className="w-3.5 h-3.5" />
@@ -583,6 +586,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...detailDeleteProps} />
     </motion.div>
   );
 }
@@ -713,12 +717,15 @@ export default function Clientes() {
     toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
   };
 
-  const handleDeleteCliente = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este cliente e todos os seus dados?")) return;
-    const { error } = await supabase.from("clientes").delete().eq("id", id);
-    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Cliente excluído com sucesso!" });
-    fetchClientes();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
+
+  const handleDeleteCliente = (id: string) => {
+    requestDelete(async () => {
+      const { error } = await supabase.from("clientes").delete().eq("id", id);
+      if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Cliente excluído com sucesso!" });
+      fetchClientes();
+    }, "Excluir Cliente", "Este cliente e todos os seus dados serão removidos permanentemente.");
   };
 
   return (
@@ -915,6 +922,7 @@ export default function Clientes() {
           </div>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </motion.div>
   );
 }
