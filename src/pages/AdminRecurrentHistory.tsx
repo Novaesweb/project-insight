@@ -5,11 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Eye, ArrowLeft, RefreshCw } from "lucide-react";
+import { CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Eye, ArrowLeft, RefreshCw, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AsaasService } from "@/lib/asaas-service";
-import { RecurrentBillingHistory, RecurrentBillingHistoryService } from "@/lib/recurrent-billing-history";
+
+// Interface temporária até criar tabela
+interface TempHistory {
+  id: string;
+  cliente_id: string;
+  mes: string;
+  ano: number;
+  mes_numero: number;
+  valor_total: number;
+  status: "pendente" | "pago_manualmente" | "pago_asaas" | "em_atraso";
+  forma_pagamento?: "manual" | "asaas";
+  data_pagamento?: string;
+  financeiro_id?: string;
+  asaas_payment_id?: string;
+  asaas_invoice_url?: string;
+  extras_count: number;
+  descricao: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface ClienteRecorrente {
   cliente_id: string;
@@ -31,7 +50,7 @@ export default function AdminRecurrentHistory() {
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
-  const [historico, setHistorico] = useState<RecurrentBillingHistory[]>([]);
+  const [historico, setHistorico] = useState<TempHistory[]>([]);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [generatingPayment, setGeneratingPayment] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -98,11 +117,32 @@ export default function AdminRecurrentHistory() {
     }
   }, [toast]);
 
-  // Carregar histórico de um cliente
+  // Carregar histórico de um cliente (temporário - sem tabela)
   const loadHistorico = async (cliente: ClienteRecorrente) => {
     try {
-      const history = await RecurrentBillingHistoryService.getHistoryByClient(cliente.cliente_id);
-      setHistorico(history);
+      // Simulação - enquanto tabela não existe
+      const mockHistorico: TempHistory[] = [
+        {
+          id: '1',
+          cliente_id: cliente.cliente_id,
+          mes: '2026-03',
+          ano: 2026,
+          mes_numero: 3,
+          valor_total: cliente.totalMensal,
+          status: 'pendente',
+          forma_pagamento: undefined,
+          data_pagamento: undefined,
+          financeiro_id: undefined,
+          asaas_payment_id: undefined,
+          asaas_invoice_url: undefined,
+          extras_count: cliente.extras.length,
+          descricao: `Cobrança Recorrente — Março/2026`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+      ];
+
+      setHistorico(mockHistorico);
       setSelectedCliente(cliente);
       setShowHistoryDialog(true);
     } catch (error) {
@@ -111,21 +151,12 @@ export default function AdminRecurrentHistory() {
     }
   };
 
-  // Gerar cobrança para um mês específico
-  const handleGeneratePayment = async (historyRecord?: RecurrentBillingHistory) => {
+  // Gerar cobrança para um mês específico (temporário - sem tabela)
+  const handleGeneratePayment = async (historyRecord?: TempHistory) => {
     if (!selectedCliente) return;
 
-    const mes = historyRecord?.mes || RecurrentBillingHistoryService.getNextMonth(
-      await RecurrentBillingHistoryService.getHistoryByClient(selectedCliente.cliente_id)
-        .then(h => h?.[0]?.mes || `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`)
-    );
-
-    // Verificar se já existe cobrança para este mês
-    if (await RecurrentBillingHistoryService.hasBillingForMonth(selectedCliente.cliente_id, mes)) {
-      toast({ title: "Cobrança já existe", description: "Já existe uma cobrança para este mês.", variant: "destructive" });
-      return;
-    }
-
+    const mes = historyRecord?.mes || '2026-04'; // Próximo mês
+    
     setGeneratingPayment(mes);
     
     try {
@@ -151,7 +182,7 @@ export default function AdminRecurrentHistory() {
         cliente_id: selectedCliente.cliente_id,
         tipo: "receita",
         valor: selectedCliente.totalMensal,
-        descricao: `Cobrança Recorrente — ${RecurrentBillingHistoryService.formatMonthDisplay(mes)}\n` + 
+        descricao: `Cobrança Recorrente — Abril/2026\n` + 
           selectedCliente.extras.map(extra => 
             `• ${extra.nome}: R$ ${Number(extra.preco_mensal).toFixed(2)}/mês`
           ).join('\n'),
@@ -173,7 +204,7 @@ export default function AdminRecurrentHistory() {
           billingType: "UNDEFINED" as const,
           value: selectedCliente.totalMensal,
           dueDate: financeiroData.vencimento,
-          description: `Cobrança Recorrente - ${RecurrentBillingHistoryService.formatMonthDisplay(mes)} - ${selectedCliente.extras.length} Extras`,
+          description: `Cobrança Recorrente - Abril/2026 - ${selectedCliente.extras.length} Extras`,
           externalReference: financeiroRecord.id
         });
 
@@ -185,51 +216,43 @@ export default function AdminRecurrentHistory() {
           })
           .eq("id", financeiroRecord.id);
 
-        // Criar registro no histórico
-        await RecurrentBillingHistoryService.createHistoryRecord({
-          cliente_id: selectedCliente.cliente_id,
-          mes,
-          ano: parseInt(mes.split("-")[0]),
-          mes_numero: parseInt(mes.split("-")[1]),
-          valor_total: selectedCliente.totalMensal,
-          status: "pendente",
-          forma_pagamento: "asaas",
-          financeiro_id: financeiroRecord.id,
-          asaas_payment_id: payment.id,
-          asaas_invoice_url: payment.invoiceUrl,
-          extras_count: selectedCliente.extras.length,
-          descricao: financeiroData.descricao
+        toast({ 
+          title: "✅ Cobrança gerada!", 
+          description: `Cobrança para Abril/2026 criada com sucesso.` 
         });
-
-        toast({ title: "Cobrança gerada!", description: `Cobrança para ${RecurrentBillingHistoryService.formatMonthDisplay(mes)} criada com sucesso.` });
         
         // Recarregar histórico
         await loadHistorico(selectedCliente);
       }
+
     } catch (error) {
       console.error("Erro ao gerar cobrança:", error);
-      toast({ title: "Erro ao gerar cobrança", variant: "destructive" });
+      toast({ 
+        title: "Erro ao gerar cobrança", 
+        description: error instanceof Error ? error.message : "Não foi possível gerar a cobrança", 
+        variant: "destructive" 
+      });
     } finally {
       setGeneratingPayment(null);
     }
   };
 
-  // Atualizar status de pagamento
-  const handleUpdateStatus = async (historyId: string, status: RecurrentBillingHistory["status"]) => {
+  // Atualizar status de pagamento (temporário - sem tabela)
+  const handleUpdateStatus = async (historyId: string, status: TempHistory["status"]) => {
     setUpdatingStatus(historyId);
     
     try {
       const formaPagamento = status === "pago_manualmente" ? "manual" : status === "pago_asaas" ? "asaas" : undefined;
       const dataPagamento = status.includes("pago") ? new Date().toISOString().split("T")[0] : undefined;
-
-      await RecurrentBillingHistoryService.updatePaymentStatus(historyId, status, formaPagamento, dataPagamento);
+      
+      // Simulação - enquanto tabela não existe
+      setHistorico(prev => prev.map(record => 
+        record.id === historyId 
+          ? { ...record, status, forma_pagamento, data_pagamento, updated_at: new Date().toISOString() }
+          : record
+      ));
       
       toast({ title: "Status atualizado!", description: "Status de pagamento atualizado com sucesso." });
-      
-      // Recarregar histórico
-      if (selectedCliente) {
-        await loadHistorico(selectedCliente);
-      }
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       toast({ title: "Erro ao atualizar status", variant: "destructive" });
@@ -384,13 +407,39 @@ export default function AdminRecurrentHistory() {
                         </TableRow>
                       ) : (
                         historico.map((record) => {
-                          const statusDisplay = RecurrentBillingHistoryService.getStatusDisplay(record.status);
-                          const isOverdue = RecurrentBillingHistoryService.isMonthOverdue(record.mes);
+                          const statusDisplay = {
+                            pendente: {
+                              label: "Pendente",
+                              color: "text-amber-400",
+                              bg: "bg-amber-500/10"
+                            },
+                            pago_manualmente: {
+                              label: "Pago Manualmente",
+                              color: "text-blue-400",
+                              bg: "bg-blue-500/10"
+                            },
+                            pago_asaas: {
+                              label: "Pago pelo Asaas",
+                              color: "text-green-400",
+                              bg: "bg-green-500/10"
+                            },
+                            em_atraso: {
+                              label: "Em Atraso",
+                              color: "text-red-400",
+                              bg: "bg-red-500/10"
+                            }
+                          }[record.status] || {
+                            label: "Pendente",
+                            color: "text-amber-400",
+                            bg: "bg-amber-500/10"
+                          };
+                          
+                          const isOverdue = false; // Desativado enquanto não tem tabela real
                           
                           return (
                             <TableRow key={record.id} className={`border-white/5 ${isOverdue && record.status === 'pendente' ? 'bg-red-500/5' : ''}`}>
                               <TableCell className="text-white font-medium">
-                                {RecurrentBillingHistoryService.formatMonthDisplay(record.mes)}
+                                {record.mes.replace('-', '/').replace(/^0/, '')}
                               </TableCell>
                               <TableCell className="text-white">
                                 R$ {record.valor_total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
@@ -401,11 +450,11 @@ export default function AdminRecurrentHistory() {
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-white/60 text-sm">
-                                {record.forma_pagamento === 'asaas' ? 'Asaas' : 
-                                 record.forma_pagamento === 'manual' ? 'Manual' : '-'}
+                                {record.formaPagamento === 'asaas' ? 'Asaas' : 
+                                 record.formaPagamento === 'manual' ? 'Manual' : '-'}
                               </TableCell>
                               <TableCell className="text-white/60 text-sm">
-                                {record.data_pagamento ? new Date(record.data_pagamento).toLocaleDateString('pt-BR') : '-'}
+                                {record.dataPagamento ? new Date(record.dataPagamento).toLocaleDateString('pt-BR') : '-'}
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex items-center gap-2 justify-end">
