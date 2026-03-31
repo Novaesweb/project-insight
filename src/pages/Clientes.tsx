@@ -427,10 +427,11 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                                     size="sm" 
                                     variant="ghost" 
                                     className="h-7 w-7 p-0 text-red-500/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
-                                    onClick={async () => {
-                                       if (!confirm("Excluir fatura?")) return;
-                                       const { error } = await supabase.from("pedidos").delete().eq("id", p.id);
-                                       if (!error) { toast({ title: "Fatura Excluída!" }); loadData(); }
+                                    onClick={() => {
+                                       requestDelete(async () => {
+                                         const { error } = await supabase.from("pedidos").delete().eq("id", p.id);
+                                         if (!error) { toast({ title: "Fatura Excluída!" }); loadData(); }
+                                       }, "Excluir Fatura", "Esta fatura será removida permanentemente.");
                                     }}
                                   >
                                      <Trash2 className="w-3.5 h-3.5" />
