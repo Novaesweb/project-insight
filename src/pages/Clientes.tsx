@@ -88,21 +88,30 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const [savingExtra, setSavingExtra] = useState(false);
 
   const loadData = useCallback(async () => {
-    const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
-    if (c) setCliente(c);
+    try {
+      const { data: c } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+      if (c) setCliente(c);
 
-    const { data: e } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
-    if (e) setExtras(e);
+      const { data: e } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
+      if (e) setExtras(e);
 
-    const { data: p } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
-    if (p) setProjetos(p);
+      const { data: p } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+      if (p) setProjetos(p);
 
-    const { data: ped } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
-    if (ped) setPedidos(ped);
+      const { data: ped } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
+      if (ped) setPedidos(ped);
 
-    const { data: cat } = await supabase.from("extras_catalogo").select("*");
-    if (cat) setCatalogo(cat);
-  }, [clienteId]);
+      const { data: cat } = await supabase.from("extras_catalogo").select("*");
+      if (cat) setCatalogo(cat);
+    } catch (error) {
+      console.error("Erro ao carregar dados do cliente:", error);
+      toast({ 
+        title: "Erro ao carregar dados", 
+        description: "Não foi possível carregar as informações do cliente", 
+        variant: "destructive" 
+      });
+    }
+  }, [clienteId, toast]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -132,7 +141,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     setSavingExtra(false);
   };
 
-  if (!cliente) return null;
+  if (!cliente) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+        <p className="text-white/60">Carregando dados do cliente...</p>
+      </div>
+    </div>
+  );
 
   const totalMensal = extras.reduce((acc, curr) => acc + (Number(curr.preco_mensal) || 0), 0);
   const totalAtivacoes = extras.reduce((acc, curr) => acc + (Number(curr.preco_ativacao) || 0), 0);
