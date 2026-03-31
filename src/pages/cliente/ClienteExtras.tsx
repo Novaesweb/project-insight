@@ -2,11 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
-import { useToast } from "@/hooks/use-toast";
-import { Zap, Star, CalendarDays, Rocket, ShieldCheck, Sparkles, CreditCard, ExternalLink } from "lucide-react";
+import { Zap, Star, CalendarDays, Rocket, ShieldCheck, Sparkles } from "lucide-react";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -18,9 +16,7 @@ const catConfig: Record<string, { label: string; color: string; bg: string; bord
 
 export default function ClienteExtras() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
-  const { toast } = useToast();
   const [meusExtras, setMeusExtras] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const load = useCallback(() => {
     if (!cliente.id) return;
@@ -35,66 +31,7 @@ export default function ClienteExtras() {
   const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);
   const totalAtivacao = ativos.reduce((acc, e) => acc + Number(e.preco_ativacao), 0);
 
-  // Função para gerar cobrança no Asaas
-  const handleGerarAsaas = async (extra: any) => {
-    if (!cliente.id) return;
-    
-    setLoading(true);
-    try {
-      // Importar AsaasService dinamicamente
-      const { AsaasService } = await import("@/lib/asaas-service");
-      
-      // 1. Buscar dados completos do cliente
-      const { data: clienteData } = await supabase.from("clientes").select("*").eq("id", cliente.id).single();
-      if (!clienteData) throw new Error("Cliente não encontrado");
-
-      // 2. Criar/atualizar cliente no Asaas
-      const asaasCustomer = await AsaasService.getOrCreateCustomer({
-        name: clienteData.nome,
-        email: clienteData.email,
-        cpfCnpj: clienteData.documento || undefined,
-        mobilePhone: clienteData.telefone || undefined,
-        externalReference: cliente.id
-      });
-
-      // 3. Gerar cobrança no Asaas
-      const payment = await AsaasService.createPayment({
-        customer: asaasCustomer.id,
-        billingType: "UNDEFINED" as const,
-        value: Number(extra.preco_mensal),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        description: `Extra: ${(extra.extras_catalogo as any)?.nome || extra.nome} - Mensalidade`
-      });
-
-      // 4. Criar fatura no financeiro com link Asaas
-      const financeiroData = {
-        cliente_id: cliente.id,
-        tipo: "receita",
-        valor: Number(extra.preco_mensal),
-        descricao: `Extra: ${(extra.extras_catalogo as any)?.nome || extra.nome} - Mensalidade\n(Asaas: ${payment.invoiceUrl})`,
-        data: new Date().toISOString().split("T")[0],
-        vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: "pendente"
-      };
-
-      await supabase.from("financeiro").insert(financeiroData);
-
-      toast({ 
-        title: "✅ Cobrança Gerada!", 
-        description: `Cobrança Asaas criada com sucesso. Valor: R$ ${Number(extra.preco_mensal).toFixed(2)}` 
-      });
-
-    } catch (error: any) {
-      console.error("Erro ao gerar cobrança Asaas:", error);
-      toast({ 
-        title: "Erro ao gerar cobrança", 
-        description: error.message || "Não foi possível gerar a cobrança Asaas", 
-        variant: "destructive" 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Função handleGerarAsaas REMOVIDA - Cliente não pode gerar cobranças
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-10 pb-20">
@@ -176,26 +113,8 @@ export default function ClienteExtras() {
                       </div>
                     </div>
                     
-                    {/* Botão Gerar no Asaas para recorrentes */}
-                    {e.status === "ativo" && Number(e.preco_mensal) > 0 && e.categoria === "mensal" && (
-                      <Button
-                        onClick={() => handleGerarAsaas(e)}
-                        disabled={loading}
-                        className="w-full h-10 rounded-xl font-black uppercase tracking-widest text-xs transition-all gradient-primary border-0 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                            Gerando...
-                          </>
-                        ) : (
-                          <>
-                            <CreditCard className="w-4 h-4 mr-2" />
-                            Gerar no Asaas
-                          </>
-                        )}
-                      </Button>
-                    )}
+                    {/* Botão Gerar no Asaas para recorrentes - REMOVIDO */}
+                    {/* Cliente não pode mais gerar cobranças - apenas admin */}
                   </div>
 
                   {e.observacao && (

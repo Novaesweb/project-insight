@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault, Eye, Phone, Mail, IdCard, MapPin, User } from "lucide-react";
+import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault, Eye, Phone, Mail, IdCard, MapPin, User, Rocket } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -242,10 +242,9 @@ export default function ClienteDashboard() {
         <h2 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold px-1">Atalhos rápidos</h2>
         <motion.div variants={stagger} className="flex gap-3 overflow-x-auto pb-4 scrollbar-none">
           {[
-            { to: "/cliente/suporte", label: "Engenharia de Evolução", icon: Headphones, grad: "linear-gradient(135deg, #7b1fa2, #9c27b0)" },
-            { to: "/cliente/faturas", label: "Fluxo de Valor", icon: Receipt, grad: "linear-gradient(135deg, #c2185b, #e8334a)" },
             { to: "/cliente/projetos", label: "Engenharia de Soluções", icon: FolderKanban, grad: "linear-gradient(135deg, #FFB800, #FFD700)" },
-            { to: "/cliente/contratos", label: "Blindagem de Ativos", icon: ShieldCheck, grad: "linear-gradient(135deg, #9c27b0, #c2185b)" },
+            { to: "/cliente/extras", label: "Módulos Extras", icon: Rocket, grad: "linear-gradient(135deg, #7b1fa2, #c2185b)" },
+            { to: "/cliente/faturas", label: "Fluxo de Valor", icon: Receipt, grad: "linear-gradient(135deg, #c2185b, #e8334a)" },
           ].map((item, idx) => (
             <Button key={idx} asChild className="flex-shrink-0 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center" style={{ background: "rgba(13,11,18,0.8)" }}>
               <Link to={item.to}>
@@ -254,110 +253,6 @@ export default function ClienteDashboard() {
               </Link>
             </Button>
           ))}
-          
-          {/* Botão Meus Dados */}
-          <Dialog open={showDadosDialog} onOpenChange={setShowDadosDialog}>
-            <DialogTrigger asChild>
-              <Button className="flex-shrink-0 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center" style={{ background: "rgba(13,11,18,0.8)" }}>
-                <div className="p-2.5 rounded-xl group-hover:scale-110 transition-all z-10 mx-auto" style={{ background: "linear-gradient(135deg, #38bdf8, #0284c7)" }}>
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xs font-semibold z-10">Meus Dados</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-white">Meus Dados Completos</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                {/* Informações Básicas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações Básicas</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm text-white/80">Nome:</span>
-                        <span className="text-sm font-medium text-white">{perfil.nome}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-green-400" />
-                        <span className="text-sm text-white/80">Email:</span>
-                        <span className="text-sm font-medium text-white">{perfil.email}</span>
-                      </div>
-                      {(perfil as any).documento && (
-                        <div className="flex items-center gap-2">
-                          <IdCard className="w-4 h-4 text-purple-400" />
-                          <span className="text-sm text-white/80">CPF/CNPJ:</span>
-                          <span className="text-sm font-medium text-white">{(perfil as any).documento}</span>
-                        </div>
-                      )}
-                      {(perfil as any).telefone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-amber-400" />
-                          <span className="text-sm text-white/80">Telefone:</span>
-                          <span className="text-sm font-medium text-white">{(perfil as any).telefone}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Endereço */}
-                  {((perfil as any).endereco || (perfil as any).cidade || (perfil as any).uf || (perfil as any).cep) && (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Endereço</h3>
-                      <div className="space-y-2">
-                        {(perfil as any).endereco && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-red-400" />
-                            <span className="text-sm text-white/80">Endereço:</span>
-                            <span className="text-sm font-medium text-white">{(perfil as any).endereco}</span>
-                          </div>
-                        )}
-                        {((perfil as any).cidade || (perfil as any).uf) && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-red-400" />
-                            <span className="text-sm text-white/80">Cidade/UF:</span>
-                            <span className="text-sm font-medium text-white">
-                              {(perfil as any).cidade}{(perfil as any).uf && `/${(perfil as any).uf}`}
-                            </span>
-                          </div>
-                        )}
-                        {(perfil as any).cep && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-red-400" />
-                            <span className="text-sm text-white/80">CEP:</span>
-                            <span className="text-sm font-medium text-white">{(perfil as any).cep}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Informações do Sistema */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações do Sistema</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-blue-400" />
-                      <span className="text-sm text-white/80">ID Cliente:</span>
-                      <span className="text-sm font-medium text-white">{perfil.id}</span>
-                    </div>
-                    {perfil.trial_ends_at && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-amber-400" />
-                        <span className="text-sm text-white/80">Trial até:</span>
-                        <span className="text-sm font-medium text-white">
-                          {new Date(perfil.trial_ends_at).toLocaleDateString("pt-BR")}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </motion.div>
       </div>
 

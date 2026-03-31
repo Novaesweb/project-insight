@@ -267,7 +267,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span>Agendamento fácil</span>
+                  <span>Contato fácil</span>
                 </div>
               </div>
             </div>
@@ -377,11 +377,11 @@ export default function LandingPage() {
               </a>
               
               <Link 
-                to="/agendar"
+                to="/contato"
                 className="bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-purple-600/25 inline-flex items-center gap-3"
               >
                 <Phone className="w-6 h-6" />
-                Agendar Reunião
+                Fale Conosco
               </Link>
             </motion.div>
           </motion.div>
