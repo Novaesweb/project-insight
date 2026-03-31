@@ -235,9 +235,9 @@ export default function AdminRecurrentHistory() {
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Extras Ativos</p>
                 <div className="flex flex-wrap gap-2">
                   {selectedCliente.extras.map(e => (
-                    <Badge key={e.id} variant="outline" className="text-xs">
+                    <span key={e.id} className="inline-flex items-center text-xs border rounded-full px-2 py-0.5 border-border text-muted-foreground">
                       {e.nome} — R$ {e.preco_mensal.toFixed(2)}/mês
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               </div>
