@@ -596,7 +596,12 @@ export default function Projetos() {
     }, "Excluir Projeto", `O projeto "${projetoTitulo}" será removido permanentemente.`);
   };
 
-  if (selectedProjeto) return <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} onReload={load} selectedProjeto={selectedProjeto} setSelectedProjeto={setSelectedProjeto} />;
+  if (selectedProjeto) return (
+    <>
+      <ProjetoDetalhes projetoId={selectedProjeto} onBack={() => setSelectedProjeto(null)} onReload={load} selectedProjeto={selectedProjeto} setSelectedProjeto={setSelectedProjeto} />
+      <DeleteConfirmDialog {...outerDeleteProps} />
+    </>
+  );
 
   return (
     <motion.div className="space-y-6 ambient-glow min-h-screen pb-10" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
