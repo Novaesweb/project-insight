@@ -192,7 +192,12 @@ export default function AdminRecurrentExtras() {
         console.log("Verificação de existente:", { existing, existingError });
 
         if (existing) {
-          toast({ title: `${cliente.cliente_nome} já tem fatura para ${formatMes(mesSelecionado)}`, variant: "destructive" });
+          console.log(`Fatura duplicada encontrada para ${cliente.cliente_nome} no mês ${formatMes(mesSelecionado)}`);
+          toast({ 
+            title: `${cliente.cliente_nome} já tem fatura para ${formatMes(mesSelecionado)}`, 
+            description: "Verifique no histórico do cliente ou escolha outro mês",
+            variant: "destructive" 
+          });
           erros++;
           continue;
         }
@@ -268,6 +273,14 @@ export default function AdminRecurrentExtras() {
       
       console.log("Dados carregados:", data);
       console.log("Erro:", error);
+      console.log("Quantidade de faturas:", data?.length || 0);
+      
+      if (data && data.length > 0) {
+        console.log("Faturas encontradas:");
+        data.forEach((fatura, index) => {
+          console.log(`  ${index + 1}. ${formatMes(fatura.mes)} - ${fatura.status} - R$ ${fatura.valor_total}`);
+        });
+      }
       
       setFaturasMes(data || []);
       setSelectedCliente(cliente);
