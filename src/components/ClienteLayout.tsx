@@ -14,12 +14,9 @@ import { useBranding } from "@/hooks/useBranding";
 
 const menuItems = [
   { label: "Painel de Ativos", icon: LayoutDashboard, path: "/cliente/dashboard" },
-  { label: "Engenharia de Soluções", icon: FolderKanban, path: "/cliente/projetos" },
-  { label: "Módulos Injetados", icon: Zap, path: "/cliente/extras" },
-  { label: "Blindagem de Ativos", icon: ShieldCheck, path: "/cliente/contratos" },
-  { label: "Fluxo de Valor", icon: Receipt, path: "/cliente/faturas" },
-  { label: "Engenharia de Evolução", icon: Headphones, path: "/cliente/suporte" },
-  { label: "Meus Parâmetros", icon: User, path: "/cliente/dados" },
+  { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
+  { label: "Meus Extras", icon: Zap, path: "/cliente/extras" },
+  { label: "Financeiro", icon: Receipt, path: "/cliente/faturas" },
 ];
 
 const menuColors = [
