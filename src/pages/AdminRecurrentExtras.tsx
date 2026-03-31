@@ -172,18 +172,24 @@ export default function AdminRecurrentExtras() {
     const vencDia = parseInt(diaVencimento) || 10;
     const vencimento = `${anoStr}-${mesStr}-${vencDia.toString().padStart(2, "0")}`;
 
+    console.log("Gerando faturas para:", { selectedClientes: Array.from(selectedClientes), mesSelecionado, ano, mesNum, vencimento });
+
     for (const clienteId of selectedClientes) {
       const cliente = clientes.find(c => c.cliente_id === clienteId);
       if (!cliente) continue;
 
       try {
+        console.log("Processando cliente:", cliente.cliente_nome);
+        
         // Check existing
-        const { data: existing } = await (supabase as any)
+        const { data: existing, error: existingError } = await (supabase as any)
           .from("recurrent_billing_history")
           .select("id")
           .eq("cliente_id", clienteId)
           .eq("mes", mesSelecionado)
           .maybeSingle();
+
+        console.log("Verificação de existente:", { existing, existingError });
 
         if (existing) {
           toast({ title: `${cliente.cliente_nome} já tem fatura para ${formatMes(mesSelecionado)}`, variant: "destructive" });
@@ -197,14 +203,19 @@ export default function AdminRecurrentExtras() {
           return comp <= mesSelecionado; // extras ativados até este mês
         });
 
+        console.log("Extras do mês:", extrasDoMes);
+
         const valorTotal = extrasDoMes.reduce((acc, e) => acc + e.preco_mensal, 0);
-        if (valorTotal <= 0) { erros++; continue; }
+        if (valorTotal <= 0) { 
+          console.log("Valor total zerado, pulando cliente");
+          erros++; 
+          continue; 
+        }
 
         const descricao = `Cobrança Recorrente — ${formatMes(mesSelecionado)}\n` +
           extrasDoMes.map(e => `• ${e.nome}: R$ ${e.preco_mensal.toFixed(2)}/mês`).join("\n");
 
-        // Criar como RASCUNHO (sem financeiro_id)
-        await (supabase as any).from("recurrent_billing_history").insert({
+        const faturaData = {
           cliente_id: clienteId,
           mes: mesSelecionado,
           ano,
@@ -214,8 +225,22 @@ export default function AdminRecurrentExtras() {
           extras_count: extrasDoMes.length,
           descricao,
           vencimento,
-        });
-        ok++;
+        };
+
+        console.log("Inserindo fatura:", faturaData);
+
+        // Criar como RASCUNHO (sem financeiro_id)
+        const { data: insertedData, error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
+
+        console.log("Resultado da inserção:", { insertedData, insertError });
+
+        if (insertError) {
+          console.error("Erro ao inserir fatura:", insertError);
+          erros++;
+        } else {
+          console.log("Fatura criada com sucesso:", insertedData);
+          ok++;
+        }
       } catch (err) {
         console.error("Erro gerando fatura:", err);
         erros++;
@@ -233,16 +258,22 @@ export default function AdminRecurrentExtras() {
   // ── Load faturas de um cliente ──
   const openClienteHistorico = async (cliente: ClienteRecorrente) => {
     try {
-      const { data } = await (supabase as any)
+      console.log("Carregando histórico do cliente:", cliente.cliente_id);
+      const { data, error } = await (supabase as any)
         .from("recurrent_billing_history")
         .select("*")
         .eq("cliente_id", cliente.cliente_id)
         .order("ano", { ascending: false })
         .order("mes_numero", { ascending: false });
+      
+      console.log("Dados carregados:", data);
+      console.log("Erro:", error);
+      
       setFaturasMes(data || []);
       setSelectedCliente(cliente);
       setShowClienteDialog(true);
-    } catch {
+    } catch (err) {
+      console.error("Erro ao carregar histórico:", err);
       toast({ title: "Erro ao carregar histórico", variant: "destructive" });
     }
   };
@@ -332,7 +363,11 @@ export default function AdminRecurrentExtras() {
   const toggleCliente = (id: string) => {
     setSelectedClientes(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
