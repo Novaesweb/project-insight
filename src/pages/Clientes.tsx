@@ -76,6 +76,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
+  const { requestDelete, dialogProps: detailDeleteProps } = useDeleteConfirm();
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);
   const [projetos, setProjetos] = useState<any[]>([]);
