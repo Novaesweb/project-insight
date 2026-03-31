@@ -364,7 +364,7 @@ export default function AdminRecurrentBilling() {
                         </Dialog>
 
                         {/* Histórico */}
-                        <Button size="sm" variant="ghost" className="h-7 w-7" onClick={() => navigate("/recurrent-history")} title="Ver histórico">
+                        <Button size="sm" variant="ghost" className="h-7 w-7" onClick={() => navigate("/admin/recurrent-history")} title="Ver histórico">
                           <CalendarDays className="w-3 h-3" />
                         </Button>
 
