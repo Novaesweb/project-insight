@@ -93,7 +93,7 @@ export class RecurrentBillingHistoryService {
     if (formaPagamento) updateData.forma_pagamento = formaPagamento;
     if (dataPagamento) updateData.data_pagamento = dataPagamento;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .update(updateData)
       .eq("id", id)
@@ -105,7 +105,7 @@ export class RecurrentBillingHistoryService {
       throw error;
     }
 
-    return data;
+    return data as RecurrentBillingHistory;
   }
 
   /**
