@@ -11,7 +11,6 @@ O painel admin está com tela preta porque a tabela `recurrent_billing_history` 
 
 ### 2. Vá para SQL Editor
 - No menu lateral, clique em "SQL Editor"
-- Cole o código abaixo
 
 ### 3. Execute o SQL
 
@@ -48,15 +47,13 @@ ALTER TABLE public.recurrent_billing_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admin full access" ON public.recurrent_billing_history
     FOR ALL
     TO authenticated
-    USING (auth.jwt()->>'role' = 'admin')
-    WITH CHECK (true);
+    USING (auth.jwt()->>'role' = 'admin');
 
 -- Criar política de acesso para leitura
 CREATE POLICY "Read access" ON public.recurrent_billing_history
     FOR SELECT
     TO authenticated
-    USING (auth.jwt()->>'role' IN ('admin', 'authenticated'))
-    WITH CHECK (true);
+    USING (auth.jwt()->>'role' IN ('admin', 'authenticated'));
 ```
 
 ### 4. Após Executar
@@ -73,3 +70,8 @@ CREATE POLICY "Read access" ON public.recurrent_billing_history
 - Execute isso URGENTEMENTE no Supabase
 - Sem isso, o painel admin continuará com tela preta
 - O sistema completo depende desta tabela
+
+## ✅ SQL CORRIGIDO
+- **Erro anterior**: `WITH CHECK cannot be applied to SELECT or DELETE`
+- **Solução**: Removido `WITH CHECK` das políticas RLS
+- **Resultado**: SQL válido e funcional

@@ -30,12 +30,10 @@ ALTER TABLE public.recurrent_billing_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admin full access" ON public.recurrent_billing_history
     FOR ALL
     TO authenticated
-    USING (auth.jwt()->>'role' = 'admin')
-    WITH CHECK (true);
+    USING (auth.jwt()->>'role' = 'admin');
 
 -- Criar política de acesso para leitura
 CREATE POLICY "Read access" ON public.recurrent_billing_history
     FOR SELECT
     TO authenticated
-    USING (auth.jwt()->>'role' IN ('admin', 'authenticated'))
-    WITH CHECK (true);
+    USING (auth.jwt()->>'role' IN ('admin', 'authenticated'));
