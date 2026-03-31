@@ -9,26 +9,7 @@ import { CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle,
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AsaasService } from "@/lib/asaas-service";
-
-// Interface temporária até criar tabela
-interface TempHistory {
-  id: string;
-  cliente_id: string;
-  mes: string;
-  ano: number;
-  mes_numero: number;
-  valor_total: number;
-  status: "pendente" | "pago_manualmente" | "pago_asaas" | "em_atraso";
-  forma_pagamento?: "manual" | "asaas";
-  data_pagamento?: string;
-  financeiro_id?: string;
-  asaas_payment_id?: string;
-  asaas_invoice_url?: string;
-  extras_count: number;
-  descricao: string;
-  created_at: string;
-  updated_at: string;
-}
+import { RecurrentBillingHistory, RecurrentBillingHistoryService } from "@/lib/recurrent-billing-history";
 
 interface ClienteRecorrente {
   cliente_id: string;
@@ -50,7 +31,7 @@ export default function AdminRecurrentHistory() {
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
-  const [historico, setHistorico] = useState<TempHistory[]>([]);
+  const [historico, setHistorico] = useState<RecurrentBillingHistory[]>([]);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [generatingPayment, setGeneratingPayment] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
