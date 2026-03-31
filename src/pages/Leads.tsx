@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 
 // --- Variantes de Animação ---
 const container = {
