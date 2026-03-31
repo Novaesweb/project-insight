@@ -264,6 +264,17 @@ export default function AdminRecurrentExtras() {
   const openClienteHistorico = async (cliente: ClienteRecorrente) => {
     try {
       console.log("Carregando histórico do cliente:", cliente.cliente_id);
+      
+      // Primeiro, vamos verificar se há dados na tabela
+      const { data: allData, error: allError } = await (supabase as any)
+        .from("recurrent_billing_history")
+        .select("*")
+        .eq("cliente_id", cliente.cliente_id);
+      
+      console.log("TODOS os dados do cliente (sem ordenar):", allData);
+      console.log("Erro em todos os dados:", allError);
+      
+      // Agora com ordenação
       const { data, error } = await (supabase as any)
         .from("recurrent_billing_history")
         .select("*")
@@ -271,15 +282,25 @@ export default function AdminRecurrentExtras() {
         .order("ano", { ascending: false })
         .order("mes_numero", { ascending: false });
       
-      console.log("Dados carregados:", data);
-      console.log("Erro:", error);
+      console.log("Dados carregados (com ordenação):", data);
+      console.log("Erro (com ordenação):", error);
       console.log("Quantidade de faturas:", data?.length || 0);
       
       if (data && data.length > 0) {
         console.log("Faturas encontradas:");
         data.forEach((fatura, index) => {
-          console.log(`  ${index + 1}. ${formatMes(fatura.mes)} - ${fatura.status} - R$ ${fatura.valor_total}`);
+          console.log(`  ${index + 1}. ${formatMes(fatura.mes)} - ${fatura.status} - R$ ${fatura.valor_total} - ID: ${fatura.id}`);
         });
+      } else {
+        console.log("Nenhuma fatura encontrada para este cliente");
+        
+        // Vamos verificar se há alguma fatura para qualquer cliente
+        const { data: anyData } = await (supabase as any)
+          .from("recurrent_billing_history")
+          .select("*")
+          .limit(5);
+        
+        console.log("Exemplos de faturas no sistema:", anyData);
       }
       
       setFaturasMes(data || []);
