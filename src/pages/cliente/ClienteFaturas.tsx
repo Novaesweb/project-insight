@@ -143,16 +143,13 @@ export default function ClienteFaturas() {
                       </div>
 
                       <div className="flex items-center gap-3 w-full md:w-auto">
-                        {f.status !== "pago" && (
+                        {f.status !== "pago" && hasAsaasLink && (
                           <Button
-                            className={cn(
-                              "flex-1 md:flex-none h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs transition-all",
-                              hasAsaasLink ? "gradient-primary text-white shadow-lg shadow-primary/20" : "bg-white/5 text-white/40"
-                            )}
+                            className="flex-1 md:flex-none h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs transition-all gradient-primary text-white shadow-lg shadow-primary/20"
                             onClick={() => payFatura(f.descricao)}
                           >
                             <CreditCard className="w-4 h-4 mr-2" />
-                            {hasAsaasLink ? "Pagar Agora" : "Gerando Pagamento"}
+                            Pagar Agora
                           </Button>
                         )}
                         

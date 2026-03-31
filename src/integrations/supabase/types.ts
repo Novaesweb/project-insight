@@ -1035,6 +1035,78 @@ export type Database = {
         }
         Relationships: []
       }
+      recurrent_billing_history: {
+        Row: {
+          ano: number
+          asaas_invoice_url: string | null
+          asaas_payment_id: string | null
+          cliente_id: string
+          created_at: string | null
+          data_pagamento: string | null
+          descricao: string | null
+          extras_count: number
+          financeiro_id: string | null
+          forma_pagamento: string | null
+          id: string
+          mes: string
+          mes_numero: number
+          status: string
+          updated_at: string | null
+          valor_total: number
+        }
+        Insert: {
+          ano: number
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          cliente_id: string
+          created_at?: string | null
+          data_pagamento?: string | null
+          descricao?: string | null
+          extras_count?: number
+          financeiro_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          mes: string
+          mes_numero: number
+          status: string
+          updated_at?: string | null
+          valor_total: number
+        }
+        Update: {
+          ano?: number
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          cliente_id?: string
+          created_at?: string | null
+          data_pagamento?: string | null
+          descricao?: string | null
+          extras_count?: number
+          financeiro_id?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          mes?: string
+          mes_numero?: number
+          status?: string
+          updated_at?: string | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurrent_billing_history_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurrent_billing_history_financeiro_id_fkey"
+            columns: ["financeiro_id"]
+            isOneToOne: false
+            referencedRelation: "financeiro"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reunioes: {
         Row: {
           cliente_id: string | null

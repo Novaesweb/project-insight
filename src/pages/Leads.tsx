@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 
 // --- Variantes de Animação ---
 const container = {
@@ -79,26 +80,25 @@ export default function Leads() {
     setSelectedLead(null);
   };
 
-  const handleDelete = async (leadId: string) => {
-    if (!confirm("Excluir este lead permanentemente?")) return;
-    const { error } = await supabase.from("leads").delete().eq("id", leadId);
-    if (!error) {
-      toast({ title: "Lead excluído" });
-      fetchLeads();
-    }
+  const { requestDelete, dialogProps } = useDeleteConfirm();
+
+  const handleDelete = (leadId: string) => {
+    requestDelete(async () => {
+      const { error } = await supabase.from("leads").delete().eq("id", leadId);
+      if (!error) { toast({ title: "Lead excluído" }); fetchLeads(); }
+    }, "Excluir Lead", "Este lead será removido permanentemente. Digite a senha para confirmar.");
   };
 
-  const handleDeleteAll = async () => {
-    if (!confirm("🚨 ATENÇÃO: Você está prestes a excluir TODOS os leads permanentemente. Esta ação não pode ser desfeita! Confirma a limpeza total?")) return;
-    
-    const { error } = await supabase.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    
-    if (!error) {
-      toast({ title: "Base de Leads limpa!", description: "Todos os contatos foram removidos com sucesso." });
-      fetchLeads();
-    } else {
-      toast({ title: "Erro ao limpar base", description: error.message, variant: "destructive" });
-    }
+  const handleDeleteAll = () => {
+    requestDelete(async () => {
+      const { error } = await supabase.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      if (!error) {
+        toast({ title: "Base de Leads limpa!", description: "Todos os contatos foram removidos com sucesso." });
+        fetchLeads();
+      } else {
+        toast({ title: "Erro ao limpar base", description: error.message, variant: "destructive" });
+      }
+    }, "Limpar toda a base de Leads", "ATENÇÃO: Todos os leads serão removidos permanentemente.");
   };
 
   const handleConvert = async () => {
@@ -471,6 +471,7 @@ export default function Leads() {
           )}
         </DialogContent>
       </Dialog>
+      <DeleteConfirmDialog {...dialogProps} />
     </div>
   );
 }
