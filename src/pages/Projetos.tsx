@@ -527,6 +527,7 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
           </Card>
         </TabsContent>
       </Tabs>
+      <DeleteConfirmDialog {...deleteDialogProps} />
     </motion.div>
   );
 }
