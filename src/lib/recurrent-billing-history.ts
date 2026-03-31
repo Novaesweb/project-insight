@@ -43,19 +43,19 @@ export class RecurrentBillingHistoryService {
    * Busca histórico por mês específico
    */
   static async getHistoryByMonth(clienteId: string, mes: string): Promise<RecurrentBillingHistory | null> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .select("*")
       .eq("cliente_id", clienteId)
       .eq("mes", mes)
       .single();
 
-    if (error && error.code !== "PGRST116") { // PGRST116 = not found
+    if (error && error.code !== "PGRST116") {
       console.error("Erro ao buscar histórico do mês:", error);
       throw error;
     }
 
-    return data;
+    return data as RecurrentBillingHistory | null;
   }
 
   /**
