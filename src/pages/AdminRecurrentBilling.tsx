@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { AsaasService } from "@/lib/asaas-service";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -37,26 +38,45 @@ export default function AdminRecurrentBilling() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    console.log("🔍 Carregando dados de cobrança recorrente...");
 
     // Buscar extras recorrentes (preco_mensal > 0 e status ativo)
-    const { data: extras } = await supabase
+    console.log("📊 Buscando extras recorrentes...");
+    const { data: extras, error: extrasError } = await supabase
       .from("extras_clientes")
       .select("id, cliente_id, preco_mensal, status, extras_catalogo(nome)")
       .gt("preco_mensal", 0)
       .eq("status", "ativo");
 
+    if (extrasError) {
+      console.error("❌ Erro ao buscar extras:", extrasError);
+    }
+
+    console.log("📋 Extras encontrados:", extras?.length || 0);
+
     if (!extras || extras.length === 0) {
+      console.log("⚠️ Nenhum extra recorrente encontrado");
       setClientes([]);
       setLoading(false);
       return;
     }
 
+    console.log("💰 Extras:", extras);
+
     // Buscar nomes dos clientes
     const clienteIds = [...new Set(extras.map(e => e.cliente_id))];
-    const { data: clientesData } = await supabase
+    console.log("👥 Buscando dados dos clientes:", clienteIds);
+    
+    const { data: clientesData, error: clientesError } = await supabase
       .from("clientes")
       .select("id, nome, email")
       .in("id", clienteIds);
+
+    if (clientesError) {
+      console.error("❌ Erro ao buscar clientes:", clientesError);
+    }
+
+    console.log("👤 Clientes encontrados:", clientesData?.length || 0);
 
     const clienteMap = new Map(clientesData?.map(c => [c.id, c]) || []);
 
@@ -64,7 +84,10 @@ export default function AdminRecurrentBilling() {
     const grouped = new Map<string, ClienteRecorrente>();
     for (const e of extras) {
       const c = clienteMap.get(e.cliente_id);
-      if (!c) continue;
+      if (!c) {
+        console.error("❌ Cliente não encontrado para extra:", e.cliente_id);
+        continue;
+      }
 
       if (!grouped.has(e.cliente_id)) {
         grouped.set(e.cliente_id, {
@@ -85,7 +108,11 @@ export default function AdminRecurrentBilling() {
       grupo.totalMensal += Number(e.preco_mensal);
     }
 
-    setClientes(Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome)));
+    const clientesArray = Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome));
+    console.log("📊 Clientes com cobranças recorrentes:", clientesArray.length);
+    console.log("💰 Totais mensais:", clientesArray.map(c => ({ nome: c.cliente_nome, total: c.totalMensal })));
+
+    setClientes(clientesArray);
     setLoading(false);
   }, []);
 
@@ -114,6 +141,10 @@ export default function AdminRecurrentBilling() {
       return;
     }
 
+    console.log("🚀 Iniciando geração de cobranças Asaas...");
+    console.log("📊 Clientes selecionados:", selected.size);
+    console.log("👥 IDs dos clientes:", Array.from(selected));
+
     setGenerating(true);
     const mesAtual = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
     let successCount = 0;
@@ -121,38 +152,97 @@ export default function AdminRecurrentBilling() {
 
     for (const clienteId of selected) {
       const cliente = clientes.find(c => c.cliente_id === clienteId);
-      if (!cliente) continue;
+      if (!cliente) {
+        console.error("❌ Cliente não encontrado:", clienteId);
+        continue;
+      }
 
-      // Gerar uma fatura por extra recorrente do cliente
-      for (const extra of cliente.extras) {
-        const { error } = await supabase.from("financeiro").insert({
-          cliente_id: clienteId,
-          tipo: "receita",
-          valor: extra.preco_mensal,
-          descricao: `Mensalidade: ${extra.nome} — ${mesAtual}`,
-          data: new Date().toISOString().split("T")[0],
-          vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
-          status: "pendente",
+      console.log(`🔄 Processando cliente: ${cliente.cliente_nome} (${clienteId})`);
+      console.log(`💰 Valor total: R$ ${cliente.totalMensal.toFixed(2)}`);
+
+      try {
+        // 1. Criar/atualizar cliente no Asaas
+        console.log("👤 Criando cliente no Asaas...");
+        const asaasCustomer = await AsaasService.getOrCreateCustomer({
+          name: cliente.cliente_nome,
+          email: cliente.cliente_email,
+          externalReference: clienteId
         });
+        console.log("✅ Cliente Asaas criado:", asaasCustomer.id);
 
-        if (error) {
+        // 2. Gerar fatura consolidada no banco
+        console.log("📄 Criando fatura no banco...");
+        const { data: financeiroRecord, error: financeiroError } = await supabase
+          .from("financeiro")
+          .insert({
+            cliente_id: clienteId,
+            tipo: "receita",
+            valor: cliente.totalMensal,
+            descricao: `Cobrança Recorrente — ${mesAtual}\n` + 
+              cliente.extras.map(extra => 
+                `• ${extra.nome}: R$ ${Number(extra.preco_mensal).toFixed(2)}/mês`
+              ).join('\n'),
+            data: new Date().toISOString().split("T")[0],
+            vencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split("T")[0],
+            status: "pendente",
+          })
+          .select()
+          .single();
+
+        if (financeiroError) {
           errorCount++;
-          console.error("Erro ao gerar fatura:", error.message);
-        } else {
-          successCount++;
+          console.error("❌ Erro ao criar fatura:", financeiroError);
+          continue;
         }
+
+        console.log("✅ Fatura criada no banco:", financeiroRecord.id);
+
+        // 3. Gerar cobrança no Asaas
+        if (financeiroRecord) {
+          console.log("💳 Gerando cobrança no Asaas...");
+          const payment = await AsaasService.createPayment({
+            customer: asaasCustomer.id,
+            billingType: "UNDEFINED",
+            value: cliente.totalMensal,
+            dueDate: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0],
+            description: `Cobrança Recorrente - ${mesAtual} - ${cliente.extras.length} Extras`
+          });
+          console.log("✅ Cobrança Asaas criada:", payment.id);
+
+          // 4. Atualizar descrição com link do Asaas
+          const novaDescricao = `${financeiroRecord.descricao}\n(Asaas: ${payment.invoiceUrl})`;
+          await supabase
+            .from("financeiro")
+            .update({ descricao: novaDescricao })
+            .eq("id", financeiroRecord.id);
+
+          successCount++;
+          console.log(`🎉 Cobrança Asaas gerada para ${cliente.cliente_nome}`);
+        }
+
+      } catch (error) {
+        errorCount++;
+        console.error("❌ Erro ao gerar cobrança Asaas:", error);
+        toast({ 
+          title: "Erro no Asaas", 
+          description: `Cliente: ${cliente.cliente_nome} - ${(error as Error).message}`, 
+          variant: "destructive" 
+        });
       }
     }
+
+    console.log(`📊 RESULTADO: ${successCount} sucesso, ${errorCount} erros`);
 
     setGenerating(false);
 
     if (errorCount > 0) {
-      toast({ title: `${successCount} faturas geradas, ${errorCount} erros`, variant: "destructive" });
+      toast({ title: `${successCount} cobranças geradas, ${errorCount} erros`, variant: "destructive" });
     } else {
-      toast({ title: `${successCount} faturas geradas com sucesso!`, description: `Para ${selected.size} cliente(s) selecionado(s).` });
+      toast({ title: `${successCount} cobranças Asaas geradas!`, description: `Para ${selected.size} cliente(s) selecionado(s).` });
     }
 
     setSelected(new Set());
+    loadData(); // Recarregar dados
   };
 
   const totalGeralMensal = clientes.reduce((acc, c) => acc + c.totalMensal, 0);
@@ -163,7 +253,7 @@ export default function AdminRecurrentBilling() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Cobranças Recorrentes</h1>
-          <p className="text-xs text-white/50">Selecione os clientes e gere as faturas manualmente</p>
+          <p className="text-xs text-white/50">Selecione os clientes e gere as cobranças com Asaas</p>
         </div>
 
         <Button
@@ -174,7 +264,7 @@ export default function AdminRecurrentBilling() {
           {generating ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
           ) : (
-            <><FileText className="w-4 h-4 mr-2" /> Gerar Cobranças ({selected.size})</>
+            <><FileText className="w-4 h-4 mr-2" /> Gerar Cobranças Asaas ({selected.size})</>
           )}
         </Button>
       </div>
