@@ -525,7 +525,7 @@ export default function AdminRecurrentExtras() {
               <p className="text-xs text-muted-foreground mb-1">Clientes selecionados</p>
               <p className="text-lg font-bold text-foreground">{selectedClientes.size}</p>
               <p className="text-xs text-muted-foreground">
-                Total: R$ {totalSelecionado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                Total: R$ {Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
             </div>
 
