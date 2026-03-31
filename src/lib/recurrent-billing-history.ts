@@ -62,7 +62,7 @@ export class RecurrentBillingHistoryService {
    * Cria novo registro de histórico mensal
    */
   static async createHistoryRecord(record: Omit<RecurrentBillingHistory, "id" | "created_at" | "updated_at">): Promise<RecurrentBillingHistory> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("recurrent_billing_history")
       .insert(record)
       .select()
@@ -73,7 +73,7 @@ export class RecurrentBillingHistoryService {
       throw error;
     }
 
-    return data;
+    return data as RecurrentBillingHistory;
   }
 
   /**
