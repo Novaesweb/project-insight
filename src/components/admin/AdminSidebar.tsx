@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, ShieldCheck,
+  LogOut, Puzzle, ShieldCheck,
   ChevronLeft, ChevronRight, Sparkles, TrendingUp
 } from "lucide-react";
 import { useLeadCount } from "@/hooks/useLeadCount";
@@ -29,7 +29,6 @@ const navGroups: NavGroup[] = [
     title: "Operações",
     items: [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
-      { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
       { href: "/admin/extras", label: "Extras", icon: Puzzle, accent: true },
       { href: "/admin/recurrent-billing", label: "Cobranças Recorrentes", icon: TrendingUp },
     ],
