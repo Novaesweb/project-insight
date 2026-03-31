@@ -192,19 +192,7 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminWithSplash />
                 </ProtectedRoute>
-              }>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="menu" element={<AdminMenu />} />
-                <Route path="config" element={<AdminConfig />} />
-                <Route path="revenda" element={<AdminRevenda />} />
-                <Route path="projects" element={<AdminProjects />} />
-                <Route path="extras" element={<AdminExtras />} />
-                <Route path="financeiro" element={<AdminFinanceiro />} />
-                <Route path="tickets" element={<AdminTickets />} />
-                <Route path="recurrent-billing" element={<AdminRecurrentBilling />} />
-                <Route path="recurrent-history" element={<AdminRecurrentHistory />} />
-              </Route>
+              } />
 
               {/* Reseller Portal */}
               <Route path="/revenda/*" element={
