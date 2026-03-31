@@ -30,7 +30,6 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
       { href: "/admin/extras", label: "Extras", icon: Puzzle, accent: true },
-      { href: "/admin/recurrent-billing", label: "Cobranças Recorrentes", icon: TrendingUp },
       { href: "/admin/recurrent-extras", label: "Extras Recorrentes", icon: CalendarDays },
     ],
   },
