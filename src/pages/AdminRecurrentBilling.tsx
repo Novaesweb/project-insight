@@ -233,7 +233,7 @@ export default function AdminRecurrentBilling() {
           <p className="text-xs text-muted-foreground">Selecione clientes e gere faturas no Financeiro — Competência: <strong>{mesDisplay}</strong></p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => navigate("/recurrent-history")} variant="outline" size="sm">
+          <Button onClick={() => navigate("/admin/recurrent-history")} variant="outline" size="sm">
             <History className="w-4 h-4 mr-2" /> Histórico
           </Button>
           <Button
