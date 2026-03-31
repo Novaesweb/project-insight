@@ -34,6 +34,7 @@ const subcategorias: Record<CategoriaExtra, string[]> = {
 
 export default function Extras() {
   const { toast } = useToast();
+  const { requestDelete, dialogProps } = useDeleteConfirm();
   const [extras, setExtras] = useState<any[]>([]);
   const [pacotes, setPacotes] = useState<any[]>([]);
   const [pacoteItens, setPacoteItens] = useState<any[]>([]);
