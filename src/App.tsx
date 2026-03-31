@@ -116,7 +116,7 @@ function AdminWithSplash() {
           <Route path="/menu" element={<AdminMenu />} />
           <Route path="/configuracoes" element={<AdminConfig />} />
           <Route path="/recurrent-billing" element={<AdminRecurrentBilling />} />
-          <Route path="/extras-ativos" element={<ExtrasAtivos />} />
+          
             <Route path="*" element={<React.Suspense fallback={<SplashScreen />}><NotFound /></React.Suspense>} />
           </Routes>
         </React.Suspense>

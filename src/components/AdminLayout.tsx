@@ -35,8 +35,6 @@ const mobileNavGroups = [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
       { href: "/admin/agenda", label: "Agenda", icon: CalendarDays },
       { href: "/admin/extras", label: "Extras", icon: Puzzle },
-      { href: "/admin/extras-ativos", label: "Extras Ativos", icon: Users },
-      { href: "/admin/calculadora", label: "Calculadora", icon: DollarSign },
       { href: "/admin/recurrent-billing", label: "Cobranças Recorrentes", icon: TrendingUp },
     ],
   },
