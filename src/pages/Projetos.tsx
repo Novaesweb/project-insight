@@ -711,6 +711,7 @@ export default function Projetos() {
           </CardContent>
         </Card>
       )}
+      <DeleteConfirmDialog {...outerDeleteProps} />
     </motion.div>
   );
 }
