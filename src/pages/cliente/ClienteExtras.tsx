@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
-import { Zap, Star, CalendarDays, Rocket, ShieldCheck, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Zap, Star, CalendarDays, Rocket, ShieldCheck, Sparkles, CreditCard, ExternalLink } from "lucide-react";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -16,7 +18,9 @@ const catConfig: Record<string, { label: string; color: string; bg: string; bord
 
 export default function ClienteExtras() {
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const { toast } = useToast();
   const [meusExtras, setMeusExtras] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(() => {
     if (!cliente.id) return;
@@ -30,6 +34,67 @@ export default function ClienteExtras() {
   const ativos = meusExtras.filter(e => e.status === "ativo");
   const totalMensal = ativos.reduce((acc, e) => acc + Number(e.preco_mensal), 0);
   const totalAtivacao = ativos.reduce((acc, e) => acc + Number(e.preco_ativacao), 0);
+
+  // Função para gerar cobrança no Asaas
+  const handleGerarAsaas = async (extra: any) => {
+    if (!cliente.id) return;
+    
+    setLoading(true);
+    try {
+      // Importar AsaasService dinamicamente
+      const { AsaasService } = await import("@/lib/asaas-service");
+      
+      // 1. Buscar dados completos do cliente
+      const { data: clienteData } = await supabase.from("clientes").select("*").eq("id", cliente.id).single();
+      if (!clienteData) throw new Error("Cliente não encontrado");
+
+      // 2. Criar/atualizar cliente no Asaas
+      const asaasCustomer = await AsaasService.getOrCreateCustomer({
+        name: clienteData.nome,
+        email: clienteData.email,
+        cpfCnpj: clienteData.documento || undefined,
+        mobilePhone: clienteData.telefone || undefined,
+        externalReference: cliente.id
+      });
+
+      // 3. Gerar cobrança no Asaas
+      const payment = await AsaasService.createPayment({
+        customer: asaasCustomer.id,
+        billingType: "UNDEFINED" as const,
+        value: Number(extra.preco_mensal),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        description: `Extra: ${(extra.extras_catalogo as any)?.nome || extra.nome} - Mensalidade`
+      });
+
+      // 4. Criar fatura no financeiro com link Asaas
+      const financeiroData = {
+        cliente_id: cliente.id,
+        tipo: "receita",
+        valor: Number(extra.preco_mensal),
+        descricao: `Extra: ${(extra.extras_catalogo as any)?.nome || extra.nome} - Mensalidade\n(Asaas: ${payment.invoiceUrl})`,
+        data: new Date().toISOString().split("T")[0],
+        vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: "pendente"
+      };
+
+      await supabase.from("financeiro").insert(financeiroData);
+
+      toast({ 
+        title: "✅ Cobrança Gerada!", 
+        description: `Cobrança Asaas criada com sucesso. Valor: R$ ${Number(extra.preco_mensal).toFixed(2)}` 
+      });
+
+    } catch (error: any) {
+      console.error("Erro ao gerar cobrança Asaas:", error);
+      toast({ 
+        title: "Erro ao gerar cobrança", 
+        description: error.message || "Não foi possível gerar a cobrança Asaas", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-10 pb-20">
@@ -99,15 +164,38 @@ export default function ClienteExtras() {
                     <span className="text-[10px] text-white/20 font-medium">Iniciado em {new Date(e.created_at).toLocaleDateString("pt-BR")}</span>
                   </div>
 
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                    <div>
-                      {Number(e.preco_ativacao) > 0 && <p className="text-[10px] text-white/30 uppercase font-black tracking-tighter">Ativação</p>}
-                      {Number(e.preco_ativacao) > 0 && <p className="text-sm font-black text-emerald-400">R$ {Number(e.preco_ativacao).toFixed(2)}</p>}
+                  <div className="pt-4 border-t border-white/5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        {Number(e.preco_ativacao) > 0 && <p className="text-[10px] text-white/30 uppercase font-black tracking-tighter">Ativação</p>}
+                        {Number(e.preco_mensal) > 0 && <p className="text-[10px] text-white/30 uppercase font-black tracking-tighter">Mensalidade</p>}
+                      </div>
+                      <div className="text-right">
+                        {Number(e.preco_ativacao) > 0 && <p className="text-sm font-black text-white">R$ {Number(e.preco_ativacao).toFixed(2)}</p>}
+                        {Number(e.preco_mensal) > 0 && <p className="text-sm font-black text-white">R$ {Number(e.preco_mensal).toFixed(2)}</p>}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      {Number(e.preco_mensal) > 0 && <p className="text-[10px] text-white/30 uppercase font-black tracking-tighter">Assinatura</p>}
-                      {Number(e.preco_mensal) > 0 && <p className="text-sm font-black text-amber-500">R$ {Number(e.preco_mensal).toFixed(2)}/mês</p>}
-                    </div>
+                    
+                    {/* Botão Gerar no Asaas para recorrentes */}
+                    {e.status === "ativo" && Number(e.preco_mensal) > 0 && e.categoria === "mensal" && (
+                      <Button
+                        onClick={() => handleGerarAsaas(e)}
+                        disabled={loading}
+                        className="w-full h-10 rounded-xl font-black uppercase tracking-widest text-xs transition-all gradient-primary border-0 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                            Gerando...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Gerar no Asaas
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
 
                   {e.observacao && (

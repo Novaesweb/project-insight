@@ -1,10 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault } from "lucide-react";
+import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault, Eye, Phone, Mail, IdCard, MapPin, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import StatusBadge from "@/components/StatusBadge";
@@ -61,13 +64,14 @@ export default function ClienteDashboard() {
   const cliente: PerfilCliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const cId = cliente.id;
   const [counts, setCounts] = useState<Counts>({ projetos: 0, faturas: 0, tickets: 0 });
-  const [proximaReuniao, setProximaReuniao] = useState<Reuniao | null>(null);
+  const [proximaReuniao, setProximaReuniao] = useState<any>(null);
   const [atualizacoes, setAtualizacoes] = useState<Atualizacao[]>([]);
   const [perfil, setPerfil] = useState<PerfilCliente>(cliente);
   const [projetoAtivo, setProjetoAtivo] = useState<ProjetoAtivo | null>(null);
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showDadosDialog, setShowDadosDialog] = useState(false);
 
   const load = useCallback(() => {
     if (!cId) return;
@@ -88,7 +92,7 @@ export default function ClienteDashboard() {
       });
 
     supabase.from("reunioes").select("*").eq("cliente_id", cId).in("status", ["agendada", "confirmada"]).order("data", { ascending: true }).limit(1)
-      .then(({ data }) => setProximaReuniao((data?.[0] as unknown as Reuniao) || null));
+      .then(({ data }) => setProximaReuniao(data?.[0] || null));
 
     supabase.from("projeto_atualizacoes").select("*, projetos!inner(titulo, cliente_id)").eq("projetos.cliente_id", cId).eq("visivel_cliente", true)
       .order("created_at", { ascending: false }).limit(5)
@@ -250,6 +254,110 @@ export default function ClienteDashboard() {
               </Link>
             </Button>
           ))}
+          
+          {/* Botão Meus Dados */}
+          <Dialog open={showDadosDialog} onOpenChange={setShowDadosDialog}>
+            <DialogTrigger asChild>
+              <Button className="flex-shrink-0 border border-white/5 text-white rounded-2xl h-24 w-32 flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1 active:scale-95 shadow-xl shadow-black/20 group cursor-pointer overflow-hidden text-center" style={{ background: "rgba(13,11,18,0.8)" }}>
+                <div className="p-2.5 rounded-xl group-hover:scale-110 transition-all z-10 mx-auto" style={{ background: "linear-gradient(135deg, #38bdf8, #0284c7)" }}>
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xs font-semibold z-10">Meus Dados</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-white">Meus Dados Completos</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                {/* Informações Básicas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações Básicas</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm text-white/80">Nome:</span>
+                        <span className="text-sm font-medium text-white">{perfil.nome}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-green-400" />
+                        <span className="text-sm text-white/80">Email:</span>
+                        <span className="text-sm font-medium text-white">{perfil.email}</span>
+                      </div>
+                      {(perfil as any).documento && (
+                        <div className="flex items-center gap-2">
+                          <IdCard className="w-4 h-4 text-purple-400" />
+                          <span className="text-sm text-white/80">CPF/CNPJ:</span>
+                          <span className="text-sm font-medium text-white">{(perfil as any).documento}</span>
+                        </div>
+                      )}
+                      {(perfil as any).telefone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-amber-400" />
+                          <span className="text-sm text-white/80">Telefone:</span>
+                          <span className="text-sm font-medium text-white">{(perfil as any).telefone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Endereço */}
+                  {((perfil as any).endereco || (perfil as any).cidade || (perfil as any).uf || (perfil as any).cep) && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Endereço</h3>
+                      <div className="space-y-2">
+                        {(perfil as any).endereco && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-red-400" />
+                            <span className="text-sm text-white/80">Endereço:</span>
+                            <span className="text-sm font-medium text-white">{(perfil as any).endereco}</span>
+                          </div>
+                        )}
+                        {((perfil as any).cidade || (perfil as any).uf) && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-red-400" />
+                            <span className="text-sm text-white/80">Cidade/UF:</span>
+                            <span className="text-sm font-medium text-white">
+                              {(perfil as any).cidade}{(perfil as any).uf && `/${(perfil as any).uf}`}
+                            </span>
+                          </div>
+                        )}
+                        {(perfil as any).cep && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-red-400" />
+                            <span className="text-sm text-white/80">CEP:</span>
+                            <span className="text-sm font-medium text-white">{(perfil as any).cep}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Informações do Sistema */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Informações do Sistema</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-blue-400" />
+                      <span className="text-sm text-white/80">ID Cliente:</span>
+                      <span className="text-sm font-medium text-white">{perfil.id}</span>
+                    </div>
+                    {perfil.trial_ends_at && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-amber-400" />
+                        <span className="text-sm text-white/80">Trial até:</span>
+                        <span className="text-sm font-medium text-white">
+                          {new Date(perfil.trial_ends_at).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </motion.div>
       </div>
 
@@ -407,7 +515,7 @@ export default function ClienteDashboard() {
                 <div className="space-y-3">
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                     <p className="text-xs font-bold text-white">{new Date(proximaReuniao.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
-                    <p className="text-[10px] text-white/40 mt-1">{proximaReuniao.horario} · {tipoReuniaoLabels[proximaReuniao.tipo as TipoReuniao] || proximaReuniao.tipo}</p>
+                    <p className="text-[10px] text-white/40 mt-1">{proximaReuniao.horario} · {proximaReuniao.tipo || 'Reunião'}</p>
                     <div className="mt-2"><StatusBadge status={proximaReuniao.status} /></div>
                   </div>
                   {proximaReuniao.link && (
