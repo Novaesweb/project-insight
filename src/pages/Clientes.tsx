@@ -108,10 +108,10 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     if (!extraSelecionado) return;
     setSavingExtra(true);
     const sel = catalogo.find(c => c.id === extraSelecionado);
-    const { error } = await (supabase.from("clientes_extras" as any) as any).insert({
+    const { error } = await supabase.from("extras_clientes").insert({
       cliente_id: clienteId,
       extra_id: extraSelecionado,
-      categoria: sel?.categoria || "vendas",
+      categoria: sel?.categoria || "fixo",
       preco_ativacao: sel?.preco_ativacao || 0,
       preco_mensal: sel?.preco_mensal || 0,
       observacao,
