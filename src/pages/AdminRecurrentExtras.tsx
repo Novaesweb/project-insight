@@ -5,51 +5,116 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Users, FileText, ArrowLeft, Loader2, RefreshCw } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Users,
+  FileText, ArrowLeft, Loader2, RefreshCw, Send, Eye, ExternalLink, Plus
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
+// ── Types ──
 interface ClienteRecorrente {
   cliente_id: string;
   cliente_nome: string;
   cliente_email: string;
-  extras: { id: string; nome: string; preco_mensal: number; status: string }[];
+  cliente_documento?: string;
+  cliente_telefone?: string;
+  extras: { id: string; nome: string; preco_mensal: number; status: string; data_ativacao: string }[];
   totalMensal: number;
 }
 
-const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pendente: { label: "Pendente", variant: "secondary" },
-  pago_manualmente: { label: "Pago Manual", variant: "default" },
-  pago_asaas: { label: "Pago Asaas", variant: "default" },
-  em_atraso: { label: "Em Atraso", variant: "destructive" },
-};
-
-const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-function formatMes(mes: string) {
-  const [ano, m] = mes.split("-");
-  return `${meses[parseInt(m) - 1]}/${ano}`;
+interface FaturaMes {
+  id: string;
+  cliente_id: string;
+  mes: string;
+  ano: number;
+  mes_numero: number;
+  valor_total: number;
+  status: string;
+  forma_pagamento?: string;
+  data_pagamento?: string;
+  financeiro_id?: string;
+  asaas_payment_id?: string;
+  asaas_invoice_url?: string;
+  extras_count: number;
+  descricao?: string;
+  vencimento?: string;
+  created_at: string;
 }
 
+// ── Helpers ──
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const formatMes = (mes: string) => { const [a, m] = mes.split("-"); return `${MESES[parseInt(m)-1]}/${a}`; };
+
+const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: typeof Clock }> = {
+  rascunho: { label: "Rascunho", variant: "outline", icon: FileText },
+  pendente: { label: "Pendente", variant: "secondary", icon: Clock },
+  pago_manualmente: { label: "Pago Manual", variant: "default", icon: CheckCircle2 },
+  pago_asaas: { label: "Pago Asaas", variant: "default", icon: CheckCircle2 },
+  em_atraso: { label: "Em Atraso", variant: "destructive", icon: AlertCircle },
+};
+
+/** Dia de corte: extras adicionados após este dia vão para o mês seguinte */
+const DIA_CORTE = 20;
+
+function getMesCompetencia(dataAtivacao: string): string {
+  const d = new Date(dataAtivacao + "T00:00:00");
+  let mes = d.getMonth() + 1;
+  let ano = d.getFullYear();
+  if (d.getDate() > DIA_CORTE) {
+    mes++;
+    if (mes > 12) { mes = 1; ano++; }
+  }
+  return `${ano}-${mes.toString().padStart(2, "0")}`;
+}
+
+function gerarOpcoesMeses(): { value: string; label: string }[] {
+  const hoje = new Date();
+  const opcoes: { value: string; label: string }[] = [];
+  for (let i = -2; i <= 6; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    const val = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}`;
+    opcoes.push({ value: val, label: formatMes(val) });
+  }
+  return opcoes;
+}
+
+// ── Component ──
 export default function AdminRecurrentExtras() {
   const { toast } = useToast();
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [clientes, setClientes] = useState<ClienteRecorrente[]>([]);
   const [selectedClientes, setSelectedClientes] = useState<Set<string>>(new Set());
-  const [generatingInvoices, setGeneratingInvoices] = useState(false);
-  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+
+  // Dialog: gerar fatura
+  const [showGerarDialog, setShowGerarDialog] = useState(false);
+  const [mesSelecionado, setMesSelecionado] = useState(() => {
+    const h = new Date();
+    return `${h.getFullYear()}-${(h.getMonth()+1).toString().padStart(2,"0")}`;
+  });
+  const [diaVencimento, setDiaVencimento] = useState("10");
+  const [gerando, setGerando] = useState(false);
+
+  // Dialog: histórico / faturas do cliente
+  const [showClienteDialog, setShowClienteDialog] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState<ClienteRecorrente | null>(null);
-  const [historico, setHistorico] = useState<any[]>([]);
+  const [faturasMes, setFaturasMes] = useState<FaturaMes[]>([]);
+  const [enviandoFinanceiro, setEnviandoFinanceiro] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
+  // ── Load data ──
   const loadClientes = useCallback(async () => {
     setLoading(true);
     try {
       const { data: extras } = await supabase
         .from("extras_clientes")
-        .select("id, cliente_id, preco_mensal, status, extras_catalogo(nome)")
+        .select("id, cliente_id, preco_mensal, status, data_ativacao, extras_catalogo(nome)")
         .gt("preco_mensal", 0)
         .eq("status", "ativo");
 
@@ -58,7 +123,7 @@ export default function AdminRecurrentExtras() {
 
       const { data: clientesData } = await supabase
         .from("clientes")
-        .select("id, nome, email")
+        .select("id, nome, email, documento, telefone")
         .in("id", clienteIds);
 
       const cMap = new Map(clientesData?.map(c => [c.id, c]) || []);
@@ -68,111 +133,229 @@ export default function AdminRecurrentExtras() {
         const c = cMap.get(e.cliente_id);
         if (!c) continue;
         if (!grouped.has(e.cliente_id)) {
-          grouped.set(e.cliente_id, { cliente_id: e.cliente_id, cliente_nome: c.nome, cliente_email: c.email, extras: [], totalMensal: 0 });
+          grouped.set(e.cliente_id, {
+            cliente_id: e.cliente_id, cliente_nome: c.nome, cliente_email: c.email,
+            cliente_documento: c.documento ?? undefined, cliente_telefone: c.telefone ?? undefined,
+            extras: [], totalMensal: 0,
+          });
         }
         const g = grouped.get(e.cliente_id)!;
-        g.extras.push({ id: e.id, nome: (e.extras_catalogo as any)?.nome || "Extra", preco_mensal: Number(e.preco_mensal), status: e.status });
+        g.extras.push({
+          id: e.id, nome: (e.extras_catalogo as any)?.nome || "Extra",
+          preco_mensal: Number(e.preco_mensal), status: e.status,
+          data_ativacao: e.data_ativacao,
+        });
         g.totalMensal += Number(e.preco_mensal);
       }
       setClientes(Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome)));
-    } catch (error) {
-      console.error("Erro:", error);
+    } catch (err) {
+      console.error("Erro:", err);
       toast({ title: "Erro ao carregar clientes", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
-  const handleGenerateInvoices = async () => {
+  useEffect(() => { loadClientes(); }, [loadClientes]);
+
+  // ── Gerar faturas (rascunho — NÃO vai pro financeiro) ──
+  const handleGerarFaturas = async () => {
     if (selectedClientes.size === 0) {
       toast({ title: "Selecione pelo menos um cliente", variant: "destructive" });
       return;
     }
-    setGeneratingInvoices(true);
-    const mesAtual = new Date().toISOString().slice(0, 7);
-    const ano = new Date().getFullYear();
-    const mes = new Date().getMonth() + 1;
+    setGerando(true);
     let ok = 0, erros = 0;
+    const [anoStr, mesStr] = mesSelecionado.split("-");
+    const ano = parseInt(anoStr);
+    const mesNum = parseInt(mesStr);
+    const vencDia = parseInt(diaVencimento) || 10;
+    const vencimento = `${anoStr}-${mesStr}-${vencDia.toString().padStart(2, "0")}`;
 
     for (const clienteId of selectedClientes) {
       const cliente = clientes.find(c => c.cliente_id === clienteId);
       if (!cliente) continue;
+
       try {
+        // Check existing
         const { data: existing } = await (supabase as any)
-          .from("recurrent_billing_history").select("id").eq("cliente_id", clienteId).eq("mes", mesAtual).single();
-        if (existing) { erros++; continue; }
+          .from("recurrent_billing_history")
+          .select("id")
+          .eq("cliente_id", clienteId)
+          .eq("mes", mesSelecionado)
+          .maybeSingle();
 
-        const descricao = `Cobrança Recorrente — ${formatMes(mesAtual)}\n` +
-          cliente.extras.map(e => `• ${e.nome}: R$ ${Number(e.preco_mensal).toFixed(2)}/mês`).join('\n');
-        const vencimento = new Date(); vencimento.setDate(vencimento.getDate() + 10);
-
-        const { data: fin } = await supabase.from("financeiro").insert({
-          cliente_id: clienteId, tipo: "entrada", valor: cliente.totalMensal, descricao,
-          data: new Date().toISOString().split("T")[0],
-          vencimento: vencimento.toISOString().split("T")[0], status: "pendente",
-        }).select().single();
-
-        if (fin) {
-          await (supabase as any).from("recurrent_billing_history").insert({
-            cliente_id: clienteId, mes: mesAtual, ano, mes_numero: mes,
-            valor_total: cliente.totalMensal, status: "pendente",
-            financeiro_id: fin.id, extras_count: cliente.extras.length, descricao,
-          });
-          ok++;
+        if (existing) {
+          toast({ title: `${cliente.cliente_nome} já tem fatura para ${formatMes(mesSelecionado)}`, variant: "destructive" });
+          erros++;
+          continue;
         }
-      } catch { erros++; }
+
+        // Calcular extras do mês (respeitar corte)
+        const extrasDoMes = cliente.extras.filter(e => {
+          const comp = getMesCompetencia(e.data_ativacao);
+          return comp <= mesSelecionado; // extras ativados até este mês
+        });
+
+        const valorTotal = extrasDoMes.reduce((acc, e) => acc + e.preco_mensal, 0);
+        if (valorTotal <= 0) { erros++; continue; }
+
+        const descricao = `Cobrança Recorrente — ${formatMes(mesSelecionado)}\n` +
+          extrasDoMes.map(e => `• ${e.nome}: R$ ${e.preco_mensal.toFixed(2)}/mês`).join("\n");
+
+        // Criar como RASCUNHO (sem financeiro_id)
+        await (supabase as any).from("recurrent_billing_history").insert({
+          cliente_id: clienteId,
+          mes: mesSelecionado,
+          ano,
+          mes_numero: mesNum,
+          valor_total: valorTotal,
+          status: "rascunho",
+          extras_count: extrasDoMes.length,
+          descricao,
+          vencimento,
+        });
+        ok++;
+      } catch (err) {
+        console.error("Erro gerando fatura:", err);
+        erros++;
+      }
     }
 
-    setGeneratingInvoices(false);
+    setGerando(false);
     setSelectedClientes(new Set());
-    if (ok > 0) toast({ title: `${ok} fatura(s) gerada(s)!`, description: `Competência: ${formatMes(mesAtual)}` });
-    if (erros > 0) toast({ title: `${erros} já existiam ou falharam`, variant: "destructive" });
+    setShowGerarDialog(false);
+    if (ok > 0) toast({ title: `${ok} fatura(s) criada(s) como rascunho`, description: `Competência: ${formatMes(mesSelecionado)}` });
+    if (erros > 0) toast({ title: `${erros} erro(s) ou duplicados`, variant: "destructive" });
     loadClientes();
   };
 
-  const loadHistorico = async (cliente: ClienteRecorrente) => {
+  // ── Load faturas de um cliente ──
+  const openClienteHistorico = async (cliente: ClienteRecorrente) => {
     try {
       const { data } = await (supabase as any)
-        .from("recurrent_billing_history").select("*")
+        .from("recurrent_billing_history")
+        .select("*")
         .eq("cliente_id", cliente.cliente_id)
-        .order("ano", { ascending: false }).order("mes_numero", { ascending: false });
-      setHistorico(data || []);
+        .order("ano", { ascending: false })
+        .order("mes_numero", { ascending: false });
+      setFaturasMes(data || []);
       setSelectedCliente(cliente);
-      setShowHistoryDialog(true);
+      setShowClienteDialog(true);
     } catch {
       toast({ title: "Erro ao carregar histórico", variant: "destructive" });
     }
   };
 
-  const handleUpdateStatus = async (recordId: string, status: string) => {
-    setUpdatingStatus(recordId);
+  // ── Enviar para financeiro + Asaas ──
+  const handleEnviarFinanceiro = async (fatura: FaturaMes) => {
+    if (!selectedCliente) return;
+    setEnviandoFinanceiro(fatura.id);
     try {
-      const formaPagamento = status === "pago_manualmente" ? "manual" : status === "pago_asaas" ? "asaas" : null;
-      const dataPagamento = status.includes("pago") ? new Date().toISOString().split("T")[0] : null;
+      const venc = fatura.vencimento || (() => {
+        const d = new Date(); d.setDate(d.getDate() + 10);
+        return d.toISOString().split("T")[0];
+      })();
 
+      // 1. Criar no financeiro
+      const { data: fin, error: finErr } = await supabase.from("financeiro").insert({
+        cliente_id: fatura.cliente_id,
+        tipo: "entrada",
+        valor: fatura.valor_total,
+        descricao: fatura.descricao || `Cobrança Recorrente — ${formatMes(fatura.mes)}`,
+        data: new Date().toISOString().split("T")[0],
+        vencimento: venc,
+        status: "pendente",
+      }).select().single();
+
+      if (finErr || !fin) throw finErr;
+
+      // 2. Atualizar recurrent_billing_history
       await (supabase as any).from("recurrent_billing_history").update({
-        status, forma_pagamento: formaPagamento, data_pagamento: dataPagamento, updated_at: new Date().toISOString(),
-      }).eq("id", recordId);
+        status: "pendente",
+        financeiro_id: fin.id,
+        updated_at: new Date().toISOString(),
+      }).eq("id", fatura.id);
 
-      const record = historico.find(r => r.id === recordId);
-      if (record?.financeiro_id) {
-        await supabase.from("financeiro").update({ status: status.includes("pago") ? "pago" : "pendente" }).eq("id", record.financeiro_id);
+      // 3. Tentar gerar no Asaas via Edge Function
+      let asaasUrl: string | null = null;
+      let asaasPaymentId: string | null = null;
+      try {
+        const { data: asaasResult } = await supabase.functions.invoke("asaas-api", {
+          body: {
+            action: "create_payment",
+            cliente_id: fatura.cliente_id,
+            nome: selectedCliente.cliente_nome,
+            email: selectedCliente.cliente_email,
+            documento: selectedCliente.cliente_documento,
+            telefone: selectedCliente.cliente_telefone,
+            valor: fatura.valor_total,
+            vencimento: venc,
+            descricao: `Recorrente ${formatMes(fatura.mes)} — ${fatura.extras_count} extras`,
+          },
+        });
+        if (asaasResult?.invoiceUrl) {
+          asaasUrl = asaasResult.invoiceUrl;
+          asaasPaymentId = asaasResult.id;
+          await (supabase as any).from("recurrent_billing_history").update({
+            asaas_invoice_url: asaasUrl,
+            asaas_payment_id: asaasPaymentId,
+          }).eq("id", fatura.id);
+        }
+      } catch (asaasErr) {
+        console.warn("Asaas não disponível, fatura criada apenas no financeiro:", asaasErr);
       }
 
-      setHistorico(prev => prev.map(r => r.id === recordId ? { ...r, status, forma_pagamento: formaPagamento, data_pagamento: dataPagamento } : r));
+      // Update local state
+      setFaturasMes(prev => prev.map(f => f.id === fatura.id ? {
+        ...f, status: "pendente", financeiro_id: fin.id,
+        asaas_invoice_url: asaasUrl ?? undefined, asaas_payment_id: asaasPaymentId ?? undefined,
+      } : f));
+
+      toast({
+        title: "Enviado para o Financeiro!",
+        description: asaasUrl ? "Cobrança Asaas gerada com sucesso" : "Fatura criada no financeiro",
+      });
+    } catch (err: any) {
+      console.error("Erro ao enviar:", err);
+      toast({ title: "Erro ao enviar para financeiro", description: err?.message, variant: "destructive" });
+    } finally {
+      setEnviandoFinanceiro(null);
+    }
+  };
+
+  // ── Update payment status ──
+  const handleUpdateStatus = async (fatura: FaturaMes, newStatus: string) => {
+    setUpdatingStatus(fatura.id);
+    try {
+      const formaPagamento = newStatus === "pago_manualmente" ? "manual" : newStatus === "pago_asaas" ? "asaas" : null;
+      const dataPagamento = newStatus.includes("pago") ? new Date().toISOString().split("T")[0] : null;
+
+      await (supabase as any).from("recurrent_billing_history").update({
+        status: newStatus, forma_pagamento: formaPagamento, data_pagamento: dataPagamento,
+        updated_at: new Date().toISOString(),
+      }).eq("id", fatura.id);
+
+      if (fatura.financeiro_id) {
+        await supabase.from("financeiro").update({
+          status: newStatus.includes("pago") ? "pago" : "pendente",
+        }).eq("id", fatura.financeiro_id);
+      }
+
+      setFaturasMes(prev => prev.map(f => f.id === fatura.id ? {
+        ...f, status: newStatus, forma_pagamento: formaPagamento, data_pagamento: dataPagamento,
+      } : f));
       toast({ title: "Status atualizado!" });
     } catch {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: "Erro ao atualizar status", variant: "destructive" });
     } finally {
       setUpdatingStatus(null);
     }
   };
 
-  useEffect(() => { loadClientes(); }, [loadClientes]);
-
+  // ── Computed ──
   const totalSelecionado = Array.from(selectedClientes).reduce((t, id) => {
-    const c = clientes.find(x => x.cliente_id === id);
-    return t + (c?.totalMensal || 0);
+    return t + (clientes.find(c => c.cliente_id === id)?.totalMensal || 0);
   }, 0);
 
   const toggleCliente = (id: string) => {
@@ -182,6 +365,8 @@ export default function AdminRecurrentExtras() {
       return next;
     });
   };
+
+  const opcoesMeses = gerarOpcoesMeses();
 
   return (
     <motion.div className="space-y-4 sm:space-y-6 p-3 sm:p-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -193,7 +378,9 @@ export default function AdminRecurrentExtras() {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg sm:text-2xl font-bold text-foreground">Extras Recorrentes</h1>
-            <p className="text-xs text-muted-foreground">Gerencie cobranças mensais dos extras</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Controle mensal • Gere faturas e envie ao financeiro manualmente
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -201,15 +388,11 @@ export default function AdminRecurrentExtras() {
             <RefreshCw className="w-4 h-4 mr-1.5" /> Atualizar
           </Button>
           <Button
-            onClick={handleGenerateInvoices}
-            disabled={selectedClientes.size === 0 || generatingInvoices}
+            onClick={() => setShowGerarDialog(true)}
+            disabled={selectedClientes.size === 0}
             size="sm"
           >
-            {generatingInvoices ? (
-              <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Gerando...</>
-            ) : (
-              <><FileText className="w-4 h-4 mr-1.5" /> Gerar Faturas ({selectedClientes.size})</>
-            )}
+            <Plus className="w-4 h-4 mr-1.5" /> Gerar Fatura ({selectedClientes.size})
           </Button>
         </div>
       </div>
@@ -219,7 +402,7 @@ export default function AdminRecurrentExtras() {
         {[
           { icon: Users, label: "Clientes", value: clientes.length, color: "text-blue-500" },
           { icon: CheckCircle2, label: "Selecionados", value: selectedClientes.size, color: "text-emerald-500" },
-          { icon: DollarSign, label: "Total", value: `R$ ${Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "text-amber-500" },
+          { icon: DollarSign, label: "Total Sel.", value: `R$ ${Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "text-amber-500" },
         ].map((s, i) => (
           <Card key={i}>
             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
@@ -289,13 +472,12 @@ export default function AdminRecurrentExtras() {
                           </div>
                           <Button
                             size="sm" variant="outline" className="h-7 text-xs shrink-0"
-                            onClick={(e) => { e.stopPropagation(); loadHistorico(c); }}
+                            onClick={(e) => { e.stopPropagation(); openClienteHistorico(c); }}
                           >
                             <CalendarDays className="w-3 h-3 mr-1" /> Meses
                           </Button>
                         </div>
                       </div>
-                      {/* Extras tags */}
                       <div className="flex flex-wrap gap-1 mt-2">
                         {c.extras.map(e => (
                           <span key={e.id} className="text-[9px] border border-border rounded-full px-1.5 py-0.5 text-muted-foreground">
@@ -312,13 +494,83 @@ export default function AdminRecurrentExtras() {
         </CardContent>
       </Card>
 
-      {/* Dialog Histórico Mensal */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto">
+      {/* Como funciona */}
+      <Card>
+        <CardContent className="p-4 space-y-2">
+          <h3 className="text-xs font-black text-foreground uppercase tracking-wider mb-3">Como funciona</h3>
+          {[
+            { color: "bg-blue-500", text: `Extras adicionados após o dia ${DIA_CORTE} vão para o mês seguinte` },
+            { color: "bg-emerald-500", text: "Selecione clientes → Gerar Fatura → escolha mês e vencimento" },
+            { color: "bg-amber-500", text: "A fatura fica como RASCUNHO até você clicar 'Enviar ao Financeiro'" },
+            { color: "bg-purple-500", text: "Ao enviar, cria lançamento no Financeiro e gera cobrança no Asaas" },
+          ].map((item, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className={`w-1.5 h-1.5 rounded-full ${item.color} shrink-0 mt-1.5`} />
+              <p className="text-[11px] text-muted-foreground">{item.text}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* ── Dialog: Gerar Fatura ── */}
+      <Dialog open={showGerarDialog} onOpenChange={setShowGerarDialog}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground text-sm sm:text-base flex items-center gap-2">
+              <FileText className="w-4 h-4" /> Gerar Fatura Recorrente
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-secondary">
+              <p className="text-xs text-muted-foreground mb-1">Clientes selecionados</p>
+              <p className="text-lg font-bold text-foreground">{selectedClientes.size}</p>
+              <p className="text-xs text-muted-foreground">
+                Total: R$ {Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-foreground">Mês de competência</Label>
+              <Select value={mesSelecionado} onValueChange={setMesSelecionado}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {opcoesMeses.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-foreground">Dia de vencimento</Label>
+              <Input
+                type="number" min="1" max="28" value={diaVencimento}
+                onChange={e => setDiaVencimento(e.target.value)}
+                className="text-foreground"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Vencimento: {diaVencimento.padStart(2, "0")}/{mesSelecionado.split("-")[1]}/{mesSelecionado.split("-")[0]}
+              </p>
+            </div>
+
+            <Button onClick={handleGerarFaturas} disabled={gerando} className="w-full">
+              {gerando ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
+              ) : (
+                <><FileText className="w-4 h-4 mr-2" /> Criar Faturas como Rascunho</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog: Histórico mensal do cliente ── */}
+      <Dialog open={showClienteDialog} onOpenChange={setShowClienteDialog}>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2 text-sm sm:text-base">
               <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
-              Histórico — {selectedCliente?.cliente_nome}
+              {selectedCliente?.cliente_nome} — Faturas Mensais
             </DialogTitle>
           </DialogHeader>
 
@@ -337,104 +589,107 @@ export default function AdminRecurrentExtras() {
                   <p className="text-sm sm:text-lg font-bold text-foreground">{selectedCliente.extras.length}</p>
                 </div>
                 <div className="p-2 sm:p-3 rounded-lg bg-secondary">
-                  <p className="text-[9px] sm:text-xs text-muted-foreground">Meses</p>
-                  <p className="text-sm sm:text-lg font-bold text-foreground">{historico.length}</p>
+                  <p className="text-[9px] sm:text-xs text-muted-foreground">Faturas</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground">{faturasMes.length}</p>
                 </div>
               </div>
 
-              {/* Tabela — Mobile: cards, Desktop: table */}
-              <div className="hidden sm:block">
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs">Mês</TableHead>
-                            <TableHead className="text-xs">Valor</TableHead>
-                            <TableHead className="text-xs">Status</TableHead>
-                            <TableHead className="text-xs">Pagamento</TableHead>
-                            <TableHead className="text-xs">Data</TableHead>
-                            <TableHead className="text-xs text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {historico.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-xs">
-                                Nenhum histórico. Gere faturas primeiro.
-                              </TableCell>
-                            </TableRow>
-                          ) : historico.map((r) => {
-                            const st = statusMap[r.status] || statusMap.pendente;
-                            return (
-                              <TableRow key={r.id}>
-                                <TableCell className="font-medium text-foreground text-sm">{formatMes(r.mes)}</TableCell>
-                                <TableCell className="text-foreground text-sm">R$ {Number(r.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
-                                <TableCell><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
-                                <TableCell className="text-muted-foreground text-xs">{r.forma_pagamento === "asaas" ? "Asaas" : r.forma_pagamento === "manual" ? "Manual" : "—"}</TableCell>
-                                <TableCell className="text-muted-foreground text-xs">{r.data_pagamento ? new Date(r.data_pagamento).toLocaleDateString("pt-BR") : "—"}</TableCell>
-                                <TableCell className="text-right">
-                                  {r.status === "pendente" && (
-                                    <div className="flex gap-1 justify-end">
-                                      <Button size="sm" variant="outline" className="text-xs h-7" disabled={updatingStatus === r.id}
-                                        onClick={() => handleUpdateStatus(r.id, "pago_manualmente")}>
-                                        {updatingStatus === r.id ? "..." : "Manual"}
-                                      </Button>
-                                      <Button size="sm" variant="outline" className="text-xs h-7" disabled={updatingStatus === r.id}
-                                        onClick={() => handleUpdateStatus(r.id, "pago_asaas")}>
-                                        {updatingStatus === r.id ? "..." : "Asaas"}
-                                      </Button>
-                                    </div>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Extras */}
+              <div className="flex flex-wrap gap-1">
+                {selectedCliente.extras.map(e => (
+                  <span key={e.id} className="text-[9px] sm:text-xs border border-border rounded-full px-2 py-0.5 text-muted-foreground">
+                    {e.nome} — R$ {e.preco_mensal.toFixed(2)}
+                  </span>
+                ))}
               </div>
 
-              {/* Mobile: Cards */}
-              <div className="sm:hidden space-y-2">
-                {historico.length === 0 ? (
-                  <p className="text-center text-xs text-muted-foreground py-6">Nenhum histórico. Gere faturas primeiro.</p>
-                ) : historico.map((r) => {
-                  const st = statusMap[r.status] || statusMap.pendente;
-                  return (
-                    <Card key={r.id}>
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-foreground">{formatMes(r.mes)}</span>
-                          <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>R$ {Number(r.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                          <span>{r.forma_pagamento === "asaas" ? "Asaas" : r.forma_pagamento === "manual" ? "Manual" : "—"}</span>
-                        </div>
-                        {r.data_pagamento && (
-                          <p className="text-[10px] text-muted-foreground">Pago em: {new Date(r.data_pagamento).toLocaleDateString("pt-BR")}</p>
-                        )}
-                        {r.status === "pendente" && (
-                          <div className="flex gap-2 pt-1">
-                            <Button size="sm" variant="outline" className="flex-1 text-xs h-8" disabled={updatingStatus === r.id}
-                              onClick={() => handleUpdateStatus(r.id, "pago_manualmente")}>
-                              {updatingStatus === r.id ? "..." : "Pago Manual"}
-                            </Button>
-                            <Button size="sm" variant="outline" className="flex-1 text-xs h-8" disabled={updatingStatus === r.id}
-                              onClick={() => handleUpdateStatus(r.id, "pago_asaas")}>
-                              {updatingStatus === r.id ? "..." : "Pago Asaas"}
-                            </Button>
+              {/* Faturas por mês */}
+              {faturasMes.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                  <p className="text-xs text-muted-foreground">Nenhuma fatura gerada ainda</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Selecione o cliente e clique em "Gerar Fatura"</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {faturasMes.map((f) => {
+                    const st = statusConfig[f.status] || statusConfig.pendente;
+                    const isRascunho = f.status === "rascunho";
+                    const isPendente = f.status === "pendente";
+                    const isPago = f.status.includes("pago");
+
+                    return (
+                      <Card key={f.id} className={isRascunho ? "border-dashed" : ""}>
+                        <CardContent className="p-3 sm:p-4 space-y-3">
+                          {/* Header */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm sm:text-base font-bold text-foreground">{formatMes(f.mes)}</span>
+                              <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
+                            </div>
+                            <span className="text-sm sm:text-base font-bold text-foreground">
+                              R$ {Number(f.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            </span>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+
+                          {/* Info */}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] sm:text-xs text-muted-foreground">
+                            <span>{f.extras_count} extras</span>
+                            {f.vencimento && <span>Venc: {new Date(f.vencimento + "T00:00:00").toLocaleDateString("pt-BR")}</span>}
+                            {f.forma_pagamento && <span>Via: {f.forma_pagamento === "asaas" ? "Asaas" : "Manual"}</span>}
+                            {f.data_pagamento && <span>Pago: {new Date(f.data_pagamento).toLocaleDateString("pt-BR")}</span>}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-wrap gap-2">
+                            {isRascunho && (
+                              <Button
+                                size="sm" className="text-xs h-8 flex-1 sm:flex-none"
+                                disabled={enviandoFinanceiro === f.id}
+                                onClick={() => handleEnviarFinanceiro(f)}
+                              >
+                                {enviandoFinanceiro === f.id ? (
+                                  <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Enviando...</>
+                                ) : (
+                                  <><Send className="w-3 h-3 mr-1" /> Enviar ao Financeiro</>
+                                )}
+                              </Button>
+                            )}
+
+                            {isPendente && (
+                              <>
+                                <Button size="sm" variant="outline" className="text-xs h-8 flex-1 sm:flex-none"
+                                  disabled={updatingStatus === f.id}
+                                  onClick={() => handleUpdateStatus(f, "pago_manualmente")}>
+                                  {updatingStatus === f.id ? "..." : "Pago Manual"}
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-xs h-8 flex-1 sm:flex-none"
+                                  disabled={updatingStatus === f.id}
+                                  onClick={() => handleUpdateStatus(f, "pago_asaas")}>
+                                  {updatingStatus === f.id ? "..." : "Pago Asaas"}
+                                </Button>
+                              </>
+                            )}
+
+                            {f.asaas_invoice_url && (
+                              <Button size="sm" variant="outline" className="text-xs h-8"
+                                onClick={() => window.open(f.asaas_invoice_url!, "_blank")}>
+                                <ExternalLink className="w-3 h-3 mr-1" /> Fatura Asaas
+                              </Button>
+                            )}
+
+                            {isPago && (
+                              <div className="flex items-center gap-1 text-emerald-500 text-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Pago
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
