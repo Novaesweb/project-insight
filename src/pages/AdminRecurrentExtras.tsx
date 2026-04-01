@@ -205,17 +205,11 @@ export default function AdminRecurrentExtras() {
         // Calcular extras do mês (respeitar corte)
         const extrasDoMes = cliente.extras.filter(e => {
           const comp = getMesCompetencia(e.data_ativacao);
-          return comp <= mesSelecionado; // extras ativados até este mês
+          return comp <= mesSelecionado;
         });
 
-        console.log("Extras do mês:", extrasDoMes);
-
         const valorTotal = extrasDoMes.reduce((acc, e) => acc + e.preco_mensal, 0);
-        if (valorTotal <= 0) { 
-          console.log("Valor total zerado, pulando cliente");
-          erros++; 
-          continue; 
-        }
+        if (valorTotal <= 0) { erros++; continue; }
 
         const descricao = `Cobrança Recorrente — ${formatMes(mesSelecionado)}\n` +
           extrasDoMes.map(e => `• ${e.nome}: R$ ${e.preco_mensal.toFixed(2)}/mês`).join("\n");
@@ -232,10 +226,7 @@ export default function AdminRecurrentExtras() {
           vencimento,
         };
 
-        console.log("Inserindo fatura:", faturaData);
-
-        // Criar como RASCUNHO (sem financeiro_id)
-        const { data: insertedData, error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
+        const { error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
 
         console.log("Resultado da inserção:", { insertedData, insertError });
 
