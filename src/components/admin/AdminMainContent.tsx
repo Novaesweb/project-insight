@@ -9,7 +9,7 @@ interface AdminMainContentProps {
 export default function AdminMainContent({ children, pathname }: AdminMainContentProps) {
   return (
     <section className="flex-1 overflow-y-auto custom-scrollbar">
-      <div className="p-3 sm:p-5 lg:p-8">
+      <div className="p-3 pb-24 sm:p-5 sm:pb-28 lg:p-8 lg:pb-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}

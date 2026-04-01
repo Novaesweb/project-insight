@@ -17,15 +17,17 @@ import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { AsaasService } from "@/lib/asaas-service";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
+import { useSearchParams } from "react-router-dom";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const emptyForm = { descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" };
 
 export default function Financeiro() {
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [financeiro, setFinanceiro] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
-  const [filtro, setFiltro] = useState("todos");
+  const [filtro, setFiltro] = useState(searchParams.get("status") || "todos");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -44,6 +46,21 @@ export default function Financeiro() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const nextStatus = searchParams.get("status") || "todos";
+    const period = searchParams.get("period");
+
+    setFiltro(nextStatus);
+
+    if (period === "month") {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setDataInicio(firstDay.toISOString().split("T")[0]);
+      setDataFim(lastDay.toISOString().split("T")[0]);
+    }
+  }, [searchParams]);
 
   const openNew = () => { setForm(emptyForm); setEditingId(null); setShowForm(true); };
   const openEdit = (f: any) => {
@@ -240,7 +257,13 @@ export default function Financeiro() {
                 {["todos", "pago", "pendente", "em_atraso"].map((s) => (
                   <Button key={s} size="sm"
                     className={filtro === s ? "gradient-primary border-0 text-white text-xs" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white text-xs"}
-                    onClick={() => setFiltro(s)}>
+                    onClick={() => {
+                      setFiltro(s);
+                      const nextParams = new URLSearchParams(searchParams);
+                      if (s === "todos") nextParams.delete("status");
+                      else nextParams.set("status", s);
+                      setSearchParams(nextParams, { replace: true });
+                    }}>
                     {s === "todos" ? "Todos" : s === "em_atraso" ? "Atrasado" : s.charAt(0).toUpperCase() + s.slice(1)}
                   </Button>
                 ))}
@@ -254,7 +277,10 @@ export default function Financeiro() {
             {/* Mobile: Cards */}
             <div className="block sm:hidden space-y-3">
               {filtrados.length === 0 ? (
-                <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</p>
+                <div className="text-center py-8 rounded-2xl border border-dashed border-white/10 bg-white/[0.02]">
+                  <p className="text-sm font-semibold text-white">Nenhum lançamento nesta visão</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">Altere o status, ajuste o período ou registre uma nova cobrança para alimentar o painel.</p>
+                </div>
               ) : filtrados.map((f) => (
                 <div key={f.id} className="p-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] space-y-2">
                   <div className="flex items-start justify-between gap-2">

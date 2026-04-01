@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export function useDashboardData() {
   const { toast } = useToast();
-  const [stats, setStats] = useState({ clientes: 0, projetos: 0, pedidos: 0, receita: 0 });
+  const [stats, setStats] = useState({ clientes: 0, projetos: 0, leads: 0, receita: 0 });
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [dbStatus, setDbStatus] = useState<"conectado" | "erro" | "carregando">("carregando");
@@ -19,6 +19,8 @@ export function useDashboardData() {
   ]);
   const [revenue, setRevenue] = useState({ paid: 0, pending: 0 });
   const [pendingInvoices, setPendingInvoices] = useState(0);
+  const [newLeads, setNewLeads] = useState(0);
+  const [lateProjects, setLateProjects] = useState(0);
 
   const load = useCallback(async () => {
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
@@ -27,25 +29,38 @@ export function useDashboardData() {
     }
 
     try {
-      const [c, p, ped, t, fin, extrasCli, catFull] = await Promise.all([
+      const [c, p, ped, t, fin, extrasCli, catFull, newLeadsRes, lateProjectsRes] = await Promise.all([
         supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
         supabase.from("projetos").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
         supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }).limit(5),
         supabase.from("tickets").select("*, clientes(nome)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
         supabase.from("financeiro").select("valor, created_at").eq("tipo", "entrada").eq("status", "pago"),
         supabase.from("extras_clientes").select("extra_id"),
-        supabase.from("extras_catalogo").select("id, nome")
+        supabase.from("extras_catalogo").select("id, nome"),
+        supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "novo"),
+        supabase.from("projetos").select("id, status, data_entrega").neq("status", "concluido")
       ]);
 
       const totalRevenue = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
       setStats({
         clientes: c.count || 0,
         projetos: p.count || 0,
-        pedidos: (ped.data || []).filter((x: any) => x.status === "pendente").length,
+        leads: newLeadsRes.count || 0,
         receita: totalRevenue
       });
       setPedidos(ped.data || []);
       setTickets(t.data || []);
+      setNewLeads(newLeadsRes.count || 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const lateProjectsCount = (lateProjectsRes.data || []).filter((project: any) => {
+        if (!project?.data_entrega) return false;
+        const deliveryDate = new Date(project.data_entrega);
+        deliveryDate.setHours(0, 0, 0, 0);
+        return deliveryDate < today;
+      }).length;
+      setLateProjects(lateProjectsCount);
 
       const hasError = c.error || p.error || ped.error || t.error || fin.error;
       setDbStatus(hasError ? "erro" : "conectado");
@@ -130,7 +145,7 @@ export function useDashboardData() {
   return {
     stats, pedidos, tickets, dbStatus, subCount, activity, 
     monthlyRevenue, topModules, funnelData, revenue, pendingInvoices, 
-    refresh: load
+    newLeads, lateProjects, refresh: load
   };
 }
 

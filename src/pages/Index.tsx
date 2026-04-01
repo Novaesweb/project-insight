@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { DashboardKPIs, InsightAction, PricingDialog } from "@/components/admin/dashboard/DashboardComponents";
 import { RevenueChart, ModulesChart } from "@/components/admin/dashboard/DashboardCharts";
+import { DashboardKPIAlerts } from "@/components/admin/dashboard/DashboardKPIAlerts";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -29,7 +30,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { 
     stats, pedidos, tickets, dbStatus, activity, 
-    monthlyRevenue, topModules, funnelData, pendingInvoices, revenue, refresh 
+    monthlyRevenue, topModules, funnelData, pendingInvoices, revenue, newLeads, lateProjects, refresh 
   } = useDashboardData();
 
   const [showAddExtra, setShowAddExtra] = useState(false);
@@ -41,6 +42,30 @@ export default function Dashboard() {
   const [obs, setObs] = useState("");
   const [saving, setSaving] = useState(false);
   const [visibleActs, setVisibleActs] = useState(5);
+
+  const priorities = [
+    {
+      title: "Leads pedindo resposta",
+      count: newLeads,
+      description: "Novas oportunidades esperando qualificação do time.",
+      href: "/admin/leads?preset=novos",
+      accent: "from-[#7b1fa2]/20 to-[#c2185b]/10",
+    },
+    {
+      title: "Financeiro pedente de cobrança",
+      count: pendingInvoices,
+      description: "Cobranças em aberto que ainda podem impactar o caixa.",
+      href: "/admin/financeiro?status=pendente&period=month",
+      accent: "from-[#FFB800]/20 to-[#FFB800]/5",
+    },
+    {
+      title: "Projetos com risco de atraso",
+      count: lateProjects,
+      description: "Entregas vencidas ou perto do prazo que precisam de revisão.",
+      href: "/admin/projetos",
+      accent: "from-[#e8334a]/20 to-[#e8334a]/5",
+    },
+  ].filter((item) => item.count > 0);
 
   const openAddExtra = async () => {
     const [cli, cat] = await Promise.all([
@@ -82,6 +107,61 @@ export default function Dashboard() {
       
       {/* KPIs */}
       <DashboardKPIs stats={stats} revenue={revenue} />
+      <DashboardKPIAlerts newLeads={newLeads} pendingInvoices={pendingInvoices} lateProjects={lateProjects} />
+
+      <motion.div variants={fadeUp}>
+        <Card className="border-white/[0.06] bg-[var(--admin-surface)] overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7b1fa2]/[0.03] via-transparent to-[#FFB800]/[0.02] pointer-events-none" />
+          <CardContent className="p-5 sm:p-6 relative z-10">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-muted-foreground">Prioridades do Dia</p>
+                <h2 className="text-lg font-black text-foreground tracking-tight">Seu foco operacional em um só bloco</h2>
+              </div>
+              <Button variant="ghost" className="h-9 px-4 rounded-xl text-xs font-bold border border-white/10 text-primary hover:bg-primary/5" onClick={() => refresh()}>
+                Atualizar painel
+              </Button>
+            </div>
+
+            {priorities.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {priorities.map((priority) => (
+                  <Link
+                    key={priority.title}
+                    to={priority.href}
+                    className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all hover:-translate-y-1 hover:border-white/10"
+                  >
+                    <div className={cn("h-1 w-full rounded-full bg-gradient-to-r mb-4", priority.accent)} />
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">{priority.title}</p>
+                        <p className="text-3xl font-black tracking-tighter text-foreground mt-2">{priority.count}</p>
+                        <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{priority.description}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-primary shrink-0 mt-1" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold text-foreground">Operação sob controle agora</p>
+                  <p className="text-xs text-muted-foreground mt-1">Sem pendências críticas neste momento. Vale aproveitar para revisar clientes ativos, projetos em andamento ou novos módulos.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild className="h-9 rounded-xl bg-white/[0.05] border border-white/[0.08] text-foreground hover:bg-white/[0.08]">
+                    <Link to="/admin/clientes">Ver clientes</Link>
+                  </Button>
+                  <Button asChild className="h-9 rounded-xl bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] border-0 text-white">
+                    <Link to="/admin/projetos">Revisar projetos</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* CHARTS ROW — moved up for visual impact */}
       <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-4" variants={fadeUp}>
@@ -107,8 +187,8 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative">
           <InsightAction icon={UserPlus} title="Novo Lead Pendente" desc={`Você tem ${funnelData[0].value} leads que ainda não viraram clientes.`} action="Ver Leads" link="/admin/leads" color="border-[#7b1fa2]/20" />
-          <InsightAction icon={DollarSign} title="Faturas Pendentes" desc={`Existem ${pendingInvoices} faturas aguardando pagamento no banco.`} action="Ver Financeiro" link="/admin/pedidos" color="border-[#FFB800]/20" />
-          <InsightAction icon={Zap} title="Sincronização" desc="Seu banco de dados foi atualizado com as últimas transações." action="Ver Atividade" link="#" color="border-[#c2185b]/20" />
+          <InsightAction icon={DollarSign} title="Faturas Pendentes" desc={`Existem ${pendingInvoices} faturas aguardando pagamento no banco.`} action="Ver Financeiro" link="/admin/financeiro?status=pendente&period=month" color="border-[#FFB800]/20" />
+          <InsightAction icon={Zap} title="Projetos Sensíveis" desc={lateProjects > 0 ? `${lateProjects} entregas pedem atenção imediata do time.` : "Os projetos estão dentro da cadência prevista hoje."} action="Abrir Projetos" link="/admin/projetos" color="border-[#c2185b]/20" />
         </div>
       </motion.div>
 
@@ -148,7 +228,18 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {activity.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Sem atividades recentes</p>
+              <div className="rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] p-5 text-center">
+                <p className="text-sm font-semibold text-foreground">Sem atividade recente para mostrar</p>
+                <p className="text-xs text-muted-foreground mt-2">Use esse espaço como gatilho de operação: abra leads, finance ou clientes para gerar o próximo movimento do dia.</p>
+                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                  <Button asChild size="sm" className="h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] text-foreground hover:bg-white/[0.08]">
+                    <Link to="/admin/leads?preset=novos">Abrir leads</Link>
+                  </Button>
+                  <Button asChild size="sm" className="h-8 rounded-xl bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] border-0 text-white">
+                    <Link to="/admin/clientes">Ver clientes</Link>
+                  </Button>
+                </div>
+              </div>
             ) : (
               <div className="space-y-4">
                 <div className={cn("relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-[#7b1fa2]/30 before:via-[#c2185b]/10 before:to-transparent", visibleActs > 5 && "max-h-[400px] overflow-y-auto pr-2 custom-scrollbar")}>

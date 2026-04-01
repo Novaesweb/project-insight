@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search, UserPlus, Phone, Eye, MessageCircle,
   CheckCircle, Clock, XCircle, Users, Trash2,
@@ -45,12 +45,40 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   perdido: { label: "Perdido", color: "text-gray-400", bg: "bg-gray-500/10 border-gray-500/30", icon: XCircle },
 };
 
+const savedViews = [
+  { key: "todos", label: "Pipeline inteiro", helper: "Tudo em uma visão" },
+  { key: "novos", label: "Novos hoje", helper: "Entradas frescas" },
+  { key: "nao_lidos", label: "Não lidos", helper: "Primeiro toque pendente" },
+  { key: "quentes", label: "Em contato", helper: "Conversas em andamento" },
+  { key: "convertidos", label: "Convertidos", helper: "Clientes gerados" },
+] as const;
+
+type SavedViewKey = (typeof savedViews)[number]["key"];
+
+function matchesSavedView(lead: Lead, view: SavedViewKey) {
+  if (view === "todos") return true;
+  if (view === "novos") {
+    const createdAt = new Date(lead.created_at);
+    const today = new Date();
+    return lead.status === "novo" &&
+      createdAt.getDate() === today.getDate() &&
+      createdAt.getMonth() === today.getMonth() &&
+      createdAt.getFullYear() === today.getFullYear();
+  }
+  if (view === "nao_lidos") return !lead.visualizado && lead.status !== "convertido" && lead.status !== "perdido";
+  if (view === "quentes") return lead.status === "em_contato";
+  if (view === "convertidos") return lead.status === "convertido";
+  return true;
+}
+
 export default function Leads() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [busca, setBusca] = useState(searchParams.get("q") || "");
+  const [filtroStatus, setFiltroStatus] = useState(searchParams.get("status") || "todos");
+  const [savedView, setSavedView] = useState<SavedViewKey>((searchParams.get("preset") as SavedViewKey) || "todos");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [convertModal, setConvertModal] = useState<Lead | null>(null);
   const [convertForm, setConvertForm] = useState({
@@ -61,7 +89,6 @@ export default function Leads() {
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
   const [converting, setConverting] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   const fetchLeads = async () => {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
@@ -75,6 +102,22 @@ export default function Leads() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  useEffect(() => {
+    const nextStatus = searchParams.get("status") || "todos";
+    const nextPreset = (searchParams.get("preset") as SavedViewKey) || "todos";
+    const nextSearch = searchParams.get("q") || "";
+    const leadId = searchParams.get("lead");
+
+    setFiltroStatus(nextStatus);
+    setSavedView(nextPreset);
+    setBusca(nextSearch);
+
+    if (leadId && leads.length > 0) {
+      const matchedLead = leads.find((lead) => lead.id === leadId);
+      if (matchedLead) setSelectedLead(matchedLead);
+    }
+  }, [searchParams, leads]);
 
   const updateStatus = async (lead: Lead, status: string, extra?: Record<string, unknown>) => {
     await supabase.from("leads").update({ status, visualizado: true, ...extra }).eq("id", lead.id);
@@ -142,13 +185,31 @@ export default function Leads() {
     }
   };
 
-  const filtrados = leads.filter(l => {
-    const matchBusca = l.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      l.email.toLowerCase().includes(busca.toLowerCase()) ||
-      l.whatsapp.includes(busca);
-    const matchStatus = filtroStatus === "todos" || l.status === filtroStatus;
-    return matchBusca && matchStatus;
-  });
+  const savedViewCounts = useMemo(() => {
+    return savedViews.reduce((acc, view) => {
+      acc[view.key] = leads.filter((lead) => matchesSavedView(lead, view.key)).length;
+      return acc;
+    }, {} as Record<SavedViewKey, number>);
+  }, [leads]);
+
+  const filtrados = useMemo(() => {
+    return leads.filter((lead) => {
+      const matchBusca = lead.nome.toLowerCase().includes(busca.toLowerCase()) ||
+        lead.email.toLowerCase().includes(busca.toLowerCase()) ||
+        lead.whatsapp.includes(busca);
+      const matchStatus = filtroStatus === "todos" || lead.status === filtroStatus;
+      const matchSavedView = matchesSavedView(lead, savedView);
+      return matchBusca && matchStatus && matchSavedView;
+    });
+  }, [leads, busca, filtroStatus, savedView]);
+
+  const applySavedView = (nextView: SavedViewKey) => {
+    setSavedView(nextView);
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextView === "todos") nextParams.delete("preset");
+    else nextParams.set("preset", nextView);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <div className="space-y-8 pb-20">
@@ -164,14 +225,44 @@ export default function Leads() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 relative z-10">
+        <div className="flex flex-col gap-3 relative z-10 w-full lg:w-auto">
+          <div className="flex flex-wrap gap-2">
+            {savedViews.map((view) => (
+              <button
+                key={view.key}
+                type="button"
+                onClick={() => applySavedView(view.key)}
+                className={cn(
+                  "px-3 py-2 rounded-xl text-left transition-all border min-w-[132px]",
+                  savedView === view.key
+                    ? "bg-primary/15 border-primary/30 text-white"
+                    : "bg-white/[0.03] border-white/5 text-white/55 hover:text-white hover:border-white/10"
+                )}
+              >
+                <p className="text-[11px] font-black uppercase tracking-[0.18em]">{view.label}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-[10px] text-white/35">{view.helper}</span>
+                  <span className="text-[10px] font-bold text-primary">{savedViewCounts[view.key] || 0}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
             <Input
               placeholder="Buscar por nome ou contato..."
               className="h-12 pl-11 pr-6 bg-white/5 border-white/5 rounded-xl w-full sm:w-80 text-white font-medium focus:ring-1 focus:ring-primary/30 transition-all"
               value={busca}
-              onChange={e => setBusca(e.target.value)}
+              onChange={e => {
+                const nextValue = e.target.value;
+                setBusca(nextValue);
+                const nextParams = new URLSearchParams(searchParams);
+                if (nextValue) nextParams.set("q", nextValue);
+                else nextParams.delete("q");
+                setSearchParams(nextParams, { replace: true });
+              }}
             />
           </div>
 
@@ -181,7 +272,13 @@ export default function Leads() {
             {["todos", "novo", "em_contato", "convertido", "perdido"].map(s => (
               <button
                 key={s}
-                onClick={() => setFiltroStatus(s)}
+                onClick={() => {
+                  setFiltroStatus(s);
+                  const nextParams = new URLSearchParams(searchParams);
+                  if (s === "todos") nextParams.delete("status");
+                  else nextParams.set("status", s);
+                  setSearchParams(nextParams, { replace: true });
+                }}
                 className={cn(
                   "px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
                   filtroStatus === s
@@ -206,6 +303,7 @@ export default function Leads() {
             Limpar Base
           </Button>
         </div>
+        </div>
       </div>
 
       {/* Grid de Leads Premium */}
@@ -225,7 +323,12 @@ export default function Leads() {
                 variants={item}
                 whileHover={{ y: -5 }}
                 className="group h-full"
-                onClick={() => setSelectedLead(lead)}
+                onClick={() => {
+                  setSelectedLead(lead);
+                  const nextParams = new URLSearchParams(searchParams);
+                  nextParams.set("lead", lead.id);
+                  setSearchParams(nextParams, { replace: true });
+                }}
               >
                 <div className={cn(
                   "glass-panel-premium h-full p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-white/5 transition-all cursor-pointer relative overflow-hidden group-hover:border-primary/20",
@@ -303,13 +406,38 @@ export default function Leads() {
           <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6">
             <Filter className="w-10 h-10 text-white/10" />
           </div>
-          <h3 className="text-xl font-black text-white mb-2">Sem resultados encontrados</h3>
-          <p className="text-white/30 text-sm font-medium">Tente alterar seu termo de busca ou filtros.</p>
+          <h3 className="text-xl font-black text-white mb-2">Sem resultados nesta visão</h3>
+          <p className="text-white/30 text-sm font-medium max-w-md text-center">Ajuste a busca, troque a visualização salva ou volte para o pipeline completo para retomar o atendimento.</p>
+          <div className="flex flex-wrap justify-center gap-3 mt-6">
+            <Button
+              variant="ghost"
+              className="h-10 px-4 rounded-xl text-xs font-black uppercase tracking-widest text-white/70 border border-white/10 hover:bg-white/5"
+              onClick={() => {
+                setBusca("");
+                setFiltroStatus("todos");
+                setSavedView("todos");
+                setSearchParams(new URLSearchParams(), { replace: true });
+              }}
+            >
+              Limpar filtros
+            </Button>
+            <Button
+              className="h-10 px-4 rounded-xl gradient-primary text-white text-xs font-black uppercase tracking-widest"
+              onClick={() => navigate("/admin")}
+            >
+              Voltar ao dashboard
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Profile Detail Sheet */}
-      <Sheet open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
+      <Sheet open={!!selectedLead} onOpenChange={() => {
+        setSelectedLead(null);
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete("lead");
+        setSearchParams(nextParams, { replace: true });
+      }}>
         <SheetContent className="glass-card border-l-white/5 w-full sm:max-w-xl p-0 overflow-y-auto">
           {selectedLead && (
             <div className="flex flex-col min-h-full">

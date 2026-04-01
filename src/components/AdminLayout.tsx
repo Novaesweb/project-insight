@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,11 @@ import { useUI } from "@/store";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { getFavoriteAdminRoutes, getRecentAdminRoutes, trackAdminRoute } from "@/lib/admin-navigation";
 import {
   Menu, LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles, TrendingUp
+  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles
 } from "lucide-react";
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
@@ -56,9 +57,18 @@ const mobileNavGroups = [
   },
 ];
 
+const mobileDockItems = [
+  { href: "/admin", label: "Início", icon: LayoutDashboard },
+  { href: "/admin/leads", label: "Leads", icon: Headphones },
+  { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
+  { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
+];
+
 function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: string }; onClose: () => void }) {
   const { pathname } = useLocation();
   const leadCount = useLeadCount();
+  const recentRoutes = getRecentAdminRoutes().filter((route) => route.href !== pathname).slice(0, 3);
+  const favoriteRoutes = getFavoriteAdminRoutes().filter((route) => route.href !== pathname).slice(0, 3);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -74,7 +84,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-extrabold tracking-tight text-foreground leading-none">NovaesWeb</p>
+            <p className="text-sm font-extrabold tracking-tight text-foreground leading-none">{branding.nome || "NovaesWeb"}</p>
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground mt-0.5">Admin Panel</p>
           </div>
         </Link>
@@ -123,6 +133,50 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
             </div>
           </div>
         ))}
+
+        <div className="pt-4 border-t" style={{ borderColor: "hsl(var(--border))" }}>
+          <p className="text-[9px] font-bold uppercase tracking-[0.25em] px-3 mb-2 text-muted-foreground/50">
+            Atalhos
+          </p>
+          <div className="flex flex-wrap gap-2 px-3">
+            {favoriteRoutes.map((route) => (
+              <Link
+                key={route.href}
+                to={route.href}
+                onClick={onClose}
+                className="px-3 py-2 rounded-xl text-[11px] font-semibold"
+                style={{
+                  background: "hsl(var(--secondary))",
+                  border: "1px solid hsl(var(--border))",
+                  color: "hsl(var(--foreground))",
+                }}
+              >
+                {route.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {recentRoutes.length > 0 && (
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.25em] px-3 mb-2 text-muted-foreground/50">
+              Recentes
+            </p>
+            <div className="space-y-1 px-3">
+              {recentRoutes.map((route) => (
+                <Link
+                  key={route.href}
+                  to={route.href}
+                  onClick={onClose}
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                >
+                  <span>{route.label}</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground/50">Abrir</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Logout */}
@@ -145,6 +199,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { sidebarCollapsed, setSidebarCollapsed } = useUI();
   const branding = useBranding();
 
+  useEffect(() => {
+    trackAdminRoute(pathname);
+  }, [pathname]);
+
   return (
     <div className="flex h-screen text-foreground font-sora selection:bg-primary/30 overflow-hidden"
       style={{ background: 'hsl(var(--background))' }}>
@@ -158,12 +216,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile Sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
-          <Button variant="ghost" size="icon" className="rounded-xl"
-            style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}>
-            <Menu className="w-5 h-5" />
-          </Button>
-        </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 overflow-hidden"
           style={{ background: 'hsl(var(--background))', borderRight: '1px solid hsl(var(--border))' }}>
           <div className="h-full flex flex-col">
@@ -181,6 +233,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </AdminMainContent>
       </main>
+
+      <div className="md:hidden fixed bottom-4 left-3 right-3 z-50">
+        <div
+          className="grid grid-cols-5 gap-1 p-1.5 rounded-[1.35rem] backdrop-blur-xl shadow-2xl"
+          style={{
+            background: "hsl(var(--background) / 0.92)",
+            border: "1px solid hsl(var(--border))",
+          }}
+        >
+          {mobileDockItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 transition-all"
+                style={isActive ? {
+                  background: "hsl(var(--secondary))",
+                  color: "hsl(var(--foreground))",
+                  boxShadow: "0 0 0 1px hsl(var(--border))",
+                } : {
+                  color: "hsl(var(--muted-foreground))",
+                }}
+              >
+                <item.icon className="w-4 h-4" />
+                <span className="text-[10px] font-semibold">{item.label}</span>
+              </Link>
+            );
+          })}
+
+          <SheetTrigger asChild>
+            <button
+              type="button"
+              className="flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 text-muted-foreground transition-all hover:text-foreground hover:bg-secondary/60"
+            >
+              <Menu className="w-4 h-4" />
+              <span className="text-[10px] font-semibold">Menu</span>
+            </button>
+          </SheetTrigger>
+        </div>
+      </div>
       
       <ReloadPrompt />
     </div>

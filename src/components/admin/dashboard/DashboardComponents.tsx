@@ -20,19 +20,36 @@ const kpiGradients = [
 
 export function DashboardKPIs({ stats, revenue }: any) {
   const kpis = [
-    { label: "Ecossistemas em Operação", value: String(stats.clientes), icon: Users },
-    { label: "Engenharia de Soluções", value: String(stats.projetos), icon: FolderKanban },
+    {
+      label: "Ecossistemas em Operação",
+      value: String(stats.clientes),
+      icon: Users,
+      href: "/admin/clientes",
+      hint: "Abrir clientes ativos",
+    },
+    {
+      label: "Engenharia de Soluções",
+      value: String(stats.projetos),
+      icon: FolderKanban,
+      href: "/admin/projetos",
+      hint: "Ver projetos em andamento",
+    },
     { 
       label: "Alertas de Conversão", 
-      value: String(stats.pedidos), 
+      value: String(stats.leads), 
       icon: ShoppingCart, 
-      alert: stats.pedidos > 0,
-      change: stats.pedidos > 0 ? "Prioritário" : ""
+      alert: stats.leads > 0,
+      change: stats.leads > 0 ? "Prioritário" : "",
+      href: "/admin/leads?preset=novos",
+      hint: "Abrir leads novos",
     },
     { 
       label: "Impacto Financeiro Gerado", 
       value: `R$ ${(stats.receita / 1000).toFixed(1)}k`, 
       icon: DollarSign,
+      change: revenue?.pending > 0 ? `R$ ${(revenue.pending / 1000).toFixed(1)}k pendente` : "Fluxo saudável",
+      href: "/admin/financeiro?status=pendente&period=month",
+      hint: "Abrir financeiro do mês",
     },
   ];
 
@@ -41,7 +58,8 @@ export function DashboardKPIs({ stats, revenue }: any) {
       {kpis.map((kpi, i) => {
         const g = kpiGradients[i];
         return (
-          <Card key={kpi.label} className="relative overflow-hidden border-white/[0.06] bg-[var(--admin-surface)] group hover:border-white/10 transition-all duration-500">
+          <Link key={kpi.label} to={kpi.href} className="block">
+            <Card className="relative overflow-hidden border-white/[0.06] bg-[var(--admin-surface)] group hover:border-white/10 transition-all duration-500 hover:-translate-y-1">
             {/* Top gradient line */}
             <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${g.line} opacity-60`} />
             {/* Hover glow */}
@@ -65,8 +83,13 @@ export function DashboardKPIs({ stats, revenue }: any) {
                   <kpi.icon className="w-4 h-4 text-white" />
                 </div>
               </div>
+              <div className="mt-4 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                <span>{kpi.hint}</span>
+                <ArrowRight className="w-3 h-3 text-primary transition-transform duration-300 group-hover:translate-x-1" />
+              </div>
             </CardContent>
-          </Card>
+            </Card>
+          </Link>
         );
       })}
     </motion.div>
