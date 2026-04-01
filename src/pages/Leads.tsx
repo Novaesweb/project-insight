@@ -53,7 +53,10 @@ export default function Leads() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [convertModal, setConvertModal] = useState<Lead | null>(null);
-  const [convertForm, setConvertForm] = useState({ senha: "" });
+  const [convertForm, setConvertForm] = useState({
+    senha: "", nome: "", email: "", telefone: "", cidade: "", estado: "",
+    documento: "", endereco: "", site_url: ""
+  });
   const [criarAcesso, setCriarAcesso] = useState(true);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
