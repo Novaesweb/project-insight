@@ -42,10 +42,4 @@ export const getQueryClient = () => {
   return queryClient;
 };
 
-// Limpar cache em desenvolvimento
-if (process.env.NODE_ENV === 'development') {
-  // Limpar cache a cada 30 minutos em desenvolvimento
-  setInterval(() => {
-    queryClient?.clear();
-  }, 30 * 60 * 1000);
-}
+// Removed aggressive cache clearing that caused random refreshes

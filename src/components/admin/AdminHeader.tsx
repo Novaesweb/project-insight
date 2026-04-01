@@ -4,7 +4,13 @@ import GlobalSearch from "@/components/GlobalSearch";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useTheme } from "@/hooks/useTheme";
 import { pageInfo } from "@/lib/constants";
-import { Sun, Moon, Settings } from "lucide-react";
+import { Sun, Moon, Settings, Plus, Users, FolderKanban, Headphones } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AdminHeaderProps {
   title?: string;
@@ -45,6 +51,29 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
           </div>
           <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--success))' }}>Live</span>
         </div>
+
+        {/* Quick Actions */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+              style={{ background: 'hsl(var(--primary) / 0.1)', border: '1px solid hsl(var(--primary) / 0.2)' }}
+              aria-label="Ações rápidas"
+            >
+              <Plus className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => navigate("/admin/clientes")} className="gap-2 cursor-pointer">
+              <Users className="w-4 h-4" /> Novo Cliente
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/admin/projetos")} className="gap-2 cursor-pointer">
+              <FolderKanban className="w-4 h-4" /> Novo Projeto
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/admin/leads")} className="gap-2 cursor-pointer">
+              <Headphones className="w-4 h-4" /> Ver Leads
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <GlobalSearch />
 

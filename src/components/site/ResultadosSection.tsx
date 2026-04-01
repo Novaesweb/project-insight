@@ -6,12 +6,9 @@ const fade = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transiti
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 
 const testimonials = [
-  { description: "A novaesweb transformou a presença digital do meu negócio. O site ficou moderno, rápido e muito mais profissional.", image: "", name: "Mariana Souza", handle: "@marianasouza" },
-  { description: "Gostei muito da facilidade no atendimento e da qualidade do site entregue. Ficou bonito, responsivo e passou mais confiança para meus clientes.", image: "", name: "Lucas Ferreira", handle: "@lucasferreira" },
-  { description: "A novaesweb conseguiu criar um site que realmente representa minha empresa. Hoje recebo mais contatos e meu negócio parece muito mais valorizado.", image: "", name: "Carlos Henrique", handle: "@carlosh" },
-  { description: "Além do visual bonito, o site ficou prático e fácil de usar no celular. Era exatamente isso que eu precisava para atender melhor meus clientes.", image: "", name: "Fernanda Lima", handle: "@fernandalima" },
-  { description: "O diferencial da novaesweb é unir design moderno com funcionalidade. Meu site ficou profissional e pronto para divulgar meu trabalho.", image: "", name: "Juliana Martins", handle: "@julianamartins" },
-  { description: "Recomendo a novaesweb para qualquer empresa que queira crescer no digital. O trabalho ficou excelente e trouxe mais credibilidade para minha marca.", image: "", name: "Patrícia Alves", handle: "@patriciaalves" },
+  { description: "A novaesweb transformou a presença digital do meu negócio. O site ficou moderno, rápido e muito mais profissional. Hoje recebo clientes novos toda semana.", image: "", name: "Mariana Souza", handle: "Dona de Restaurante" },
+  { description: "Gostei muito da facilidade no atendimento e da qualidade do site entregue. Ficou bonito, responsivo e passou mais confiança para meus clientes.", image: "", name: "Lucas Ferreira", handle: "Barbearia Premium" },
+  { description: "A novaesweb conseguiu criar um site que realmente representa minha empresa. Hoje recebo mais contatos e meu negócio parece muito mais valorizado.", image: "", name: "Carlos Henrique", handle: "Clínica de Estética" },
 ];
 
 export default function ResultadosSection() {

@@ -2,14 +2,10 @@ import { useState, lazy, Suspense, useCallback, memo } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
 
-// Lazy load all below-fold and non-critical sections
-const DemoButtonSection = lazy(() => import("@/components/site/DemoButtonSection"));
-const TrustedBySection = lazy(() => import("@/components/site/TrustedBySection"));
+// Lazy load all below-fold sections
 const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSection"));
 const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
-const AutomacaoSection = lazy(() => import("@/components/site/AutomacaoSection"));
 const PlanosSection = lazy(() => import("@/components/site/PlanosSection"));
-const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
 const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection"));
 const FaqSection = lazy(() => import("@/components/site/FaqSection"));
 const SiteModals = lazy(() => import("@/components/site/SiteModals"));
@@ -17,7 +13,7 @@ const CtaSection = lazy(() => import("@/components/site/CtaSection"));
 const SiteFooter = lazy(() => import("@/components/site/SiteFooter"));
 const WhatsAppFloat = lazy(() => import("@/components/site/WhatsAppFloat"));
 const MobileAppNav = lazy(() => import("@/components/site/MobileAppNav"));
-const FloatingSocialProof = lazy(() => import("@/components/site/FloatingSocialProof"));
+const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
 
 // Memoized background to avoid re-renders
 const GlobalBackground = memo(function GlobalBackground() {
@@ -49,23 +45,19 @@ export default function Site() {
         <SiteNavbar onOpenModal={setModalOpen} />
         <HeroSection onOpenDemo={openDemo} />
         
-        {/* Group lazy sections to reduce Suspense boundaries */}
         <Suspense fallback={null}>
-          <DemoButtonSection onOpenDemo={openDemo} />
-          <TrustedBySection />
           <OQueFazemosSection onOpenDemo={openDemo} />
           <ComoFuncionaSection />
-        </Suspense>
-
-        <Suspense fallback={null}>
-          <AutomacaoSection />
           <PlanosSection />
-          <CadastroPerfeitoSection />
-          <ResultadosSection />
         </Suspense>
 
         <Suspense fallback={null}>
+          <ResultadosSection />
+          <CadastroPerfeitoSection />
           <FaqSection />
+        </Suspense>
+
+        <Suspense fallback={null}>
           <CtaSection />
           <SiteFooter onOpenModal={setModalOpen} />
         </Suspense>
@@ -74,7 +66,6 @@ export default function Site() {
           <SiteModals modalOpen={modalOpen} onClose={closeModal} />
           <WhatsAppFloat />
           <MobileAppNav onOpenModal={setModalOpen} />
-          <FloatingSocialProof />
         </Suspense>
       </div>
     </div>
