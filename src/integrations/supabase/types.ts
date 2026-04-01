@@ -206,6 +206,57 @@ export type Database = {
           },
         ]
       }
+      custos_sistema: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          dia_vencimento: number | null
+          fornecedor: string | null
+          frequencia: string
+          id: string
+          nome: string
+          observacoes: string | null
+          pagamento_automatico: boolean
+          proxima_cobranca: string | null
+          status: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          dia_vencimento?: number | null
+          fornecedor?: string | null
+          frequencia?: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          pagamento_automatico?: boolean
+          proxima_cobranca?: string | null
+          status?: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          dia_vencimento?: number | null
+          fornecedor?: string | null
+          frequencia?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          pagamento_automatico?: boolean
+          proxima_cobranca?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       demo_sites: {
         Row: {
           ativo: boolean | null
