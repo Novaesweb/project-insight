@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault, Eye, Phone, Mail, IdCard, MapPin, User, Rocket } from "lucide-react";
+import { OnboardingWizard } from "@/components/cliente/OnboardingWizard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
