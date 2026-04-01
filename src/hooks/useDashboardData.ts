@@ -123,7 +123,7 @@ export function useDashboardData() {
 
   useEffect(() => { 
     load(); 
-    const interval = setInterval(load, 30000); // Atualiza estatísticas a cada 30 segundos
+    const interval = setInterval(load, 120000); // Atualiza a cada 2 minutos
     return () => clearInterval(interval);
   }, [load]);
 

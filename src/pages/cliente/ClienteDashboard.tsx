@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault, Eye, Phone, Mail, IdCard, MapPin, User, Rocket } from "lucide-react";
+import { OnboardingWizard } from "@/components/cliente/OnboardingWizard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function ClienteDashboard() {
   const [referencias, setReferencias] = useState("");
   const [saving, setSaving] = useState(false);
   const [showDadosDialog, setShowDadosDialog] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("onboarding_done"));
 
   const load = useCallback(() => {
     if (!cId) return;
@@ -181,6 +183,15 @@ export default function ClienteDashboard() {
   const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
 
   return (
+    <>
+    <AnimatePresence>
+      {showOnboarding && (
+        <OnboardingWizard 
+          clienteName={perfil.nome?.split(" ")[0] || "Cliente"} 
+          onComplete={() => setShowOnboarding(false)} 
+        />
+      )}
+    </AnimatePresence>
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6 min-h-screen pb-10">
       {isTrialExpired && (
         <Card className="overflow-hidden relative border-0" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.15), rgba(232,51,74,0.1))", borderLeft: "3px solid #e8334a" }}>
@@ -471,5 +482,6 @@ export default function ClienteDashboard() {
         </div>
       </div>
     </motion.div>
+    </>
   );
 }

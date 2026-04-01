@@ -26,8 +26,8 @@ export function SupabaseHeartbeat() {
     // Enviar ping inicial
     sendPing();
 
-    // Configurar intervalo de 60 segundos
-    const interval = setInterval(sendPing, 60000);
+    // Configurar intervalo de 5 minutos
+    const interval = setInterval(sendPing, 300000);
 
     return () => clearInterval(interval);
   }, []);
