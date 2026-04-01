@@ -5,6 +5,7 @@ import HeroSection from "@/components/site/HeroSection";
 // Lazy load all below-fold sections
 const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSection"));
 const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
+const AutomacaoSection = lazy(() => import("@/components/site/AutomacaoSection"));
 const PlanosSection = lazy(() => import("@/components/site/PlanosSection"));
 const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection"));
 const FaqSection = lazy(() => import("@/components/site/FaqSection"));
@@ -18,16 +19,21 @@ const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPer
 // Memoized background to avoid re-renders
 const GlobalBackground = memo(function GlobalBackground() {
   return (
-    <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-      <div className="absolute inset-0 opacity-[0.015]" style={{
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0" style={{
+        background: 'linear-gradient(180deg, hsl(var(--background)), hsl(245 12% 5%))',
+      }} />
+      <div className="absolute inset-0 opacity-[0.012]" style={{
         backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-        backgroundSize: '80px 80px',
+        backgroundSize: '96px 96px',
         willChange: 'auto',
       }} />
-      <div className="absolute top-[20%] -left-[10%] w-[500px] h-[500px] rounded-full blur-[150px] opacity-[0.04]"
-        style={{ background: 'radial-gradient(circle, hsl(var(--accent)), transparent 70%)', willChange: 'auto' }} />
-      <div className="absolute top-[60%] -right-[10%] w-[400px] h-[400px] rounded-full blur-[150px] opacity-[0.03]"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary)), transparent 70%)' }} />
+      <div className="absolute top-[10%] -left-[8%] w-[560px] h-[560px] rounded-full blur-[180px] opacity-[0.04]"
+        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.32), transparent 72%)', willChange: 'auto' }} />
+      <div className="absolute top-[28%] -right-[10%] w-[520px] h-[520px] rounded-full blur-[170px] opacity-[0.045]"
+        style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.28), transparent 72%)' }} />
+      <div className="absolute bottom-[-8%] left-[20%] w-[520px] h-[520px] rounded-full blur-[180px] opacity-[0.03]"
+        style={{ background: 'radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.24), transparent 74%)' }} />
     </div>
   );
 });
@@ -38,16 +44,17 @@ export default function Site() {
   const closeModal = useCallback(() => setModalOpen(null), []);
 
   return (
-    <div className="min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
+    <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
       <GlobalBackground />
 
-      <div className="relative z-10">
+      <main className="relative z-10">
         <SiteNavbar onOpenModal={setModalOpen} />
         <HeroSection onOpenDemo={openDemo} />
         
         <Suspense fallback={null}>
           <OQueFazemosSection onOpenDemo={openDemo} />
           <ComoFuncionaSection />
+          <AutomacaoSection />
           <PlanosSection />
         </Suspense>
 
@@ -67,7 +74,7 @@ export default function Site() {
           <WhatsAppFloat />
           <MobileAppNav onOpenModal={setModalOpen} />
         </Suspense>
-      </div>
+      </main>
     </div>
   );
 }

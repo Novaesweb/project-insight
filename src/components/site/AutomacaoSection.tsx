@@ -20,25 +20,25 @@ const results = [
 
 export default function AutomacaoSection() {
   return (
-    <motion.section id="automacao" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
+    <motion.section id="automacao" className="site-band py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
       {/* Subtle background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[160px] opacity-[0.04]" style={{ background: 'radial-gradient(circle, #10b981, transparent 70%)' }} />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[140px] opacity-[0.04]" style={{ background: 'radial-gradient(circle, #a855f7, transparent 70%)' }} />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[160px] opacity-[0.03]" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.75), transparent 70%)' }} />
+        <div className="absolute bottom-0 left-0 w-[420px] h-[420px] rounded-full blur-[150px] opacity-[0.03]" style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.4), transparent 72%)' }} />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <motion.div variants={fade} className="max-w-3xl mb-20">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full border border-emerald-500/15 bg-emerald-500/[0.06] text-emerald-400/80">
+          <span className="site-badge site-badge--success">
             Automação Inteligente
           </span>
           <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
             Automatize o <br />
-            <span className="text-white/20">atendimento com </span>
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">IA</span>
+            <span className="site-title-muted">atendimento com </span>
+            <span className="site-gradient-text">IA</span>
           </h2>
-          <p className="text-lg text-white/30 mt-8 leading-relaxed max-w-xl font-medium">
+          <p className="text-lg site-copy-muted mt-8 leading-relaxed max-w-xl font-medium">
             A NovaesWeb cria sites para delivery e automatiza seu atendimento no WhatsApp para você focar no que realmente importa: <span className="text-emerald-400/80 font-bold">vender.</span>
           </p>
         </motion.div>
@@ -49,13 +49,13 @@ export default function AutomacaoSection() {
             <motion.div
               key={f.title}
               variants={fade}
-              className="rounded-[2rem] p-8 group border border-white/[0.05] bg-white/[0.02] hover:border-emerald-500/15 hover:bg-white/[0.04] transition-all duration-300"
+              className="site-surface rounded-[2rem] p-8 group hover:border-white/10 transition-all duration-300"
             >
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/10 bg-emerald-500/[0.06] group-hover:border-emerald-500/25 transition-colors">
                 <f.icon className="w-7 h-7 text-emerald-400/70 group-hover:text-emerald-400 transition-colors" />
               </div>
               <h3 className="text-lg font-black text-white/85 tracking-tight mb-3">{f.title}</h3>
-              <p className="text-sm text-white/30 leading-relaxed font-medium">{f.desc}</p>
+              <p className="text-sm site-copy-muted leading-relaxed font-medium">{f.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -63,7 +63,7 @@ export default function AutomacaoSection() {
         {/* Stats + CTA */}
         <motion.div variants={fade} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Results */}
-          <div className="rounded-[2.5rem] p-10 border border-white/[0.05] bg-white/[0.02]">
+          <div className="site-surface rounded-[2.5rem] p-10">
             <div className="flex items-center gap-3 mb-8">
               <CheckCircle2 className="w-5 h-5 text-emerald-400/70" />
               <span className="text-xs font-black text-white/70 uppercase tracking-widest">Resultados Comprovados</span>
@@ -75,14 +75,14 @@ export default function AutomacaoSection() {
                     <r.icon className="w-5 h-5 text-emerald-400/70" />
                   </div>
                   <p className="text-2xl font-black text-white/80 mb-1">{r.value}</p>
-                  <p className="text-[10px] text-white/25 uppercase tracking-wider font-bold">{r.label}</p>
+                  <p className="text-[10px] text-white/45 uppercase tracking-wider font-bold">{r.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* CTA card */}
-          <div className="rounded-[2.5rem] p-10 border border-white/[0.05] bg-white/[0.02] flex flex-col justify-between">
+          <div className="site-surface rounded-[2.5rem] p-10 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/10 flex items-center justify-center">
@@ -95,24 +95,24 @@ export default function AutomacaoSection() {
                   <p className="text-[10px] text-emerald-400/50 uppercase font-black tracking-[0.2em]">Fale com a novaesweb</p>
                 </div>
               </div>
-              <p className="text-sm text-white/35 leading-relaxed font-medium mb-4">
+              <p className="text-sm site-copy-muted leading-relaxed font-medium mb-4">
                 Seu WhatsApp responde automaticamente seus clientes e direciona direto para o seu site de pedidos — sem você precisar ficar online o tempo todo.
               </p>
               <div className="flex items-start gap-2 border border-emerald-500/10 bg-emerald-500/[0.03] rounded-xl px-4 py-3 mb-3">
                 <Bot className="w-4 h-4 text-emerald-400/70 shrink-0 mt-0.5" />
-                <p className="text-xs text-white/40 leading-relaxed">
+                <p className="text-xs text-white/55 leading-relaxed">
                   <span className="text-emerald-400/80 font-bold">💡 Automação a partir de R$60/mês</span> — seu WhatsApp responde automaticamente e direciona para o seu site de pedidos.
                 </p>
               </div>
               <div className="flex items-start gap-2 border border-emerald-500/10 bg-emerald-500/[0.03] rounded-xl px-4 py-3 mb-6">
                 <Zap className="w-4 h-4 text-emerald-400/70 shrink-0 mt-0.5" />
-                <p className="text-xs text-white/40 leading-relaxed">
+                <p className="text-xs text-white/55 leading-relaxed">
                   <span className="text-emerald-400/80 font-bold">🚀 Soluções avançadas</span> — projetos personalizados desenvolvidos em parceria com especialistas, com valores ajustados conforme a necessidade do seu negócio.
                 </p>
               </div>
             </div>
             <a href="https://wa.me/5551981964238?text=Olá! Quero saber sobre a automação inteligente no WhatsApp." target="_blank" rel="noopener noreferrer">
-              <Button className="w-full h-12 rounded-xl text-white font-bold border-0 shadow-lg shadow-emerald-500/15 group" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+              <Button className="w-full h-12 rounded-xl text-white font-bold border border-white/10 shadow-lg shadow-emerald-500/12 group" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.92), rgba(5,150,105,0.9))' }}>
                 Falar com a novaesweb <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </a>

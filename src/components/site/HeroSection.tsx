@@ -38,20 +38,20 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
       {/* Simplified gradient background — fewer layers, smaller blur */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         <div
-          className="absolute top-0 -left-32 w-[600px] h-[600px] rounded-full blur-[150px]"
-          style={{ background: 'radial-gradient(circle, hsl(262 70% 45% / 0.1), transparent 70%)' }}
+          className="absolute top-0 -left-32 w-[620px] h-[620px] rounded-full blur-[160px]"
+          style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.18), transparent 72%)' }}
         />
         <div
-          className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full blur-[150px]"
-          style={{ background: 'radial-gradient(circle, hsl(330 85% 60% / 0.08), transparent 70%)' }}
+          className="absolute -bottom-32 -right-32 w-[540px] h-[540px] rounded-full blur-[160px]"
+          style={{ background: 'radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.14), transparent 72%)' }}
         />
       </div>
 
       {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none" aria-hidden="true">
+      <div className="absolute inset-0 opacity-[0.018] pointer-events-none" aria-hidden="true">
         <div className="absolute inset-0" style={{
           backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
+          backgroundSize: '72px 72px'
         }} />
       </div>
 
@@ -74,7 +74,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
 
       {/* Spotlight */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[500px] opacity-[0.05] pointer-events-none" aria-hidden="true"
-        style={{ background: 'radial-gradient(ellipse at top, hsl(var(--accent)), transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse at top, hsl(var(--accent) / 0.22), transparent 72%)' }}
       />
 
       <div className="container mx-auto px-6 relative z-10">
@@ -85,14 +85,10 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full mb-12 relative"
-            style={{
-              border: '1px solid hsl(var(--accent) / 0.2)',
-              background: 'hsl(var(--accent) / 0.05)',
-            }}
+            className="site-badge site-badge--accent mb-12 relative"
           >
             <Sparkles className="w-3.5 h-3.5" style={{ color: 'hsl(var(--accent))' }} />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'hsl(var(--muted-foreground))' }}>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'hsl(var(--muted-foreground) / 0.86)' }}>
               Architect v10.0 — Engenharia Digital
             </span>
           </motion.div>
@@ -109,7 +105,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 Estruturas digitais que
               </motion.span>
               <motion.span
-                className="block gradient-text mt-2"
+                className="block site-gradient-text mt-2"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
@@ -117,7 +113,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 atraem clientes
               </motion.span>
               <motion.span
-                className="block text-foreground/30 mt-1"
+                className="block text-foreground/50 mt-1"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
@@ -132,8 +128,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-lg md:text-xl mb-14 max-w-2xl mx-auto leading-relaxed font-medium"
-            style={{ color: 'hsl(var(--muted-foreground) / 0.7)' }}
+            className="text-lg md:text-xl mb-14 max-w-2xl mx-auto leading-relaxed font-medium site-copy-muted"
           >
             Criamos sites profissionais, sistemas de pedidos e automações no WhatsApp que transformam visitantes em clientes de forma automática.
           </motion.p>
@@ -150,8 +145,8 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 onClick={onOpenDemo}
                 className="h-16 px-12 rounded-2xl text-white text-lg font-black border-0 relative overflow-hidden group"
                 style={{
-                  background: 'var(--gradient-primary)',
-                  boxShadow: '0 20px 60px hsl(var(--accent) / 0.3), 0 0 40px hsl(var(--accent) / 0.1)',
+                  background: 'linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.9), rgba(236,72,153,0.88))',
+                  boxShadow: '0 18px 52px rgba(236,72,153,0.18), 0 0 28px rgba(236,72,153,0.08)',
                 }}
               >
                 <span className="relative z-10 flex items-center gap-2">
@@ -164,11 +159,9 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             <motion.a
               href="#planos"
               whileHover={{ scale: 1.03 }}
-              className="h-14 px-8 rounded-2xl text-sm font-bold inline-flex items-center gap-2 transition-colors"
+              className="site-surface h-14 px-8 rounded-2xl text-sm font-bold inline-flex items-center gap-2 transition-colors"
               style={{
-                border: '1px solid hsl(var(--border))',
-                color: 'hsl(var(--muted-foreground))',
-                background: 'hsl(var(--secondary) / 0.3)',
+                color: 'hsl(var(--muted-foreground) / 0.9)',
               }}
             >
               Ver Planos
@@ -191,17 +184,13 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <motion.div
                 key={stat.label}
                 whileHover={{ y: -4 }}
-                className="relative text-center py-5 px-3 rounded-2xl overflow-hidden group cursor-default"
-                style={{
-                  background: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                }}
+                className="site-surface relative text-center py-5 px-3 rounded-2xl overflow-hidden group cursor-default"
               >
                 <stat.icon className="w-4 h-4 mx-auto mb-2 opacity-40" style={{ color: 'hsl(var(--accent))' }} />
-                <p className="text-2xl md:text-3xl font-black gradient-text">
+                <p className="text-2xl md:text-3xl font-black site-gradient-text">
                   <AnimatedNumber target={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1.5" style={{ color: 'hsl(var(--muted-foreground) / 0.4)' }}>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1.5" style={{ color: 'hsl(var(--muted-foreground) / 0.55)' }}>
                   {stat.label}
                 </p>
               </motion.div>
@@ -223,10 +212,10 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex items-center gap-2 opacity-30 hover:opacity-70 transition-opacity duration-500 cursor-default"
+                className="flex items-center gap-2 opacity-55 hover:opacity-85 transition-opacity duration-500 cursor-default"
               >
-                <item.icon className="w-4 h-4" style={{ color: item.color, opacity: 0.6 }} />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                <item.icon className="w-4 h-4" style={{ color: item.color, opacity: 0.7 }} />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'hsl(var(--muted-foreground) / 0.9)' }}>
                   {item.label}
                 </span>
               </div>

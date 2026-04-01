@@ -18,15 +18,18 @@ export default function ResultadosSection() {
   const atendimento = useAnimatedCounter(24, 1000);
 
   return (
-    <motion.section id="resultados" className="py-24 px-6" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+    <motion.section id="resultados" className="site-band py-24 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-[8%] w-[420px] h-[420px] rounded-full blur-[150px] opacity-[0.03]" style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.35), transparent 72%)' }} />
+      </div>
       <div className="max-w-6xl mx-auto">
-        <motion.div variants={fade} className="text-left max-w-3xl mb-24">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full border border-red-500/15 bg-red-500/[0.06] text-red-400/80">Prova Social & Impacto</span>
+        <motion.div variants={fade} className="text-center max-w-3xl mx-auto mb-20">
+          <span className="site-badge site-badge--primary">Prova Social & Impacto</span>
           <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
             O que nossos <br />
-            <span className="text-white/20">parceiros </span> <span className="gradient-text">dizem</span>
+            <span className="site-title-muted">parceiros </span> <span className="site-gradient-text">dizem</span>
           </h2>
-          <p className="text-lg text-white/30 mt-8 leading-relaxed max-w-xl font-medium">
+          <p className="text-lg site-copy-muted mt-8 leading-relaxed max-w-xl mx-auto font-medium">
             Atendemos empresas que buscam excelência. Veja os números e depoimentos de quem já escalou com a novaesweb.
           </p>
         </motion.div>
@@ -38,9 +41,9 @@ export default function ResultadosSection() {
             { ref: prazo.ref, count: prazo.count, suffix: "d", label: "Prazo de entrega" },
             { ref: atendimento.ref, count: atendimento.count, suffix: "h", label: "Resposta Suporte" },
           ].map((stat) => (
-            <motion.div key={stat.label} ref={stat.ref} variants={fade} className="rounded-[2.5rem] p-8 text-center border border-white/[0.05] bg-white/[0.02] hover:border-purple-500/10 hover:bg-white/[0.04] transition-all info-card-hover">
-              <p className="text-4xl font-black gradient-text mb-2">{stat.count}{stat.suffix}</p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/25 font-bold">{stat.label}</p>
+            <motion.div key={stat.label} ref={stat.ref} variants={fade} className="site-surface rounded-[2.5rem] p-8 text-center hover:border-white/10 transition-all info-card-hover">
+              <p className="text-4xl font-black site-gradient-text mb-2">{stat.count}{stat.suffix}</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 font-bold">{stat.label}</p>
             </motion.div>
           ))}
         </div>

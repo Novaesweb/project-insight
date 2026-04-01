@@ -43,7 +43,7 @@ export default function ComoFuncionaSection() {
   return (
     <motion.section
       id="como-funciona"
-      className="py-28 px-6 relative"
+      className="site-band py-28 px-6 relative"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
@@ -53,20 +53,15 @@ export default function ComoFuncionaSection() {
         {/* Header */}
         <motion.div variants={fade} className="text-center max-w-4xl mx-auto mb-20">
           <span
-            className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full inline-block mb-8"
-            style={{
-              background: 'hsl(var(--accent) / 0.08)',
-              border: '1px solid hsl(var(--accent) / 0.15)',
-              color: 'hsl(var(--accent))',
-            }}
+            className="site-badge site-badge--accent inline-flex mb-8"
           >
             Nosso Processo
           </span>
           <h2 className="text-4xl sm:text-6xl font-black text-foreground/90 leading-[0.9] tracking-tighter">
-            Como <span className="gradient-text">transformamos</span><br />
-            <span className="text-foreground/25">ideias em </span><span className="text-foreground/70">máquinas de clientes</span>
+            Como <span className="site-gradient-text">transformamos</span><br />
+            <span className="site-title-muted">ideias em </span><span className="text-foreground/70">máquinas de clientes</span>
           </h2>
-          <p className="text-lg text-muted-foreground mt-6 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg site-copy-muted mt-6 max-w-2xl mx-auto leading-relaxed">
             Um método comprovado que leva sua empresa do zero ao digital gerando resultados reais todos os dias.
           </p>
         </motion.div>
@@ -86,11 +81,7 @@ export default function ComoFuncionaSection() {
               )}
 
               <div
-                className="rounded-2xl p-7 flex flex-col h-full transition-all duration-500"
-                style={{
-                  background: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                }}
+                className="site-surface rounded-2xl p-7 flex flex-col h-full transition-all duration-500"
               >
                 {/* Step number + icon */}
                 <div className="flex items-center gap-3 mb-5">
@@ -112,7 +103,7 @@ export default function ComoFuncionaSection() {
                   {passo.detalhes.map((detalhe, idx) => (
                     <div key={idx} className="flex items-center gap-2.5">
                       <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: 'hsl(var(--success) / 0.5)' }} />
-                      <span className="text-xs text-muted-foreground/70">{detalhe}</span>
+                      <span className="text-xs text-muted-foreground/80">{detalhe}</span>
                     </div>
                   ))}
                 </div>
@@ -127,18 +118,16 @@ export default function ComoFuncionaSection() {
             <a
               href="#contato"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-base font-bold hover:scale-105 transition-all group"
-              style={{ background: 'var(--gradient-primary)', boxShadow: '0 15px 40px hsl(var(--accent) / 0.2)' }}
+              style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))', boxShadow: '0 15px 40px rgba(236,72,153,0.16)' }}
             >
               Começar Agora
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
             <a
               href="#planos"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold transition-all hover:bg-secondary/80"
+              className="site-surface inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold transition-all hover:bg-secondary/80"
               style={{
-                border: '1px solid hsl(var(--border))',
-                color: 'hsl(var(--muted-foreground))',
-                background: 'hsl(var(--secondary) / 0.3)',
+                color: 'hsl(var(--muted-foreground) / 0.95)',
               }}
             >
               Ver Planos

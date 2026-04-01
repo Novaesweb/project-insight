@@ -39,7 +39,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
   return (
     <motion.section 
       id="o-que-fazemos" 
-      className="py-28 px-6"
+      className="site-band py-28 px-6 relative"
       initial="hidden" 
       whileInView="show" 
       viewport={{ once: true, margin: "-100px" }} 
@@ -48,14 +48,14 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div variants={fade} className="text-center max-w-4xl mx-auto mb-20">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full border border-purple-500/15 bg-purple-500/[0.06] text-purple-400/80">
+          <span className="site-badge site-badge--accent">
             Nossos Serviços
           </span>
           <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
-            O que <span className="gradient-text">fazemos</span><br />
-            <span className="text-white/30">para seu </span><span className="text-white/70">negócio</span>
+            O que <span className="site-gradient-text">fazemos</span><br />
+            <span className="site-title-muted">para seu </span><span className="text-white/80">negócio</span>
           </h2>
-          <p className="text-lg text-white/35 mt-6 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg site-copy-muted mt-6 max-w-2xl mx-auto leading-relaxed">
             Estruturas digitais completas que transformam visitantes em clientes recorrentes todos os dias.
           </p>
         </motion.div>
@@ -66,17 +66,17 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
             <motion.div
               key={index}
               variants={fade}
-              className="rounded-2xl p-8 border border-white/[0.05] bg-white/[0.02] hover:border-purple-500/15 hover:bg-white/[0.04] transition-all duration-300 h-full group"
+              className="site-surface rounded-[2rem] p-8 hover:border-white/10 transition-all duration-300 h-full group"
             >
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-white/[0.06] bg-white/[0.03] group-hover:border-purple-500/20 transition-colors" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.06))' }}>
-                <servico.icon className="w-7 h-7 text-purple-400/70 group-hover:text-purple-400 transition-colors" />
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-white/[0.06] bg-white/[0.03] group-hover:border-white/10 transition-colors" style={{ background: 'linear-gradient(135deg, hsl(var(--accent) / 0.12), hsl(var(--primary-novaesweb) / 0.08))' }}>
+                <servico.icon className="w-7 h-7 text-white/80 transition-colors" />
               </div>
               
               <h3 className="text-lg font-bold text-white/85 mb-4">{servico.titulo}</h3>
-              <p className="text-white/35 mb-6 leading-relaxed text-sm">{servico.descricao}</p>
+              <p className="site-copy-muted mb-6 leading-relaxed text-sm">{servico.descricao}</p>
               
-              <div className="rounded-xl px-4 py-3 border border-purple-500/10 bg-purple-500/[0.04]">
-                <span className="text-sm font-semibold gradient-text">{servico.resultado}</span>
+              <div className="site-soft-surface rounded-xl px-4 py-3">
+                <span className="text-sm font-semibold site-gradient-text">{servico.resultado}</span>
               </div>
             </motion.div>
           ))}
@@ -84,20 +84,20 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
 
         {/* CTA */}
         <motion.div variants={fade} className="text-center">
-          <p className="text-lg text-white/35 mb-8">
+          <p className="text-lg site-copy-muted mb-8">
             Pronto para transformar seu negócio em uma máquina de clientes?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="#contato"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-lg font-black shadow-[0_20px_50px_rgba(168,85,247,0.2)] hover:shadow-[0_25px_60px_rgba(168,85,247,0.35)] hover:scale-105 transition-all"
-              style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)' }}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-lg font-black shadow-[0_18px_45px_rgba(236,72,153,0.18)] hover:shadow-[0_22px_55px_rgba(236,72,153,0.24)] hover:scale-105 transition-all"
+              style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))' }}
             >
               Começar Agora
             </a>
             <button 
               onClick={onOpenDemo}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/50 text-lg font-black hover:bg-white/[0.04] hover:text-white/70 transition-all cursor-pointer"
+              className="site-surface inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white/70 text-lg font-black hover:bg-white/[0.04] hover:text-white/90 transition-all cursor-pointer"
             >
               Ver Demonstração
             </button>

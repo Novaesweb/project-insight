@@ -46,11 +46,15 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       scrolled && "py-4"
     )} onMouseLeave={() => setActiveDropdown(null)}>
       <div className={cn(
-        "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border relative",
+        "max-w-7xl mx-auto h-16 flex items-center justify-between transition-all duration-700 rounded-[24px] px-8 border relative overflow-hidden backdrop-blur-2xl",
         scrolled
-          ? "border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-[hsl(var(--background)/0.97)] translate-y-0"
-          : "border-white/5 bg-[hsl(var(--background)/0.8)] backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+          ? "border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-[linear-gradient(180deg,hsl(var(--background)/0.96),hsl(var(--secondary)/0.48))] translate-y-0"
+          : "border-white/[0.06] bg-[linear-gradient(180deg,hsl(var(--background)/0.76),hsl(var(--secondary)/0.34))] shadow-[0_14px_40px_rgba(0,0,0,0.28)]"
       )}>
+        <div
+          className="absolute inset-0 pointer-events-none opacity-70"
+          style={{ background: "radial-gradient(circle at top, rgba(236, 72, 153, 0.08), transparent 52%)" }}
+        />
         {/* Logo */}
         <Link 
           to="/" 
@@ -72,17 +76,17 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
               width={32}
               height={32}
               loading="eager"
-              className="w-8 h-8 rounded-lg shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow" 
+              className="w-8 h-8 rounded-lg shadow-lg shadow-primary/15 group-hover:shadow-accent/25 transition-shadow" 
             />
           </motion.div>
-            <span className="gradient-text">NovaesWeb</span>
+            <span className="site-gradient-text text-lg font-black tracking-tight">NovaesWeb</span>
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex items-center gap-8">
           {/* Dropdown Empresa */}
           <div className="relative" onMouseEnter={() => setActiveDropdown("empresa")}>
-            <button className="flex items-center gap-1.5 text-[13px] text-white/50 hover:text-white transition-all font-bold tracking-[0.1em] uppercase group">
+            <button className="flex items-center gap-1.5 text-[13px] text-foreground/60 hover:text-foreground/90 transition-all font-bold tracking-[0.1em] uppercase group">
               Empresa <ChevronDown className={cn("w-4 h-4 transition-transform", activeDropdown === "empresa" && "rotate-180")} />
             </button>
             <AnimatePresence>
@@ -93,15 +97,15 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                   exit={{ opacity: 0, y: 10 }}
                   className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-64"
                 >
-                  <div className="glass-panel-premium border-white/10 p-4 rounded-3xl shadow-2xl overflow-hidden">
+                  <div className="site-surface p-4 rounded-3xl shadow-2xl overflow-hidden">
                     {companyLinks.map(link => (
                       <button
                         key={link.id}
                         onClick={() => { onOpenModal(link.id); setActiveDropdown(null); }}
-                        className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-2xl transition-all text-left group/item"
+                        className="flex items-center gap-3 w-full p-3 hover:bg-white/[0.04] rounded-2xl transition-all text-left group/item"
                       >
-                        <link.icon className="w-5 h-5 text-primary" />
-                        <span className="text-xs font-bold text-white/70 group-hover/item:text-white">{link.label}</span>
+                        <link.icon className="w-5 h-5 text-primary/80" />
+                        <span className="text-xs font-bold text-foreground/70 group-hover/item:text-foreground">{link.label}</span>
                       </button>
                     ))}
                   </div>
@@ -114,10 +118,11 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             <button
               key={link.href}
               onClick={() => scrollTo(link.href)}
-              className="text-[13px] text-white/40 hover:text-white transition-all font-bold tracking-[0.1em] uppercase group relative"
+              className="text-[13px] text-foreground/55 hover:text-foreground/90 transition-all font-bold tracking-[0.1em] uppercase group relative"
             >
               <span className="relative z-10">{link.label}</span>
-              <span className="absolute -bottom-1.5 left-0 w-0 h-[3px] bg-gradient-to-r from-primary to-accent rounded-full group-hover:w-full transition-all duration-500 ease-out" />
+              <span className="absolute -bottom-1.5 left-0 w-0 h-[2px] rounded-full group-hover:w-full transition-all duration-500 ease-out"
+                style={{ background: "linear-gradient(90deg, rgba(220,38,38,0.75), rgba(236,72,153,0.75))" }} />
             </button>
           ))}
 
@@ -127,7 +132,10 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
         {/* Right actions */}
         <div className="flex items-center gap-4">
           <button onClick={() => scrollTo("#cadastro")} className="hidden sm:block">
-            <Button className="h-11 px-8 rounded-2xl gradient-primary text-white text-[13px] font-black shadow-[0_10px_30px_rgba(255,51,102,0.3)] hover:shadow-[0_15px_40px_rgba(255,51,102,0.5)] group overflow-hidden border-0 transition-all hover:-translate-y-0.5 animate-shimmer bg-[linear-gradient(110deg,#ff3366,45%,#ff6699,55%,#ff3366)] bg-[length:200%_100%]">
+            <Button
+              className="h-11 px-8 rounded-2xl text-white text-[13px] font-black shadow-[0_12px_32px_rgba(220,38,38,0.18)] hover:shadow-[0_16px_38px_rgba(236,72,153,0.24)] group overflow-hidden border border-white/10 transition-all hover:-translate-y-0.5"
+              style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+            >
               <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
                 Acesse Já <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </span>
@@ -136,7 +144,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white lg:hidden"
+            className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] transition-colors text-white lg:hidden"
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -154,7 +162,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             className="fixed inset-0 z-50 lg:hidden overflow-y-auto bg-[hsl(var(--background))]"
           >
             <div className="min-h-full bg-[hsl(var(--background)/0.98)] px-6 py-8 backdrop-blur-2xl">
-              <div className="mb-12 rounded-[28px] border border-white/10 bg-[hsl(var(--background))] px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+              <div className="site-surface mb-12 rounded-[28px] px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3 min-w-0">
                     <OptimizedImage 
@@ -164,12 +172,12 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                       height={40}
                       className="w-10 h-10 rounded-full shrink-0" 
                     />
-                    <span className="text-2xl font-black gradient-text tracking-tighter truncate">Explorar</span>
+                    <span className="text-2xl font-black site-gradient-text tracking-tighter truncate">Explorar</span>
                   </div>
                   <button 
                     onClick={() => setMenuOpen(false)}
                     aria-label="Fechar menu"
-                    className="p-3 rounded-2xl text-white bg-white/10 hover:bg-white/15 transition-colors shrink-0"
+                    className="p-3 rounded-2xl text-white bg-white/[0.08] hover:bg-white/[0.12] transition-colors shrink-0"
                   >
                     <X className="w-8 h-8" />
                   </button>
@@ -178,13 +186,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
 
               <div className="space-y-8">
                 <div>
-                  <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-bold mb-4">Institucional</p>
+                  <p className="text-[10px] text-foreground/45 uppercase tracking-[0.3em] font-bold mb-4">Institucional</p>
                   <div className="grid grid-cols-1 gap-3">
                     {companyLinks.map(link => (
                       <button
                         key={link.id}
                         onClick={() => { setMenuOpen(false); setTimeout(() => onOpenModal(link.id), 300); }}
-                        className="flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-[hsl(var(--muted)/0.3)] text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
+                        className="site-soft-surface flex items-center justify-between p-4 rounded-2xl text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
                       >
                         <span className="font-bold flex items-center gap-3"><link.icon className="w-4 h-4 text-primary" /> {link.label}</span>
                         <ChevronRight className="w-4 h-4" />
@@ -194,13 +202,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-bold mb-4">Navegação</p>
+                  <p className="text-[10px] text-foreground/45 uppercase tracking-[0.3em] font-bold mb-4">Navegação</p>
                   <div className="grid grid-cols-2 gap-3">
                     {navLinks.map((link) => (
                       <button
                         key={link.href}
                         onClick={() => scrollTo(link.href, setMenuOpen)}
-                        className="px-4 py-3 rounded-xl border border-white/10 bg-[hsl(var(--muted)/0.3)] text-sm font-bold text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
+                        className="site-soft-surface px-4 py-3 rounded-xl text-sm font-bold text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
                       >
                         {link.label}
                       </button>
@@ -214,7 +222,10 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                   className="w-full" 
                   onClick={() => scrollTo("#cadastro", setMenuOpen)}
                 >
-                  <Button className="h-16 rounded-2xl w-full gradient-primary text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20">
+                  <Button
+                    className="h-16 rounded-2xl w-full text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 border border-white/10"
+                    style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                  >
                     Começar Agora
                   </Button>
                 </button>

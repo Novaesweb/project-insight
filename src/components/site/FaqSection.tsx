@@ -30,7 +30,7 @@ export default function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-28 px-6 relative">
+    <section id="faq" className="site-band py-28 px-6 relative">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <motion.div
@@ -39,20 +39,13 @@ export default function FaqSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span
-            className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full inline-flex items-center gap-2 mb-8"
-            style={{
-              background: 'hsl(var(--primary) / 0.08)',
-              border: '1px solid hsl(var(--primary) / 0.15)',
-              color: 'hsl(var(--primary))',
-            }}
-          >
+          <span className="site-badge site-badge--primary mb-8">
             <Sparkles className="w-3 h-3" /> Suporte
           </span>
           <h2 className="text-4xl sm:text-5xl font-black text-foreground/90 tracking-tighter">
-            Dúvidas <span className="text-foreground/20">Frequentes</span>
+            Dúvidas <span className="site-title-muted">Frequentes</span>
           </h2>
-          <p className="text-base text-muted-foreground mt-4 max-w-lg mx-auto">
+          <p className="text-base site-copy-muted mt-4 max-w-lg mx-auto">
             Tudo que você precisa saber antes de começar.
           </p>
         </motion.div>
@@ -68,10 +61,10 @@ export default function FaqSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                className="rounded-2xl overflow-hidden transition-all duration-300"
+                className="site-surface rounded-2xl overflow-hidden transition-all duration-300"
                 style={{
-                  background: isOpen ? 'hsl(var(--primary) / 0.03)' : 'hsl(var(--card))',
-                  border: `1px solid ${isOpen ? 'hsl(var(--primary) / 0.15)' : 'hsl(var(--border))'}`,
+                  background: isOpen ? 'linear-gradient(180deg, hsl(var(--primary) / 0.05), hsl(var(--card)))' : 'linear-gradient(180deg, hsl(var(--card)), hsl(240 10% 8% / 0.84))',
+                  border: `1px solid ${isOpen ? 'hsl(var(--primary) / 0.14)' : 'hsl(var(--border))'}`,
                 }}
               >
                 <button

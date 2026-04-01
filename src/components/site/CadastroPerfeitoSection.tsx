@@ -162,7 +162,7 @@ export default function CadastroPerfeitoSection() {
   const progressPercent = Math.min((currentStep / 9) * 100, 100);
 
   return (
-    <section id="cadastro" className="relative py-24 lg:py-32 overflow-hidden bg-gradient-to-b from-black via-gray-900 to-black">
+    <section id="cadastro" className="site-band relative py-24 lg:py-32 overflow-hidden bg-gradient-to-b from-black via-gray-900 to-black">
       {/* Background Effects — static */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[5%] right-[10%] w-[600px] h-[600px] rounded-full opacity-[0.08]"
@@ -184,17 +184,17 @@ export default function CadastroPerfeitoSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 text-xs font-bold uppercase tracking-widest mb-5">
+          <div className="site-badge site-badge--accent mb-5">
             <Sparkles className="w-3.5 h-3.5" />
             Comece agora
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
             Transforme sua{" "}
-            <span className="bg-gradient-to-r from-purple-400 via-red-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="site-gradient-text">
               visão em realidade
             </span>
           </h2>
-          <p className="text-white/60 max-w-xl mx-auto text-lg">
+          <p className="text-white/70 max-w-xl mx-auto text-lg">
             Preencha o formulário inteligente e receba uma proposta personalizada em até 24h.
           </p>
         </motion.div>
@@ -207,15 +207,15 @@ export default function CadastroPerfeitoSection() {
           transition={{ delay: 0.15 }}
           className="max-w-4xl mx-auto"
         >
-            <div className="rounded-3xl border border-purple-500/20 overflow-hidden relative"
+            <div className="rounded-3xl border border-purple-500/15 overflow-hidden relative"
             style={{
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(236, 72, 153, 0.05))',
-              boxShadow: '0 40px 80px -20px rgba(139, 92, 246, 0.15), 0 0 0 1px rgba(139, 92, 246, 0.1)',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.04), rgba(236, 72, 153, 0.04))',
+              boxShadow: '0 40px 80px -20px rgba(139, 92, 246, 0.12), 0 0 0 1px rgba(139, 92, 246, 0.06)',
             }}
           >
             {/* Top glow line */}
             <div className="h-px w-full" style={{
-              background: 'linear-gradient(90deg, transparent, #a855f7, #ff3366, #ec4899, transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.7), rgba(255,51,102,0.7), rgba(236,72,153,0.7), transparent)',
             }} />
 
             {/* Progress bar */}

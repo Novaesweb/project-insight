@@ -72,24 +72,19 @@ const plans = [
 
 export default function PlanosSection() {
   return (
-    <motion.section id="planos" className="py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+    <motion.section id="planos" className="site-band py-28 px-6 relative overflow-hidden" initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div variants={fade} className="text-center max-w-3xl mx-auto mb-16">
           <span
-            className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 rounded-full inline-block mb-8"
-            style={{
-              background: 'hsl(var(--primary) / 0.08)',
-              border: '1px solid hsl(var(--primary) / 0.15)',
-              color: 'hsl(var(--primary))',
-            }}
+            className="site-badge site-badge--primary inline-flex mb-8"
           >
             Investimento Estratégico
           </span>
           <h2 className="text-4xl sm:text-6xl font-black text-foreground/90 leading-[0.9] tracking-tighter">
             Planos feitos para <br />
-            <span className="gradient-text">escalar o seu negócio</span>
+            <span className="site-gradient-text">escalar o seu negócio</span>
           </h2>
-          <p className="text-lg text-muted-foreground mt-8 leading-relaxed max-w-xl mx-auto font-medium">
+          <p className="text-lg site-copy-muted mt-8 leading-relaxed max-w-xl mx-auto font-medium">
             Escolha a arquitetura ideal para o momento da sua empresa.
           </p>
         </motion.div>
@@ -101,13 +96,15 @@ export default function PlanosSection() {
               variants={fade}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className={cn(
-                "relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group",
+                "site-surface relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group overflow-hidden",
                 plan.popular && "md:scale-[1.03] md:-my-2"
               )}
               style={{
-                background: plan.popular ? 'hsl(var(--primary) / 0.04)' : 'hsl(var(--card))',
-                border: `1px solid ${plan.popular ? 'hsl(var(--primary) / 0.25)' : 'hsl(var(--border))'}`,
-                boxShadow: plan.popular ? '0 20px 60px hsl(var(--primary) / 0.1)' : undefined,
+                background: plan.popular
+                  ? 'linear-gradient(180deg, hsl(var(--primary) / 0.06), hsl(var(--card)))'
+                  : 'linear-gradient(180deg, hsl(var(--card)), hsl(240 10% 8% / 0.84))',
+                border: `1px solid ${plan.popular ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--border))'}`,
+                boxShadow: plan.popular ? '0 20px 60px rgba(220, 38, 38, 0.08)' : undefined,
               }}
             >
               {/* Top accent line for popular */}
@@ -116,7 +113,7 @@ export default function PlanosSection() {
                   <div className="absolute -top-px left-0 right-0 h-[2px]" style={{ background: 'var(--gradient-primary)' }} />
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-white px-4 py-1 rounded-full shadow-lg flex items-center gap-1.5"
-                      style={{ background: 'var(--gradient-primary)' }}>
+                      style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))' }}>
                       <Star className="w-3 h-3" /> Mais popular
                     </span>
                   </div>
@@ -166,7 +163,7 @@ export default function PlanosSection() {
               {/* Price */}
               {plan.price && (
                 <div className="flex items-center gap-3 mb-5 p-3.5 rounded-xl relative"
-                  style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}>
+                  style={{ background: 'hsl(var(--secondary) / 0.55)', border: '1px solid hsl(var(--border))' }}>
                   <div className="text-center flex-1">
                     <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">{plan.priceLabel}</p>
                     <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>{plan.price}</p>
@@ -184,21 +181,21 @@ export default function PlanosSection() {
               {/* Features */}
               <ul className="space-y-2.5 mb-6 flex-1 relative">
                 {plan.features.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-[13px] text-muted-foreground">
+                  <li key={item} className="flex items-start gap-2 text-[13px] text-muted-foreground/90">
                     <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: `hsl(${plan.accentHsl} / 0.5)` }} />
                     {item}
                   </li>
                 ))}
               </ul>
 
-              <p className="text-[10px] text-muted-foreground/40 italic mb-4 font-medium relative">{plan.note}</p>
+              <p className="text-[10px] text-muted-foreground/60 italic mb-4 font-medium relative">{plan.note}</p>
 
               {/* CTA */}
               <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`} target="_blank" rel="noopener noreferrer" className="relative">
                 <Button className="w-full h-12 rounded-xl font-bold text-sm text-white border-0 group/btn transition-all hover:scale-[1.02]"
                   style={{
-                    background: plan.popular ? 'var(--gradient-primary)' : `hsl(${plan.accentHsl})`,
-                    boxShadow: `0 10px 30px hsl(${plan.accentHsl} / 0.2)`,
+                    background: plan.popular ? 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))' : `hsl(${plan.accentHsl})`,
+                    boxShadow: `0 10px 26px hsl(${plan.accentHsl} / 0.16)`,
                   }}>
                   {plan.cta}
                   {plan.ctaIcon ? <plan.ctaIcon className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />}
@@ -209,7 +206,7 @@ export default function PlanosSection() {
         </div>
 
         <motion.div variants={fade} className="mt-10 text-center">
-          <p className="text-xs text-muted-foreground/40 max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-xs text-muted-foreground/60 max-w-2xl mx-auto leading-relaxed font-medium">
             <span className="text-muted-foreground font-bold">Nota:</span> Cada projeto pode receber novas funcionalidades conforme o crescimento da empresa. O domínio e alguns serviços externos podem ter custos separados pagos diretamente pelo cliente.
           </p>
         </motion.div>
