@@ -228,13 +228,10 @@ export default function AdminRecurrentExtras() {
 
         const { error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
 
-        console.log("Resultado da inserção:", { insertedData, insertError });
-
         if (insertError) {
           console.error("Erro ao inserir fatura:", insertError);
           erros++;
         } else {
-          console.log("Fatura criada com sucesso:", insertedData);
           ok++;
         }
       } catch (err) {
