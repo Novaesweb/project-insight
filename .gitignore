@@ -28,3 +28,6 @@ dist-ssr
 
 # Electron
 dist_electron
+
+# Supabase local temp state
+supabase/.temp/
