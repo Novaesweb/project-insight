@@ -63,8 +63,6 @@ const ResellerMateriais = React.lazy(() => import("./pages/reseller/ResellerMate
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
 const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
 const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
-const AdminRecurrentBilling = React.lazy(() => import("@/pages/AdminRecurrentBilling"));
-const AdminRecurrentHistory = React.lazy(() => import("@/pages/AdminRecurrentHistory"));
 const AdminRecurrentExtras = React.lazy(() => import("@/pages/AdminRecurrentExtras"));
 const ExtrasAtivos = React.lazy(() => import("@/pages/ExtrasAtivos"));
 
@@ -120,7 +118,7 @@ function AdminWithSplash() {
           <Route path="/menu" element={<AdminMenu />} />
           <Route path="/configuracoes" element={<AdminConfig />} />
           <Route path="/recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
-          <Route path="/recurrent-history" element={<AdminRecurrentHistory />} />
+          <Route path="/recurrent-history" element={<Navigate to="/admin/recurrent-extras" replace />} />
           <Route path="/recurrent-extras" element={<AdminRecurrentExtras />} />
             <Route path="*" element={<React.Suspense fallback={<SplashScreen />}><NotFound /></React.Suspense>} />
           </Routes>

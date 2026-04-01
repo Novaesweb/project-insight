@@ -213,20 +213,20 @@ export default function Financeiro() {
       <motion.div variants={fadeUp}>
         <Card className="glass-card border-[0.5px]">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex flex-col gap-3">
               <CardTitle className="text-sm font-semibold text-white">Lançamentos</CardTitle>
-              <div className="flex gap-2 flex-wrap items-center">
-                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/10 mr-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/10">
                   <div className="flex items-center gap-1.5 px-1">
-                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Início:</span>
+                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">De:</span>
                     <Input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)}
-                      className="h-7 w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
+                      className="h-7 w-[110px] sm:w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
                   </div>
                   <div className="w-[1px] h-3 bg-white/10" />
                   <div className="flex items-center gap-1.5 px-1">
-                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Fim:</span>
+                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Até:</span>
                     <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)}
-                      className="h-7 w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
+                      className="h-7 w-[110px] sm:w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
                   </div>
                   {(dataInicio || dataFim) && (
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-white"
@@ -235,6 +235,8 @@ export default function Financeiro() {
                     </Button>
                   )}
                 </div>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
                 {["todos", "pago", "pendente", "em_atraso"].map((s) => (
                   <Button key={s} size="sm"
                     className={filtro === s ? "gradient-primary border-0 text-white text-xs" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white text-xs"}
@@ -243,114 +245,126 @@ export default function Financeiro() {
                   </Button>
                 ))}
                 <Button className="gradient-primary border-0 text-white text-xs" size="sm" onClick={openNew}>
-                  <Plus className="w-3 h-3 mr-1" /> Novo lançamento
+                  <Plus className="w-3 h-3 mr-1" /> Novo
                 </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table className="min-w-[700px]">
-              <TableHeader>
-                <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Descrição", "Tipo", "Valor", "Vencimento", "Cliente", "Status", "Ações"].map((h) => (
-                    <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtrados.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</TableCell></TableRow>
-                ) : filtrados.map((f) => (
-                  <TableRow key={f.id} className="border-[rgba(255,255,255,0.04)]">
-                    <TableCell className="text-sm text-white">{f.descricao}</TableCell>
-                    <TableCell>
-                      <span className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
-                        {f.tipo === "entrada" ? "↑ Entrada" : "↓ Saída"}
-                      </span>
-                    </TableCell>
-                    <TableCell className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
+          <CardContent>
+            {/* Mobile: Cards */}
+            <div className="block sm:hidden space-y-3">
+              {filtrados.length === 0 ? (
+                <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</p>
+              ) : filtrados.map((f) => (
+                <div key={f.id} className="p-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-white truncate">{f.descricao}</p>
+                      <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{f.clientes?.nome || "—"}</p>
+                    </div>
+                    <StatusBadge status={f.status} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm font-bold ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
                       {f.tipo === "saida" ? "- " : ""}R$ {Number(f.valor).toLocaleString("pt-BR")}
-                    </TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}</TableCell>
-                    <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.clientes?.nome || "—"}</TableCell>
-                    <TableCell><StatusBadge status={f.status} /></TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className={cn(
-                            "h-7 px-3 text-[10px] uppercase font-bold transition-all gap-1.5 rounded-lg border-0",
-                            f.status === "pago" 
-                              ? "bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
-                              : "bg-white/5 text-white/40 hover:bg-emerald-500/20 hover:text-emerald-400"
-                          )}
-                          onClick={() => toggleStatus(f.id, f.status)}
-                        >
-                          {f.status === "pago" ? (
-                            <>
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              Pago
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-3.5 h-3.5" />
-                              Pagar
-                            </>
-                          )}
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7 px-2">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
-                            <DropdownMenuItem onClick={() => openEdit(f)} className="text-xs gap-2 cursor-pointer">
-                              <Pencil className="w-3 h-3 text-blue-400" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toggleStatus(f.id, f.status)} className="text-xs gap-2 cursor-pointer">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Alternar Status
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-white/5" />
-                            <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer">
-                              <FileText className="w-3 h-3 text-red-400" /> PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer">
-                              <FileSpreadsheet className="w-3 h-3 text-blue-400" /> Word
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer">
-                              <FileDown className="w-3 h-3 text-green-400" /> CSV
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-white/5" />
-                            {f.descricao.includes("Asaas:") ? (
-                              <DropdownMenuItem 
-                                onClick={() => window.open(f.descricao.split("Asaas: ")[1].replace(")", ""), "_blank")} 
-                                className="text-xs gap-2 cursor-pointer text-emerald-400"
-                              >
-                                <DollarSign className="w-3 h-3" /> Ver Fatura Asaas
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onClick={() => handleAsaas(f)} className="text-xs gap-2 cursor-pointer">
-                                <DollarSign className="w-3 h-3 text-amber-400" /> Gerar no Asaas
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator className="bg-white/5" />
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(f.id)}
-                              className="text-xs gap-2 cursor-pointer text-red-400 focus:text-red-400"
-                              disabled={deletingId === f.id}
-                            >
-                              <Trash2 className="w-3 h-3" /> {deletingId === f.id ? "Excluindo..." : "Excluir"}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
+                    </span>
+                    <span className="text-[10px] text-[hsl(var(--muted-foreground))]">
+                      {f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1 border-t border-[rgba(255,255,255,0.05)]">
+                    <Button size="sm" variant="outline"
+                      className={cn("h-7 text-[10px] flex-1", f.status === "pago" ? "text-emerald-400" : "text-white/40")}
+                      onClick={() => toggleStatus(f.id, f.status)}>
+                      {f.status === "pago" ? "✓ Pago" : "Pagar"}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-white/40" onClick={() => openEdit(f)}>
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                    {f.descricao.includes("Asaas:") ? (
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-emerald-400"
+                        onClick={() => window.open(f.descricao.split("Asaas: ")[1].replace(")", ""), "_blank")}>
+                        <DollarSign className="w-3 h-3" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-amber-400" onClick={() => handleAsaas(f)}>
+                        <DollarSign className="w-3 h-3" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-400/50 hover:text-red-400"
+                      onClick={() => handleDelete(f.id)} disabled={deletingId === f.id}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[rgba(255,255,255,0.06)]">
+                    {["Descrição", "Tipo", "Valor", "Vencimento", "Cliente", "Status", "Ações"].map((h) => (
+                      <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtrados.length === 0 ? (
+                    <TableRow><TableCell colSpan={7} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum lançamento</TableCell></TableRow>
+                  ) : filtrados.map((f) => (
+                    <TableRow key={f.id} className="border-[rgba(255,255,255,0.04)]">
+                      <TableCell className="text-sm text-white max-w-[200px] truncate">{f.descricao}</TableCell>
+                      <TableCell>
+                        <span className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
+                          {f.tipo === "entrada" ? "↑ Entrada" : "↓ Saída"}
+                        </span>
+                      </TableCell>
+                      <TableCell className={`text-sm font-medium ${f.tipo === "entrada" ? "text-emerald-400" : "text-red-400"}`}>
+                        {f.tipo === "saida" ? "- " : ""}R$ {Number(f.valor).toLocaleString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.vencimento ? new Date(f.vencimento).toLocaleDateString("pt-BR") : "—"}</TableCell>
+                      <TableCell className="text-sm text-[hsl(var(--muted-foreground))]">{f.clientes?.nome || "—"}</TableCell>
+                      <TableCell><StatusBadge status={f.status} /></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline"
+                            className={cn("h-7 px-3 text-[10px] uppercase font-bold border-0",
+                              f.status === "pago" ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-white/40 hover:bg-emerald-500/20 hover:text-emerald-400")}
+                            onClick={() => toggleStatus(f.id, f.status)}>
+                            {f.status === "pago" ? <><CheckCircle2 className="w-3.5 h-3.5 mr-1" />Pago</> : <><XCircle className="w-3.5 h-3.5 mr-1" />Pagar</>}
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="ghost" className="text-white/50 text-xs h-7 px-2"><MoreVertical className="w-4 h-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-[#1a1a2e] border-white/10 text-white">
+                              <DropdownMenuItem onClick={() => openEdit(f)} className="text-xs gap-2 cursor-pointer"><Pencil className="w-3 h-3 text-blue-400" /> Editar</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => toggleStatus(f.id, f.status)} className="text-xs gap-2 cursor-pointer"><CheckCircle2 className="w-3 h-3 text-emerald-400" /> Alternar Status</DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-white/5" />
+                              <DropdownMenuItem onClick={() => handleExport(f, "pdf")} className="text-xs gap-2 cursor-pointer"><FileText className="w-3 h-3 text-red-400" /> PDF</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleExport(f, "word")} className="text-xs gap-2 cursor-pointer"><FileSpreadsheet className="w-3 h-3 text-blue-400" /> Word</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleExport(f, "csv")} className="text-xs gap-2 cursor-pointer"><FileDown className="w-3 h-3 text-green-400" /> CSV</DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-white/5" />
+                              {f.descricao.includes("Asaas:") ? (
+                                <DropdownMenuItem onClick={() => window.open(f.descricao.split("Asaas: ")[1].replace(")", ""), "_blank")} className="text-xs gap-2 cursor-pointer text-emerald-400"><DollarSign className="w-3 h-3" /> Ver Fatura Asaas</DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => handleAsaas(f)} className="text-xs gap-2 cursor-pointer"><DollarSign className="w-3 h-3 text-amber-400" /> Gerar no Asaas</DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator className="bg-white/5" />
+                              <DropdownMenuItem onClick={() => handleDelete(f.id)} className="text-xs gap-2 cursor-pointer text-red-400 focus:text-red-400" disabled={deletingId === f.id}>
+                                <Trash2 className="w-3 h-3" /> {deletingId === f.id ? "Excluindo..." : "Excluir"}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </motion.div>

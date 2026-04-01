@@ -169,20 +169,20 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const extrasDisponiveis = catalogo.filter(c => !extras.some(e => e.extra_id === c.id));
 
   return (
-    <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
+    <motion.div className="space-y-4 sm:space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <motion.div variants={fadeUp}>
         <Button variant="ghost" className="text-[hsl(var(--muted-foreground))] hover:text-white mb-3" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Voltar para Clientes
+          <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center">
-                <span className="text-white text-lg font-bold">{avatar}</span>
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                <span className="text-white text-base sm:text-lg font-bold">{avatar}</span>
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-white">{cliente.nome}</h2>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{cliente.email} · {cliente.telefone}</p>
+              <div className="flex-1 min-w-0 w-full">
+                <h2 className="text-lg sm:text-xl font-bold text-white truncate">{cliente.nome}</h2>
+                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] truncate">{cliente.email} · {cliente.telefone}</p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
                    <div className="flex-1 max-w-sm">
                       <Label className="text-[10px] text-white/30 uppercase font-bold mb-1 block">URL do Site</Label>
@@ -290,19 +290,19 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                    </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end sm:gap-3">
                  <Button
-                   className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-xl shadow-lg flex items-center gap-2"
+                   className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-9 sm:h-10 px-4 sm:px-6 rounded-xl shadow-lg flex items-center gap-2"
                    onClick={() => {
                      localStorage.setItem("clienteLogado", JSON.stringify(cliente));
                      window.open("/cliente/dashboard", "_blank");
                      toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
                    }}
                  >
-                   <Zap className="w-3.5 h-3.5" /> Portal do Cliente
+                   <Zap className="w-3.5 h-3.5" /> Portal
                  </Button>
                  <StatusBadge status={cliente.status} />
-              </div>
+               </div>
             </div>
           </CardContent>
         </Card>
@@ -850,67 +850,101 @@ export default function Clientes() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table className="min-w-[650px]">
-              <TableHeader>
-                <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (
-                    <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtrados.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</TableCell></TableRow>
-                ) : filtrados.map((c) => {
-                  const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-                  return (
-                    <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]">
-                      <TableCell onClick={() => setSelectedCliente(c.id)}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
-                            <span className="text-white text-[10px] font-bold">{avatar}</span>
+          <CardContent>
+            {/* Mobile: Cards */}
+            <div className="block sm:hidden space-y-3">
+              {filtrados.length === 0 ? (
+                <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</p>
+              ) : filtrados.map((c) => {
+                const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <div key={c.id} className="p-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] space-y-2" onClick={() => setSelectedCliente(c.id)}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                          <span className="text-white text-[10px] font-bold">{avatar}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{c.nome}</p>
+                          <p className="text-[10px] text-[hsl(var(--muted-foreground))] truncate">{c.email}</p>
+                        </div>
+                      </div>
+                      <StatusBadge status={c.status} />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-[hsl(var(--muted-foreground))]">
+                      <span>{c.telefone || "—"}</span>
+                      <span>{c.cidade ? `${c.cidade}, ${c.estado}` : "—"}</span>
+                    </div>
+                    <div className="flex gap-2 pt-1 border-t border-[rgba(255,255,255,0.05)]">
+                      <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 flex-1"
+                        onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}>
+                        <Zap className="w-3 h-3 mr-1" /> Portal
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-white/50 hover:text-white text-[10px] h-7 flex-1"
+                        onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}>
+                        Ver
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-red-400/50 hover:text-red-400 h-7 w-7 p-0"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop: Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[rgba(255,255,255,0.06)]">
+                    {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (
+                      <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtrados.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</TableCell></TableRow>
+                  ) : filtrados.map((c) => {
+                    const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+                    return (
+                      <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]">
+                        <TableCell onClick={() => setSelectedCliente(c.id)}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                              <span className="text-white text-[10px] font-bold">{avatar}</span>
+                            </div>
+                            <span className="text-sm font-medium text-white">{c.nome}</span>
                           </div>
-                          <span className="text-sm font-medium text-white">{c.nome}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)}><StatusBadge status={c.status} /></TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-primary hover:bg-primary/10 text-xs gap-1"
-                             onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}
-                           >
-                             <Zap className="w-3 h-3" /> Portal
-                           </Button>
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-white/50 hover:text-white text-xs"
-                             onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}
-                           >
-                             Ver
-                           </Button>
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-red-400/50 hover:text-red-400 h-8 w-8 p-0"
-                             onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}
-                           >
+                        </TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)}><StatusBadge status={c.status} /></TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-xs gap-1"
+                              onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}>
+                              <Zap className="w-3 h-3" /> Portal
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-white/50 hover:text-white text-xs"
+                              onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}>
+                              Ver
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-red-400/50 hover:text-red-400 h-8 w-8 p-0"
+                              onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}>
                               <Trash2 className="w-3.5 h-3.5" />
-                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
