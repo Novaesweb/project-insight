@@ -169,20 +169,20 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const extrasDisponiveis = catalogo.filter(c => !extras.some(e => e.extra_id === c.id));
 
   return (
-    <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
+    <motion.div className="space-y-4 sm:space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <motion.div variants={fadeUp}>
         <Button variant="ghost" className="text-[hsl(var(--muted-foreground))] hover:text-white mb-3" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Voltar para Clientes
+          <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
         <Card className="glass-card border-[0.5px]">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center">
-                <span className="text-white text-lg font-bold">{avatar}</span>
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                <span className="text-white text-base sm:text-lg font-bold">{avatar}</span>
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-white">{cliente.nome}</h2>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{cliente.email} · {cliente.telefone}</p>
+              <div className="flex-1 min-w-0 w-full">
+                <h2 className="text-lg sm:text-xl font-bold text-white truncate">{cliente.nome}</h2>
+                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] truncate">{cliente.email} · {cliente.telefone}</p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
                    <div className="flex-1 max-w-sm">
                       <Label className="text-[10px] text-white/30 uppercase font-bold mb-1 block">URL do Site</Label>
