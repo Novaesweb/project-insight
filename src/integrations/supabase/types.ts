@@ -1269,6 +1269,48 @@ export type Database = {
           },
         ]
       }
+      ticket_support_meta: {
+        Row: {
+          assigned_to_user_id: string | null
+          created_at: string
+          due_at: string | null
+          sla_hours: number | null
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          due_at?: string | null
+          sla_hours?: number | null
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          due_at?: string | null
+          sla_hours?: number | null
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_support_meta_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_support_meta_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           cliente_id: string | null
