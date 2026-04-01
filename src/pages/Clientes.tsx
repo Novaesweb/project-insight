@@ -517,7 +517,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                   const sc = statusConfig[e.status] || statusConfig.pendente;
 
                   return (
-                    <Card key={e.id} className="glass-card border-[0.5px] overflow-hidden">
+                     <Card key={e.id} className="glass-card border-[0.5px] overflow-hidden">
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
@@ -526,9 +526,29 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                               <p className="text-[10px] text-white/40 mt-0.5 line-clamp-2">{e.extras_catalogo.descricao}</p>
                             )}
                           </div>
-                          <Badge variant="outline" className={`${sc.color} text-[9px] uppercase border-[0.5px] shrink-0`}>
-                            {sc.label}
-                          </Badge>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Badge variant="outline" className={`${sc.color} text-[9px] uppercase border-[0.5px]`}>
+                              {sc.label}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 rounded-lg"
+                              onClick={() => {
+                                requestDelete(async () => {
+                                  const { error } = await supabase.from("extras_clientes").delete().eq("id", e.id);
+                                  if (error) {
+                                    toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+                                  } else {
+                                    toast({ title: "Extra removido do cliente!" });
+                                    loadData();
+                                  }
+                                }, "Remover Extra", `O extra "${e.extras_catalogo?.nome || 'Extra'}" será removido deste cliente.`);
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-3 flex-wrap">
