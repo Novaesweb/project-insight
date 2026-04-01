@@ -32,6 +32,10 @@ const particles = [
 
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
+  const scrollToCadastro = () => {
+    const section = document.getElementById("cadastro");
+    section?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16">
@@ -142,7 +146,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
           >
             <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
               <Button
-                onClick={onOpenDemo}
+                onClick={scrollToCadastro}
                 className="h-16 px-12 rounded-2xl text-white text-lg font-black border-0 relative overflow-hidden group"
                 style={{
                   background: 'linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.9), rgba(236,72,153,0.88))',
@@ -150,23 +154,24 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 }}
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Solicitar Demonstração
+                  Solicitar orçamento
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
                 </span>
               </Button>
             </motion.div>
 
-            <motion.a
-              href="#planos"
+            <motion.button
+              type="button"
+              onClick={onOpenDemo}
               whileHover={{ scale: 1.03 }}
               className="site-surface h-14 px-8 rounded-2xl text-sm font-bold inline-flex items-center gap-2 transition-colors"
               style={{
                 color: 'hsl(var(--muted-foreground) / 0.9)',
               }}
             >
-              Ver Planos
+              Ver demonstração
               <ArrowRight className="w-4 h-4" />
-            </motion.a>
+            </motion.button>
           </motion.div>
 
           {/* Stats Cards */}

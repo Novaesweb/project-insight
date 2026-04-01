@@ -89,17 +89,17 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
-              href="#contato"
+              href="#cadastro"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-lg font-black shadow-[0_18px_45px_rgba(236,72,153,0.18)] hover:shadow-[0_22px_55px_rgba(236,72,153,0.24)] hover:scale-105 transition-all"
               style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))' }}
             >
-              Começar Agora
+              Solicitar orçamento
             </a>
             <button 
               onClick={onOpenDemo}
               className="site-surface inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white/70 text-lg font-black hover:bg-white/[0.04] hover:text-white/90 transition-all cursor-pointer"
             >
-              Ver Demonstração
+              Ver demonstração
             </button>
           </div>
         </motion.div>

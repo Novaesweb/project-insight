@@ -25,7 +25,7 @@ export default function WhatsAppFloat() {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg shadow-green-500/30 hover:scale-110 transition-transform"
+      className="hidden lg:flex fixed bottom-8 right-8 z-[90] items-center justify-center w-14 h-14 rounded-full shadow-lg shadow-green-500/20 hover:scale-110 transition-transform border border-white/10"
       style={{ background: "linear-gradient(135deg, #25d366, #128c7e)" }}
       aria-label="Falar no WhatsApp"
     >

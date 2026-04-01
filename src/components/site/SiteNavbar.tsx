@@ -33,12 +33,54 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
+
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const probe = window.scrollY + window.innerHeight * 0.42;
+      const firstSection = document.getElementById(navLinks[0].href.replace("#", ""));
+
+      if (firstSection && probe < firstSection.offsetTop - 180) {
+        setActiveSection("");
+        return;
+      }
+
+      let nextActive = navLinks[0].href;
+
+      for (const link of navLinks) {
+        const section = document.getElementById(link.href.replace("#", ""));
+        if (section && probe >= section.offsetTop) {
+          nextActive = link.href;
+        }
+      }
+
+      setActiveSection(nextActive);
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, []);
+
+  const handleNavClick = (href: string, closeMenu?: (v: boolean) => void) => {
+    setActiveSection(href);
+    scrollTo(href, closeMenu);
+  };
+
+  const handleBudgetClick = (closeMenu?: (v: boolean) => void) => {
+    scrollTo("#cadastro", closeMenu);
+  };
 
   return (
     <nav className={cn(
@@ -117,11 +159,17 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           {navLinks.map((link) => (
             <button
               key={link.href}
-              onClick={() => scrollTo(link.href)}
-              className="text-[13px] text-foreground/55 hover:text-foreground/90 transition-all font-bold tracking-[0.1em] uppercase group relative"
+              onClick={() => handleNavClick(link.href)}
+              className={cn(
+                "text-[13px] transition-all font-bold tracking-[0.1em] uppercase group relative",
+                activeSection === link.href ? "text-foreground" : "text-foreground/55 hover:text-foreground/90"
+              )}
             >
               <span className="relative z-10">{link.label}</span>
-              <span className="absolute -bottom-1.5 left-0 w-0 h-[2px] rounded-full group-hover:w-full transition-all duration-500 ease-out"
+              <span className={cn(
+                "absolute -bottom-1.5 left-0 h-[2px] rounded-full transition-all duration-500 ease-out",
+                activeSection === link.href ? "w-full" : "w-0 group-hover:w-full"
+              )}
                 style={{ background: "linear-gradient(90deg, rgba(220,38,38,0.75), rgba(236,72,153,0.75))" }} />
             </button>
           ))}
@@ -131,13 +179,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
 
         {/* Right actions */}
         <div className="flex items-center gap-4">
-          <button onClick={() => scrollTo("#cadastro")} className="hidden sm:block">
+          <button onClick={() => handleBudgetClick()} className="hidden sm:block">
             <Button
               className="h-11 px-8 rounded-2xl text-white text-[13px] font-black shadow-[0_12px_32px_rgba(220,38,38,0.18)] hover:shadow-[0_16px_38px_rgba(236,72,153,0.24)] group overflow-hidden border border-white/10 transition-all hover:-translate-y-0.5"
               style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
             >
               <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
-                Acesse Já <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                Solicitar orçamento <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </span>
             </Button>
           </button>
@@ -159,7 +207,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-50 lg:hidden overflow-y-auto bg-[hsl(var(--background))]"
+            className="fixed inset-0 z-[120] lg:hidden overflow-y-auto bg-[hsl(var(--background))]"
           >
             <div className="min-h-full bg-[hsl(var(--background)/0.98)] px-6 py-8 backdrop-blur-2xl">
               <div className="site-surface mb-12 rounded-[28px] px-5 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
@@ -207,8 +255,11 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                     {navLinks.map((link) => (
                       <button
                         key={link.href}
-                        onClick={() => scrollTo(link.href, setMenuOpen)}
-                        className="site-soft-surface px-4 py-3 rounded-xl text-sm font-bold text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
+                        onClick={() => handleNavClick(link.href, setMenuOpen)}
+                        className={cn(
+                          "site-soft-surface px-4 py-3 rounded-xl text-sm font-bold text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors",
+                          activeSection === link.href && "border-primary/30 bg-[linear-gradient(180deg,hsl(var(--primary)/0.18),hsl(var(--secondary)/0.42))] text-primary-foreground"
+                        )}
                       >
                         {link.label}
                       </button>
@@ -220,13 +271,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
               <div className="mt-12">
                 <button 
                   className="w-full" 
-                  onClick={() => scrollTo("#cadastro", setMenuOpen)}
+                  onClick={() => handleBudgetClick(setMenuOpen)}
                 >
                   <Button
                     className="h-16 rounded-2xl w-full text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 border border-white/10"
                     style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
                   >
-                    Começar Agora
+                    Solicitar orçamento
                   </Button>
                 </button>
               </div>

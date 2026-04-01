@@ -54,6 +54,30 @@ const STEPS_SIDEBAR = [
   "Necessidade", "Volume", "Origem", "Briefing"
 ];
 
+const VALUE_PILLARS = [
+  {
+    icon: Target,
+    title: "Diagnóstico estratégico",
+    description: "Leitura rápida do seu cenário para entender o que realmente faz sentido para seu momento.",
+  },
+  {
+    icon: Layout,
+    title: "Estrutura recomendada",
+    description: "Direcionamento claro sobre site, automação no WhatsApp e organização da operação digital.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Retorno consultivo",
+    description: "Contato humano para alinhar prioridades, investimento e próximos passos sem adivinhação.",
+  },
+];
+
+const NEXT_STEPS = [
+  "Você envia as informações essenciais do projeto.",
+  "Nossa equipe analisa o cenário e define o melhor caminho.",
+  "Retornamos com direcionamento, proposta e próximos passos.",
+];
+
 const formatWhatsApp = (value: string) => {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 2) return digits;
@@ -205,8 +229,9 @@ export default function CadastroPerfeitoSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.15 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-6xl mx-auto"
         >
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] items-start">
             <div className="rounded-3xl border border-purple-500/15 overflow-hidden relative"
             style={{
               background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.04), rgba(236, 72, 153, 0.04))',
@@ -287,13 +312,13 @@ export default function CadastroPerfeitoSection() {
                         <span className="bg-gradient-to-r from-purple-400 via-red-400 to-pink-400 bg-clip-text text-transparent">negócio?</span>
                       </h1>
                       <p className="text-white/60 text-lg max-w-md mx-auto">
-                        Sua jornada para a perfeição digital começa aqui.
+                        Responda em poucos passos e receba um direcionamento comercial claro para seu projeto.
                       </p>
                     </div>
                     <motion.div whileTap={{ scale: 0.97 }}>
                       <Button onClick={handleNext} className="h-14 px-10 rounded-xl text-sm font-bold text-white border-0 shadow-lg group"
                         style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)', boxShadow: '0 8px 30px -6px rgba(139, 92, 246, 0.4)' }}>
-                        Começar Agora <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </motion.div>
                   </motion.div>
@@ -494,6 +519,79 @@ export default function CadastroPerfeitoSection() {
                 </motion.div>
               </div>
             )}
+          </div>
+
+            <aside className="xl:sticky xl:top-28 space-y-4">
+              <div className="site-surface rounded-[2rem] p-6 sm:p-7">
+                <div className="site-badge site-badge--primary mb-4">O que você recebe</div>
+                <h3 className="text-2xl font-black text-white tracking-tight mb-3">
+                  Clareza antes de investir
+                </h3>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  Cada cadastro vira um diagnóstico inicial para entendermos a estrutura digital ideal para sua empresa.
+                </p>
+
+                <div className="space-y-3 mt-6">
+                  {VALUE_PILLARS.map((item) => (
+                    <div
+                      key={item.title}
+                      className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.16), rgba(107,33,168,0.18), rgba(236,72,153,0.14))" }}>
+                          <item.icon className="w-5 h-5 text-white/85" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white/90">{item.title}</h4>
+                          <p className="text-xs text-white/60 leading-relaxed mt-1">{item.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="site-soft-surface rounded-[1.8rem] p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ShieldCheck className="w-4 h-4 text-primary/80" />
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-white/65">Prazo e próximos passos</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 font-bold">Retorno</p>
+                    <p className="text-base font-black text-white/90 mt-1">até 24h</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 font-bold">Canal</p>
+                    <p className="text-base font-black text-white/90 mt-1">WhatsApp + E-mail</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {NEXT_STEPS.map((step, index) => (
+                    <div key={step} className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-full border border-white/10 bg-white/[0.04] flex items-center justify-center text-[11px] font-black text-white/75 shrink-0">
+                        {index + 1}
+                      </div>
+                      <p className="text-sm text-white/68 leading-relaxed">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[1.8rem] border border-primary/15 p-5"
+                style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.08), rgba(107,33,168,0.08), rgba(236,72,153,0.08))" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Rocket className="w-4 h-4 text-white/85" />
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-white/65">Resumo comercial</p>
+                </div>
+                <p className="text-sm text-white/82 leading-relaxed">
+                  A NovaesWeb une <span className="font-bold text-white">site profissional</span>, <span className="font-bold text-white">automação no WhatsApp</span> e <span className="font-bold text-white">gestão digital</span> em uma estrutura pensada para gerar mais contatos, mais organização e mais vendas.
+                </p>
+              </div>
+            </aside>
           </div>
         </motion.div>
       </div>
