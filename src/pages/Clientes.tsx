@@ -850,67 +850,101 @@ export default function Clientes() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table className="min-w-[650px]">
-              <TableHeader>
-                <TableRow className="border-[rgba(255,255,255,0.06)]">
-                  {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (
-                    <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtrados.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</TableCell></TableRow>
-                ) : filtrados.map((c) => {
-                  const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-                  return (
-                    <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]">
-                      <TableCell onClick={() => setSelectedCliente(c.id)}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
-                            <span className="text-white text-[10px] font-bold">{avatar}</span>
+          <CardContent>
+            {/* Mobile: Cards */}
+            <div className="block sm:hidden space-y-3">
+              {filtrados.length === 0 ? (
+                <p className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</p>
+              ) : filtrados.map((c) => {
+                const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <div key={c.id} className="p-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] space-y-2" onClick={() => setSelectedCliente(c.id)}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                          <span className="text-white text-[10px] font-bold">{avatar}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{c.nome}</p>
+                          <p className="text-[10px] text-[hsl(var(--muted-foreground))] truncate">{c.email}</p>
+                        </div>
+                      </div>
+                      <StatusBadge status={c.status} />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-[hsl(var(--muted-foreground))]">
+                      <span>{c.telefone || "—"}</span>
+                      <span>{c.cidade ? `${c.cidade}, ${c.estado}` : "—"}</span>
+                    </div>
+                    <div className="flex gap-2 pt-1 border-t border-[rgba(255,255,255,0.05)]">
+                      <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 flex-1"
+                        onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}>
+                        <Zap className="w-3 h-3 mr-1" /> Portal
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-white/50 hover:text-white text-[10px] h-7 flex-1"
+                        onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}>
+                        Ver
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-red-400/50 hover:text-red-400 h-7 w-7 p-0"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop: Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-[rgba(255,255,255,0.06)]">
+                    {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (
+                      <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtrados.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center text-sm text-[hsl(var(--muted-foreground))] py-8">Nenhum cliente encontrado</TableCell></TableRow>
+                  ) : filtrados.map((c) => {
+                    const avatar = c.avatar || c.nome?.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+                    return (
+                      <TableRow key={c.id} className="border-[rgba(255,255,255,0.04)] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]">
+                        <TableCell onClick={() => setSelectedCliente(c.id)}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                              <span className="text-white text-[10px] font-bold">{avatar}</span>
+                            </div>
+                            <span className="text-sm font-medium text-white">{c.nome}</span>
                           </div>
-                          <span className="text-sm font-medium text-white">{c.nome}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
-                      <TableCell onClick={() => setSelectedCliente(c.id)}><StatusBadge status={c.status} /></TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-primary hover:bg-primary/10 text-xs gap-1"
-                             onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}
-                           >
-                             <Zap className="w-3 h-3" /> Portal
-                           </Button>
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-white/50 hover:text-white text-xs"
-                             onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}
-                           >
-                             Ver
-                           </Button>
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-red-400/50 hover:text-red-400 h-8 w-8 p-0"
-                             onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}
-                           >
+                        </TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)}><StatusBadge status={c.status} /></TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-xs gap-1"
+                              onClick={(e) => { e.stopPropagation(); handleAcessarPortal(c); }}>
+                              <Zap className="w-3 h-3" /> Portal
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-white/50 hover:text-white text-xs"
+                              onClick={(e) => { e.stopPropagation(); setSelectedCliente(c.id); }}>
+                              Ver
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-red-400/50 hover:text-red-400 h-8 w-8 p-0"
+                              onClick={(e) => { e.stopPropagation(); handleDeleteCliente(c.id); }}>
                               <Trash2 className="w-3.5 h-3.5" />
-                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
