@@ -183,6 +183,15 @@ export default function ClienteDashboard() {
   const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
 
   return (
+    <>
+    <AnimatePresence>
+      {showOnboarding && (
+        <OnboardingWizard 
+          clienteName={perfil.nome?.split(" ")[0] || "Cliente"} 
+          onComplete={() => setShowOnboarding(false)} 
+        />
+      )}
+    </AnimatePresence>
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6 min-h-screen pb-10">
       {isTrialExpired && (
         <Card className="overflow-hidden relative border-0" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.15), rgba(232,51,74,0.1))", borderLeft: "3px solid #e8334a" }}>
