@@ -2,8 +2,9 @@
 export const APP_CONFIG = {
   name: "NovaesWeb",
   version: "10.0.0",
-  description: "Painel Administrativo - NovaesWeb com Lovable",
-  author: "Architect CEO Lucas Alencar",
+  description: "Criamos sites profissionais que alavancam negócios no digital. Transforme sua presença online em uma máquina de vendas com sistemas premium e automação inteligente.",
+  author: "NovaesWeb",
+  siteUrl: "https://novaesweb.site",
 } as const;
 
 // API Configuration

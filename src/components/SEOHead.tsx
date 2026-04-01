@@ -15,47 +15,44 @@ interface SEOHeadProps {
   canonicalUrl?: string;
 }
 
+const ABSOLUTE_SITE_URL = APP_CONFIG.siteUrl.replace(/\/+$/, '');
+
 const defaultSEO = {
-  title: APP_CONFIG.name,
+  title: 'NovaesWeb — Criamos Sites para Negócios Alavancar no Digital',
   description: APP_CONFIG.description,
-  image: '/og-image.jpg',
+  image: '/google-seo-image-v2.jpg?v=11',
   type: 'website' as const,
-  keywords: 'painel administrativo, gestão empresarial, novaesweb, lucas alencar',
+  keywords: 'criamos sites para negocios, alavancar no digital, sites profissionais, desenvolvimento web, sistemas premium, automação digital, novaesweb, sites que vendem',
   author: APP_CONFIG.author,
+};
+
+const toAbsoluteUrl = (value: string) => {
+  if (/^https?:\/\//i.test(value)) return value;
+  const normalizedPath = value.startsWith('/') ? value : `/${value}`;
+  return `${ABSOLUTE_SITE_URL}${normalizedPath}`;
 };
 
 const getPageSEO = (pathname: string) => {
   const pageSEO: Record<string, Partial<SEOHeadProps>> = {
     [ROUTES.public.home]: {
-      title: 'NovaesWeb - Painel Administrativo Premium',
-      description: 'Sistema completo de gestão empresarial com arquitetura digital avançada. Desenvolvido por Architect CEO Lucas Alencar.',
-      keywords: 'painel administrativo, gestão empresarial, arquitetura digital, novaesweb',
+      title: 'NovaesWeb — Criamos Sites para Negócios Alavancar no Digital',
+      description: 'Criamos sites profissionais que alavancam negócios no digital. Transforme sua presença online em uma máquina de vendas com sistemas premium e automação inteligente.',
+      keywords: 'criamos sites para negocios, alavancar no digital, sites profissionais, desenvolvimento web, sistemas premium, automação digital, novaesweb, sites que vendem',
     },
     [ROUTES.public.cadastro]: {
-      title: 'Cadastro - NovaesWeb',
-      description: 'Cadastre-se e transforme sua gestão com o painel administrativo mais completo do mercado.',
-      keywords: 'cadastro, registro, novaesweb, painel administrativo',
-    },
-    [ROUTES.public.agendar]: {
-      title: 'Agendar Demonstração - NovaesWeb',
-      description: 'Agende uma demonstração do nosso painel administrativo e veja como podemos transformar seu negócio.',
-      keywords: 'demonstração, agendar, apresentação, novaesweb',
+      title: 'Solicite seu Diagnóstico - NovaesWeb',
+      description: 'Solicite seu diagnóstico com a NovaesWeb e receba uma estrutura recomendada para vender mais no digital com site, gestão e automação.',
+      keywords: 'diagnostico digital, cadastro novaesweb, solicitar proposta, site profissional, automacao whatsapp',
     },
     [ROUTES.public.funcionalidades]: {
       title: 'Funcionalidades - NovaesWeb',
-      description: 'Conheça todas as funcionalidades do nosso painel administrativo premium.',
-      keywords: 'funcionalidades, recursos, features, novaesweb',
+      description: 'Conheça as funcionalidades da NovaesWeb para sites profissionais, gestão de clientes, automação no WhatsApp e operação digital.',
+      keywords: 'funcionalidades novaesweb, automacao whatsapp, painel administrativo, gestao digital',
     },
-    [ROUTES.admin.dashboard]: {
-      title: 'Painel Administrativo - NovaesWeb',
-      description: 'Cabine de comando para gestão inteligente de seus ativos digitais.',
-      keywords: 'admin, painel, dashboard, gestão',
-      noIndex: true,
-    },
-    [ROUTES.client.dashboard]: {
-      title: 'Portal Cliente - NovaesWeb',
-      description: 'Acesse seus projetos, contratos e faturas em nosso portal exclusivo.',
-      keywords: 'cliente, portal, projetos, contratos',
+    '/landing': {
+      title: 'Landing Page para Conversão - NovaesWeb',
+      description: 'Landing pages com estrutura profissional para captar leads, acelerar o atendimento e converter mais pelo WhatsApp.',
+      keywords: 'landing page, captacao de leads, conversao whatsapp, novaesweb',
       noIndex: true,
     },
   };
@@ -77,23 +74,29 @@ export default function SEOHead({
 }: SEOHeadProps) {
   const location = useLocation();
   const pageSEO = getPageSEO(location.pathname);
-  
+
   const finalTitle = title || pageSEO.title || defaultSEO.title;
   const finalDescription = description || pageSEO.description || defaultSEO.description;
-  const finalImage = image || defaultSEO.image;
+  const finalImage = image || pageSEO.image || defaultSEO.image;
   const finalKeywords = keywords || pageSEO.keywords || defaultSEO.keywords;
   const finalAuthor = author || pageSEO.author || defaultSEO.author;
-  const finalCanonicalUrl = canonicalUrl || `${window.location.origin}${location.pathname}`;
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isClientRoute = location.pathname.startsWith('/cliente');
+  const isResellerRoute = location.pathname.startsWith('/revenda');
+  const derivedNoIndex = noIndex || pageSEO.noIndex || isAdminRoute || isClientRoute || isResellerRoute;
+  const finalCanonicalUrl = canonicalUrl || `${ABSOLUTE_SITE_URL}${location.pathname}`;
+  const finalImageUrl = toAbsoluteUrl(finalImage);
+  const finalLogoUrl = toAbsoluteUrl('/novaesweb-logo.png');
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': type === 'article' ? 'Article' : 'WebPage',
+    '@type': location.pathname === '/' ? 'WebSite' : type === 'article' ? 'Article' : 'WebPage',
     name: finalTitle,
     description: finalDescription,
-    image: finalImage,
+    image: finalImageUrl,
     url: finalCanonicalUrl,
     author: {
-      '@type': 'Person',
+      '@type': 'Organization',
       name: finalAuthor,
     },
     publisher: {
@@ -101,68 +104,64 @@ export default function SEOHead({
       name: APP_CONFIG.name,
       logo: {
         '@type': 'ImageObject',
-        url: '/logo.png',
+        url: finalLogoUrl,
       },
     },
+    ...(location.pathname === '/' && {
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${ABSOLUTE_SITE_URL}/?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    }),
     ...(publishedTime && { datePublished: publishedTime }),
     ...(modifiedTime && { dateModified: modifiedTime }),
   };
 
   return (
     <Helmet>
-      {/* Basic Meta Tags */}
       <title>{finalTitle}</title>
       <meta name="description" content={finalDescription} />
       <meta name="keywords" content={finalKeywords} />
       <meta name="author" content={finalAuthor} />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="robots" content={noIndex ? 'noindex,nofollow' : 'index,follow'} />
-      
-      {/* Canonical URL */}
+      <meta name="robots" content={derivedNoIndex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large'} />
+
       <link rel="canonical" href={finalCanonicalUrl} />
-      
-      {/* Open Graph */}
+
       <meta property="og:title" content={finalTitle} />
       <meta property="og:description" content={finalDescription} />
-      <meta property="og:image" content={finalImage} />
+      <meta property="og:image" content={finalImageUrl} />
       <meta property="og:url" content={finalCanonicalUrl} />
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={APP_CONFIG.name} />
       <meta property="og:locale" content="pt_BR" />
-      
-      {/* Twitter Card */}
+      <meta property="og:image:alt" content={finalTitle} />
+
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:description" content={finalDescription} />
-      <meta name="twitter:image" content={finalImage} />
+      <meta name="twitter:image" content={finalImageUrl} />
       <meta name="twitter:creator" content="@novaesweb" />
-      
-      {/* Additional Meta Tags */}
+
       <meta name="theme-color" content="#7b1fa2" />
       <meta name="msapplication-TileColor" content="#7b1fa2" />
       <meta name="application-name" content={APP_CONFIG.name} />
       <meta name="apple-mobile-web-app-title" content={APP_CONFIG.name} />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      
-      {/* Favicon */}
+
       <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-      <link rel="manifest" href="/manifest.json" />
-      
-      {/* Structured Data */}
+      <link rel="apple-touch-icon" href="/favicon.jpg" />
+
       <script type="application/ld+json">
         {JSON.stringify(jsonLd)}
       </script>
-      
-      {/* Preconnect to external domains */}
+
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link rel="preconnect" href={import.meta.env.VITE_SUPABASE_URL} />
-      
-      {/* DNS Prefetch */}
+
       <link rel="dns-prefetch" href="//fonts.googleapis.com" />
       <link rel="dns-prefetch" href="//www.googletagmanager.com" />
     </Helmet>
