@@ -53,7 +53,10 @@ export default function Leads() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [convertModal, setConvertModal] = useState<Lead | null>(null);
-  const [convertForm, setConvertForm] = useState({ senha: "" });
+  const [convertForm, setConvertForm] = useState({
+    senha: "", nome: "", email: "", telefone: "", cidade: "", estado: "",
+    documento: "", endereco: "", site_url: ""
+  });
   const [criarAcesso, setCriarAcesso] = useState(true);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
@@ -105,11 +108,16 @@ export default function Leads() {
     if (!convertModal) return;
     setConverting(true);
     try {
-      const avatar = convertModal.nome.split(" ").map(w => w[0]).join("").toUpperCase();
+      const avatar = convertForm.nome.split(" ").map(w => w[0]).join("").toUpperCase();
       const { data: cliente, error: cliError } = await supabase.from("clientes").insert({
-        nome: convertModal.nome,
-        email: convertModal.email,
-        telefone: convertModal.whatsapp,
+        nome: convertForm.nome,
+        email: convertForm.email,
+        telefone: convertForm.telefone,
+        cidade: convertForm.cidade || null,
+        estado: convertForm.estado || null,
+        documento: convertForm.documento || null,
+        endereco: convertForm.endereco || null,
+        site_url: convertForm.site_url || null,
         status: "ativo",
         avatar: avatar.slice(0, 2),
         senha: criarAcesso ? convertForm.senha : null
@@ -337,7 +345,15 @@ export default function Leads() {
                   <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                 </Button>
                 <Button
-                  onClick={() => { setConvertModal(selectedLead); setSelectedLead(null); }}
+                  onClick={() => {
+                    setConvertForm({
+                      senha: "", nome: selectedLead.nome, email: selectedLead.email,
+                      telefone: selectedLead.whatsapp, cidade: selectedLead.cidade || "",
+                      estado: selectedLead.estado || "", documento: selectedLead.documento || "",
+                      endereco: "", site_url: ""
+                    });
+                    setConvertModal(selectedLead); setSelectedLead(null);
+                  }}
                   className="gradient-primary text-white font-black uppercase tracking-widest text-[10px] h-12 rounded-xl"
                 >
                   <UserPlus className="w-4 h-4 mr-2" /> Converter
@@ -425,44 +441,64 @@ export default function Leads() {
 
           {convertModal && (
             <div className="space-y-8 relative z-10">
-              <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary font-black text-xl">
-                    {convertModal.nome[0]}
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Nome</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.nome}
+                      onChange={e => setConvertForm({...convertForm, nome: e.target.value})} />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-white/30 uppercase tracking-widest">Lead Selecionado</p>
-                    <p className="text-lg font-bold text-white">{convertModal.nome}</p>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Email</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.email}
+                      onChange={e => setConvertForm({...convertForm, email: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Telefone</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.telefone}
+                      onChange={e => setConvertForm({...convertForm, telefone: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Cidade</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.cidade}
+                      onChange={e => setConvertForm({...convertForm, cidade: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Estado</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.estado}
+                      onChange={e => setConvertForm({...convertForm, estado: e.target.value})} placeholder="SP" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">CPF/CNPJ</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.documento}
+                      onChange={e => setConvertForm({...convertForm, documento: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Site URL</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.site_url}
+                      onChange={e => setConvertForm({...convertForm, site_url: e.target.value})} placeholder="https://" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Endereço</Label>
+                    <Input className="h-11 bg-white/5 border-white/10 rounded-xl text-white" value={convertForm.endereco}
+                      onChange={e => setConvertForm({...convertForm, endereco: e.target.value})} />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Senha de Acesso</Label>
+                    <Input type="text" placeholder="Mín. 6 dígitos"
+                      className="h-11 bg-white/5 border-white/10 rounded-xl text-white"
+                      value={convertForm.senha}
+                      onChange={e => setConvertForm({...convertForm, senha: e.target.value})} />
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Defina uma senha de acesso</Label>
-                <Input 
-                  type="text" 
-                  placeholder="Mín. 6 dígitos (ex: 123456)"
-                  className="h-14 bg-white/5 border-white/10 rounded-2xl text-xl font-bold text-white px-6 focus:ring-primary/40 focus:border-primary/40 transition-all"
-                  value={convertForm.senha}
-                  onChange={e => setConvertForm({...convertForm, senha: e.target.value})}
-                />
-              </div>
-
-              <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
-                  <CheckCircle className="w-5 h-5" />
-                </div>
-                <p className="text-[11px] text-emerald-500/80 font-bold leading-relaxed">
-                  Ao confirmar, o lead será migrado para a base de clientes e você poderá configurar o briefing completo.
-                </p>
-              </div>
-
-              <div className="flex gap-4 p-2 bg-black/20 rounded-[2rem] border border-white/5">
-                <Button variant="ghost" className="h-14 px-8 text-white/40 hover:text-white font-black uppercase tracking-widest text-xs" onClick={() => setConvertModal(null)}>Voltar</Button>
+              <div className="flex gap-3 p-2 bg-black/20 rounded-2xl border border-white/5">
+                <Button variant="ghost" className="h-12 px-6 text-white/40 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => setConvertModal(null)}>Voltar</Button>
                 <Button 
-                  className="flex-1 h-14 rounded-2xl gradient-primary text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20" 
+                  className="flex-1 h-12 rounded-xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20" 
                   onClick={handleConvert}
-                  disabled={converting || convertForm.senha.length < 6}
+                  disabled={converting || convertForm.senha.length < 6 || !convertForm.nome || !convertForm.email}
                 >
                   {converting ? "Migrando..." : "Confirmar Conversão"}
                 </Button>
