@@ -213,20 +213,20 @@ export default function Financeiro() {
       <motion.div variants={fadeUp}>
         <Card className="glass-card border-[0.5px]">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex flex-col gap-3">
               <CardTitle className="text-sm font-semibold text-white">Lançamentos</CardTitle>
-              <div className="flex gap-2 flex-wrap items-center">
-                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/10 mr-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/10">
                   <div className="flex items-center gap-1.5 px-1">
-                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Início:</span>
+                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">De:</span>
                     <Input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)}
-                      className="h-7 w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
+                      className="h-7 w-[110px] sm:w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
                   </div>
                   <div className="w-[1px] h-3 bg-white/10" />
                   <div className="flex items-center gap-1.5 px-1">
-                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Fim:</span>
+                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Até:</span>
                     <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)}
-                      className="h-7 w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
+                      className="h-7 w-[110px] sm:w-[120px] bg-transparent border-0 text-[11px] text-white p-0 focus-visible:ring-0" />
                   </div>
                   {(dataInicio || dataFim) && (
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-white"
@@ -235,6 +235,8 @@ export default function Financeiro() {
                     </Button>
                   )}
                 </div>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
                 {["todos", "pago", "pendente", "em_atraso"].map((s) => (
                   <Button key={s} size="sm"
                     className={filtro === s ? "gradient-primary border-0 text-white text-xs" : "glass-input border-0 text-[hsl(var(--muted-foreground))] hover:text-white text-xs"}
@@ -243,7 +245,7 @@ export default function Financeiro() {
                   </Button>
                 ))}
                 <Button className="gradient-primary border-0 text-white text-xs" size="sm" onClick={openNew}>
-                  <Plus className="w-3 h-3 mr-1" /> Novo lançamento
+                  <Plus className="w-3 h-3 mr-1" /> Novo
                 </Button>
               </div>
             </div>
