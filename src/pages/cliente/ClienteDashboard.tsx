@@ -482,5 +482,6 @@ export default function ClienteDashboard() {
         </div>
       </div>
     </motion.div>
+    </>
   );
 }
