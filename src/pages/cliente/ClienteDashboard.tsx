@@ -73,6 +73,7 @@ export default function ClienteDashboard() {
   const [referencias, setReferencias] = useState("");
   const [saving, setSaving] = useState(false);
   const [showDadosDialog, setShowDadosDialog] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("onboarding_done"));
 
   const load = useCallback(() => {
     if (!cId) return;
