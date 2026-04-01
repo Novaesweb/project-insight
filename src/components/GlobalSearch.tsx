@@ -21,6 +21,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { adminRoutes, getFavoriteAdminRoutes, getRecentAdminRoutes } from "@/lib/admin-navigation";
 
 type SearchResults = {
@@ -44,9 +45,10 @@ export default function GlobalSearch() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<SearchResults>(emptyResults);
   const navigate = useNavigate();
+  const { canAccessPath } = useAdminAccess();
 
-  const favoriteRoutes = useMemo(() => getFavoriteAdminRoutes(), [open]);
-  const recentRoutes = useMemo(() => getRecentAdminRoutes(), [open]);
+  const favoriteRoutes = useMemo(() => getFavoriteAdminRoutes().filter((route) => canAccessPath(route.href)), [canAccessPath, open]);
+  const recentRoutes = useMemo(() => getRecentAdminRoutes().filter((route) => canAccessPath(route.href)), [canAccessPath, open]);
 
   const routeMatches = useMemo(() => {
     if (!search.trim()) return [];
@@ -57,9 +59,9 @@ export default function GlobalSearch() {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      return haystack.includes(query);
+      return haystack.includes(query) && canAccessPath(route.href);
     }).slice(0, 5);
-  }, [search]);
+  }, [canAccessPath, search]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -174,7 +176,7 @@ export default function GlobalSearch() {
             </>
           )}
 
-          {results.clientes.length > 0 && (
+          {canAccessPath("/admin/clientes") && results.clientes.length > 0 && (
             <>
               <CommandSeparator />
               <CommandGroup heading="Clientes">
@@ -194,7 +196,7 @@ export default function GlobalSearch() {
             </>
           )}
 
-          {results.leads.length > 0 && (
+          {canAccessPath("/admin/leads") && results.leads.length > 0 && (
             <>
               <CommandSeparator />
               <CommandGroup heading="Leads">
@@ -212,7 +214,7 @@ export default function GlobalSearch() {
             </>
           )}
 
-          {results.projetos.length > 0 && (
+          {canAccessPath("/admin/projetos") && results.projetos.length > 0 && (
             <>
               <CommandSeparator />
               <CommandGroup heading="Projetos">
@@ -226,7 +228,7 @@ export default function GlobalSearch() {
             </>
           )}
 
-          {results.pedidos.length > 0 && (
+          {canAccessPath("/admin/pedidos") && results.pedidos.length > 0 && (
             <>
               <CommandSeparator />
               <CommandGroup heading="Pedidos">
@@ -241,7 +243,7 @@ export default function GlobalSearch() {
             </>
           )}
 
-          {results.financeiro.length > 0 && (
+          {canAccessPath("/admin/financeiro") && results.financeiro.length > 0 && (
             <>
               <CommandSeparator />
               <CommandGroup heading="Financeiro">
@@ -265,18 +267,24 @@ export default function GlobalSearch() {
 
           <CommandSeparator />
           <CommandGroup heading="Navegação Rápida">
-            <CommandItem onSelect={() => runCommand(() => navigate("/admin/financeiro?status=pendente"))}>
-              <DollarSign className="mr-2 h-4 w-4" />
-              <span>Financeiro pendente</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => navigate("/admin/leads?preset=novos"))}>
-              <Headphones className="mr-2 h-4 w-4" />
-              <span>Leads novos</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => navigate("/admin/projetos"))}>
-              <FolderKanban className="mr-2 h-4 w-4" />
-              <span>Projetos</span>
-            </CommandItem>
+            {canAccessPath("/admin/financeiro") && (
+              <CommandItem onSelect={() => runCommand(() => navigate("/admin/financeiro?status=pendente"))}>
+                <DollarSign className="mr-2 h-4 w-4" />
+                <span>Financeiro pendente</span>
+              </CommandItem>
+            )}
+            {canAccessPath("/admin/leads") && (
+              <CommandItem onSelect={() => runCommand(() => navigate("/admin/leads?preset=novos"))}>
+                <Headphones className="mr-2 h-4 w-4" />
+                <span>Leads novos</span>
+              </CommandItem>
+            )}
+            {canAccessPath("/admin/projetos") && (
+              <CommandItem onSelect={() => runCommand(() => navigate("/admin/projetos"))}>
+                <FolderKanban className="mr-2 h-4 w-4" />
+                <span>Projetos</span>
+              </CommandItem>
+            )}
           </CommandGroup>
         </CommandList>
       </CommandDialog>

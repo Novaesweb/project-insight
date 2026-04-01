@@ -65,6 +65,7 @@ const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
 const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
 const AdminRecurrentExtras = React.lazy(() => import("@/pages/AdminRecurrentExtras"));
 const ExtrasAtivos = React.lazy(() => import("@/pages/ExtrasAtivos"));
+const AdminResetPassword = React.lazy(() => import("./pages/AdminResetPassword"));
 
 const ClientePedidosFome = React.lazy(() => import("./pages/cliente/ClientePedidosFome"));
 const AdminLogin = React.lazy(() => import("./pages/AdminLogin"));
@@ -116,7 +117,7 @@ function AdminWithSplash() {
           <Route path="/revenda" element={<AdminRevenda />} />
           <Route path="/contratos" element={<Contratos />} />
           <Route path="/menu" element={<AdminMenu />} />
-          <Route path="/configuracoes" element={<AdminConfig />} />
+          <Route path="/configuracoes-legado" element={<AdminConfig />} />
           <Route path="/recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
           <Route path="/recurrent-history" element={<Navigate to="/admin/recurrent-extras" replace />} />
           <Route path="/recurrent-extras" element={<AdminRecurrentExtras />} />
@@ -187,6 +188,7 @@ const App = () => (
 
               {/* Admin Login */}
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/reset-password" element={<AdminResetPassword />} />
 
               {/* Admin */}
               <Route path="/admin/*" element={

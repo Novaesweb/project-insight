@@ -8,6 +8,7 @@ import { Lock, Mail, Eye, EyeOff, ShieldAlert, Timer, Sparkles } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-admin.png";
+import { logAdminAudit, updateAdminUserMetadata } from "@/lib/admin-audit";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -32,14 +33,34 @@ export default function AdminLogin() {
     if (lockTime > 0) return;
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data: adminUser } = await supabase
+      .from("usuarios")
+      .select("nome, email, bloqueado, status")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+
+    if (adminUser?.bloqueado || adminUser?.status === "inativo") {
+      toast({
+        title: "Acesso indisponível",
+        description: "Esse usuário está bloqueado ou inativo no painel administrativo.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
       password: senha,
     });
 
     if (error) {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
+      if (adminUser?.email) {
+        await supabase.from("usuarios").update({ tentativas_login: newAttempts }).eq("email", normalizedEmail);
+      }
       if (newAttempts >= 3) {
         setLockTime(30);
         setFailedAttempts(0);
@@ -48,6 +69,29 @@ export default function AdminLogin() {
         toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
       }
     } else {
+      if (!adminUser && data.user?.user_metadata?.tipo !== "admin") {
+        await supabase.auth.signOut();
+        toast({ title: "Acesso negado", description: "Esse login não pertence à equipe administrativa.", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      await supabase.from("usuarios").update({ tentativas_login: 0 }).eq("email", normalizedEmail);
+
+      try {
+        await updateAdminUserMetadata(normalizedEmail, {
+          lastLoginAt: new Date().toISOString(),
+          lastLoginBy: normalizedEmail,
+        });
+        await logAdminAudit(
+          "Login administrativo realizado",
+          `${adminUser?.nome || normalizedEmail} entrou no painel administrativo.`,
+          "/admin"
+        );
+      } catch (auditError) {
+        console.error("Admin login audit error:", auditError);
+      }
+
       toast({ title: "Sessão Iniciada!", description: "Bem-vindo à Cabine de Comando, Arquiteto." });
       navigate("/admin");
     }

@@ -1,34 +1,25 @@
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Palette, Shield, Link as LinkIcon, Bell, MousePointerClick, Users } from "lucide-react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell, MousePointerClick, Users, History } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 // Saneamento Architect v9.0 Imports
 import { useSettings } from "@/hooks/useSettings";
 import { 
   CompanyForm, AppearanceSettings, PermissionsTable, 
-  IntegrationsForm, NotificationSettings 
+  IntegrationsForm, NotificationSettings, AuditTrailPanel
 } from "@/components/admin/settings/SettingsTabs";
 import { UserManagement } from "@/components/admin/settings/UserManagement";
-
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const permissoesMock = [
-  { modulo: "Dashboard", admin: true, editor: true, visualizador: true },
-  { modulo: "Clientes", admin: true, editor: true, visualizador: true },
-  { modulo: "Projetos", admin: true, editor: true, visualizador: false },
-  { modulo: "Pedidos", admin: true, editor: true, visualizador: false },
-  { modulo: "Financeiro", admin: true, editor: false, visualizador: false },
-  { modulo: "Relatórios", admin: true, editor: true, visualizador: true },
-  { modulo: "Suporte", admin: true, editor: true, visualizador: false },
-  { modulo: "Usuários", admin: true, editor: false, visualizador: false },
-  { modulo: "Configurações", admin: true, editor: false, visualizador: false },
-];
-
 export default function Configuracoes() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "empresa";
   const { 
     empresa, setEmpresa, integValues, setIntegValues, loading, integSaving,
+    permissions, setPermissions, permissionsSaving,
     pushSupported, pushEnabled, pushLoading, testLoading, subCount,
-    handleSaveEmpresa, handleSaveInteg, handleTogglePush, handleTestPush 
+    handleSaveEmpresa, handleSaveInteg, handleSavePermissions, handleTogglePush, handleTestPush 
   } = useSettings();
 
   const integrationItems = [
@@ -43,13 +34,18 @@ export default function Configuracoes() {
   return (
     <motion.div className="space-y-6 pb-12" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <motion.div variants={fadeUp}>
-        <Tabs defaultValue="empresa" className="space-y-6">
+        <Tabs
+          value={currentTab}
+          onValueChange={(value) => setSearchParams({ tab: value })}
+          className="space-y-6"
+        >
           <TabsList className="glass-card border-white/5 bg-transparent p-1 gap-1 flex-wrap h-auto shadow-2xl">
             {[
               { value: "empresa", label: "Empresa", icon: Building2 },
               { value: "aparencia", label: "Aparência", icon: Palette },
               { value: "usuarios", label: "Usuários", icon: Users },
               { value: "permissoes", label: "Permissões", icon: Shield },
+              { value: "auditoria", label: "Auditoria", icon: History },
               { value: "integracoes", label: "Integrações", icon: LinkIcon },
               { value: "notificacoes", label: "Notificações", icon: Bell },
             ].map((tab) => (
@@ -72,7 +68,16 @@ export default function Configuracoes() {
           </TabsContent>
 
           <TabsContent value="permissoes" className="mt-6">
-            <PermissionsTable data={permissoesMock} onSave={() => {}} />
+            <PermissionsTable
+              permissions={permissions}
+              onChange={setPermissions}
+              onSave={() => handleSavePermissions(permissions)}
+              saving={permissionsSaving}
+            />
+          </TabsContent>
+
+          <TabsContent value="auditoria" className="mt-6">
+            <AuditTrailPanel />
           </TabsContent>
 
           <TabsContent value="integracoes" className="mt-6">

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationCenter from "@/components/NotificationCenter";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useTheme } from "@/hooks/useTheme";
 import { pageInfo } from "@/lib/constants";
 import { getRecentAdminRoutes } from "@/lib/admin-navigation";
@@ -23,10 +24,17 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const { pathname } = useLocation();
+  const { canAccessPath } = useAdminAccess();
   const recentLinks = useMemo(
-    () => getRecentAdminRoutes().filter((route) => route.href !== pathname).slice(0, 2),
-    [pathname]
+    () => getRecentAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 2),
+    [canAccessPath, pathname]
   );
+
+  const quickActions = [
+    { href: "/admin/clientes", label: "Novo Cliente", icon: Users },
+    { href: "/admin/projetos", label: "Novo Projeto", icon: FolderKanban },
+    { href: "/admin/leads", label: "Ver Leads", icon: Headphones },
+  ].filter((action) => canAccessPath(action.href));
 
   const pageTitle = title || pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin";
   const pageSubtitle = subtitle || "Gestão Digital";
@@ -76,27 +84,25 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         </div>
 
         {/* Quick Actions */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
-              style={{ background: 'hsl(var(--primary) / 0.1)', border: '1px solid hsl(var(--primary) / 0.2)' }}
-              aria-label="Ações rápidas"
-            >
-              <Plus className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => navigate("/admin/clientes")} className="gap-2 cursor-pointer">
-              <Users className="w-4 h-4" /> Novo Cliente
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/admin/projetos")} className="gap-2 cursor-pointer">
-              <FolderKanban className="w-4 h-4" /> Novo Projeto
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/admin/leads")} className="gap-2 cursor-pointer">
-              <Headphones className="w-4 h-4" /> Ver Leads
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {quickActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+                style={{ background: 'hsl(var(--primary) / 0.1)', border: '1px solid hsl(var(--primary) / 0.2)' }}
+                aria-label="Ações rápidas"
+              >
+                <Plus className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {quickActions.map((action) => (
+                <DropdownMenuItem key={action.href} onClick={() => navigate(action.href)} className="gap-2 cursor-pointer">
+                  <action.icon className="w-4 h-4" /> {action.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <GlobalSearch />
 
@@ -108,10 +114,12 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
           </Button>
           <NotificationCenter userType="admin" userId="admin" />
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
-            onClick={() => navigate("/admin/configuracoes")} aria-label="Configurações">
-            <Settings className="w-3.5 h-3.5" />
-          </Button>
+          {canAccessPath("/admin/configuracoes") && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+              onClick={() => navigate("/admin/configuracoes")} aria-label="Configurações">
+              <Settings className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       </div>
     </header>

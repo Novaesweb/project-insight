@@ -5,23 +5,63 @@ import { supabase } from "@/integrations/supabase/client";
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+  const [redirectTo, setRedirectTo] = useState("/admin/login");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthenticated(!!session);
+    const checkAccess = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setAuthenticated(false);
+        setAuthorized(false);
+        setRedirectTo("/admin/login");
+        setLoading(false);
+        return;
+      }
+
+      const sessionType = session.user.user_metadata?.tipo;
+      const email = session.user.email?.trim().toLowerCase() || "";
+      const { data: adminUser } = await supabase
+        .from("usuarios")
+        .select("id, status, bloqueado")
+        .eq("email", email)
+        .maybeSingle();
+
+      const isBlocked = !!adminUser?.bloqueado || adminUser?.status === "inativo";
+      const isAdmin = !!adminUser || sessionType === "admin";
+
+      if (isBlocked) {
+        await supabase.auth.signOut();
+        setAuthenticated(false);
+        setAuthorized(false);
+        setRedirectTo("/admin/login");
+        setLoading(false);
+        return;
+      }
+
+      setAuthenticated(true);
+      setAuthorized(isAdmin);
+      setRedirectTo(sessionType === "cliente" ? "/cliente/dashboard" : "/admin/login");
       setLoading(false);
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void checkAccess();
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthenticated(!!session);
-      setLoading(false);
-    });
+    void checkAccess();
 
     return () => subscription.unsubscribe();
   }, []);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]"><span className="text-[hsl(var(--muted-foreground))]">Carregando...</span></div>;
   if (!authenticated) return <Navigate to="/admin/login" replace />;
+  if (!authorized) return <Navigate to={redirectTo} replace />;
   return <>{children}</>;
 }
 

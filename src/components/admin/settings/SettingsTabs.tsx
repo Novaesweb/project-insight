@@ -1,5 +1,5 @@
-import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users, MousePointerClick, Zap, Eye, EyeOff, X } from "lucide-react";
-import { useState } from "react";
+import { Building2, Palette, Shield, Link as LinkIcon, Bell, BellRing, Send, Users, MousePointerClick, Zap, Eye, EyeOff, X, History, KeyRound, RefreshCw, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  ADMIN_PERMISSION_MODULES,
+  ADMIN_PERMISSION_ROLES,
+  type AdminPermissionsConfig,
+  type AdminRole,
+} from "@/lib/admin-permissions";
 
 export function CompanyForm({ empresa, setEmpresa, onSave, loading }: any) {
   return (
@@ -98,9 +107,34 @@ export function AppearanceSettings({ values, onSave, setValues }: any) {
   );
 }
 
-export function PermissionsTable({ data, onSave }: any) {
+interface PermissionsTableProps {
+  permissions: AdminPermissionsConfig;
+  onChange: (nextPermissions: AdminPermissionsConfig) => void;
+  onSave: () => void;
+  saving?: boolean;
+}
+
+export function PermissionsTable({ permissions, onChange, onSave, saving }: PermissionsTableProps) {
   const header = ["Módulo", "Admin", "Editor", "Visualizador"];
-  const roles = ["admin", "editor", "visualizador"];
+
+  const roleSummary = useMemo(
+    () =>
+      ADMIN_PERMISSION_ROLES.map((role) => ({
+        role,
+        total: ADMIN_PERMISSION_MODULES.filter((module) => permissions[module.key][role]).length,
+      })),
+    [permissions]
+  );
+
+  const handleToggle = (moduleKey: keyof AdminPermissionsConfig, role: AdminRole, checked: boolean) => {
+    onChange({
+      ...permissions,
+      [moduleKey]: {
+        ...permissions[moduleKey],
+        [role]: checked,
+      },
+    });
+  };
 
   return (
     <Card className="glass-card border-[0.5px]">
@@ -111,6 +145,16 @@ export function PermissionsTable({ data, onSave }: any) {
         <CardDescription className="text-[10px] uppercase font-bold text-white/20">Controle de acesso granular por nível de arquitetura</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          {roleSummary.map(({ role, total }) => (
+            <div key={role} className="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+              <p className="text-[10px] uppercase font-black tracking-[0.22em] text-white/35">{role}</p>
+              <p className="text-2xl font-black text-white mt-2">{total}</p>
+              <p className="text-[11px] text-white/45 mt-1">módulos liberados para esse perfil.</p>
+            </div>
+          ))}
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow className="border-white/5">
@@ -120,20 +164,31 @@ export function PermissionsTable({ data, onSave }: any) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((p: any) => (
-              <TableRow key={p.modulo} className="border-white/5 hover:bg-white/[0.01]">
-                <TableCell className="text-sm text-white font-medium">{p.modulo}</TableCell>
-                {roles.map((role) => (
+            {ADMIN_PERMISSION_MODULES.map((module) => (
+              <TableRow key={module.key} className="border-white/5 hover:bg-white/[0.01] align-top">
+                <TableCell className="py-4">
+                  <p className="text-sm text-white font-medium">{module.label}</p>
+                  <p className="text-[11px] text-white/35 mt-1 leading-relaxed">{module.description}</p>
+                </TableCell>
+                {ADMIN_PERMISSION_ROLES.map((role) => (
                   <TableCell key={role}>
-                    <Checkbox defaultChecked={p[role]} className="border-white/20 data-[state=checked]:gradient-primary data-[state=checked]:border-0" />
+                    <Checkbox
+                      checked={permissions[module.key][role]}
+                      onCheckedChange={(checked) => handleToggle(module.key, role, !!checked)}
+                      className="border-white/20 data-[state=checked]:gradient-primary data-[state=checked]:border-0"
+                    />
                   </TableCell>
                 ))}
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        <Button className="gradient-primary border-0 text-white mt-8 h-10 px-8 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20" onClick={onSave}>
-          Sincronizar Permissões
+        <Button
+          className="gradient-primary border-0 text-white mt-8 h-10 px-8 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20"
+          onClick={onSave}
+          disabled={saving}
+        >
+          {saving ? "Sincronizando..." : "Sincronizar Permissões"}
         </Button>
       </CardContent>
     </Card>
@@ -262,6 +317,161 @@ export function NotificationSettings({
               </Button>
             </div>
           </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+type AuditItem = {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  read: boolean;
+  url: string | null;
+};
+
+const auditCategories = [
+  { value: "todos", label: "Tudo" },
+  { value: "login", label: "Login" },
+  { value: "usuarios", label: "Usuários" },
+  { value: "permissoes", label: "Permissões" },
+];
+
+function getAuditCategory(entry: AuditItem) {
+  const content = `${entry.title} ${entry.body}`.toLowerCase();
+
+  if (content.includes("login")) return "login";
+  if (content.includes("permiss")) return "permissoes";
+  return "usuarios";
+}
+
+function getAuditIcon(entry: AuditItem) {
+  const category = getAuditCategory(entry);
+
+  if (category === "login") return <KeyRound className="w-4 h-4 text-emerald-400" />;
+  if (category === "permissoes") return <Shield className="w-4 h-4 text-primary" />;
+  return <Users className="w-4 h-4 text-amber-400" />;
+}
+
+export function AuditTrailPanel() {
+  const [items, setItems] = useState<AuditItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("todos");
+
+  const loadItems = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    const { data } = await supabase
+      .from("notifications")
+      .select("id, title, body, created_at, read, url")
+      .eq("user_type", "admin_audit")
+      .order("created_at", { ascending: false })
+      .limit(40);
+
+    setItems((data as AuditItem[]) || []);
+    setLoading(false);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    void loadItems();
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesCategory = category === "todos" || getAuditCategory(item) === category;
+      const haystack = `${item.title} ${item.body}`.toLowerCase();
+      const matchesSearch = !search.trim() || haystack.includes(search.trim().toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [category, items, search]);
+
+  return (
+    <Card className="glass-card border-[0.5px]">
+      <CardHeader>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <CardTitle className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+              <History className="w-4 h-4 text-primary" /> Auditoria do Painel
+            </CardTitle>
+            <CardDescription className="text-[10px] uppercase font-bold text-white/20">
+              Linha do tempo de permissões, acessos e ações sensíveis da equipe
+            </CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            className="h-10 rounded-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/5"
+            onClick={() => loadItems(true)}
+            disabled={refreshing}
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", refreshing && "animate-spin")} />
+            Atualizar
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por ação, usuário ou detalhe"
+              className="glass-input border-white/5 text-white text-sm h-10 pl-10"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {auditCategories.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setCategory(option.value)}
+                className={cn(
+                  "px-3 py-2 rounded-xl text-[10px] uppercase font-black tracking-[0.18em] border transition-colors",
+                  category === option.value
+                    ? "border-primary/30 text-primary bg-primary/10"
+                    : "border-white/10 text-white/35 bg-white/[0.02] hover:text-white/70"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="py-10 text-center text-white/40 text-xs">Carregando trilha de auditoria...</div>
+        ) : filteredItems.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
+            <p className="text-sm font-semibold text-white">Nenhum evento encontrado</p>
+            <p className="text-xs text-white/35 mt-2">
+              Quando alguém atualizar permissões, acessar o painel ou mexer em usuários, o histórico aparece aqui.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl border border-white/5 bg-white/[0.03] flex items-center justify-center shrink-0">
+                    {getAuditIcon(item)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:justify-between">
+                      <p className="text-sm font-bold text-white">{item.title}</p>
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-white/30">
+                        {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: ptBR })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/45 mt-2 leading-relaxed">{item.body}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

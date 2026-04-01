@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, sendTestNotification, isPushSupported } from "@/lib/push-notifications";
+import { logAdminAudit } from "@/lib/admin-audit";
+import {
+  DEFAULT_ADMIN_PERMISSIONS,
+  parsePermissionsConfig,
+  serializePermissionsConfig,
+  type AdminPermissionsConfig,
+} from "@/lib/admin-permissions";
 
 const defaultEmpresa = {
   nome: "novaesweb",
@@ -21,7 +28,9 @@ export function useSettings() {
   const [testLoading, setTestLoading] = useState(false);
   const [subCount, setSubCount] = useState(0);
   const [integSaving, setIntegSaving] = useState<string | null>(null);
+  const [permissionsSaving, setPermissionsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<AdminPermissionsConfig>(DEFAULT_ADMIN_PERMISSIONS);
   const [integValues, setIntegValues] = useState({
     whatsapp_webhook: "",
     pix_key: "",
@@ -43,7 +52,7 @@ export function useSettings() {
       "nome", "cnpj", "email", "telefone", "endereco", "logo",
       "whatsapp_webhook", "pix_key", "google_analytics_id", "primary_color",
       "urgency_active", "urgency_text", "urgency_hours", "social_proof_active",
-      "asaas_api_key", "asaas_environment", "asaas_wallet_id"
+      "asaas_api_key", "asaas_environment", "asaas_wallet_id", "admin_permissions"
     ];
 
     const { data } = await supabase.from("app_config").select("key, value").in("key", keys);
@@ -60,6 +69,7 @@ export function useSettings() {
       data.forEach(row => {
         if ((newEmpresa as any)[row.key] !== undefined) (newEmpresa as any)[row.key] = row.value;
         if (newIntegs[row.key] !== undefined) newIntegs[row.key] = row.value;
+        if (row.key === "admin_permissions") setPermissions(parsePermissionsConfig(row.value));
       });
       setEmpresa(newEmpresa);
       setIntegValues(newIntegs);
@@ -93,6 +103,39 @@ export function useSettings() {
     
     setIntegSaving(null);
     toast({ title: value ? "Integração salva!" : "Integração removida!" });
+  };
+
+  const handleSavePermissions = async (nextPermissions: AdminPermissionsConfig) => {
+    setPermissionsSaving(true);
+
+    const { error } = await supabase.from("app_config").upsert(
+      { key: "admin_permissions", value: serializePermissionsConfig(nextPermissions) },
+      { onConflict: "key" }
+    );
+
+    setPermissionsSaving(false);
+
+    if (error) {
+      toast({ title: "Erro ao salvar permissões", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    setPermissions(nextPermissions);
+    try {
+      const session = await supabase.auth.getSession();
+      const actor = session.data.session?.user?.email?.trim().toLowerCase() || "admin@novaesweb";
+      await logAdminAudit(
+        "Permissões administrativas atualizadas",
+        `${actor} sincronizou a matriz de permissões do painel administrativo.`,
+        "/admin/configuracoes?tab=auditoria"
+      );
+    } catch (auditError) {
+      console.error("Permission audit error:", auditError);
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("admin-access-refresh"));
+    }
+    toast({ title: "Permissões atualizadas!", description: "A matriz de acesso do admin foi sincronizada." });
   };
 
   const handleTogglePush = async () => {
@@ -136,8 +179,9 @@ export function useSettings() {
 
   return {
     empresa, setEmpresa, integValues, setIntegValues, loading, integSaving,
+    permissions, setPermissions, permissionsSaving,
     pushSupported, pushEnabled, pushLoading, testLoading, subCount,
-    handleSaveEmpresa, handleSaveInteg, handleTogglePush, handleTestPush,
+    handleSaveEmpresa, handleSaveInteg, handleSavePermissions, handleTogglePush, handleTestPush,
     refresh: loadSettings
   };
 }

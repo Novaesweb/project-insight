@@ -20,6 +20,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useLeadCount } from "@/hooks/useLeadCount";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getFavoriteAdminRoutes, getRecentAdminRoutes } from "@/lib/admin-navigation";
@@ -75,17 +76,18 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminSidebarProps) {
   const { pathname } = useLocation();
   const leadCount = useLeadCount();
+  const { canAccessPath } = useAdminAccess();
   const [recentRoutes, setRecentRoutes] = useState(() => getRecentAdminRoutes());
   const [counts, setCounts] = useState({ leads: 0, financeiro: 0, projetos: 0 });
 
   const favoriteRoutes = useMemo(
-    () => getFavoriteAdminRoutes().filter((route) => route.href !== pathname).slice(0, 3),
-    [pathname]
+    () => getFavoriteAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 3),
+    [canAccessPath, pathname]
   );
 
   useEffect(() => {
-    setRecentRoutes(getRecentAdminRoutes().filter((route) => route.href !== pathname).slice(0, 3));
-  }, [pathname]);
+    setRecentRoutes(getRecentAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 3));
+  }, [canAccessPath, pathname]);
 
   useEffect(() => {
     const loadCounts = async () => {
@@ -190,7 +192,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
             )}
 
             <div className="space-y-0.5">
-              {group.items.map((item) => {
+              {group.items.filter((item) => canAccessPath(item.href)).map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
                 const badgeCount = getItemCount(item.href);
 

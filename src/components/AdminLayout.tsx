@@ -8,13 +8,14 @@ import { ReloadPrompt } from "./ReloadPrompt";
 import { useBranding } from "@/hooks/useBranding";
 import { useUI } from "@/store";
 import { useLeadCount } from "@/hooks/useLeadCount";
+import { AdminAccessProvider, useAdminAccess } from "@/hooks/useAdminAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getFavoriteAdminRoutes, getRecentAdminRoutes, trackAdminRoute } from "@/lib/admin-navigation";
 import {
   Menu, LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles
+  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles, ArrowLeft, LockKeyhole
 } from "lucide-react";
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
@@ -67,8 +68,9 @@ const mobileDockItems = [
 function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: string }; onClose: () => void }) {
   const { pathname } = useLocation();
   const leadCount = useLeadCount();
-  const recentRoutes = getRecentAdminRoutes().filter((route) => route.href !== pathname).slice(0, 3);
-  const favoriteRoutes = getFavoriteAdminRoutes().filter((route) => route.href !== pathname).slice(0, 3);
+  const { canAccessPath } = useAdminAccess();
+  const recentRoutes = getRecentAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 3);
+  const favoriteRoutes = getFavoriteAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 3);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -98,7 +100,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
               {group.title}
             </p>
             <div className="space-y-0.5">
-              {group.items.map((item) => {
+              {group.items.filter((item) => canAccessPath(item.href)).map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
                 return (
                   <Link
@@ -193,15 +195,61 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
   );
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+function AdminShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const { sidebarCollapsed, setSidebarCollapsed } = useUI();
   const branding = useBranding();
+  const { canAccessPath, loading } = useAdminAccess();
+
+  const availableDockItems = mobileDockItems.filter((item) => canAccessPath(item.href));
 
   useEffect(() => {
     trackAdminRoute(pathname);
   }, [pathname]);
+
+  const renderMainContent = () => {
+    if (loading) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <p className="text-sm font-semibold text-foreground">Carregando permissões do painel...</p>
+            <p className="text-xs text-muted-foreground">Estamos validando o acesso deste usuário para liberar os módulos corretos.</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!canAccessPath(pathname)) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="max-w-lg w-full rounded-[1.75rem] border border-white/10 bg-[var(--admin-surface)] p-7 text-center shadow-2xl">
+            <div className="mx-auto w-14 h-14 rounded-2xl border border-white/10 bg-white/[0.03] flex items-center justify-center">
+              <LockKeyhole className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.28em] font-black text-primary mt-5">Acesso restrito</p>
+            <h2 className="text-xl font-black text-foreground mt-2">Esse módulo não está liberado para o seu perfil.</h2>
+            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+              As permissões do admin foram centralizadas. Se você precisa acessar essa área, ajuste a matriz de segurança em configurações.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mt-6 justify-center">
+              <Button asChild className="h-11 rounded-xl border-0 text-white" style={{ background: "var(--gradient-primary)" }}>
+                <Link to="/admin">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar ao dashboard
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" className="h-11 rounded-xl border border-white/10 text-foreground hover:bg-white/5">
+                <Link to="/admin/configuracoes?tab=permissoes">Revisar permissões</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return children;
+  };
 
   return (
     <div className="flex h-screen text-foreground font-sora selection:bg-primary/30 overflow-hidden"
@@ -230,7 +278,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <TopProgressBar />
         <AdminHeader />
         <AdminMainContent pathname={pathname}>
-          {children}
+          {renderMainContent()}
         </AdminMainContent>
       </main>
 
@@ -242,7 +290,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             border: "1px solid hsl(var(--border))",
           }}
         >
-          {mobileDockItems.map((item) => {
+          {availableDockItems.slice(0, 4).map((item) => {
             const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
             return (
               <Link
@@ -276,5 +324,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       <ReloadPrompt />
     </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminAccessProvider>
+      <AdminShell>{children}</AdminShell>
+    </AdminAccessProvider>
   );
 }
