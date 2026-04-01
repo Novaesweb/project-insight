@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import TopProgressBar from "@/components/TopProgressBar";
 import { SupabaseHeartbeat } from "./SupabaseHeartbeat";
@@ -263,15 +263,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
 
-          <SheetTrigger asChild>
-            <button
-              type="button"
-              className="flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 text-muted-foreground transition-all hover:text-foreground hover:bg-secondary/60"
-            >
-              <Menu className="w-4 h-4" />
-              <span className="text-[10px] font-semibold">Menu</span>
-            </button>
-          </SheetTrigger>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 text-muted-foreground transition-all hover:text-foreground hover:bg-secondary/60"
+          >
+            <Menu className="w-4 h-4" />
+            <span className="text-[10px] font-semibold">Menu</span>
+          </button>
         </div>
       </div>
       
