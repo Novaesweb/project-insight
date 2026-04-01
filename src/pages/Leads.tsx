@@ -340,7 +340,15 @@ export default function Leads() {
                   <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                 </Button>
                 <Button
-                  onClick={() => { setConvertModal(selectedLead); setSelectedLead(null); }}
+                  onClick={() => {
+                    setConvertForm({
+                      senha: "", nome: selectedLead.nome, email: selectedLead.email,
+                      telefone: selectedLead.whatsapp, cidade: selectedLead.cidade || "",
+                      estado: selectedLead.estado || "", documento: selectedLead.documento || "",
+                      endereco: "", site_url: ""
+                    });
+                    setConvertModal(selectedLead); setSelectedLead(null);
+                  }}
                   className="gradient-primary text-white font-black uppercase tracking-widest text-[10px] h-12 rounded-xl"
                 >
                   <UserPlus className="w-4 h-4 mr-2" /> Converter
