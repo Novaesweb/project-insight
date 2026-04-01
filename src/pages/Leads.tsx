@@ -108,11 +108,16 @@ export default function Leads() {
     if (!convertModal) return;
     setConverting(true);
     try {
-      const avatar = convertModal.nome.split(" ").map(w => w[0]).join("").toUpperCase();
+      const avatar = convertForm.nome.split(" ").map(w => w[0]).join("").toUpperCase();
       const { data: cliente, error: cliError } = await supabase.from("clientes").insert({
-        nome: convertModal.nome,
-        email: convertModal.email,
-        telefone: convertModal.whatsapp,
+        nome: convertForm.nome,
+        email: convertForm.email,
+        telefone: convertForm.telefone,
+        cidade: convertForm.cidade || null,
+        estado: convertForm.estado || null,
+        documento: convertForm.documento || null,
+        endereco: convertForm.endereco || null,
+        site_url: convertForm.site_url || null,
         status: "ativo",
         avatar: avatar.slice(0, 2),
         senha: criarAcesso ? convertForm.senha : null
