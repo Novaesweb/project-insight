@@ -184,20 +184,15 @@ export default function AdminRecurrentExtras() {
       if (!cliente) continue;
 
       try {
-        console.log("Processando cliente:", cliente.cliente_nome);
-        
         // Check existing
-        const { data: existing, error: existingError } = await (supabase as any)
+        const { data: existing } = await (supabase as any)
           .from("recurrent_billing_history")
           .select("id")
           .eq("cliente_id", clienteId)
           .eq("mes", mesSelecionado)
           .maybeSingle();
 
-        console.log("Verificação de existente:", { existing, existingError });
-
         if (existing) {
-          console.log(`Fatura duplicada encontrada para ${cliente.cliente_nome} no mês ${formatMes(mesSelecionado)}`);
           toast({ 
             title: `${cliente.cliente_nome} já tem fatura para ${formatMes(mesSelecionado)}`, 
             description: "Verifique no histórico do cliente ou escolha outro mês",
@@ -210,17 +205,11 @@ export default function AdminRecurrentExtras() {
         // Calcular extras do mês (respeitar corte)
         const extrasDoMes = cliente.extras.filter(e => {
           const comp = getMesCompetencia(e.data_ativacao);
-          return comp <= mesSelecionado; // extras ativados até este mês
+          return comp <= mesSelecionado;
         });
 
-        console.log("Extras do mês:", extrasDoMes);
-
         const valorTotal = extrasDoMes.reduce((acc, e) => acc + e.preco_mensal, 0);
-        if (valorTotal <= 0) { 
-          console.log("Valor total zerado, pulando cliente");
-          erros++; 
-          continue; 
-        }
+        if (valorTotal <= 0) { erros++; continue; }
 
         const descricao = `Cobrança Recorrente — ${formatMes(mesSelecionado)}\n` +
           extrasDoMes.map(e => `• ${e.nome}: R$ ${e.preco_mensal.toFixed(2)}/mês`).join("\n");
@@ -237,18 +226,12 @@ export default function AdminRecurrentExtras() {
           vencimento,
         };
 
-        console.log("Inserindo fatura:", faturaData);
-
-        // Criar como RASCUNHO (sem financeiro_id)
-        const { data: insertedData, error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
-
-        console.log("Resultado da inserção:", { insertedData, insertError });
+        const { error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
 
         if (insertError) {
           console.error("Erro ao inserir fatura:", insertError);
           erros++;
         } else {
-          console.log("Fatura criada com sucesso:", insertedData);
           ok++;
         }
       } catch (err) {
@@ -268,45 +251,14 @@ export default function AdminRecurrentExtras() {
   // ── Load faturas de um cliente ──
   const openClienteHistorico = async (cliente: ClienteRecorrente) => {
     try {
-      console.log("Carregando histórico do cliente:", cliente.cliente_id);
-      
-      // Primeiro, vamos verificar se há dados na tabela
-      const { data: allData, error: allError } = await (supabase as any)
-        .from("recurrent_billing_history")
-        .select("*")
-        .eq("cliente_id", cliente.cliente_id);
-      
-      console.log("TODOS os dados do cliente (sem ordenar):", allData);
-      console.log("Erro em todos os dados:", allError);
-      
-      // Agora com ordenação
       const { data, error } = await (supabase as any)
         .from("recurrent_billing_history")
         .select("*")
         .eq("cliente_id", cliente.cliente_id)
-        .order("ano", { ascending: false })
-        .order("mes_numero", { ascending: false });
+        .order("ano", { ascending: true })
+        .order("mes_numero", { ascending: true });
       
-      console.log("Dados carregados (com ordenação):", data);
-      console.log("Erro (com ordenação):", error);
-      console.log("Quantidade de faturas:", data?.length || 0);
-      
-      if (data && data.length > 0) {
-        console.log("Faturas encontradas:");
-        data.forEach((fatura, index) => {
-          console.log(`  ${index + 1}. ${formatMes(fatura.mes)} - ${fatura.status} - R$ ${fatura.valor_total} - ID: ${fatura.id}`);
-        });
-      } else {
-        console.log("Nenhuma fatura encontrada para este cliente");
-        
-        // Vamos verificar se há alguma fatura para qualquer cliente
-        const { data: anyData } = await (supabase as any)
-          .from("recurrent_billing_history")
-          .select("*")
-          .limit(5);
-        
-        console.log("Exemplos de faturas no sistema:", anyData);
-      }
+      if (error) throw error;
       
       setFaturasMes(data || []);
       setSelectedCliente(cliente);

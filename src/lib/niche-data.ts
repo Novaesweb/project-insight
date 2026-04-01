@@ -137,20 +137,6 @@ export const nicheData: NicheInfo[] = [
     ],
   },
   {
-    slug: "advocacia",
-    nome: "Advocacia",
-    emoji: "⚖️",
-    items: ["Áreas de atuação", "Consulta pelo WhatsApp", "Apresentação dos advogados"],
-    slogan: "Site profissional para seu escritório de advocacia",
-    incluso: ["Áreas de atuação detalhadas", "Perfil dos advogados", "Consulta via WhatsApp", "Artigos e publicações", "Depoimentos de clientes", "Responsivo para celular"],
-    preco: "R$ 597",
-    faq: [
-      { q: "Posso listar as áreas de atuação?", a: "Sim! Cada área pode ter página dedicada com descrição detalhada." },
-      { q: "Dá para ter blog?", a: "Sim, seção de artigos para demonstrar autoridade e ajudar no SEO." },
-      { q: "O cliente agenda consulta pelo site?", a: "Sim, via WhatsApp com mensagem personalizada por área de interesse." },
-    ],
-  },
-  {
     slug: "escola",
     nome: "Escola / Curso",
     emoji: "📚",
