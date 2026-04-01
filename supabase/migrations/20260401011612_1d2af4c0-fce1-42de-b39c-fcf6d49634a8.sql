@@ -1,0 +1,2 @@
+ALTER TABLE recurrent_billing_history DROP CONSTRAINT recurrent_billing_history_status_check;
+ALTER TABLE recurrent_billing_history ADD CONSTRAINT recurrent_billing_history_status_check CHECK (status::text = ANY (ARRAY['rascunho','pendente','pago_manualmente','pago_asaas','em_atraso']::text[]));
