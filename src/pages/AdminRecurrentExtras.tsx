@@ -184,20 +184,15 @@ export default function AdminRecurrentExtras() {
       if (!cliente) continue;
 
       try {
-        console.log("Processando cliente:", cliente.cliente_nome);
-        
         // Check existing
-        const { data: existing, error: existingError } = await (supabase as any)
+        const { data: existing } = await (supabase as any)
           .from("recurrent_billing_history")
           .select("id")
           .eq("cliente_id", clienteId)
           .eq("mes", mesSelecionado)
           .maybeSingle();
 
-        console.log("Verificação de existente:", { existing, existingError });
-
         if (existing) {
-          console.log(`Fatura duplicada encontrada para ${cliente.cliente_nome} no mês ${formatMes(mesSelecionado)}`);
           toast({ 
             title: `${cliente.cliente_nome} já tem fatura para ${formatMes(mesSelecionado)}`, 
             description: "Verifique no histórico do cliente ou escolha outro mês",
