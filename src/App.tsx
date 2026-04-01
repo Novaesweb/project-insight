@@ -63,8 +63,6 @@ const ResellerMateriais = React.lazy(() => import("./pages/reseller/ResellerMate
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
 const AdminMenu = React.lazy(() => import("@/pages/AdminMenu"));
 const AdminConfig = React.lazy(() => import("@/pages/admin/AdminConfig"));
-const AdminRecurrentBilling = React.lazy(() => import("@/pages/AdminRecurrentBilling"));
-const AdminRecurrentHistory = React.lazy(() => import("@/pages/AdminRecurrentHistory"));
 const AdminRecurrentExtras = React.lazy(() => import("@/pages/AdminRecurrentExtras"));
 const ExtrasAtivos = React.lazy(() => import("@/pages/ExtrasAtivos"));
 
