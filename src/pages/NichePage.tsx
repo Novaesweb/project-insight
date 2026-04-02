@@ -20,6 +20,12 @@ export default function NichePage() {
   const { slug } = useParams();
   const niche = nicheData.find((n) => n.slug === slug);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [whatsappNumber, setWhatsappNumber] = useState("5551991189293");
+
+  useEffect(() => {
+    supabase.from("app_config").select("value").eq("key", "whatsapp_number").single()
+      .then(({ data }) => { if (data?.value) setWhatsappNumber(data.value.replace(/\D/g, "")); });
+  }, []);
 
   if (!niche) {
     return (
@@ -36,6 +42,11 @@ export default function NichePage() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))]">
+      <SEOHead
+        title={`Site para ${niche.nome} | novaesweb`}
+        description={`${niche.slogan}. ${niche.incluso.slice(0, 3).join(", ")}. A partir de ${niche.preco}.`}
+        url={`https://novaesweb.site/nicho/${slug}`}
+      />
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
