@@ -367,7 +367,7 @@ export default function LandingPage() {
               className="flex flex-col sm:flex-row gap-6 justify-center"
             >
               <a 
-                href="https://wa.me/551197654321?text=Olá! Vi a landing page e quero um site vitrine para meu negócio."
+                href="https://wa.me/5551991189293?text=Olá! Vi a landing page e quero um site vitrine para meu negócio."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-green-600/25 inline-flex items-center gap-3"
