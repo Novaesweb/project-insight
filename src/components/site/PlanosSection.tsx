@@ -18,7 +18,6 @@ const plans = [
     priceLabel: "Valor inicial",
     monthly: "R$60",
     automation: true,
-    monthly: "R$60",
     features: [
       "Site moderno e responsivo",
       "Página de serviços",
