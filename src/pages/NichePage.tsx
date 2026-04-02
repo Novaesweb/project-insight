@@ -45,7 +45,7 @@ export default function NichePage() {
       <SEOHead
         title={`Site para ${niche.nome} | novaesweb`}
         description={`${niche.slogan}. ${niche.incluso.slice(0, 3).join(", ")}. A partir de ${niche.preco}.`}
-        url={`https://novaesweb.site/nicho/${slug}`}
+        canonicalUrl={`https://novaesweb.site/nicho/${slug}`}
       />
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/80 backdrop-blur-xl">
