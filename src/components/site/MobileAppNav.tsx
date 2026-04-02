@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Home, Layout, UserPlus, MessageCircle } from "lucide-react";
+import { Home, Layout, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -60,7 +60,6 @@ export default function MobileAppNav({ onOpenModal }: MobileAppNavProps) {
   const navItems = [
     { id: "inicio", label: "Início", icon: Home, action: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
     { id: "servicos", label: "Serviços", icon: Layout, action: () => scrollTo("o-que-fazemos") },
-    { id: "orcamento", label: "Orçamento", icon: UserPlus, action: () => scrollTo("cadastro"), emphasis: true },
     { id: "whatsapp", label: "WhatsApp", icon: MessageCircle, action: () => {
       const msg = encodeURIComponent("Olá! Estou no site da NovaesWeb e gostaria de uma consultoria gratuita.");
       window.open(`https://wa.me/${waNumber.replace(/\D/g, "")}?text=${msg}`, "_blank");
@@ -82,9 +81,7 @@ export default function MobileAppNav({ onOpenModal }: MobileAppNavProps) {
               "flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-xl transition-all min-h-[62px]",
               activeItem === item.id
                 ? "bg-[linear-gradient(180deg,hsl(var(--primary)/0.22),hsl(var(--accent)/0.18))] text-white border border-white/10 shadow-lg shadow-primary/10"
-                : item.emphasis
-                  ? "text-white/85"
-                  : "text-white/58 hover:text-white/90"
+                : "text-white/58 hover:text-white/90"
             )}
           >
             <item.icon className={cn("w-5 h-5", activeItem === item.id && "scale-105")} />
