@@ -49,7 +49,7 @@ export default function CtaSection() {
               </Button>
             </motion.div>
           </Link>
-          <a href="https://wa.me/5551981964238?text=Olá! Quero saber mais sobre os serviços da novaesweb." target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/5551991189293?text=Olá! Quero saber mais sobre os serviços da novaesweb." target="_blank" rel="noopener noreferrer">
             <Button
               className="site-soft-surface h-14 px-10 rounded-2xl text-base font-semibold transition-all"
               style={{
