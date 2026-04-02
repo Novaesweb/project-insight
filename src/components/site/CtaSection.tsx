@@ -2,8 +2,20 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+const FALLBACK_NUMBER = "5551991189293";
 
 export default function CtaSection() {
+  const [whatsappNumber, setWhatsappNumber] = useState(FALLBACK_NUMBER);
+
+  useEffect(() => {
+    supabase.from("app_config").select("value").eq("key", "whatsapp_number").single()
+      .then(({ data }) => { if (data?.value) setWhatsappNumber(data.value.replace(/\D/g, "")); });
+  }, []);
+
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Olá! Quero saber mais sobre os serviços da novaesweb.")}`;
   return (
     <section id="contato" className="site-band py-32 px-6 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -49,7 +61,7 @@ export default function CtaSection() {
               </Button>
             </motion.div>
           </Link>
-          <a href="https://wa.me/5551991189293?text=Olá! Quero saber mais sobre os serviços da novaesweb." target="_blank" rel="noopener noreferrer">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
             <Button
               className="site-soft-surface h-14 px-10 rounded-2xl text-base font-semibold transition-all"
               style={{

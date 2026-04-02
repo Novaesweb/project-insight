@@ -1,0 +1,1 @@
+UPDATE app_config SET value = '5551991189293' WHERE key = 'whatsapp_number';

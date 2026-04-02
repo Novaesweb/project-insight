@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle, Zap, Shield, Smartphone, MessageCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nicheData } from "@/lib/niche-data";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import SEOHead from "@/components/SEOHead";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.1 } } };
@@ -18,6 +20,12 @@ export default function NichePage() {
   const { slug } = useParams();
   const niche = nicheData.find((n) => n.slug === slug);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [whatsappNumber, setWhatsappNumber] = useState("5551991189293");
+
+  useEffect(() => {
+    supabase.from("app_config").select("value").eq("key", "whatsapp_number").single()
+      .then(({ data }) => { if (data?.value) setWhatsappNumber(data.value.replace(/\D/g, "")); });
+  }, []);
 
   if (!niche) {
     return (
@@ -34,6 +42,11 @@ export default function NichePage() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))]">
+      <SEOHead
+        title={`Site para ${niche.nome} | novaesweb`}
+        description={`${niche.slogan}. ${niche.incluso.slice(0, 3).join(", ")}. A partir de ${niche.preco}.`}
+        canonicalUrl={`https://novaesweb.site/nicho/${slug}`}
+      />
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -49,7 +62,7 @@ export default function NichePage() {
               <span className="text-[hsl(var(--foreground))]">Web</span>
             </span>
           </div>
-          <a href={`https://wa.me/5551981964238?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/${whatsappNumber}?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
             <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg">
               Quero esse site
             </Button>
@@ -162,7 +175,7 @@ export default function NichePage() {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] mb-3">Gostou do modelo?</h2>
           <p className="text-[hsl(var(--muted-foreground))] mb-6">Fale com a gente e tenha seu site pronto em até 7 dias</p>
-          <a href={`https://wa.me/5551981964238?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/${whatsappNumber}?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
             <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-base font-semibold">
               <MessageCircle className="w-5 h-5 mr-2" /> Quero um site assim
             </Button>
