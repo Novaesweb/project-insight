@@ -162,19 +162,33 @@ export default function PlanosSection() {
 
               {/* Price */}
               {plan.price && (
-                <div className="flex items-center gap-3 mb-5 p-3.5 rounded-xl relative"
-                  style={{ background: 'hsl(var(--secondary) / 0.55)', border: '1px solid hsl(var(--border))' }}>
-                  <div className="text-center flex-1">
-                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">{plan.priceLabel}</p>
-                    <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>{plan.price}</p>
+                <div className="mb-5 relative space-y-2.5">
+                  <div className="flex items-center gap-3 p-3.5 rounded-xl"
+                    style={{ background: 'hsl(var(--secondary) / 0.55)', border: '1px solid hsl(var(--border))' }}>
+                    <div className="text-center flex-1">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">{plan.priceLabel}</p>
+                      <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>{plan.price}</p>
+                    </div>
+                    <div className="h-8 w-px" style={{ background: 'hsl(var(--border))' }} />
+                    <div className="text-center flex-1">
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Mensal</p>
+                      <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>
+                        {plan.monthly}<span className="text-[10px] font-medium text-muted-foreground">/mês</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="h-8 w-px" style={{ background: 'hsl(var(--border))' }} />
-                  <div className="text-center flex-1">
-                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Mensal</p>
-                    <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>
-                      {plan.monthly}<span className="text-[10px] font-medium text-muted-foreground">/mês</span>
-                    </p>
-                  </div>
+                  {plan.automation && (
+                    <div className="flex items-center gap-2.5 p-3 rounded-xl"
+                      style={{ background: 'hsl(142 71% 45% / 0.06)', border: '1px solid hsl(142 71% 45% / 0.15)' }}>
+                      <Sparkles className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <div className="flex-1">
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-emerald-400/80">Com automação WhatsApp</p>
+                        <p className="text-lg font-black text-emerald-400">
+                          +R$60<span className="text-[10px] font-medium text-emerald-400/60">/mês</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
