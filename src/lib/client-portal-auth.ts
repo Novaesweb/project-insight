@@ -97,7 +97,7 @@ export async function loadClientProfileFromSession(session: Session | null) {
     .maybeSingle();
 
   if (authIdError) throw authIdError;
-  if (byAuthId) return sanitizeClientProfile(byAuthId);
+  if (byAuthId) return sanitizeClientProfile(byAuthId as Partial<ClientPortalProfile>);
 
   const { data: byEmail, error: emailError } = await supabase
     .from("clientes")
@@ -107,5 +107,6 @@ export async function loadClientProfileFromSession(session: Session | null) {
     .maybeSingle();
 
   if (emailError) throw emailError;
-  return sanitizeClientProfile(byEmail);
+  return sanitizeClientProfile(byEmail as Partial<ClientPortalProfile> | null);
+}
 }

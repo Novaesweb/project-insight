@@ -102,7 +102,7 @@ export default function GlobalSearch() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const hasEntityResults = Object.values(results).some((items) => items.length > 0);
+  const hasEntityResults = Object.values(results).some((items) => (items as unknown[]).length > 0);
 
   const runCommand = (command: () => void) => {
     setOpen(false);
