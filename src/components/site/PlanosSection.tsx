@@ -164,19 +164,10 @@ export default function PlanosSection() {
               {/* Price */}
               {plan.price && (
                 <div className="mb-5 relative space-y-2.5">
-                  <div className="flex items-center gap-3 p-3.5 rounded-xl"
+                  <div className="p-3.5 rounded-xl text-center"
                     style={{ background: 'hsl(var(--secondary) / 0.55)', border: '1px solid hsl(var(--border))' }}>
-                    <div className="text-center flex-1">
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">{plan.priceLabel}</p>
-                      <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>{plan.price}</p>
-                    </div>
-                    <div className="h-8 w-px" style={{ background: 'hsl(var(--border))' }} />
-                    <div className="text-center flex-1">
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Mensal</p>
-                      <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>
-                        {plan.monthly}<span className="text-[10px] font-medium text-muted-foreground">/mês</span>
-                      </p>
-                    </div>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">{plan.priceLabel}</p>
+                    <p className="text-xl font-black" style={{ color: `hsl(${plan.accentHsl})` }}>{plan.price}</p>
                   </div>
                   {plan.automation && (
                     <div className="flex items-center gap-2.5 p-3 rounded-xl"
