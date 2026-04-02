@@ -38,6 +38,7 @@ const plans = [
     desc: "Ecossistema completo para escalar resultados.",
     popular: true,
     features: [
+      "Tudo do plano Express +",
       "Site profissional completo",
       "Painel administrativo",
       "Cadastro de clientes",
