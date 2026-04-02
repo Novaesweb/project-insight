@@ -62,7 +62,7 @@ export default function NichePage() {
               <span className="text-[hsl(var(--foreground))]">Web</span>
             </span>
           </div>
-          <a href={`https://wa.me/5551981964238?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/${whatsappNumber}?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
             <Button className="gradient-primary border-0 text-white text-sm h-9 rounded-lg">
               Quero esse site
             </Button>
