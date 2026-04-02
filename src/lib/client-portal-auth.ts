@@ -109,4 +109,3 @@ export async function loadClientProfileFromSession(session: Session | null) {
   if (emailError) throw emailError;
   return sanitizeClientProfile(byEmail as Partial<ClientPortalProfile> | null);
 }
-}
