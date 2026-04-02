@@ -60,7 +60,6 @@ export default function MobileAppNav({ onOpenModal }: MobileAppNavProps) {
   const navItems = [
     { id: "inicio", label: "Início", icon: Home, action: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
     { id: "servicos", label: "Serviços", icon: Layout, action: () => scrollTo("o-que-fazemos") },
-    { id: "orcamento", label: "Orçamento", icon: UserPlus, action: () => scrollTo("cadastro"), emphasis: true },
     { id: "whatsapp", label: "WhatsApp", icon: MessageCircle, action: () => {
       const msg = encodeURIComponent("Olá! Estou no site da NovaesWeb e gostaria de uma consultoria gratuita.");
       window.open(`https://wa.me/${waNumber.replace(/\D/g, "")}?text=${msg}`, "_blank");
