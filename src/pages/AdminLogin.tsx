@@ -34,22 +34,6 @@ export default function AdminLogin() {
     setLoading(true);
 
     const normalizedEmail = email.trim().toLowerCase();
-    const { data: adminUser } = await supabase
-      .from("usuarios")
-      .select("nome, email, bloqueado, status")
-      .eq("email", normalizedEmail)
-      .maybeSingle();
-
-    if (adminUser?.bloqueado || adminUser?.status === "inativo") {
-      toast({
-        title: "Acesso indisponível",
-        description: "Esse usuário está bloqueado ou inativo no painel administrativo.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password: senha,
@@ -58,9 +42,6 @@ export default function AdminLogin() {
     if (error) {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
-      if (adminUser?.email) {
-        await supabase.from("usuarios").update({ tentativas_login: newAttempts }).eq("email", normalizedEmail);
-      }
       if (newAttempts >= 3) {
         setLockTime(30);
         setFailedAttempts(0);
@@ -69,9 +50,26 @@ export default function AdminLogin() {
         toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
       }
     } else {
+      const { data: adminUser } = await supabase
+        .from("usuarios")
+        .select("nome, email, bloqueado, status")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+
       if (!adminUser && data.user?.user_metadata?.tipo !== "admin") {
         await supabase.auth.signOut();
         toast({ title: "Acesso negado", description: "Esse login não pertence à equipe administrativa.", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      if (adminUser?.bloqueado || adminUser?.status === "inativo") {
+        await supabase.auth.signOut();
+        toast({
+          title: "Acesso indisponível",
+          description: "Esse usuário está bloqueado ou inativo no painel administrativo.",
+          variant: "destructive",
+        });
         setLoading(false);
         return;
       }
