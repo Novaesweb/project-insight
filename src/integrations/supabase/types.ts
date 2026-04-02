@@ -34,6 +34,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          auth_user_id: string | null
           avatar: string | null
           bloqueado: boolean | null
           cidade: string | null
@@ -55,6 +56,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auth_user_id?: string | null
           avatar?: string | null
           bloqueado?: boolean | null
           cidade?: string | null
@@ -76,6 +78,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auth_user_id?: string | null
           avatar?: string | null
           bloqueado?: boolean | null
           cidade?: string | null

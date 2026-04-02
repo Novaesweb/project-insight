@@ -13,7 +13,6 @@ export function UserManagement() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [newPass, setNewPass] = useState("");
   const { toast } = useToast();
 
   const loadAll = async () => {
@@ -38,9 +37,21 @@ export function UserManagement() {
     } else {
       toast({ title: "Atualizado com sucesso!" });
       setEditingItem(null);
-      setNewPass("");
       loadAll();
     }
+  };
+
+  const handleSendClientReset = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/cliente/reset-password`,
+    });
+
+    if (error) {
+      toast({ title: "Erro ao enviar redefinição", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Link enviado", description: "A redefinição segura foi enviada para o e-mail do cliente." });
   };
 
   if (loading) return <div className="py-10 text-center text-white/40 text-xs">Carregando ecossistemas de usuários...</div>;
@@ -84,7 +95,7 @@ export function UserManagement() {
             <TableRow className="border-white/5 bg-white/[0.01]">
               <TableHead className="text-[10px] uppercase">Cliente</TableHead>
               <TableHead className="text-[10px] uppercase">E-mail</TableHead>
-              <TableHead className="text-[10px] uppercase">Senha</TableHead>
+              <TableHead className="text-[10px] uppercase">Portal</TableHead>
               <TableHead className="text-[10px] uppercase text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -93,9 +104,16 @@ export function UserManagement() {
               <TableRow key={c.id} className="border-white/5 hover:bg-white/5 transition-colors">
                 <TableCell className="text-sm text-white font-medium">{c.nome}</TableCell>
                 <TableCell className="text-sm text-white/50">{c.email}</TableCell>
-                <TableCell className="text-xs font-mono text-white/30">{c.senha || "—"}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={c.auth_user_id ? "text-[9px] uppercase border-emerald-500/30 text-emerald-400" : "text-[9px] uppercase border-white/10 text-white/40"}>
+                    {c.auth_user_id ? "Auth ativo" : "Sem vínculo"}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="text-xs text-white/40 hover:text-white" onClick={() => setEditingItem({ ...c, _type: 'clientes' })}>Editar</Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" className="text-xs text-white/40 hover:text-white" onClick={() => setEditingItem({ ...c, _type: 'clientes' })}>Editar</Button>
+                    <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary" onClick={() => handleSendClientReset(c.email)}>Reset</Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -123,11 +141,15 @@ export function UserManagement() {
                 </div>
               )}
               <div className="space-y-2 pt-4 border-t border-white/5">
-                <Label className="text-xs text-primary/60 uppercase tracking-widest font-black">Redefinição de Senha</Label>
-                <div className="flex gap-2">
-                  <Input value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="Nova senha master..." className="glass-input h-10 text-sm text-white" />
-                  <Button size="sm" className="gradient-primary h-10 px-6 font-bold" onClick={() => handleUpdate(editingItem._type, editingItem.id, { ...editingItem, senha: newPass || editingItem.senha })}>Gravar</Button>
-                </div>
+                <Label className="text-xs text-primary/60 uppercase tracking-widest font-black">Segurança do Portal</Label>
+                <p className="text-xs text-white/40 leading-relaxed">
+                  As senhas não ficam mais expostas aqui. Use o link seguro de redefinição para atualizar o acesso do cliente.
+                </p>
+                {editingItem._type === "clientes" && (
+                  <Button size="sm" className="gradient-primary h-10 px-6 font-bold" onClick={() => handleSendClientReset(editingItem.email)}>
+                    Enviar redefinição
+                  </Button>
+                )}
               </div>
             </div>
             <div className="mt-8 flex justify-end gap-3">

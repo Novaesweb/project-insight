@@ -55,6 +55,7 @@ const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte")
 const ClienteDados = React.lazy(() => import("./pages/cliente/ClienteDados"));
 const ClienteArquivos = React.lazy(() => import("./pages/cliente/ClienteArquivos"));
 const ClienteReferral = React.lazy(() => import("./pages/cliente/ClienteReferral"));
+const ClienteResetPassword = React.lazy(() => import("./pages/cliente/ClienteResetPassword"));
 const ResellerLayout = React.lazy(() => import("@/components/ResellerLayout"));
 const ResellerDashboard = React.lazy(() => import("./pages/reseller/ResellerDashboard"));
 const ResellerIndicacoes = React.lazy(() => import("./pages/reseller/ResellerIndicacoes"));
@@ -167,6 +168,7 @@ const App = () => (
           <Route path="/funcionalidades" element={<Funcionalidades />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/cliente" element={<ClienteLogin />} />
+          <Route path="/cliente/reset-password" element={<ClienteResetPassword />} />
 
               {/* Client Portal */}
               <Route path="/cliente/*" element={

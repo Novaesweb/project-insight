@@ -10,6 +10,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,35 +28,70 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify the caller is authenticated
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return jsonResponse({ error: "Não autorizado" }, 401);
+    }
+
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const {
+      data: { user: actor },
+      error: actorError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (actorError || !actor?.email) {
+      return jsonResponse({ error: "Sessão inválida" }, 401);
+    }
+
+    const actorEmail = actor.email.trim().toLowerCase();
+    const { data: actorProfile, error: actorProfileError } = await supabaseAdmin
+      .from("usuarios")
+      .select("email, acesso, status, bloqueado")
+      .eq("email", actorEmail)
+      .maybeSingle();
+
+    if (actorProfileError) {
+      return jsonResponse({ error: actorProfileError.message }, 500);
+    }
+
+    if (!actorProfile || actorProfile.status !== "ativo" || actorProfile.bloqueado) {
+      return jsonResponse({ error: "Somente usuários internos ativos podem provisionar contas." }, 403);
     }
 
     const { email, password, nome, tipo } = await req.json();
+    const accountType = typeof tipo === "string" ? tipo.trim().toLowerCase() : "cliente";
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const normalizedName = typeof nome === "string" ? nome.trim() : "";
 
-    if (!email || !password || !nome) {
-      return new Response(JSON.stringify({ error: "Email, senha e nome são obrigatórios" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!normalizedEmail || !password || !normalizedName) {
+      return jsonResponse({ error: "Email, senha e nome são obrigatórios" }, 400);
     }
 
-    // Create auth user
+    if (String(password).length < 6) {
+      return jsonResponse({ error: "A senha precisa ter pelo menos 6 caracteres." }, 400);
+    }
+
+    if (accountType === "admin" && String(actorProfile.acesso || "").trim().toLowerCase() !== "admin") {
+      return jsonResponse({ error: "Somente administradores podem criar novos admins." }, 403);
+    }
+
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
+      email: normalizedEmail,
       password,
       email_confirm: true,
-      user_metadata: { nome, tipo: tipo || "cliente" },
+      user_metadata: {
+        nome: normalizedName,
+        tipo: accountType,
+        provisioned_by: actorEmail,
+      },
     });
 
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return jsonResponse({ error: createError.message }, 400);
     }
 
-    return new Response(JSON.stringify({ user: userData.user, message: "Conta criada com sucesso" }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ user: userData.user, message: "Conta criada com sucesso" });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return jsonResponse({ error: err.message }, 500);
   }
 });

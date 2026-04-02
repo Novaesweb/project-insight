@@ -11,6 +11,13 @@ import NotificationCenter from "@/components/NotificationCenter";
 import { ReloadPrompt } from "./ReloadPrompt";
 import nwLogo from "@/assets/novaesweb-logo-premium.png";
 import { useBranding } from "@/hooks/useBranding";
+import {
+  clearClientProfile,
+  getStoredClientProfile,
+  loadClientProfileFromSession,
+  persistClientProfile,
+  type ClientPortalProfile,
+} from "@/lib/client-portal-auth";
 
 const menuItems = [
   { label: "Painel de Ativos", icon: LayoutDashboard, path: "/cliente/dashboard" },
@@ -31,7 +38,7 @@ const menuColors = [
 ];
 
 function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente = getStoredClientProfile();
   const branding = useBranding();
 
   return (
@@ -92,10 +99,10 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
       <div className="px-2 py-3 border-t border-white/5">
         <div className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.1), rgba(232,51,74,0.05))" }}>
           <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b)" }}>
-            <span className="text-white text-xs font-bold">{cliente.avatar || "?"}</span>
+            <span className="text-white text-xs font-bold">{cliente?.avatar || "?"}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-white truncate">{cliente.nome || "Cliente"}</p>
+            <p className="text-xs font-medium text-white truncate">{cliente?.nome || "Cliente"}</p>
             <p className="text-[10px] text-white/40">Cliente</p>
           </div>
         </div>
@@ -112,36 +119,143 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "null");
+  const [cliente, setCliente] = useState<ClientPortalProfile | null>(() => getStoredClientProfile());
+  const [ready, setReady] = useState(false);
+  const [adminMirrorMode, setAdminMirrorMode] = useState(false);
   const branding = useBranding();
 
   useEffect(() => {
-    if (!cliente) { navigate("/cliente"); return; }
+    let active = true;
 
-    // Canal de Realtime para vigiar exclusão do cliente
+    const syncPortalAccess = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        clearClientProfile();
+        if (active) {
+          setCliente(null);
+          setAdminMirrorMode(false);
+          setReady(true);
+          navigate("/cliente", { replace: true });
+        }
+        return;
+      }
+
+      const normalizedEmail = session.user.email?.trim().toLowerCase();
+      let adminData: { id: string } | null = null;
+
+      if (normalizedEmail) {
+        const { data } = await supabase
+          .from("usuarios")
+          .select("id")
+          .eq("email", normalizedEmail)
+          .eq("status", "ativo")
+          .eq("bloqueado", false)
+          .maybeSingle();
+        adminData = data;
+      }
+
+      if (adminData) {
+        const mirroredClient = getStoredClientProfile();
+        if (!mirroredClient) {
+          if (active) {
+            setCliente(null);
+            setAdminMirrorMode(false);
+            setReady(true);
+            navigate("/admin", { replace: true });
+          }
+          return;
+        }
+
+        if (active) {
+          setCliente(mirroredClient);
+          setAdminMirrorMode(true);
+          setReady(true);
+        }
+        return;
+      }
+
+      try {
+        const profile = await loadClientProfileFromSession(session);
+
+        if (!profile || profile.bloqueado) {
+          clearClientProfile();
+          await supabase.auth.signOut();
+          if (active) {
+            setCliente(null);
+            setAdminMirrorMode(false);
+            setReady(true);
+            navigate("/cliente", { replace: true });
+          }
+          return;
+        }
+
+        persistClientProfile(profile);
+        if (active) {
+          setCliente(profile);
+          setAdminMirrorMode(false);
+          setReady(true);
+        }
+      } catch (error) {
+        console.error("Client portal session sync error:", error);
+        clearClientProfile();
+        await supabase.auth.signOut();
+        if (active) {
+          setCliente(null);
+          setAdminMirrorMode(false);
+          setReady(true);
+          navigate("/cliente", { replace: true });
+        }
+      }
+    };
+
+    void syncPortalAccess();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        clearClientProfile();
+        setCliente(null);
+        setAdminMirrorMode(false);
+        setReady(true);
+        navigate("/cliente", { replace: true });
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!cliente?.id) return;
+
     const channel = supabase
-      .channel('cliente-deleted')
+      .channel("cliente-deleted")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'clientes',
+          event: "DELETE",
+          schema: "public",
+          table: "clientes",
           filter: `id=eq.${cliente.id}`
         },
         (payload) => {
-          console.log('Cliente deletado, desconectando...', payload);
-          
-          // Limpar dados locais
-          localStorage.removeItem("clienteLogado");
-          
-          // Alerta de acesso revogado
+          console.log("Cliente deletado, desconectando...", payload);
+          clearClientProfile();
+
+          if (adminMirrorMode) {
+            navigate("/admin/clientes", { replace: true });
+            return;
+          }
+
+          void supabase.auth.signOut();
           alert("⚠️ Acesso Revogado\n\nSeu acesso foi desativado pelo administrador. Você será redirecionado para a página de login.");
-          
-          // Redirecionar imediatamente
-          navigate("/cliente");
-          
-          // Forçar reload da página para limpar qualquer estado residual
+          navigate("/cliente", { replace: true });
           window.location.reload();
         }
       )
@@ -150,13 +264,20 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [cliente, navigate]);
+  }, [adminMirrorMode, cliente?.id, navigate]);
 
-  if (!cliente) return null;
+  if (!ready || !cliente) return null;
 
   const handleLogout = () => {
-    localStorage.removeItem("clienteLogado");
-    navigate("/cliente");
+    clearClientProfile();
+
+    if (adminMirrorMode) {
+      navigate("/admin/clientes", { replace: true });
+      return;
+    }
+
+    void supabase.auth.signOut();
+    navigate("/cliente", { replace: true });
   };
 
   return (

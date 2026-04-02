@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 
 export default function ClientePedidosFome() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -38,12 +39,15 @@ export default function ClientePedidosFome() {
 
   const fetchPedidos = async () => {
     setLoading(true);
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+    const cliente = getStoredClientProfile();
+    if (!cliente?.id) {
+      setLoading(false);
+      return;
+    }
 
     const { data } = await (supabase.from("menu_pedidos" as any) as any)
       .select("*")
-      .eq("cliente_id", userData.user.id)
+      .eq("cliente_id", cliente.id)
       .order("created_at", { ascending: false });
 
     if (data) setPedidos(data);

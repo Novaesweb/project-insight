@@ -149,12 +149,42 @@ export default function Leads() {
 
   const handleConvert = async () => {
     if (!convertModal) return;
+
+    if (criarAcesso && convertForm.senha.length < 6) {
+      toast({
+        title: "Defina uma senha inicial segura",
+        description: "Para liberar o portal do cliente, a senha precisa ter pelo menos 6 caracteres.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setConverting(true);
     try {
       const avatar = convertForm.nome.split(" ").map(w => w[0]).join("").toUpperCase();
+      const normalizedEmail = convertForm.email.trim().toLowerCase();
+      let authUserId: string | null = null;
+
+      if (criarAcesso) {
+        const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
+          body: {
+            email: normalizedEmail,
+            password: convertForm.senha,
+            nome: convertForm.nome,
+            tipo: "cliente",
+          },
+        });
+
+        if (accountError || !accountData?.user?.id) {
+          throw new Error(accountError?.message || accountData?.error || "Não foi possível provisionar o acesso seguro do cliente.");
+        }
+
+        authUserId = accountData.user.id;
+      }
+
       const { data: cliente, error: cliError } = await supabase.from("clientes").insert({
         nome: convertForm.nome,
-        email: convertForm.email,
+        email: normalizedEmail,
         telefone: convertForm.telefone,
         cidade: convertForm.cidade || null,
         estado: convertForm.estado || null,
@@ -163,7 +193,8 @@ export default function Leads() {
         site_url: convertForm.site_url || null,
         status: "ativo",
         avatar: avatar.slice(0, 2),
-        senha: criarAcesso ? convertForm.senha : null
+        auth_user_id: authUserId,
+        senha: null
       }).select().single();
 
       if (cliError) throw cliError;
@@ -177,6 +208,7 @@ export default function Leads() {
       }, 1500);
 
       setConvertModal(null);
+      setCriarAcesso(true);
       setConvertForm({ senha: "" });
     } catch (error: any) {
       toast({ title: "Erro na conversão", description: error.message, variant: "destructive" });
@@ -474,6 +506,7 @@ export default function Leads() {
                 </Button>
                 <Button
                   onClick={() => {
+                    setCriarAcesso(true);
                     setConvertForm({
                       senha: "", nome: selectedLead.nome, email: selectedLead.email,
                       telefone: selectedLead.whatsapp, cidade: selectedLead.cidade || "",
@@ -612,11 +645,16 @@ export default function Leads() {
                       onChange={e => setConvertForm({...convertForm, endereco: e.target.value})} />
                   </div>
                   <div className="col-span-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Checkbox id="lead-criar-acesso" checked={criarAcesso} onCheckedChange={(checked) => setCriarAcesso(Boolean(checked))} />
+                      <Label htmlFor="lead-criar-acesso" className="text-[10px] font-black uppercase tracking-widest text-white/50">Liberar portal do cliente</Label>
+                    </div>
                     <Label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Senha de Acesso</Label>
                     <Input type="text" placeholder="Mín. 6 dígitos"
                       className="h-11 bg-white/5 border-white/10 rounded-xl text-white"
                       value={convertForm.senha}
-                      onChange={e => setConvertForm({...convertForm, senha: e.target.value})} />
+                      onChange={e => setConvertForm({...convertForm, senha: e.target.value})}
+                      disabled={!criarAcesso} />
                   </div>
                 </div>
               </div>
@@ -626,7 +664,7 @@ export default function Leads() {
                 <Button 
                   className="flex-1 h-12 rounded-xl gradient-primary text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20" 
                   onClick={handleConvert}
-                  disabled={converting || convertForm.senha.length < 6 || !convertForm.nome || !convertForm.email}
+                  disabled={converting || (criarAcesso && convertForm.senha.length < 6) || !convertForm.nome || !convertForm.email}
                 >
                   {converting ? "Migrando..." : "Confirmar Conversão"}
                 </Button>

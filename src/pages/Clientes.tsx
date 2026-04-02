@@ -32,6 +32,7 @@ import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfir
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
 import { sendPushToAdmins } from "@/lib/push-notifications";
+import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -690,14 +691,45 @@ export default function Clientes() {
       toast({ title: "Preencha nome e e-mail", variant: "destructive" });
       return;
     }
+
+    if (criarConta && senhaCliente.length < 6) {
+      toast({ title: "Defina uma senha inicial segura", description: "Para liberar o portal, a senha precisa ter pelo menos 6 caracteres.", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
     const avatar = form.nome.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const normalizedEmail = form.email.trim().toLowerCase();
+    let authUserId: string | null = null;
+
+    if (criarConta) {
+      const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
+        body: {
+          email: normalizedEmail,
+          password: senhaCliente,
+          nome: form.nome,
+          tipo: "cliente",
+        },
+      });
+
+      if (accountError || !accountData?.user?.id) {
+        toast({
+          title: "Erro ao provisionar acesso",
+          description: accountError?.message || accountData?.error || "Não foi possível criar a conta segura do cliente.",
+          variant: "destructive"
+        });
+        setSaving(false);
+        return;
+      }
+
+      authUserId = accountData.user.id;
+    }
     
     // 1. Inserir Cliente
     const { data: novoCliente, error } = await supabase.from("clientes").insert({ 
-      nome: form.nome, email: form.email, telefone: form.telefone, documento: form.documento,
+      nome: form.nome, email: normalizedEmail, telefone: form.telefone, documento: form.documento,
       endereco: form.endereco, cidade: form.cidade, estado: form.estado, status: form.status,
-      site_url: form.site_url, avatar, senha: senhaCliente 
+      site_url: form.site_url, avatar, auth_user_id: authUserId, senha: null
     } as any).select().single();
 
     if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); setSaving(false); return; }
@@ -744,7 +776,7 @@ export default function Clientes() {
 
     if (criarConta && senhaCliente.length >= 6) {
       const link = `${window.location.origin}/cliente`;
-      setContaCriada({ email: form.email, senha: senhaCliente, link });
+      setContaCriada({ email: normalizedEmail, senha: senhaCliente, link });
     }
 
     toast({ title: "Onboarding Concluído!", description: "Cliente, Projeto e Financeiro configurados." });
@@ -761,7 +793,7 @@ export default function Clientes() {
   };
 
   const handleAcessarPortal = (cliente: any) => {
-    localStorage.setItem("clienteLogado", JSON.stringify(cliente));
+    persistClientProfile(sanitizeClientProfile(cliente));
     window.open("/cliente/dashboard", "_blank");
     toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
   };

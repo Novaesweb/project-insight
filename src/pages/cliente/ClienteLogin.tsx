@@ -8,13 +8,7 @@ import { Mail, Lock, User, Eye, EyeOff, ShieldAlert, Timer, Sparkles, ArrowRight
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
-
-interface PerfilCliente {
-  id: string;
-  nome: string;
-  email: string;
-  status: string;
-}
+import { clearClientProfile, loadClientProfileFromSession, persistClientProfile } from "@/lib/client-portal-auth";
 
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
@@ -23,6 +17,7 @@ export default function ClienteLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockTime, setLockTime] = useState(0);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -39,37 +34,31 @@ export default function ClienteLogin() {
     if (lockTime > 0) return;
     setLoading(true);
 
+    clearClientProfile();
+
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password: senha,
     });
 
-    let clienteRecord: PerfilCliente | null = null;
+    let clienteRecord = null;
 
-    if (!authError && authData.user) {
-      const { data } = await supabase
-        .from("clientes")
-        .select("*")
-        .eq("email", email.trim())
-        .eq("status", "ativo")
-        .maybeSingle();
-      clienteRecord = data as PerfilCliente | null;
-    } else {
-      const { data } = await supabase
-        .from("clientes")
-        .select("*")
-        .eq("email", email.trim())
-        .eq("senha", senha)
-        .eq("status", "ativo")
-        .maybeSingle();
-      clienteRecord = data as PerfilCliente | null;
+    if (!authError && authData.session) {
+      try {
+        clienteRecord = await loadClientProfileFromSession(authData.session);
+      } catch (profileError: any) {
+        console.error("Client profile load error:", profileError);
+      }
     }
 
     if (clienteRecord) {
-      localStorage.setItem("clienteLogado", JSON.stringify(clienteRecord));
+      persistClientProfile(clienteRecord);
       toast({ title: "Login realizado!", description: `Bem-vindo, ${clienteRecord.nome}` });
       navigate("/cliente/dashboard");
     } else {
+      if (!authError) {
+        await supabase.auth.signOut();
+      }
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
       if (newAttempts >= 3) {
@@ -77,10 +66,34 @@ export default function ClienteLogin() {
         setFailedAttempts(0);
         toast({ title: "Acesso bloqueado temporariamente", description: "Muitas tentativas falhas. Aguarde 30 segundos.", variant: "destructive" });
       } else {
-        toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
+        toast({
+          title: "Erro no login",
+          description: authError ? "E-mail ou senha incorretos." : "Seu acesso ao portal não está habilitado. Solicite a ativação segura com a nossa equipe.",
+          variant: "destructive"
+        });
       }
     }
     setLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!isEmailValid) {
+      toast({ title: "Informe um e-mail válido", description: "Digite o e-mail do portal para receber o link de redefinição.", variant: "destructive" });
+      return;
+    }
+
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/cliente/reset-password`,
+    });
+    setResetLoading(false);
+
+    if (error) {
+      toast({ title: "Não foi possível enviar o link", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Link enviado", description: "Se existir uma conta ativa para esse e-mail, você receberá a redefinição em instantes." });
   };
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -196,6 +209,15 @@ export default function ClienteLogin() {
               {3 - failedAttempts} tentativa(s) restante(s) antes do bloqueio técnico.
             </p>
           )}
+
+          <button
+            type="button"
+            onClick={handleResetPassword}
+            disabled={resetLoading || loading}
+            className="w-full text-center text-[11px] font-semibold text-white/55 hover:text-white transition-colors"
+          >
+            {resetLoading ? "Enviando link..." : "Esqueci minha senha"}
+          </button>
         </motion.form>
 
         <p className="text-center text-[10px] text-white/30 flex items-center justify-center gap-1.5">
