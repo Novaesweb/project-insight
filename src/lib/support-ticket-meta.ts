@@ -74,7 +74,7 @@ export async function updateSupportTicketMeta(ticketId: string, patch: SupportTi
   if ("slaHours" in patch) payload.sla_hours = patch.slaHours ?? null;
   if ("dueAt" in patch) payload.due_at = patch.dueAt ?? null;
 
-  const { error } = await supabase.from("ticket_support_meta").upsert(payload, { onConflict: "ticket_id" });
+  const { error } = await supabase.from("ticket_support_meta").upsert(payload as any, { onConflict: "ticket_id" });
 
   if (error) throw error;
 

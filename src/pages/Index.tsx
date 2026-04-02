@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Users, FolderKanban, ShoppingCart, DollarSign, Headphones, 
-  BellRing, Sparkles, UserPlus, Zap, Plus, ShieldCheck
+  BellRing, Sparkles, UserPlus, Zap, Plus, ShieldCheck, ArrowRight
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
