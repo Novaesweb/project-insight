@@ -179,7 +179,7 @@ function SegmentCard({ seg, index, ...rest }: { seg: typeof segments[0]; index: 
 }
 
 const stats = [
-  { value: "50+", label: "Sites entregues" },
+  { value: "36+", label: "Sites entregues" },
   { value: "15+", label: "Segmentos atendidos" },
   { value: "98%", label: "Clientes satisfeitos" },
 ];
