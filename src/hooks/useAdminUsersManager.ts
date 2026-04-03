@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +43,7 @@ export function useAdminUsersManager() {
   const [editForm, setEditForm] = useState({ nome: "", cargo: "", acesso: "editor" as AdminRole, status: "ativo" });
   const [blockingUser, setBlockingUser] = useState<AdminUser | null>(null);
 
-  const fetchUsuarios = async (isRefresh = false) => {
+  const fetchUsuarios = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     setLoading(!isRefresh);
 
@@ -63,11 +63,11 @@ export function useAdminUsersManager() {
     setActorEmail(sessionResponse.data.session?.user?.email?.trim().toLowerCase() || "admin@novaesweb");
     setLoading(false);
     setRefreshing(false);
-  };
+  }, [toast]);
 
   useEffect(() => {
     void fetchUsuarios();
-  }, []);
+  }, [fetchUsuarios]);
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();

@@ -19,8 +19,7 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  // @ts-ignore - extended notification options for mobile
-  const options = {
+  const options: NotificationOptions = {
     body: data.body,
     icon: data.icon || '/push-icon-192.png',
     badge: '/push-icon-192.png',

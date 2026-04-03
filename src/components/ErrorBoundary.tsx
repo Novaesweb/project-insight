@@ -1,4 +1,3 @@
-// @ts-nocheck - React class component
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -62,7 +61,7 @@ class ErrorBoundary extends React.Component<Props, State> {
                 Ocorreu um erro inesperado. Por favor, tente novamente ou entre em contato com o suporte.
               </p>
             </div>
-            {process.env.NODE_ENV === 'development' && error && (
+            {import.meta.env.DEV && error && (
               <details className="text-left">
                 <summary className="cursor-pointer text-sm font-mono text-muted-foreground hover:text-foreground">
                   Ver detalhes do erro

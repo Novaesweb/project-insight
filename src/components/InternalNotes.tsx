@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +26,7 @@ export default function InternalNotes({ entityType, entityId }: InternalNotesPro
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data } = await supabase
       .from("internal_notes" as any)
       .select("*")
@@ -35,9 +35,9 @@ export default function InternalNotes({ entityType, entityId }: InternalNotesPro
       .order("pinned", { ascending: false })
       .order("created_at", { ascending: false });
     setNotes((data as any) || []);
-  };
+  }, [entityId, entityType]);
 
-  useEffect(() => { if (entityId) load(); }, [entityId, entityType]);
+  useEffect(() => { if (entityId) void load(); }, [entityId, load]);
 
   const handleAdd = async () => {
     if (!text.trim()) return;
@@ -51,17 +51,17 @@ export default function InternalNotes({ entityType, entityId }: InternalNotesPro
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     setText("");
-    load();
+    void load();
   };
 
   const togglePin = async (id: string, current: boolean) => {
     await supabase.from("internal_notes" as any).update({ pinned: !current } as any).eq("id", id);
-    load();
+    void load();
   };
 
   const handleDelete = async (id: string) => {
     await supabase.from("internal_notes" as any).delete().eq("id", id);
-    load();
+    void load();
   };
 
   return (

@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error Deno remote import
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 declare const Deno: any;

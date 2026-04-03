@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ export default function SystemCostsSection() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const { requestDelete, dialogProps } = useDeleteConfirm();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await listSystemCosts();
     setLoading(false);
@@ -94,11 +94,11 @@ export default function SystemCostsSection() {
     }
 
     setCosts(data || []);
-  };
+  }, [toast]);
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
 
   const activeCosts = useMemo(() => costs.filter((cost) => cost.status === "ativo"), [costs]);
   const monthlyBase = useMemo(() => activeCosts.reduce((sum, cost) => sum + getMonthlyEquivalent(cost), 0), [activeCosts]);

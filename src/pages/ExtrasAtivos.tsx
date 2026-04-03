@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,11 +43,7 @@ export default function ExtrasAtivos() {
   const [showDetails, setShowDetails] = useState(false);
 
   // Carregar dados
-  useEffect(() => {
-    loadClientesComExtras();
-  }, []);
-
-  const loadClientesComExtras = async () => {
+  const loadClientesComExtras = useCallback(async () => {
     setLoading(true);
     try {
       // Buscar todos os clientes com extras ativos
@@ -115,7 +111,11 @@ export default function ExtrasAtivos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    void loadClientesComExtras();
+  }, [loadClientesComExtras]);
 
   // Filtrar clientes
   const clientesFiltrados = clientesComExtras.filter(cliente => {

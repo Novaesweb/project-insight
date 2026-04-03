@@ -47,8 +47,8 @@ export default function GlobalSearch() {
   const navigate = useNavigate();
   const { canAccessPath } = useAdminAccess();
 
-  const favoriteRoutes = useMemo(() => getFavoriteAdminRoutes().filter((route) => canAccessPath(route.href)), [canAccessPath, open]);
-  const recentRoutes = useMemo(() => getRecentAdminRoutes().filter((route) => canAccessPath(route.href)), [canAccessPath, open]);
+  const favoriteRoutes = useMemo(() => getFavoriteAdminRoutes().filter((route) => canAccessPath(route.href)), [canAccessPath]);
+  const recentRoutes = useMemo(() => getRecentAdminRoutes().filter((route) => canAccessPath(route.href)), [canAccessPath]);
 
   const routeMatches = useMemo(() => {
     if (!search.trim()) return [];

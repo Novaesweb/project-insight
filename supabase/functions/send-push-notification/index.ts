@@ -1,8 +1,8 @@
-// @ts-ignore
+// @ts-expect-error Deno remote import
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// @ts-ignore
+// @ts-expect-error Deno remote import
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-// @ts-ignore
+// @ts-expect-error Deno remote import
 import webPush from "https://esm.sh/web-push@3.6.7";
 
 declare const Deno: any;
