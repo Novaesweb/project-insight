@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Star, Sparkles } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
 
