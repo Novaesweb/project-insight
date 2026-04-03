@@ -275,7 +275,7 @@ function FloatingMascot() {
         }}
         aria-label="Abrir assistente NW"
       >
-        <RobotSVG isOpen={isOpen} />
+        <NWRobotSVG isOpen={isOpen} size={48} />
         {!isOpen && (
           <span
             className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full animate-pulse"
