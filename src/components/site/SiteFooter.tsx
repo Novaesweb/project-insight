@@ -3,6 +3,7 @@ import { ShieldCheck, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucid
 import codethioLogo from "@/assets/codethio-logo.webp";
 import sealImg from "@/assets/novaesweb-v10-seal-final.webp";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
+import nwIcon from "@/assets/novaesweb-nw-icon.png";
 import { scrollTo } from "@/lib/utils";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
