@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePublicContact } from "@/hooks/usePublicContact";
 import SEOHead from "@/components/SEOHead";
 import { memo } from "react";
+import marketingImg from "@/assets/marketing-social-novaesweb.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
