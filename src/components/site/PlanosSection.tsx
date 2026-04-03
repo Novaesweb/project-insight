@@ -98,7 +98,7 @@ export default function PlanosSection() {
               variants={fade}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className={cn(
-                "site-surface relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group overflow-hidden",
+                "site-surface relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group overflow-visible",
                 plan.popular && "md:scale-[1.03] md:-my-2"
               )}
               style={{
