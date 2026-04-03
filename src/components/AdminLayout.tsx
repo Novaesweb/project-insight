@@ -20,6 +20,7 @@ import {
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
 import AdminMainContent from "./admin/AdminMainContent";
+import nwIcon from "@/assets/novaesweb-nw-icon.png";
 
 const mobileNavGroups = [
   {
