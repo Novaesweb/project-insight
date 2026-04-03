@@ -232,8 +232,6 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             ))}
           </motion.div>
 
-          {/* Mascot NW */}
-          <MascotWidget />
 
           {/* Trust bar */}
           <motion.div
