@@ -427,6 +427,14 @@ export default function Suporte() {
             </CardContent>
           </Card>
         </motion.div>
+
+        <motion.div variants={fadeUp}>
+          <Card className="glass-card border-[0.5px]">
+            <CardContent className="p-5">
+              <InternalNotes entityType="ticket" entityId={selectedTicket!} />
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
     );
   }
