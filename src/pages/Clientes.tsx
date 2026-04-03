@@ -293,15 +293,11 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end sm:gap-3">
                  <Button
-                   className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-9 sm:h-10 px-4 sm:px-6 rounded-xl shadow-lg flex items-center gap-2"
-                   onClick={() => {
-                     localStorage.setItem("clienteLogado", JSON.stringify(cliente));
-                     window.open("/cliente/dashboard", "_blank");
-                     toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
-                   }}
-                 >
-                   <Zap className="w-3.5 h-3.5" /> Portal
-                 </Button>
+                    className="gradient-primary text-white text-[10px] font-black uppercase tracking-widest h-9 sm:h-10 px-4 sm:px-6 rounded-xl shadow-lg flex items-center gap-2"
+                    onClick={() => handleAcessarPortal(cliente)}
+                  >
+                    <Zap className="w-3.5 h-3.5" /> Portal
+                  </Button>
                  <StatusBadge status={cliente.status} />
                </div>
             </div>

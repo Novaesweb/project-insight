@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nicheData } from "@/lib/niche-data";
+import { usePublicContact } from "@/hooks/usePublicContact";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -12,6 +13,7 @@ export default function NicheCarousel() {
   const [itemsPerView, setItemsPerView] = useState(3);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const maxIndex = Math.max(0, nicheData.length - itemsPerView);
+  const { buildWhatsAppUrl } = usePublicContact();
 
   useEffect(() => {
     const updateView = () => {
@@ -114,7 +116,7 @@ export default function NicheCarousel() {
           <p className="text-[hsl(var(--muted-foreground))] mb-4">
             Não encontrou seu segmento? A gente atende qualquer tipo de negócio local.
           </p>
-          <a href="https://wa.me/5551981964238?text=Olá! Quero um site para meu negócio." target="_blank" rel="noopener noreferrer">
+          <a href={buildWhatsAppUrl("Olá! Quero um site para meu negócio.")} target="_blank" rel="noopener noreferrer">
             <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-11 px-6 rounded-xl text-sm font-semibold">
               <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
             </Button>

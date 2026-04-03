@@ -14,6 +14,7 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import StatusBadge from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useBranding } from "@/hooks/useBranding";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import jsPDF from "jspdf";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
@@ -62,7 +63,7 @@ interface Counts {
 }
 
 export default function ClienteDashboard() {
-  const cliente: PerfilCliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente: PerfilCliente = (getStoredClientProfile() as PerfilCliente | null) || { id: "", nome: "", email: "" };
   const cId = cliente.id;
   const [counts, setCounts] = useState<Counts>({ projetos: 0, faturas: 0, tickets: 0 });
   const [proximaReuniao, setProximaReuniao] = useState<any>(null);

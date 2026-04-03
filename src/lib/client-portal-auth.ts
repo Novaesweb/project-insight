@@ -18,6 +18,11 @@ export interface ClientPortalProfile {
   bloqueado: boolean | null;
 }
 
+type StoredClientPortalProfile = Pick<
+  ClientPortalProfile,
+  "id" | "nome" | "email" | "trial_ends_at" | "status" | "bloqueado"
+>;
+
 const CLIENT_PORTAL_SELECT = [
   "id",
   "nome",
@@ -74,7 +79,16 @@ export function persistClientProfile(profile: ClientPortalProfile | null) {
     return;
   }
 
-  localStorage.setItem("clienteLogado", JSON.stringify(profile));
+  const storedProfile: StoredClientPortalProfile = {
+    id: profile.id,
+    nome: profile.nome,
+    email: profile.email.trim().toLowerCase(),
+    trial_ends_at: profile.trial_ends_at ?? null,
+    status: profile.status ?? "ativo",
+    bloqueado: profile.bloqueado ?? null,
+  };
+
+  localStorage.setItem("clienteLogado", JSON.stringify(storedProfile));
 }
 
 export function clearClientProfile() {

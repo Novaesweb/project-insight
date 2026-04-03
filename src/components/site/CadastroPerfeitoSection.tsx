@@ -8,9 +8,8 @@ import {
   Loader2, Rocket, Zap, Globe, ShieldCheck, Mail,
   Users, Layout, Target, Package, Instagram, Search, HelpCircle, ArrowRight, ArrowLeft, Sparkles
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { sendPushToAdmins } from "@/lib/push-notifications";
+import { submitLeadCapture } from "@/lib/lead-capture";
 import { cn } from "@/lib/utils";
 import novaeswebPremiumLogo from "@/assets/novaesweb-premium-logo.png";
 
@@ -160,25 +159,28 @@ export default function CadastroPerfeitoSection() {
       return;
     }
 
-    const { error } = await supabase.from("leads").insert({
-      nome: form.nome,
-      email: form.email.trim(),
-      whatsapp: form.whatsapp.replace(/\D/g, ""),
-      nome_negocio: form.empresa,
-      servicos: [form.necessidade],
-      orcamento: form.volume,
-      como_conheceu: form.origem,
-      mensagem: form.mensagem,
-    } as any);
+    let error: Error | null = null;
+    try {
+      await submitLeadCapture({
+        nome: form.nome,
+        email: form.email.trim(),
+        whatsapp: form.whatsapp.replace(/\D/g, ""),
+        nome_negocio: form.empresa,
+        servicos: [form.necessidade],
+        orcamento: form.volume,
+        mensagem: form.mensagem,
+        source: "site-interactive-form",
+        origin: window.location.pathname,
+        _fax: form._fax,
+      });
+    } catch (err) {
+      error = err instanceof Error ? err : new Error("Falha ao capturar lead");
+    }
 
     setLoading(false);
     if (error) {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
-      supabase.functions.invoke("send-lead-email", {
-        body: { ...form, nome_negocio: form.empresa, servicos: [form.necessidade], orcamento: form.volume }
-      });
-      sendPushToAdmins("🆕 Novo Lead Interativo", `${form.nome} (${form.empresa})`, "/admin/leads");
       setCurrentStep(9);
     }
   };

@@ -11,6 +11,7 @@ import SiteNavbar from "@/components/site/SiteNavbar";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteModals from "@/components/site/SiteModals";
 import { useNavigate } from "react-router-dom";
+import { usePublicContact } from "@/hooks/usePublicContact";
 
 const iconMap: Record<string, React.ReactNode> = {
   'Botão WhatsApp': <MessageSquare className="w-5 h-5" />,
@@ -43,6 +44,7 @@ export default function Funcionalidades() {
   const [explainingId, setExplainingId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { buildWhatsAppUrl } = usePublicContact();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -73,13 +75,19 @@ export default function Funcionalidades() {
   }, []);
 
   const handleAdd = (name: string) => {
-    const msg = encodeURIComponent(`Olá! Vi no site a funcionalidade "${name}" e gostaria de saber como adicionar ao meu projeto.`);
-    window.open(`https://wa.me/5511999999999?text=${msg}`, "_blank");
+    window.open(
+      buildWhatsAppUrl(`Olá! Vi no site a funcionalidade "${name}" e gostaria de saber como adicionar ao meu projeto.`),
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   const handleCustom = () => {
-    const msg = encodeURIComponent(`Quero meu site personalizado`);
-    window.open(`https://wa.me/5511999999999?text=${msg}`, "_blank");
+    window.open(
+      buildWhatsAppUrl("Olá! Quero um site personalizado para o meu negócio."),
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   return (

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle, MessageCircle, Smartphone, Users, Zap, Star, Phone, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
+import { usePublicContact } from "@/hooks/usePublicContact";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -14,6 +15,7 @@ const stagger = {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { buildWhatsAppUrl } = usePublicContact();
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -367,7 +369,7 @@ export default function LandingPage() {
               className="flex flex-col sm:flex-row gap-6 justify-center"
             >
               <a 
-                href="https://wa.me/5551991189293?text=Olá! Vi a landing page e quero um site vitrine para meu negócio."
+                href={buildWhatsAppUrl("Olá! Vi a landing page e quero um site vitrine para meu negócio.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-green-600/25 inline-flex items-center gap-3"

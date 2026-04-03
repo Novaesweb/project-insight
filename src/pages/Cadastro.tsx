@@ -10,9 +10,8 @@ import {
   Users, Layout, Target, Instagram, Search, HelpCircle,
   ArrowRight, ArrowLeft, Sparkles, Phone, User, Briefcase, ChevronRight
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { sendPushToAdmins } from "@/lib/push-notifications";
+import { submitLeadCapture } from "@/lib/lead-capture";
 import { cn } from "@/lib/utils";
 
 const NECESSIDADES = [
@@ -131,20 +130,27 @@ export default function Cadastro() {
       return;
     }
 
-    const { error } = await supabase.from("leads").insert({
-      nome: form.nome, email: form.email.trim(),
-      whatsapp: form.whatsapp.replace(/\D/g, ""),
-      nome_negocio: form.empresa, servicos: [form.necessidade],
-      orcamento: form.volume, como_conheceu: form.origem, mensagem: form.mensagem,
-    } as any);
+    let error: Error | null = null;
+    try {
+      await submitLeadCapture({
+        nome: form.nome,
+        email: form.email.trim(),
+        whatsapp: form.whatsapp.replace(/\D/g, ""),
+        nome_negocio: form.empresa,
+        servicos: [form.necessidade],
+        orcamento: form.volume,
+        mensagem: form.mensagem,
+        source: "cadastro-page",
+        origin: window.location.pathname,
+        _fax: form._fax,
+      });
+    } catch (err) {
+      error = err instanceof Error ? err : new Error("Falha ao capturar lead");
+    }
     setLoading(false);
     if (error) {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } else {
-      supabase.functions.invoke("send-lead-email", {
-        body: { ...form, nome_negocio: form.empresa, servicos: [form.necessidade], orcamento: form.volume }
-      });
-      sendPushToAdmins("🆕 Novo Lead Premium", `${form.nome} (${form.empresa})`, "/admin/leads");
       setCurrentStep(9);
     }
   };

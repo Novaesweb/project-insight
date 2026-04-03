@@ -13,7 +13,7 @@ import {
 const defaultEmpresa = {
   nome: "novaesweb",
   cnpj: "",
-  email: "contato@novaesweb.com.br",
+  email: "contato@novaesweb.site",
   telefone: "",
   endereco: "",
   logo: "",
