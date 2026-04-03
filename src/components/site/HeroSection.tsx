@@ -187,6 +187,19 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <Briefcase className="w-4 h-4" />
               Nichos que atendemos
             </motion.button>
+
+            <motion.button
+              type="button"
+              onClick={() => navigate("/criacao-conteudo")}
+              whileHover={{ scale: 1.03 }}
+              className="site-surface h-14 px-8 rounded-2xl text-sm font-bold inline-flex items-center gap-2 transition-colors"
+              style={{
+                color: 'hsl(var(--muted-foreground) / 0.9)',
+              }}
+            >
+              <Sparkles className="w-4 h-4" />
+              Criação de conteúdo
+            </motion.button>
           </motion.div>
 
           {/* Stats Cards */}
