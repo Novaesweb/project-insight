@@ -2,7 +2,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase } from "lucide-react";
-import mascotImg from "@/assets/novaesweb-mascot.jpg";
+
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
 
@@ -32,88 +32,6 @@ const particles = [
   { delay: 2, x: "20%", y: "75%", size: 3 },
 ];
 
-const mascotPhrases = [
-  "Olá! 👋 Bem-vindo à NovaesWeb!",
-  "Criamos sites que vendem de verdade! 🚀",
-  "Automação no WhatsApp? Temos! 📱",
-  "Seu negócio merece presença digital! 💡",
-  "Peça um orçamento, é grátis! ✨",
-];
-
-function MascotWidget() {
-  const [phraseIndex, setPhraseIndex] = useState(0);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const showTimer = setTimeout(() => setVisible(true), 2000);
-    return () => clearTimeout(showTimer);
-  }, []);
-
-  useEffect(() => {
-    if (!visible) return;
-    const interval = setInterval(() => {
-      setPhraseIndex((prev) => (prev + 1) % mascotPhrases.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [visible]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={visible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="mt-12 flex flex-col items-center gap-3"
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={phraseIndex}
-          initial={{ opacity: 0, y: -8, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 8, scale: 0.95 }}
-          transition={{ duration: 0.35 }}
-          className="relative px-5 py-3 rounded-2xl text-sm font-bold max-w-xs text-center"
-          style={{
-            background: 'hsl(var(--card) / 0.8)',
-            border: '1px solid hsl(var(--border))',
-            color: 'hsl(var(--foreground) / 0.9)',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          {mascotPhrases[phraseIndex]}
-          <div
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45"
-            style={{
-              background: 'hsl(var(--card) / 0.8)',
-              borderRight: '1px solid hsl(var(--border))',
-              borderBottom: '1px solid hsl(var(--border))',
-            }}
-          />
-        </motion.div>
-      </AnimatePresence>
-
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="relative"
-      >
-        <img
-          src={mascotImg}
-          alt="Mascote NovaesWeb - Assistente NW"
-          className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover"
-          style={{
-            boxShadow: '0 0 40px hsl(var(--primary) / 0.3), 0 0 80px hsl(var(--accent) / 0.15)',
-            border: '2px solid hsl(var(--accent) / 0.3)',
-          }}
-          loading="lazy"
-        />
-        <div
-          className="absolute inset-0 rounded-full animate-pulse"
-          style={{ boxShadow: '0 0 20px hsl(var(--accent) / 0.2)' }}
-        />
-      </motion.div>
-    </motion.div>
-  );
-}
 
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
@@ -314,8 +232,6 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             ))}
           </motion.div>
 
-          {/* Mascot NW */}
-          <MascotWidget />
 
           {/* Trust bar */}
           <motion.div
