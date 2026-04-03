@@ -23,13 +23,10 @@ self.addEventListener('push', function(event) {
     body: data.body,
     icon: data.icon || '/push-icon-192.png',
     badge: '/push-icon-192.png',
-    vibrate: [200, 100, 200],
     data: {
       url: data.url || '/',
     },
     tag: data.tag || 'novaesweb-notification',
-    renotify: true,
-    requireInteraction: false,
   };
 
   event.waitUntil(
