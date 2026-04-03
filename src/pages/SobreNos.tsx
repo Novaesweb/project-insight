@@ -39,7 +39,7 @@ export default function SobreNos() {
         title="Sobre a NovaesWeb | Soluções Digitais para Negócios"
         description="Conheça a NovaesWeb: estruturas digitais pensadas para transformar visitantes em clientes. Sites, sistemas e automações para o seu negócio crescer."
       />
-      <SiteNavbar />
+      <SiteNavbar onOpenModal={() => {}} />
 
       {/* Hero */}
       <section className="relative pt-28 pb-16 px-4 overflow-hidden">
