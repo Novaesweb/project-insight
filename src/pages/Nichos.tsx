@@ -90,7 +90,7 @@ const segments = [
   },
 ];
 
-function SegmentCard({ seg, index }: { seg: typeof segments[0]; index: number }) {
+function SegmentCard({ seg, index, ...rest }: { seg: typeof segments[0]; index: number } & React.HTMLAttributes<HTMLDivElement>) {
   const [expanded, setExpanded] = useState(false);
 
   return (
