@@ -2,7 +2,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase } from "lucide-react";
-import mascotImg from "@/assets/novaesweb-mascot.jpg";
+
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
 
