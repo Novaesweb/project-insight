@@ -1,46 +1,46 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: ErrorInfo | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  state: State = {
-    hasError: false,
-    error: null,
-    errorInfo: null,
-  };
+// Using React.Component directly to avoid TS class field issues
+export default class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+    this.handleReset = this.handleReset.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ error, errorInfo });
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    this.props.onError?.(error, errorInfo);
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
-  handleReset = () => {
+  handleReset() {
     this.setState({ hasError: false, error: null, errorInfo: null });
-  };
+  }
 
   render() {
-    const { hasError, error, errorInfo } = this.state;
-    const { fallback, children } = this.props;
-
-    if (hasError) {
-      if (fallback) return fallback;
+    if (this.state.hasError) {
+      if (this.props.fallback) return this.props.fallback;
 
       return (
         <div className="flex min-h-[400px] items-center justify-center p-6">
@@ -56,19 +56,19 @@ class ErrorBoundary extends Component<Props, State> {
                 Ocorreu um erro inesperado. Por favor, tente novamente ou entre em contato com o suporte.
               </p>
             </div>
-            {import.meta.env.DEV && error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="text-left">
                 <summary className="cursor-pointer text-sm font-mono text-muted-foreground hover:text-foreground">
                   Ver detalhes do erro
                 </summary>
                 <div className="mt-2 space-y-2">
                   <div className="rounded bg-muted p-2 text-xs font-mono">
-                    <strong>Erro:</strong> {error.message}
+                    <strong>Erro:</strong> {this.state.error.message}
                   </div>
-                  {errorInfo && (
+                  {this.state.errorInfo && (
                     <div className="rounded bg-muted p-2 text-xs font-mono max-h-32 overflow-auto">
                       <strong>Stack:</strong>
-                      <pre className="whitespace-pre-wrap">{errorInfo.componentStack}</pre>
+                      <pre className="whitespace-pre-wrap">{this.state.errorInfo.componentStack}</pre>
                     </div>
                   )}
                 </div>
@@ -88,8 +88,6 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return children;
+    return this.props.children;
   }
 }
-
-export default ErrorBoundary;
