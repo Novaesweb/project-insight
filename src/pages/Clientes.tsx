@@ -77,6 +77,12 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
+
+  const handleAcessarPortal = (cliente: any) => {
+    persistClientProfile(sanitizeClientProfile(cliente));
+    window.open("/cliente/dashboard", "_blank");
+    toast({ title: "Modo Espelhamento", description: `Acessando portal como ${cliente.nome}` });
+  };
   const { requestDelete, dialogProps } = useDeleteConfirm();
   const [cliente, setCliente] = useState<any>(null);
   const [extras, setExtras] = useState<any[]>([]);

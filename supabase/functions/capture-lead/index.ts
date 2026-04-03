@@ -231,7 +231,7 @@ serve(async (req: Request) => {
       url: "/admin/leads",
     });
 
-    const contact = await getPublicContactSettings(supabaseAdmin);
+    const contact = await getPublicContactSettings(supabaseAdmin as any);
     const whatsappUrl = `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(
       `Olá! Sou ${nome} e acabei de enviar meu cadastro no site da ${contact.brandName}.`,
     )}`;
