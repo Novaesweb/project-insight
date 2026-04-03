@@ -142,7 +142,7 @@ export default function SobreNos() {
         </motion.div>
       </section>
 
-      <SiteFooter />
+      <SiteFooter onOpenModal={() => {}} />
       <WhatsAppFloat />
     </div>
   );
