@@ -5,7 +5,7 @@ import {
   Trash2, Pencil, ExternalLink, ArrowLeft,
   DollarSign, Package, Sparkles, FileText,
   AlertCircle, CheckCircle2, Clock, Zap,
-  ArrowRight, UserPlus, Copy, RefreshCw, Pause
+  ArrowRight, UserPlus, Copy, RefreshCw, Pause, StickyNote
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
