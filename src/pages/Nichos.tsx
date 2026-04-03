@@ -90,20 +90,13 @@ export default function Nichos() {
   const { buildWhatsAppUrl } = usePublicContact();
 
   return (
-    <div className="min-h-screen font-sans antialiased relative" style={{ background: "hsl(var(--background))" }}>
+    <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
       <SEOHead
         title="Nichos que Atendemos | NovaesWeb"
         description="Soluções digitais para alimentação, beleza, comércio e empresas. Conheça os segmentos que a NovaesWeb atende."
       />
 
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, hsl(var(--background)), hsl(245 12% 5%))" }} />
-        <div className="absolute top-[10%] -left-[8%] w-[560px] h-[560px] rounded-full blur-[180px] opacity-[0.04]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.32), transparent 72%)" }} />
-        <div className="absolute top-[50%] -right-[10%] w-[520px] h-[520px] rounded-full blur-[170px] opacity-[0.045]"
-          style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.28), transparent 72%)" }} />
-      </div>
+      <GlobalBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
         {/* Back */}

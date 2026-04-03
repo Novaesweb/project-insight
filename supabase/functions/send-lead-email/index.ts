@@ -1,4 +1,4 @@
-// @ts-expect-error Deno remote import
+// deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
