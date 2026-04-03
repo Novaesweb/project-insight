@@ -31,6 +31,7 @@ import { scrollTo } from "@/lib/utils";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
