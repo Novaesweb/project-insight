@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import React, { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft, MessageCircle, Utensils, Scissors, ShoppingBag, Building2, Sparkles, ArrowRight, ChevronDown, Check, Zap } from "lucide-react";
