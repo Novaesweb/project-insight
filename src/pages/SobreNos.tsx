@@ -19,7 +19,7 @@ const diferenciais = [
 ];
 
 const numeros = [
-  { value: "50+", label: "Projetos Entregues" },
+  { value: "36+", label: "Projetos Entregues" },
   { value: "98%", label: "Satisfação" },
   { value: "24h", label: "Tempo de Resposta" },
   { value: "3x", label: "Mais Clientes" },
