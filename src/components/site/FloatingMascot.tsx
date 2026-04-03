@@ -193,7 +193,7 @@ function FloatingMascot() {
                   className="flex items-start gap-2"
                 >
                   <div className="w-8 h-8 flex-shrink-0">
-                    <RobotSVG isOpen={true} />
+                    <NWRobotSVG isOpen={true} size={32} />
                   </div>
                   <div
                     className="px-3 py-2 rounded-xl rounded-tl-sm text-sm"
