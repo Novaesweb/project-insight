@@ -517,6 +517,36 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_notes: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          entity_id: string
+          entity_type: string
+          id: string
+          pinned: boolean
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          pinned?: boolean
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          pinned?: boolean
+        }
+        Relationships: []
+      }
       lead_submission_log: {
         Row: {
           created_at: string
