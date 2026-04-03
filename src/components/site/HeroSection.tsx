@@ -116,6 +116,7 @@ function MascotWidget() {
 }
 
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
+  const companyCount = useCompanyCounter();
   const navigate = useNavigate();
   const scrollToCadastro = () => {
     const section = document.getElementById("cadastro");
