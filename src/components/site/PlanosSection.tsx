@@ -39,7 +39,10 @@ const plans = [
     popular: true,
     features: [
       "Tudo do plano Express +",
-      "Site profissional completo",
+      "Site moderno e responsivo",
+      "Página de serviços e contato",
+      "Integração com mapa e WhatsApp",
+      "Otimização para celular",
       "Painel administrativo",
       "Cadastro de clientes",
       "Recebimento de pedidos",
@@ -98,7 +101,7 @@ export default function PlanosSection() {
               variants={fade}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className={cn(
-                "site-surface relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group overflow-hidden",
+                "site-surface relative rounded-[1.75rem] p-6 lg:p-8 flex flex-col transition-all duration-500 group overflow-visible",
                 plan.popular && "md:scale-[1.03] md:-my-2"
               )}
               style={{

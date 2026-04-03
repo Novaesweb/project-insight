@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Star, Sparkles } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
 
@@ -32,6 +33,7 @@ const particles = [
 
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
+  const navigate = useNavigate();
   const scrollToCadastro = () => {
     const section = document.getElementById("cadastro");
     section?.scrollIntoView({ behavior: "smooth" });
@@ -171,6 +173,19 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             >
               Ver demonstração
               <ArrowRight className="w-4 h-4" />
+            </motion.button>
+
+            <motion.button
+              type="button"
+              onClick={() => navigate("/nichos")}
+              whileHover={{ scale: 1.03 }}
+              className="site-surface h-14 px-8 rounded-2xl text-sm font-bold inline-flex items-center gap-2 transition-colors"
+              style={{
+                color: 'hsl(var(--muted-foreground) / 0.9)',
+              }}
+            >
+              <Briefcase className="w-4 h-4" />
+              Nichos que atendemos
             </motion.button>
           </motion.div>
 
