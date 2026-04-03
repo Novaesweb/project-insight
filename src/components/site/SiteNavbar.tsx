@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ const navLinks = [
   { href: "#automacao", label: "Automação" },
   { href: "#planos", label: "Planos" },
   { href: "/nichos", label: "Nichos" },
+  { href: "/sobre", label: "Sobre" },
   { href: "#contato", label: "Contato" },
 ];
 
 const companyLinks = [
-  { id: "sobre", label: "Sobre a NovaesWeb", icon: Star },
+  { href: "/sobre", label: "Sobre a NovaesWeb", icon: Star },
   { id: "quem-somos", label: "Quem Somos", icon: Users },
   { id: "diferenciais", label: "Diferenciais", icon: Target },
 ];
@@ -31,6 +32,7 @@ import { scrollTo } from "@/lib/utils";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
+  const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -44,18 +46,27 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   useEffect(() => {
+    const sectionLinks = navLinks.filter((link) => link.href.startsWith("#"));
+    const routeLinks = navLinks.filter((link) => link.href.startsWith("/"));
+
+    if (location.pathname !== "/") {
+      const activeRoute = routeLinks.find((link) => link.href === location.pathname);
+      setActiveSection(activeRoute?.href ?? "");
+      return;
+    }
+
     const updateActiveSection = () => {
       const probe = window.scrollY + window.innerHeight * 0.42;
-      const firstSection = document.getElementById(navLinks[0].href.replace("#", ""));
+      const firstSection = document.getElementById(sectionLinks[0]?.href.replace("#", "") || "");
 
       if (firstSection && probe < firstSection.offsetTop - 180) {
         setActiveSection("");
         return;
       }
 
-      let nextActive = navLinks[0].href;
+      let nextActive = sectionLinks[0]?.href || "";
 
-      for (const link of navLinks) {
+      for (const link of sectionLinks) {
         const section = document.getElementById(link.href.replace("#", ""));
         if (section && probe >= section.offsetTop) {
           nextActive = link.href;
@@ -73,7 +84,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       window.removeEventListener("scroll", updateActiveSection);
       window.removeEventListener("resize", updateActiveSection);
     };
-  }, []);
+  }, [location.pathname]);
 
   const handleNavClick = (href: string, closeMenu?: (v: boolean) => void) => {
     if (href.startsWith("/")) {
@@ -81,6 +92,14 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
       navigate(href);
       return;
     }
+
+    if (location.pathname !== "/") {
+      if (closeMenu) closeMenu(false);
+      setActiveSection(href);
+      navigate(`/${href}`);
+      return;
+    }
+
     setActiveSection(href);
     scrollTo(href, closeMenu);
   };
@@ -149,8 +168,15 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                   <div className="site-surface p-4 rounded-3xl shadow-2xl overflow-hidden">
                     {companyLinks.map(link => (
                       <button
-                        key={link.id}
-                        onClick={() => { onOpenModal(link.id); setActiveDropdown(null); }}
+                        key={link.href ?? link.id}
+                        onClick={() => {
+                          if ("href" in link && link.href) {
+                            navigate(link.href);
+                          } else if ("id" in link && link.id) {
+                            onOpenModal(link.id);
+                          }
+                          setActiveDropdown(null);
+                        }}
                         className="flex items-center gap-3 w-full p-3 hover:bg-white/[0.04] rounded-2xl transition-all text-left group/item"
                       >
                         <link.icon className="w-5 h-5 text-primary/80" />
@@ -245,8 +271,17 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                   <div className="grid grid-cols-1 gap-3">
                     {companyLinks.map(link => (
                       <button
-                        key={link.id}
-                        onClick={() => { setMenuOpen(false); setTimeout(() => onOpenModal(link.id), 300); }}
+                        key={link.href ?? link.id}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setTimeout(() => {
+                            if ("href" in link && link.href) {
+                              navigate(link.href);
+                            } else if ("id" in link && link.id) {
+                              onOpenModal(link.id);
+                            }
+                          }, 300);
+                        }}
                         className="site-soft-surface flex items-center justify-between p-4 rounded-2xl text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
                       >
                         <span className="font-bold flex items-center gap-3"><link.icon className="w-4 h-4 text-primary" /> {link.label}</span>

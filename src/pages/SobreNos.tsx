@@ -6,6 +6,7 @@ import SiteFooter from "@/components/site/SiteFooter";
 import WhatsAppFloat from "@/components/site/WhatsAppFloat";
 import SEOHead from "@/components/SEOHead";
 import { CheckCircle, Rocket, Users, Target, Code, Zap, ArrowRight, Shield, Clock, TrendingUp } from "lucide-react";
+import { usePublicContact } from "@/hooks/usePublicContact";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.1 } } };
@@ -32,6 +33,7 @@ const etapas = [
 
 export default function SobreNos() {
   const navigate = useNavigate();
+  const { buildWhatsAppUrl } = usePublicContact();
 
   return (
     <div className="min-h-screen bg-[#08080f] text-white">
@@ -135,7 +137,11 @@ export default function SobreNos() {
             <Button className="gradient-primary border-0 text-white gap-2" onClick={() => navigate("/cadastro")}>
               Solicitar Orçamento <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button variant="outline" className="border-white/10 text-white hover:bg-white/5" onClick={() => window.open("https://wa.me/5511999999999", "_blank")}>
+            <Button
+              variant="outline"
+              className="border-white/10 text-white hover:bg-white/5"
+              onClick={() => window.open(buildWhatsAppUrl("Olá! Quero falar com a NovaesWeb sobre um projeto para o meu negócio."), "_blank")}
+            >
               Falar no WhatsApp
             </Button>
           </motion.div>
