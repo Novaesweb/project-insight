@@ -19,6 +19,7 @@ import { AsaasService } from "@/lib/asaas-service";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useSearchParams } from "react-router-dom";
 import SystemCostsSection from "@/components/admin/financeiro/SystemCostsSection";
+import UpcomingBillingPanel from "@/components/admin/financeiro/UpcomingBillingPanel";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const emptyForm = { descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" };
@@ -224,6 +225,14 @@ export default function Financeiro() {
               <p className="text-xs text-[hsl(var(--muted-foreground))]">Em Atraso</p>
               <p className="text-xl font-bold text-white">R$ {totalAtraso.toLocaleString("pt-BR")}</p>
             </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
+        <Card className="glass-card border-[0.5px]">
+          <CardContent className="p-5">
+            <UpcomingBillingPanel />
           </CardContent>
         </Card>
       </motion.div>

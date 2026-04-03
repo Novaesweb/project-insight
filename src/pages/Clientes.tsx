@@ -5,7 +5,7 @@ import {
   Trash2, Pencil, ExternalLink, ArrowLeft,
   DollarSign, Package, Sparkles, FileText,
   AlertCircle, CheckCircle2, Clock, Zap,
-  ArrowRight, UserPlus, Copy, RefreshCw, Pause
+  ArrowRight, UserPlus, Copy, RefreshCw, Pause, StickyNote
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
+import InternalNotes from "@/components/InternalNotes";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -324,6 +325,9 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <DollarSign className="w-3.5 h-3.5" /> Financeiro
             </TabsTrigger>
             <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos ({projetos.length})</TabsTrigger>
+            <TabsTrigger value="notas" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
+              <StickyNote className="w-3.5 h-3.5" /> Notas
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="briefing" className="space-y-6">
@@ -595,6 +599,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                   </TableBody>
                 </Table>
                </div>
+          </TabsContent>
+
+          <TabsContent value="notas">
+            <Card className="glass-card border-[0.5px]">
+              <CardContent className="p-5">
+                <InternalNotes entityType="cliente" entityId={clienteId} />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </motion.div>

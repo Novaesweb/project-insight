@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
+import InternalNotes from "@/components/InternalNotes";
 
 // --- Variantes de Animação ---
 const container = {
@@ -569,6 +570,10 @@ export default function Leads() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="p-4 border-t border-white/5">
+                  <InternalNotes entityType="lead" entityId={selectedLead.id} />
                 </div>
 
                 <div className="pt-10 flex border-t border-white/5">

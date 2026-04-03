@@ -20,6 +20,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToClient } from "@/lib/push-notifications";
+import InternalNotes from "@/components/InternalNotes";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import {
   SLA_PRESETS,
@@ -424,6 +425,14 @@ export default function Suporte() {
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={fadeUp}>
+          <Card className="glass-card border-[0.5px]">
+            <CardContent className="p-5">
+              <InternalNotes entityType="ticket" entityId={selectedTicket!} />
             </CardContent>
           </Card>
         </motion.div>

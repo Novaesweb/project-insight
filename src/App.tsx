@@ -45,6 +45,7 @@ const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
 const NichePage = React.lazy(() => import("./pages/NichePage"));
 const Nichos = React.lazy(() => import("./pages/Nichos"));
+const SobreNos = React.lazy(() => import("./pages/SobreNos"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
 const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
@@ -166,7 +167,8 @@ const App = () => (
               <Route path="/site" element={<Site />} />
               <Route path="/nicho/:slug" element={<NichePage />} />
               <Route path="/nichos" element={<Nichos />} />
-          <Route path="/cadastro" element={<Cadastro />} />
+              <Route path="/cadastro" element={<Cadastro />} />
+              <Route path="/sobre" element={<SobreNos />} />
           <Route path="/funcionalidades" element={<Funcionalidades />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/cliente" element={<ClienteLogin />} />
