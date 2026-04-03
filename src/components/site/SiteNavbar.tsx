@@ -76,6 +76,11 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   const handleNavClick = (href: string, closeMenu?: (v: boolean) => void) => {
+    if (href.startsWith("/")) {
+      if (closeMenu) closeMenu(false);
+      navigate(href);
+      return;
+    }
     setActiveSection(href);
     scrollTo(href, closeMenu);
   };
