@@ -323,6 +323,12 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       
+      {/* Admin Footer */}
+      <div className="hidden md:flex items-center justify-center gap-2 py-2 border-t" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--background))' }}>
+        <img src={nwIcon} alt="NW" className="w-5 h-5 object-contain opacity-40" />
+        <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/40">novaesweb © {new Date().getFullYear()}</span>
+      </div>
+      
       <ReloadPrompt />
     </div>
   );

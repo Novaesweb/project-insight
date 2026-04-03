@@ -148,6 +148,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">Sistemas Ativos</span>
             </div>
+            <OptimizedImage src={nwIcon} alt="NW" width={28} height={28} className="w-7 h-7 object-contain opacity-40 hover:opacity-80 transition-opacity" />
             <p className="text-[10px] text-white/10 font-black uppercase tracking-[0.4em]">
               Architect <span className="text-white/15">Ecosystem</span>
             </p>
