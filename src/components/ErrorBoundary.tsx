@@ -15,8 +15,6 @@ interface State {
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
-  declare state: State;
-  declare props: Readonly<Props>;
   constructor(props: Props) {
     super(props);
     this.state = {

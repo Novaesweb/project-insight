@@ -27,8 +27,6 @@ self.addEventListener('push', function(event) {
       url: data.url || '/',
     },
     tag: data.tag || 'novaesweb-notification',
-    renotify: true,
-    requireInteraction: false,
   };
 
   event.waitUntil(
