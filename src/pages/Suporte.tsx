@@ -20,6 +20,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToClient } from "@/lib/push-notifications";
+import InternalNotes from "@/components/InternalNotes";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import {
   SLA_PRESETS,
