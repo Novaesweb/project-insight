@@ -5,6 +5,7 @@ import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase } from "lucide-
 
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
+import HeroRobot3D from "@/components/site/HeroRobot3D";
 
 interface HeroSectionProps {
   onOpenDemo: () => void;
@@ -86,14 +87,24 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
       />
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-5xl mx-auto text-center">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(440px,0.95fr)] lg:gap-16 xl:gap-20">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="hidden lg:flex justify-center lg:justify-end"
+          >
+            <HeroRobot3D interactive quality="desktop" className="aspect-[1/1.04] w-full max-w-[610px]" />
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto text-center lg:mx-0 lg:max-w-[46rem] lg:text-left">
 
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="site-badge site-badge--accent mb-12 relative"
+            className="site-badge site-badge--accent mb-10 relative mx-auto lg:mx-0"
           >
             <Sparkles className="w-3.5 h-3.5" style={{ color: 'hsl(var(--accent))' }} />
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'hsl(var(--muted-foreground) / 0.86)' }}>
@@ -136,17 +147,26 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-lg md:text-xl mb-14 max-w-2xl mx-auto leading-relaxed font-medium site-copy-muted"
+            className="text-lg md:text-xl mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium site-copy-muted"
           >
             Criamos sites profissionais, sistemas de pedidos e automações no WhatsApp que transformam visitantes em clientes de forma automática.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.72 }}
+            className="mb-10 lg:hidden"
+          >
+            <HeroRobot3D quality="mobile" className="mx-auto aspect-[1/1.02] w-full max-w-[360px]" />
+          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
           >
             <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}>
               <Button
@@ -209,7 +229,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1 }}
-            className="mt-20 grid grid-cols-3 gap-4 max-w-xl mx-auto"
+            className="mt-14 lg:mt-16 grid grid-cols-3 gap-4 max-w-xl mx-auto lg:mx-0"
           >
             {[
               { value: companyCount, suffix: "+", label: "Empresas", icon: Star },
@@ -238,7 +258,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1.2 }}
-            className="mt-16 pt-10 flex flex-wrap justify-center items-center gap-8 md:gap-14"
+            className="mt-12 lg:mt-14 pt-10 flex flex-wrap justify-center lg:justify-start items-center gap-8 md:gap-14"
             style={{ borderTop: '1px solid hsl(var(--border))' }}
           >
             {[
@@ -257,6 +277,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               </div>
             ))}
           </motion.div>
+          </div>
         </div>
       </div>
     </section>
