@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePublicContact } from "@/hooks/usePublicContact";
 import SEOHead from "@/components/SEOHead";
 import { memo } from "react";
+import marketingImg from "@/assets/marketing-social-novaesweb.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -104,6 +105,26 @@ export default function CriacaoConteudo() {
           <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto leading-relaxed">
             Na NovaesWeb, não entregamos apenas sites. Também ajudamos você a divulgar seu negócio com imagens e conteúdos profissionais prontos para uso.
           </p>
+        </motion.div>
+
+        {/* Marketing Image Banner */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-16">
+          <div className="relative rounded-2xl overflow-hidden border border-[hsl(var(--border))] shadow-2xl group">
+            <img
+              src={marketingImg}
+              alt="NovaesWeb - Artes para Redes Sociais - Criamos conteúdo profissional para seu estabelecimento"
+              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              width={1024}
+              height={1024}
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6">
+              <p className="text-white/90 text-sm sm:text-base font-medium drop-shadow-lg">
+                ✨ Criamos artes profissionais também para o <strong>seu estabelecimento</strong>
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Services */}
