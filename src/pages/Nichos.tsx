@@ -73,7 +73,6 @@ export default function Nichos() {
       <SEOHead
         title="Nichos que Atendemos | NovaesWeb"
         description="Soluções digitais para alimentação, beleza, comércio e empresas. Conheça os segmentos que a NovaesWeb atende."
-        url="https://novaesweb.site/nichos"
       />
 
       {/* Background */}
