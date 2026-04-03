@@ -15,6 +15,7 @@ const SiteFooter = lazy(() => import("@/components/site/SiteFooter"));
 const WhatsAppFloat = lazy(() => import("@/components/site/WhatsAppFloat"));
 const MobileAppNav = lazy(() => import("@/components/site/MobileAppNav"));
 const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
+const FloatingMascot = lazy(() => import("@/components/site/FloatingMascot"));
 
 // Memoized background to avoid re-renders
 const GlobalBackground = memo(function GlobalBackground() {
