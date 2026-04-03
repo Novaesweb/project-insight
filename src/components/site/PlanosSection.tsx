@@ -39,7 +39,10 @@ const plans = [
     popular: true,
     features: [
       "Tudo do plano Express +",
-      "Site profissional completo",
+      "Site moderno e responsivo",
+      "Página de serviços e contato",
+      "Integração com mapa e WhatsApp",
+      "Otimização para celular",
       "Painel administrativo",
       "Cadastro de clientes",
       "Recebimento de pedidos",
