@@ -46,6 +46,7 @@ const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
 const NichePage = React.lazy(() => import("./pages/NichePage"));
 const Nichos = React.lazy(() => import("./pages/Nichos"));
 const SobreNos = React.lazy(() => import("./pages/SobreNos"));
+const CriacaoConteudo = React.lazy(() => import("./pages/CriacaoConteudo"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
 const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
