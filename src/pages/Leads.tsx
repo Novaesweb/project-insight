@@ -571,6 +571,10 @@ export default function Leads() {
                   </div>
                 </div>
 
+                <div className="p-4 border-t border-white/5">
+                  <InternalNotes entityType="lead" entityId={selectedLead.id} />
+                </div>
+
                 <div className="pt-10 flex border-t border-white/5">
                   <Button
                     variant="ghost"
