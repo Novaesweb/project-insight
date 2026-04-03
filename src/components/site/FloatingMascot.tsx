@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -10,81 +11,110 @@ const mascotPhrases = [
   "Seu negócio merece presença digital! 💡",
 ];
 
-function RobotSVG({ isOpen }: { isOpen: boolean }) {
+function NWRobotSVG({ isOpen, size = 56 }: { isOpen: boolean; size?: number }) {
   return (
-    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Antenna */}
-      <motion.line
-        x1="28" y1="8" x2="28" y2="2"
-        stroke="url(#grad1)" strokeWidth="2" strokeLinecap="round"
-        animate={{ y2: isOpen ? 0 : 2 }}
-      />
-      <motion.circle
-        cx="28" cy="2" r="2.5"
-        fill="hsl(var(--accent))"
-        animate={{ scale: isOpen ? [1, 1.3, 1] : 1 }}
-        transition={{ duration: 1.5, repeat: isOpen ? Infinity : 0 }}
+    <svg width={size} height={size} viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Glow behind */}
+      <motion.ellipse
+        cx="60" cy="130" rx="30" ry="6"
+        fill="rgba(168,85,247,0.25)"
+        animate={{ rx: isOpen ? [28, 34, 28] : 30 }}
+        transition={{ duration: 2, repeat: Infinity }}
       />
 
-      {/* Head */}
-      <rect x="12" y="8" width="32" height="24" rx="6" fill="url(#grad1)" />
-      
-      {/* Eyes */}
-      <motion.circle
-        cx="21" cy="20" r="4"
-        fill="white"
-        animate={isOpen ? { scaleY: [1, 0.1, 1] } : {}}
-        transition={{ duration: 0.3, delay: 2, repeat: Infinity, repeatDelay: 3 }}
-      />
-      <motion.circle
-        cx="35" cy="20" r="4"
-        fill="white"
-        animate={isOpen ? { scaleY: [1, 0.1, 1] } : {}}
-        transition={{ duration: 0.3, delay: 2, repeat: Infinity, repeatDelay: 3 }}
-      />
-      <circle cx="21" cy="20" r="2" fill="hsl(var(--background))" />
-      <circle cx="35" cy="20" r="2" fill="hsl(var(--background))" />
-
-      {/* Mouth */}
+      {/* Stars / sparkles on helmet */}
       <motion.path
-        d={isOpen ? "M22 26 Q28 31 34 26" : "M22 26 Q28 28 34 26"}
-        stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"
-        animate={isOpen ? { d: "M22 26 Q28 31 34 26" } : { d: "M22 26 Q28 28 34 26" }}
+        d="M38 18 L40 14 L42 18 L38 18 Z"
+        fill="#60a5fa"
+        animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.2, 0.8] }}
+        transition={{ duration: 2, repeat: Infinity }}
       />
+      <motion.path
+        d="M76 12 L78 8 L80 12 L76 12 Z"
+        fill="#a78bfa"
+        animate={{ opacity: [0.5, 1, 0.5], scale: [0.9, 1.3, 0.9] }}
+        transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+      />
+
+      {/* Helmet (astronaut head) */}
+      <ellipse cx="60" cy="42" rx="30" ry="32" fill="#1a1a2e" stroke="#334155" strokeWidth="2" />
+      <ellipse cx="60" cy="42" rx="27" ry="29" fill="#0f0f23" />
+      
+      {/* Helmet visor glass effect */}
+      <ellipse cx="60" cy="42" rx="24" ry="26" fill="url(#visorGrad)" opacity="0.15" />
+
+      {/* NW Logo on face - N */}
+      <motion.path
+        d="M42 34 L42 52 L48 34 L48 52"
+        stroke="url(#nwGrad)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"
+        animate={isOpen ? { filter: ["drop-shadow(0 0 4px #ec4899)", "drop-shadow(0 0 8px #ec4899)", "drop-shadow(0 0 4px #ec4899)"] } : {}}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      {/* NW Logo - W */}
+      <motion.path
+        d="M54 34 L57 52 L60 40 L63 52 L66 34"
+        stroke="url(#nwGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"
+        animate={isOpen ? { filter: ["drop-shadow(0 0 4px #a855f7)", "drop-shadow(0 0 8px #a855f7)", "drop-shadow(0 0 4px #a855f7)"] } : {}}
+        transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
+      />
+
+      {/* Headphones/ears */}
+      <circle cx="30" cy="42" r="7" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
+      <circle cx="30" cy="42" r="4" fill="#334155" />
+      <circle cx="90" cy="42" r="7" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
+      <circle cx="90" cy="42" r="4" fill="#334155" />
 
       {/* Body */}
-      <rect x="16" y="34" width="24" height="14" rx="4" fill="url(#grad2)" />
+      <path d="M40 72 L40 100 Q40 108 48 108 L72 108 Q80 108 80 100 L80 72 Q80 66 60 66 Q40 66 40 72 Z" fill="#1a1a2e" stroke="#334155" strokeWidth="1.5" />
 
-      {/* Arms */}
-      <motion.rect
-        x="6" y="36" width="8" height="4" rx="2"
-        fill="hsl(var(--accent))"
-        animate={isOpen ? { rotate: [0, -10, 0] } : {}}
+      {/* NW on body (smaller) */}
+      <path d="M52 82 L52 94 L56 82 L56 94" stroke="url(#nwGrad)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6" />
+      <path d="M60 82 L62 94 L64 86 L66 94 L68 82" stroke="url(#nwGrad)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.6" />
+
+      {/* Left arm */}
+      <motion.g
+        animate={isOpen ? { rotate: [0, -15, 0] } : {}}
         transition={{ duration: 1.5, repeat: Infinity }}
-      />
-      <motion.rect
-        x="42" y="36" width="8" height="4" rx="2"
-        fill="hsl(var(--accent))"
-        animate={isOpen ? { rotate: [0, 10, 0] } : {}}
-        transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
-      />
+        style={{ transformOrigin: "40px 78px" }}
+      >
+        <rect x="22" y="75" width="18" height="8" rx="4" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+        <circle cx="22" cy="79" r="5" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+        {/* Finger segments */}
+        <rect x="14" y="76" width="8" height="3" rx="1.5" fill="#334155" />
+        <rect x="14" y="80" width="6" height="2.5" rx="1.25" fill="#334155" />
+      </motion.g>
 
-      {/* Body detail */}
-      <circle cx="28" cy="41" r="2.5" fill="hsl(var(--accent))" opacity="0.7" />
+      {/* Right arm - pointing up like in the image */}
+      <motion.g
+        animate={isOpen ? { rotate: [0, 10, 0] } : { rotate: -30 }}
+        transition={{ duration: 1.5, repeat: isOpen ? Infinity : 0, delay: 0.3 }}
+        style={{ transformOrigin: "80px 78px" }}
+      >
+        <rect x="80" y="75" width="18" height="8" rx="4" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+        <circle cx="98" cy="79" r="5" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+        {/* Pointing finger */}
+        <rect x="96" y="70" width="3" height="10" rx="1.5" fill="#334155" />
+        <rect x="100" y="74" width="3" height="7" rx="1.5" fill="#334155" />
+      </motion.g>
 
       {/* Legs */}
-      <rect x="20" y="49" width="5" height="5" rx="2" fill="hsl(var(--accent) / 0.8)" />
-      <rect x="31" y="49" width="5" height="5" rx="2" fill="hsl(var(--accent) / 0.8)" />
+      <rect x="44" y="108" width="10" height="14" rx="3" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+      <rect x="66" y="108" width="10" height="14" rx="3" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+
+      {/* Boots */}
+      <path d="M42 119 L42 126 Q42 130 46 130 L56 130 Q58 130 58 128 L58 119 Z" fill="#0f172a" stroke="#475569" strokeWidth="1" />
+      <path d="M62 119 L62 126 Q62 130 66 130 L76 130 Q78 130 78 128 L78 119 Z" fill="#0f172a" stroke="#475569" strokeWidth="1" />
 
       <defs>
-        <linearGradient id="grad1" x1="12" y1="8" x2="44" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="hsl(var(--primary-novaesweb))" />
-          <stop offset="1" stopColor="hsl(var(--accent))" />
+        <linearGradient id="nwGrad" x1="42" y1="34" x2="66" y2="52" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#ec4899" />
+          <stop offset="0.5" stopColor="#a855f7" />
+          <stop offset="1" stopColor="#6366f1" />
         </linearGradient>
-        <linearGradient id="grad2" x1="16" y1="34" x2="40" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="hsl(var(--accent) / 0.8)" />
-          <stop offset="1" stopColor="hsl(var(--primary-novaesweb) / 0.8)" />
-        </linearGradient>
+        <radialGradient id="visorGrad" cx="60" cy="36" r="26" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#a855f7" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#1e1b4b" stopOpacity="0" />
+        </radialGradient>
       </defs>
     </svg>
   );
@@ -163,7 +193,7 @@ function FloatingMascot() {
                   className="flex items-start gap-2"
                 >
                   <div className="w-8 h-8 flex-shrink-0">
-                    <RobotSVG isOpen={true} />
+                    <NWRobotSVG isOpen={true} size={32} />
                   </div>
                   <div
                     className="px-3 py-2 rounded-xl rounded-tl-sm text-sm"
@@ -245,7 +275,7 @@ function FloatingMascot() {
         }}
         aria-label="Abrir assistente NW"
       >
-        <RobotSVG isOpen={isOpen} />
+        <NWRobotSVG isOpen={isOpen} size={48} />
         {!isOpen && (
           <span
             className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full animate-pulse"
