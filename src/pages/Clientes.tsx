@@ -600,6 +600,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                 </Table>
                </div>
           </TabsContent>
+
+          <TabsContent value="notas">
+            <Card className="glass-card border-[0.5px]">
+              <CardContent className="p-5">
+                <InternalNotes entityType="cliente" entityId={clienteId} />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </motion.div>
 
