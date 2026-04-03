@@ -165,6 +165,7 @@ const App = () => (
               <Route path="/" element={<Site />} />
               <Route path="/site" element={<Site />} />
               <Route path="/nicho/:slug" element={<NichePage />} />
+              <Route path="/nichos" element={<Nichos />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/funcionalidades" element={<Funcionalidades />} />
           <Route path="/landing" element={<LandingPage />} />

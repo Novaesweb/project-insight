@@ -15,6 +15,7 @@ const navLinks = [
   { href: "#como-funciona", label: "Como Funciona" },
   { href: "#automacao", label: "Automação" },
   { href: "#planos", label: "Planos" },
+  { href: "/nichos", label: "Nichos" },
   { href: "#contato", label: "Contato" },
 ];
 
