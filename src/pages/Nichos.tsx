@@ -1,7 +1,7 @@
-import { memo } from "react";
-import { motion } from "framer-motion";
+import { memo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Utensils, Scissors, ShoppingBag, Building2, Sparkles, ArrowRight } from "lucide-react";
+import { ArrowLeft, MessageCircle, Utensils, Scissors, ShoppingBag, Building2, Sparkles, ArrowRight, ChevronDown, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePublicContact } from "@/hooks/usePublicContact";
 import SEOHead from "@/components/SEOHead";
@@ -44,6 +44,7 @@ const segments = [
       "Sistema de pedidos organizado",
       "Layout otimizado para conversão",
     ],
+    color: "hsl(var(--primary))",
   },
   {
     icon: Scissors,
@@ -57,6 +58,7 @@ const segments = [
       "Integração com WhatsApp",
       "Captação de novos clientes",
     ],
+    color: "hsl(var(--accent))",
   },
   {
     icon: ShoppingBag,
@@ -70,6 +72,7 @@ const segments = [
       "Facilidade de contato com clientes",
       "Estrutura escalável",
     ],
+    color: "hsl(var(--primary))",
   },
   {
     icon: Building2,
@@ -83,7 +86,102 @@ const segments = [
       "Fortalecer a marca",
       "Criar presença digital profissional",
     ],
+    color: "hsl(var(--accent))",
   },
+];
+
+function SegmentCard({ seg, index }: { seg: typeof segments[0]; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      variants={fadeUp}
+      className="glass-card rounded-2xl border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all duration-300 overflow-hidden cursor-pointer group"
+      onClick={() => setExpanded(!expanded)}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.995 }}
+    >
+      <div className="p-6 sm:p-8">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-start gap-4">
+            <motion.div
+              className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center text-2xl shrink-0"
+              whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
+            >
+              {seg.emoji}
+            </motion.div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">{seg.title}</h2>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{seg.description}</p>
+            </div>
+          </div>
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="shrink-0 mt-1"
+          >
+            <ChevronDown className="w-5 h-5 text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--primary))] transition-colors" />
+          </motion.div>
+        </div>
+
+        {/* Niche pills always visible */}
+        {seg.niches.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {seg.niches.map((n, i) => (
+              <motion.span
+                key={n}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+                className="px-3 py-1.5 rounded-full text-xs font-medium bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.5)] hover:text-[hsl(var(--primary))] transition-colors cursor-default"
+              >
+                {n}
+              </motion.span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Expandable features */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 border-t border-[hsl(var(--border)/0.5)]">
+              <p className="text-xs font-bold text-[hsl(var(--foreground)/0.6)] uppercase tracking-wider mb-4">
+                {seg.niches.length > 0 ? "✨ Funcionalidades incluídas" : "🎯 Nosso foco"}
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {seg.features.map((f, i) => (
+                  <motion.div
+                    key={f}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] hover:bg-[hsl(var(--primary)/0.05)] transition-colors"
+                  >
+                    <Check className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
+                    <span className="text-sm text-[hsl(var(--muted-foreground))]">{f}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+const stats = [
+  { value: "50+", label: "Sites entregues" },
+  { value: "15+", label: "Segmentos atendidos" },
+  { value: "98%", label: "Clientes satisfeitos" },
 ];
 
 export default function Nichos() {
@@ -105,7 +203,7 @@ export default function Nichos() {
         </Link>
 
         {/* Header */}
-        <motion.div initial="hidden" animate="show" variants={fadeUp} className="text-center mb-16">
+        <motion.div initial="hidden" animate="show" variants={fadeUp} className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-xs font-semibold mb-5">
             <Sparkles className="w-3.5 h-3.5" />
             Soluções por Segmento
@@ -116,8 +214,33 @@ export default function Nichos() {
           </h1>
           <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto leading-relaxed">
             Na NovaesWeb, desenvolvemos estruturas digitais pensadas para gerar resultados reais.
-            Criamos sites e sistemas personalizados para empresas que desejam aumentar suas vendas, melhorar o atendimento e fortalecer sua presença online.
           </p>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.1 } } }}
+          className="grid grid-cols-3 gap-4 mb-12"
+        >
+          {stats.map((s) => (
+            <motion.div
+              key={s.label}
+              variants={fadeUp}
+              className="text-center py-6 rounded-2xl glass-card border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.3)] transition-all"
+              whileHover={{ y: -4 }}
+            >
+              <p className="text-2xl sm:text-3xl font-extrabold site-gradient-text">{s.value}</p>
+              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] mt-1">{s.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Interactive tip */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" className="flex items-center justify-center gap-2 mb-6 text-[hsl(var(--muted-foreground))] text-sm">
+          <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
+          Clique em cada segmento para ver as funcionalidades
         </motion.div>
 
         {/* Segments */}
@@ -125,52 +248,10 @@ export default function Nichos() {
           initial="hidden"
           animate="show"
           variants={{ show: { transition: { staggerChildren: 0.12 } } }}
-          className="space-y-8"
+          className="space-y-6"
         >
-          {segments.map((seg) => (
-            <motion.div
-              key={seg.title}
-              variants={fadeUp}
-              className="glass-card rounded-2xl p-6 sm:p-8 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all duration-300"
-            >
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center text-2xl shrink-0">
-                  {seg.emoji}
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">{seg.title}</h2>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{seg.description}</p>
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-6">
-                {seg.niches.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold text-[hsl(var(--foreground)/0.6)] uppercase tracking-wider mb-3">Segmentos</p>
-                    <div className="flex flex-wrap gap-2">
-                      {seg.niches.map((n) => (
-                        <span key={n} className="px-3 py-1.5 rounded-full text-xs font-medium bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]">
-                          {n}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs font-bold text-[hsl(var(--foreground)/0.6)] uppercase tracking-wider mb-3">
-                    {seg.niches.length > 0 ? "Funcionalidades" : "Nosso foco"}
-                  </p>
-                  <ul className="space-y-2">
-                    {seg.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] mt-1.5 shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </motion.div>
+          {segments.map((seg, i) => (
+            <SegmentCard key={seg.title} seg={seg} index={i} />
           ))}
         </motion.div>
 
@@ -186,24 +267,29 @@ export default function Nichos() {
 
         {/* CTA */}
         <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mt-12">
-          <p className="text-[hsl(var(--foreground))] font-semibold text-lg mb-2">
-            👉 Quer ver como ficaria um site para o seu negócio?
-          </p>
-          <p className="text-[hsl(var(--muted-foreground))] mb-6">
-            Fale com a NovaesWeb e receba uma demonstração personalizada.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre as soluções para meu segmento.")} target="_blank" rel="noopener noreferrer">
-              <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-sm font-bold">
-                <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
-              </Button>
-            </a>
-            <Link to="/">
-              <Button variant="outline" className="h-12 px-8 rounded-xl border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))] text-sm font-bold">
-                <ArrowRight className="w-4 h-4 mr-2" /> Ver planos
-              </Button>
-            </Link>
-          </div>
+          <motion.div
+            className="glass-card rounded-2xl p-8 sm:p-12 border border-[hsl(var(--primary)/0.2)]"
+            whileHover={{ borderColor: "hsl(var(--primary) / 0.5)" }}
+          >
+            <p className="text-[hsl(var(--foreground))] font-semibold text-lg mb-2">
+              👉 Quer ver como ficaria um site para o seu negócio?
+            </p>
+            <p className="text-[hsl(var(--muted-foreground))] mb-6">
+              Fale com a NovaesWeb e receba uma demonstração personalizada.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre as soluções para meu segmento.")} target="_blank" rel="noopener noreferrer">
+                <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-sm font-bold">
+                  <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
+                </Button>
+              </a>
+              <Link to="/">
+                <Button variant="outline" className="h-12 px-8 rounded-xl border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))] text-sm font-bold">
+                  <ArrowRight className="w-4 h-4 mr-2" /> Ver planos
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </div>

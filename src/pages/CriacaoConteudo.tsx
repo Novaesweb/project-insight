@@ -1,10 +1,10 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Camera, Smartphone, Target, Lightbulb, Monitor, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, MessageCircle, Camera, Smartphone, Target, Lightbulb, Monitor, ArrowRight, Sparkles, Check, ChevronDown, Palette, PenTool, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePublicContact } from "@/hooks/usePublicContact";
 import SEOHead from "@/components/SEOHead";
-import { memo } from "react";
+import { memo, useState } from "react";
 import marketingImg from "@/assets/marketing-social-novaesweb.jpg";
 
 const fadeUp = {
@@ -34,11 +34,12 @@ const GlobalBackground = memo(function GlobalBackground() {
   );
 });
 
-const services = [
+const tabs = [
   {
+    id: "imagens",
+    label: "Imagens Profissionais",
     icon: Camera,
     emoji: "📸",
-    title: "Criação de Imagens Profissionais",
     description: "Criamos imagens personalizadas para o seu negócio, ideais para redes sociais e campanhas.",
     items: [
       "Imagens de produtos (hambúrguer, pizza, açaí, etc.)",
@@ -48,9 +49,10 @@ const services = [
     ],
   },
   {
+    id: "conteudo",
+    label: "Conteúdo Social",
     icon: Smartphone,
     emoji: "📱",
-    title: "Conteúdo para Redes Sociais",
     description: "Além das imagens, também criamos textos prontos para você postar.",
     items: [
       "Legendas para Instagram",
@@ -59,13 +61,26 @@ const services = [
       "Ideias de campanhas",
     ],
   },
+  {
+    id: "identidade",
+    label: "Identidade Visual",
+    icon: Palette,
+    emoji: "🎨",
+    description: "Criamos toda a identidade visual do seu negócio de forma profissional.",
+    items: [
+      "Logomarca personalizada",
+      "Paleta de cores da marca",
+      "Padrão visual para redes sociais",
+      "Materiais de divulgação",
+    ],
+  },
 ];
 
 const benefits = [
-  "Mais profissionalismo nas redes sociais",
-  "Mais engajamento com clientes",
-  "Mais pedidos e vendas",
-  "Facilidade na divulgação diária",
+  { text: "Mais profissionalismo nas redes sociais", icon: PenTool },
+  { text: "Mais engajamento com clientes", icon: Target },
+  { text: "Mais pedidos e vendas", icon: Sparkles },
+  { text: "Facilidade na divulgação diária", icon: ImageIcon },
 ];
 
 const differentials = [
@@ -76,6 +91,8 @@ const differentials = [
 
 export default function CriacaoConteudo() {
   const { buildWhatsAppUrl } = usePublicContact();
+  const [activeTab, setActiveTab] = useState("imagens");
+  const activeService = tabs.find(t => t.id === activeTab)!;
 
   return (
     <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
@@ -93,7 +110,7 @@ export default function CriacaoConteudo() {
         </Link>
 
         {/* Header */}
-        <motion.div initial="hidden" animate="show" variants={fadeUp} className="text-center mb-16">
+        <motion.div initial="hidden" animate="show" variants={fadeUp} className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-xs font-semibold mb-5">
             <Sparkles className="w-3.5 h-3.5" />
             Divulgação Profissional
@@ -108,7 +125,7 @@ export default function CriacaoConteudo() {
         </motion.div>
 
         {/* Marketing Image Banner */}
-        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-16">
+        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-12">
           <div className="relative rounded-2xl overflow-hidden border border-[hsl(var(--border))] shadow-2xl group">
             <img
               src={marketingImg}
@@ -127,55 +144,98 @@ export default function CriacaoConteudo() {
           </div>
         </motion.div>
 
-        {/* Services */}
-        <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-8">
-          {services.map((svc) => (
-            <motion.div
-              key={svc.title}
-              variants={fadeUp}
-              className="glass-card rounded-2xl p-6 sm:p-8 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all duration-300"
-            >
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center text-2xl shrink-0">
-                  {svc.emoji}
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">{svc.title}</h2>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{svc.description}</p>
-                </div>
-              </div>
-              <ul className="space-y-2">
-                {svc.items.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--primary))] mt-1.5 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+        {/* Interactive Tabs */}
+        <motion.div initial="hidden" animate="show" variants={fadeUp} className="mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            {tabs.map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm font-semibold transition-all duration-300 border ${
+                  activeTab === tab.id
+                    ? "bg-[hsl(var(--primary)/0.15)] border-[hsl(var(--primary)/0.5)] text-[hsl(var(--primary))] shadow-lg shadow-[hsl(var(--primary)/0.1)]"
+                    : "bg-[hsl(var(--muted)/0.3)] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary)/0.3)] hover:text-[hsl(var(--foreground))]"
+                }`}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.emoji}</span>
+              </motion.button>
+            ))}
+          </div>
         </motion.div>
 
+        {/* Active Tab Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.3 }}
+            className="glass-card rounded-2xl p-6 sm:p-8 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all duration-300 mb-12"
+          >
+            <div className="flex items-start gap-4 mb-6">
+              <motion.div
+                className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center text-2xl shrink-0"
+                initial={{ scale: 0.8, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200 }}
+              >
+                {activeService.emoji}
+              </motion.div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">{activeService.label}</h2>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{activeService.description}</p>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {activeService.items.map((item, i) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] hover:bg-[hsl(var(--primary)/0.05)] hover:border-[hsl(var(--primary)/0.3)] transition-all cursor-default"
+                >
+                  <Check className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
+                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{item}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
         {/* Benefits */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-16">
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="mb-16">
           <div className="glass-card rounded-2xl p-6 sm:p-8 border border-[hsl(var(--border))]">
             <div className="flex items-center gap-3 mb-6">
               <Target className="w-6 h-6 text-[hsl(var(--primary))]" />
               <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">Benefícios para o seu negócio</h2>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
-              {benefits.map((b) => (
-                <div key={b} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))]">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] shrink-0" />
-                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{b}</span>
-                </div>
+              {benefits.map((b, i) => (
+                <motion.div
+                  key={b.text}
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.3)] transition-all cursor-default"
+                >
+                  <b.icon className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
+                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{b.text}</span>
+                </motion.div>
               ))}
             </div>
           </div>
         </motion.div>
 
         {/* Diferencial */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mt-16 mb-8">
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Lightbulb className="w-6 h-6 text-[hsl(var(--accent))]" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[hsl(var(--foreground))]">
@@ -186,38 +246,48 @@ export default function CriacaoConteudo() {
             Enquanto outras empresas criam apenas o site, a NovaesWeb entrega uma estrutura completa para você:
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            {differentials.map((d) => (
-              <div key={d.label} className="flex items-center gap-2 px-5 py-3 rounded-xl glass-card border border-[hsl(var(--border))]">
+            {differentials.map((d, i) => (
+              <motion.div
+                key={d.label}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                whileHover={{ scale: 1.05, y: -4 }}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl glass-card border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all cursor-default"
+              >
                 <d.icon className="w-5 h-5 text-[hsl(var(--primary))]" />
                 <span className="text-sm font-semibold text-[hsl(var(--foreground))]">{d.label}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
-          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-4">
-            Tudo pensado para gerar mais resultados.
-          </p>
         </motion.div>
 
         {/* CTA */}
         <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mt-12">
-          <p className="text-[hsl(var(--foreground))] font-semibold text-lg mb-2">
-            👉 Quer ter tudo isso no seu negócio?
-          </p>
-          <p className="text-[hsl(var(--muted-foreground))] mb-6">
-            Fale com a NovaesWeb e veja como aplicar agora mesmo.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre criação de imagens e conteúdo.")} target="_blank" rel="noopener noreferrer">
-              <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-sm font-bold">
-                <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
-              </Button>
-            </a>
-            <Link to="/">
-              <Button variant="outline" className="h-12 px-8 rounded-xl border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))] text-sm font-bold">
-                <ArrowRight className="w-4 h-4 mr-2" /> Ver planos
-              </Button>
-            </Link>
-          </div>
+          <motion.div
+            className="glass-card rounded-2xl p-8 sm:p-12 border border-[hsl(var(--primary)/0.2)]"
+            whileHover={{ borderColor: "hsl(var(--primary) / 0.5)" }}
+          >
+            <p className="text-[hsl(var(--foreground))] font-semibold text-lg mb-2">
+              👉 Quer ter tudo isso no seu negócio?
+            </p>
+            <p className="text-[hsl(var(--muted-foreground))] mb-6">
+              Fale com a NovaesWeb e veja como aplicar agora mesmo.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre criação de imagens e conteúdo.")} target="_blank" rel="noopener noreferrer">
+                <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-sm font-bold">
+                  <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
+                </Button>
+              </a>
+              <Link to="/">
+                <Button variant="outline" className="h-12 px-8 rounded-xl border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))] text-sm font-bold">
+                  <ArrowRight className="w-4 h-4 mr-2" /> Ver planos
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </div>
