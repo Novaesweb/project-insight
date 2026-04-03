@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -15,12 +14,10 @@ interface State {
   errorInfo: React.ErrorInfo | null;
 }
 
-const ErrorBoundaryBase = React.Component as any;
-
-class ErrorBoundary extends ErrorBoundaryBase {
+class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null } as State;
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
@@ -30,8 +27,8 @@ class ErrorBoundary extends ErrorBoundaryBase {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ error, errorInfo });
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    if ((this.props as Props).onError) {
-      (this.props as Props).onError!(error, errorInfo);
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
     }
   }
 
@@ -40,8 +37,8 @@ class ErrorBoundary extends ErrorBoundaryBase {
   };
 
   render() {
-    const state = this.state as State;
-    const props = this.props as Props;
+    const state = this.state;
+    const props = this.props;
 
     if (state.hasError) {
       if (props.fallback) return props.fallback;
