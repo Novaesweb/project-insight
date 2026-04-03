@@ -115,8 +115,7 @@ function MascotWidget() {
   );
 }
 
-
-  const companyCount = useCompanyCounter();
+function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const navigate = useNavigate();
   const scrollToCadastro = () => {
     const section = document.getElementById("cadastro");
