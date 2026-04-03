@@ -229,6 +229,14 @@ export default function Financeiro() {
         </Card>
       </motion.div>
 
+      <motion.div variants={fadeUp}>
+        <Card className="glass-card border-[0.5px]">
+          <CardContent className="p-5">
+            <UpcomingBillingPanel />
+          </CardContent>
+        </Card>
+      </motion.div>
+
       <SystemCostsSection />
 
       <motion.div variants={fadeUp}>
