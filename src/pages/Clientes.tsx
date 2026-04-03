@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
+import InternalNotes from "@/components/InternalNotes";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
