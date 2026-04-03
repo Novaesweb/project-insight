@@ -517,6 +517,39 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_submission_log: {
+        Row: {
+          created_at: string
+          email_hash: string | null
+          fingerprint_hash: string
+          id: string
+          origin_path: string | null
+          phone_hash: string | null
+          source: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_hash?: string | null
+          fingerprint_hash: string
+          id?: string
+          origin_path?: string | null
+          phone_hash?: string | null
+          source?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_hash?: string | null
+          fingerprint_hash?: string
+          id?: string
+          origin_path?: string | null
+          phone_hash?: string | null
+          source?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           cidade: string | null

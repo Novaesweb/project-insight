@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ const navLinks = [
   { href: "#como-funciona", label: "Como Funciona" },
   { href: "#automacao", label: "Automação" },
   { href: "#planos", label: "Planos" },
+  { href: "/nichos", label: "Nichos" },
   { href: "#contato", label: "Contato" },
 ];
 
@@ -30,6 +31,7 @@ import { scrollTo } from "@/lib/utils";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -74,6 +76,11 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   const handleNavClick = (href: string, closeMenu?: (v: boolean) => void) => {
+    if (href.startsWith("/")) {
+      if (closeMenu) closeMenu(false);
+      navigate(href);
+      return;
+    }
     setActiveSection(href);
     scrollTo(href, closeMenu);
   };
