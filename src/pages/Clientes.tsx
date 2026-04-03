@@ -325,6 +325,9 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <DollarSign className="w-3.5 h-3.5" /> Financeiro
             </TabsTrigger>
             <TabsTrigger value="projetos" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs">Projetos ({projetos.length})</TabsTrigger>
+            <TabsTrigger value="notas" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
+              <StickyNote className="w-3.5 h-3.5" /> Notas
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="briefing" className="space-y-6">
