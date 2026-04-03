@@ -20,6 +20,7 @@ import {
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
 import AdminMainContent from "./admin/AdminMainContent";
+import nwIcon from "@/assets/novaesweb-nw-icon.png";
 
 const mobileNavGroups = [
   {
@@ -320,6 +321,12 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             <span className="text-[10px] font-semibold">Menu</span>
           </button>
         </div>
+      </div>
+      
+      {/* Admin Footer */}
+      <div className="hidden md:flex items-center justify-center gap-2 py-2 border-t" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--background))' }}>
+        <img src={nwIcon} alt="NW" className="w-5 h-5 object-contain opacity-40" />
+        <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/40">novaesweb © {new Date().getFullYear()}</span>
       </div>
       
       <ReloadPrompt />
