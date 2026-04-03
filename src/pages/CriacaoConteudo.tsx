@@ -107,6 +107,26 @@ export default function CriacaoConteudo() {
           </p>
         </motion.div>
 
+        {/* Marketing Image Banner */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-16">
+          <div className="relative rounded-2xl overflow-hidden border border-[hsl(var(--border))] shadow-2xl group">
+            <img
+              src={marketingImg}
+              alt="NovaesWeb - Artes para Redes Sociais - Criamos conteúdo profissional para seu estabelecimento"
+              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              width={1024}
+              height={1024}
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6">
+              <p className="text-white/90 text-sm sm:text-base font-medium drop-shadow-lg">
+                ✨ Criamos artes profissionais também para o <strong>seu estabelecimento</strong>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Services */}
         <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-8">
           {services.map((svc) => (
