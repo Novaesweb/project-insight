@@ -212,16 +212,15 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
 
         {/* Right actions */}
         <div className="flex items-center gap-4">
-          <button onClick={() => handleBudgetClick()} className="hidden sm:block">
-            <Button
-              className="h-11 px-8 rounded-2xl text-white text-[13px] font-black shadow-[0_12px_32px_rgba(220,38,38,0.18)] hover:shadow-[0_16px_38px_rgba(236,72,153,0.24)] group overflow-hidden border border-white/10 transition-all hover:-translate-y-0.5"
-              style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
-            >
-              <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
-                Solicitar orçamento <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
-              </span>
-            </Button>
-          </button>
+          <Button
+            onClick={() => handleBudgetClick()}
+            className="hidden sm:inline-flex h-11 px-8 rounded-2xl text-white text-[13px] font-black shadow-[0_12px_32px_rgba(220,38,38,0.18)] hover:shadow-[0_16px_38px_rgba(236,72,153,0.24)] group overflow-hidden border border-white/10 transition-all hover:-translate-y-0.5"
+            style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+          >
+            <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
+              Solicitar orçamento <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </span>
+          </Button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
@@ -311,17 +310,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
               </div>
 
               <div className="mt-12">
-                <button 
-                  className="w-full" 
+                <Button
+                  className="h-16 rounded-2xl w-full text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 border border-white/10"
                   onClick={() => handleBudgetClick(setMenuOpen)}
+                  style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
                 >
-                  <Button
-                    className="h-16 rounded-2xl w-full text-xl font-black uppercase tracking-widest shadow-xl shadow-primary/20 border border-white/10"
-                    style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
-                  >
-                    Solicitar orçamento
-                  </Button>
-                </button>
+                  Solicitar orçamento
+                </Button>
               </div>
             </div>
           </motion.div>
