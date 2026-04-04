@@ -21,7 +21,7 @@ const ABSOLUTE_SITE_URL = APP_CONFIG.siteUrl.replace(/\/+$/, '');
 const defaultSEO = {
   title: 'NovaesWeb — Criamos Sites para Negócios Alavancar no Digital',
   description: APP_CONFIG.description,
-  image: '/google-seo-image-v2.jpg?v=11',
+  image: '/novaesweb-google-image.png',
   type: 'website' as const,
   keywords: 'criamos sites para negocios, alavancar no digital, sites profissionais, desenvolvimento web, sistemas premium, automação digital, novaesweb, sites que vendem',
   author: APP_CONFIG.author,
@@ -87,7 +87,7 @@ export default function SEOHead({
   const derivedNoIndex = noIndex || pageSEO.noIndex || isAdminRoute || isClientRoute || isResellerRoute;
   const finalCanonicalUrl = canonicalUrl || `${ABSOLUTE_SITE_URL}${location.pathname}`;
   const finalImageUrl = toAbsoluteUrl(finalImage);
-  const finalLogoUrl = toAbsoluteUrl('/novaesweb-logo.png');
+  const finalLogoUrl = toAbsoluteUrl('/novaesweb-google-image.png');
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -152,8 +152,9 @@ export default function SEOHead({
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
+      <link rel="icon" type="image/png" href="/novaesweb-google-image.png" />
       <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-      <link rel="apple-touch-icon" href="/favicon.jpg" />
+      <link rel="apple-touch-icon" href="/novaesweb-google-image.png" />
 
       <script type="application/ld+json">
         {JSON.stringify(jsonLd)}
