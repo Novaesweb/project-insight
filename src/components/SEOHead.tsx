@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { APP_CONFIG, ROUTES } from '@/lib/constants';
+import { PUBLIC_SUPABASE_CONFIG } from '@/integrations/supabase/public-config';
 
 interface SEOHeadProps {
   title?: string;
@@ -160,7 +161,7 @@ export default function SEOHead({
 
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="preconnect" href={import.meta.env.VITE_SUPABASE_URL} />
+      <link rel="preconnect" href={import.meta.env.VITE_SUPABASE_URL || PUBLIC_SUPABASE_CONFIG.url} />
 
       <link rel="dns-prefetch" href="//fonts.googleapis.com" />
       <link rel="dns-prefetch" href="//www.googletagmanager.com" />

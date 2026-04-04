@@ -1,3 +1,5 @@
+import { PUBLIC_SUPABASE_CONFIG } from "@/integrations/supabase/public-config";
+
 // App Configuration
 export const APP_CONFIG = {
   name: "NovaesWeb",
@@ -12,7 +14,7 @@ export const API_CONFIG = {
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000,
-  baseUrl: import.meta.env.VITE_SUPABASE_URL,
+  baseUrl: import.meta.env.VITE_SUPABASE_URL || PUBLIC_SUPABASE_CONFIG.url,
 } as const;
 
 // Cache Configuration

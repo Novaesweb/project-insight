@@ -23,11 +23,6 @@ export function useDashboardData() {
   const [lateProjects, setLateProjects] = useState(0);
 
   const load = useCallback(async () => {
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
-      setDbStatus("erro");
-      return;
-    }
-
     try {
       const [c, p, ped, t, fin, extrasCli, catFull, newLeadsRes, lateProjectsRes] = await Promise.all([
         supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
