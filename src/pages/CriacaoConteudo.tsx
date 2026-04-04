@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePublicContact } from "@/hooks/usePublicContact";
 import SEOHead from "@/components/SEOHead";
 import { memo, useState } from "react";
-import marketingImg from "@/assets/marketing-social-novaesweb.jpg";
+import marketingImg from "@/assets/area-marketing-novaesweb.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -97,8 +97,8 @@ export default function CriacaoConteudo() {
   return (
     <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
       <SEOHead
-        title="Criação de Imagens e Conteúdo | NovaesWeb"
-        description="Imagens profissionais e conteúdo para redes sociais. A NovaesWeb entrega uma estrutura completa para divulgar seu negócio."
+        title="Área do Marketing | NovaesWeb"
+        description="Veja exemplos reais da Área do Marketing da NovaesWeb com imagens profissionais, campanhas visuais e conteúdo para divulgar seu negócio."
       />
 
       <GlobalBackground />
@@ -113,14 +113,14 @@ export default function CriacaoConteudo() {
         <motion.div initial="hidden" animate="show" variants={fadeUp} className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-xs font-semibold mb-5">
             <Sparkles className="w-3.5 h-3.5" />
-            Divulgação Profissional
+            Área do Marketing
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[hsl(var(--foreground))] mb-4">
-            Criação de Imagens e{" "}
-            <span className="site-gradient-text">Conteúdo para Divulgação</span>
+            Exemplos reais da{" "}
+            <span className="site-gradient-text">Área do Marketing</span>
           </h1>
           <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto leading-relaxed">
-            Na NovaesWeb, não entregamos apenas sites. Também ajudamos você a divulgar seu negócio com imagens e conteúdos profissionais prontos para uso.
+            Na NovaesWeb, além de sites e sistemas, também criamos materiais visuais que ajudam seu negócio a vender mais, se destacar e parecer mais profissional.
           </p>
         </motion.div>
 
@@ -129,16 +129,16 @@ export default function CriacaoConteudo() {
           <div className="relative rounded-2xl overflow-hidden border border-[hsl(var(--border))] shadow-2xl group">
             <img
               src={marketingImg}
-              alt="NovaesWeb - Artes para Redes Sociais - Criamos conteúdo profissional para seu estabelecimento"
+              alt="Exemplos de materiais da Área do Marketing da NovaesWeb para diferentes nichos"
               className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              width={1024}
-              height={1024}
+              width={640}
+              height={640}
               loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-6 left-6 right-6">
               <p className="text-white/90 text-sm sm:text-base font-medium drop-shadow-lg">
-                ✨ Criamos artes profissionais também para o <strong>seu estabelecimento</strong>
+                ✨ Alguns exemplos reais do que a <strong>NovaesWeb pode criar para o seu negócio</strong>
               </p>
             </div>
           </div>
@@ -270,13 +270,13 @@ export default function CriacaoConteudo() {
             whileHover={{ borderColor: "hsl(var(--primary) / 0.5)" }}
           >
             <p className="text-[hsl(var(--foreground))] font-semibold text-lg mb-2">
-              👉 Quer ter tudo isso no seu negócio?
+              👉 Quer uma estrutura visual assim para o seu negócio?
             </p>
             <p className="text-[hsl(var(--muted-foreground))] mb-6">
-              Fale com a NovaesWeb e veja como aplicar agora mesmo.
+              Fale com a NovaesWeb e veja como aplicar a Área do Marketing no seu projeto.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre criação de imagens e conteúdo.")} target="_blank" rel="noopener noreferrer">
+              <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre a Área do Marketing da NovaesWeb.")} target="_blank" rel="noopener noreferrer">
                 <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-sm font-bold">
                   <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
                 </Button>

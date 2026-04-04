@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase, Target } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
@@ -199,8 +199,8 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 color: 'hsl(var(--muted-foreground) / 0.9)',
               }}
             >
-              <Sparkles className="w-4 h-4" />
-              Criação de conteúdo
+              <Target className="w-4 h-4" />
+              Marketing digital
             </motion.button>
           </motion.div>
 
