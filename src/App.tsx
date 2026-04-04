@@ -105,25 +105,25 @@ function AdminWithSplash() {
       <AdminLayout>
         <React.Suspense fallback={<SplashScreen />}>
           <Routes>
-            <Route path="/" element={<Index />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/leads" element={<Leads />} />
-          <Route path="/projetos" element={<Projetos />} />
-          <Route path="/pedidos" element={<Pedidos />} />
-          <Route path="/extras" element={<Extras />} />
-          <Route path="/extras-ativos" element={<ExtrasAtivos />} />
-          <Route path="/relatorios" element={<Relatorios />} />
-          <Route path="/financeiro" element={<Financeiro />} />
-          <Route path="/suporte" element={<Suporte />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/revenda" element={<AdminRevenda />} />
-          <Route path="/contratos" element={<Contratos />} />
-          <Route path="/menu" element={<AdminMenu />} />
-          <Route path="/configuracoes-legado" element={<AdminConfig />} />
-          <Route path="/recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
-          <Route path="/recurrent-history" element={<Navigate to="/admin/recurrent-extras" replace />} />
-          <Route path="/recurrent-extras" element={<AdminRecurrentExtras />} />
+            <Route index element={<Index />} />
+            <Route path="clientes" element={<Clientes />} />
+            <Route path="leads" element={<Leads />} />
+            <Route path="projetos" element={<Projetos />} />
+            <Route path="pedidos" element={<Pedidos />} />
+            <Route path="extras" element={<Extras />} />
+            <Route path="extras-ativos" element={<ExtrasAtivos />} />
+            <Route path="relatorios" element={<Relatorios />} />
+            <Route path="financeiro" element={<Financeiro />} />
+            <Route path="suporte" element={<Suporte />} />
+            <Route path="usuarios" element={<Usuarios />} />
+            <Route path="configuracoes" element={<Configuracoes />} />
+            <Route path="revenda" element={<AdminRevenda />} />
+            <Route path="contratos" element={<Contratos />} />
+            <Route path="menu" element={<AdminMenu />} />
+            <Route path="configuracoes-legado" element={<AdminConfig />} />
+            <Route path="recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
+            <Route path="recurrent-history" element={<Navigate to="/admin/recurrent-extras" replace />} />
+            <Route path="recurrent-extras" element={<AdminRecurrentExtras />} />
             <Route path="*" element={<React.Suspense fallback={<SplashScreen />}><NotFound /></React.Suspense>} />
           </Routes>
         </React.Suspense>
