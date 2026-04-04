@@ -108,9 +108,6 @@ function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNa
         </div>
       </div>
 
-      <div className="py-2 px-4" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b, #e8334a, #FFD700)" }}>
-        <p className="text-center text-white text-[9px] tracking-[0.1em] font-medium">{branding.nome} © 2026 — v10.0 Architect Pro</p>
-      </div>
     </div>
   );
 }
@@ -312,9 +309,6 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="p-3 lg:p-4 max-w-[1100px] mx-auto w-full pb-6">
             {children}
-          </div>
-          <div className="py-2 px-4 mt-6" style={{ background: "linear-gradient(90deg, #7b1fa2, #c2185b, #e8334a, #FFD700)" }}>
-            <p className="text-center text-white text-xs tracking-[0.1em] font-medium">{branding.nome} © 2026 — v10.0 Architect Pro</p>
           </div>
         </main>
       </div>
