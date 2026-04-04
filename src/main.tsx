@@ -2,6 +2,43 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
+const CHUNK_RELOAD_FLAG = "nw-chunk-reload";
+
+function reloadForStaleChunk() {
+  if (sessionStorage.getItem(CHUNK_RELOAD_FLAG) === "1") {
+    sessionStorage.removeItem(CHUNK_RELOAD_FLAG);
+    return;
+  }
+
+  sessionStorage.setItem(CHUNK_RELOAD_FLAG, "1");
+  window.location.reload();
+}
+
+window.addEventListener("load", () => {
+  sessionStorage.removeItem(CHUNK_RELOAD_FLAG);
+});
+
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  reloadForStaleChunk();
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  const reason =
+    typeof event.reason === "string"
+      ? event.reason
+      : event.reason?.message || "";
+
+  if (
+    reason.includes("Failed to fetch dynamically imported module") ||
+    reason.includes("Importing a module script failed") ||
+    reason.includes("error loading dynamically imported module")
+  ) {
+    event.preventDefault();
+    reloadForStaleChunk();
+  }
+});
+
 // Limpa service workers antigos para evitar cache quebrado/tela preta
 // e mantém apenas o listener de áudio para notificações em páginas abertas.
 if ("serviceWorker" in navigator) {
