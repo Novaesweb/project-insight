@@ -73,9 +73,7 @@ export default function Site() {
         <Suspense fallback={null}>
           <SiteModals modalOpen={modalOpen} onClose={closeModal} />
           <WhatsAppFloat />
-          
           <MobileAppNav onOpenModal={setModalOpen} />
-          <ExitIntentPopup />
         </Suspense>
       </main>
     </div>
