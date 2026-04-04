@@ -15,6 +15,7 @@ const SiteFooter = lazy(() => import("@/components/site/SiteFooter"));
 const WhatsAppFloat = lazy(() => import("@/components/site/WhatsAppFloat"));
 const MobileAppNav = lazy(() => import("@/components/site/MobileAppNav"));
 const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
+const ExitIntentPopup = lazy(() => import("@/components/site/ExitIntentPopup"));
 
 
 // Memoized background to avoid re-renders
@@ -75,6 +76,7 @@ export default function Site() {
           <WhatsAppFloat />
           
           <MobileAppNav onOpenModal={setModalOpen} />
+          <ExitIntentPopup />
         </Suspense>
       </main>
     </div>
