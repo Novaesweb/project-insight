@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function SplashScreen({ onComplete }: { onComplete?: () => void }) {
@@ -6,6 +6,9 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
   const [text, setText] = useState("");
   const [visible, setVisible] = useState(true);
   const fullText = "Carregando seu painel...";
+
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     // Typing effect
@@ -30,7 +33,7 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
         clearInterval(progressInterval);
         setTimeout(() => {
           setVisible(false);
-          setTimeout(onComplete, 400);
+          setTimeout(() => onCompleteRef.current?.(), 400);
         }, 300);
       }
     }, 20);
@@ -39,7 +42,7 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
       clearInterval(typeInterval);
       clearInterval(progressInterval);
     };
-  }, [onComplete]);
+  }, []);
 
   return (
     <AnimatePresence>
