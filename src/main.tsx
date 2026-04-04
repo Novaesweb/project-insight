@@ -2,9 +2,17 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// SW registration handled by ReloadPrompt component (prompt mode, no auto-reload)
-// Play notification sound when push arrives and app is open
+// Limpa service workers antigos para evitar cache quebrado/tela preta
+// e mantém apenas o listener de áudio para notificações em páginas abertas.
 if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(
+        registrations.map((registration) => registration.unregister().catch(() => false))
+      ))
+      .catch(() => {});
+  });
+
   navigator.serviceWorker.addEventListener("message", (event) => {
     if (event.data?.type === "PUSH_NOTIFICATION_RECEIVED") {
       try {
