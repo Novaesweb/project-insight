@@ -76,6 +76,7 @@ export default function Site() {
           <WhatsAppFloat />
           
           <MobileAppNav onOpenModal={setModalOpen} />
+          <ExitIntentPopup />
         </Suspense>
       </main>
     </div>
