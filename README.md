@@ -1,8 +1,6 @@
 # Novaes Web - Painel Administrativo
 
-Um painel administrativo completo para gestão de clientes, projetos, financeiro e muito mais. Construído com React, TypeScript, Tailwind CSS e integrado com Lovable e Supabase.
-
-**🎨 Projeto Lovable**: https://lovable.dev/projects/PROJECT_ID
+Um painel administrativo completo para gestão de clientes, projetos, financeiro e muito mais. Construído com React, TypeScript, Tailwind CSS e Supabase.
 
 ## 🚀 Início Rápido
 
@@ -26,13 +24,6 @@ npm run dev
 
 O aplicativo estará disponível em `http://localhost:8080`
 
-### Usando Lovable (Recomendado)
-
-1. Acesse o [Projeto Lovable](https://lovable.dev/projects/PROJECT_ID)
-2. Faça prompts em linguagem natural
-3. As mudanças serão commitadas automaticamente neste repositório
-4. Puxe as mudanças localmente com `git pull`
-
 ## 📋 Scripts Disponíveis
 
 | Script | Descrição |
@@ -55,8 +46,6 @@ O aplicativo estará disponível em `http://localhost:8080`
 - **Supabase** - Backend e autenticação
 - **React Query** - Gerenciamento de estado
 - **PWA** - Aplicação web progressiva
-- **Lovable** - Desenvolvimento com IA
-
 ## 🗂️ Estrutura do Projeto
 
 ```
@@ -104,21 +93,7 @@ O projeto inclui suporte completo a PWA:
 - Sincronização em background
 - Notificações push nativas
 
-## 🤖 Integração com Lovable
-
-O projeto está totalmente configurado para desenvolvimento com Lovable:
-- Plugin `lovable-tagger` ativado em desenvolvimento
-- Git connection configurada para auto-commit
-- ComponentTagger rastreando mudanças de componentes
-
-Para mais informações, veja [LOVABLE_GUIDE.md](./LOVABLE_GUIDE.md)
-
 ## 🚀 Deployment
-
-### Via Lovable
-1. Acesse [Projeto Lovable](https://lovable.dev/projects/PROJECT_ID)
-2. Clique em Share → Publish
-3. Siga as instruções para deploy
 
 ### Via Vercel, Netlify ou similar
 1. Conecte seu repositório GitHub
@@ -135,7 +110,6 @@ npm run preview
 
 ## 📖 Documentação Adicional
 
-- [Guia Lovable](./LOVABLE_GUIDE.md) - Instruções completas de desenvolvimento com Lovable
 - [Documentação Vite](https://vitejs.dev/)
 - [Documentação shadcn/ui](https://ui.shadcn.com/)
 - [Documentação Supabase](https://supabase.com/docs)
@@ -156,7 +130,6 @@ Este projeto é propriedade de Novaes Web.
 ## 🆘 Suporte
 
 Para dúvidas sobre:
-- **Lovable**: visite https://lovable.dev/docs
 - **Supabase**: visite https://supabase.com/docs
 - **Projeto**: crie uma issue no GitHub
 

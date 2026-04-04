@@ -1,6 +1,6 @@
 {
   "name": "novaesweb",
-  "description": "Painel Administrativo - NovaesWeb com Lovable",
+  "description": "Painel Administrativo - NovaesWeb",
   "private": true,
   "version": "10.0.0",
   "type": "module",
@@ -107,7 +107,6 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "globals": "^15.15.0",
     "jsdom": "^20.0.3",
-    "lovable-tagger": "^1.1.13",
     "postcss": "^8.4.32",
     "rollup-plugin-visualizer": "^7.0.1",
     "supabase": "^2.84.6",

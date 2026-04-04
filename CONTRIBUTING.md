@@ -4,27 +4,9 @@
 
 Obrigado por considerar contribuir para o Novaes Web. Este documento fornece diretrizes e instruções sobre como contribuir para o projeto.
 
-## Como Funciona Nossa Integração com Lovable
-
-Temos um fluxo de trabalho único que combina o melhor do Lovable com desenvolvimento local:
-
-1. **Mudanças via Lovable** → Auto-commit no GitHub
-2. **Mudanças via GitHub** → Refletidas em Lovable
-3. **Desenvolvimento Local** → Push para GitHub → Refletidas em Lovable
-
 ## Fluxo de Contribuição
 
-### Opção 1: Usando Lovable (Recomendado para Features)
-
-```
-1. Acesse https://lovable.dev/projects/[PROJECT_ID]
-2. Use prompts em linguagem natural para descrever a feature
-3. Revise as mudanças
-4. Lovable faz auto-commit
-5. Puxe as mudanças localmente: git pull
-```
-
-### Opção 2: Desenvolvimento Local
+### Desenvolvimento Local
 
 ```bash
 # 1. Clone e configure
@@ -231,7 +213,6 @@ Esperamos manter alta qualidade:
 ## Dúvidas?
 
 - Abra uma issue com `[QUESTION]` no título
-- Visite https://lovable.dev/docs
 - Visite https://supabase.com/docs
 
 ## Respeito e Inclusão
