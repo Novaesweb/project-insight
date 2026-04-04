@@ -50,7 +50,7 @@ export class AsaasService {
     });
 
     if (error) {
-      console.error("Erro na Edge Function:", error);
+      console.error("Erro na Edge Function do Asaas:", error.message);
       // Tenta extrair a mensagem de erro detalhada
       let errorMessage = "Falha na ponte de comunicação com o Asaas.";
       try {
@@ -73,24 +73,18 @@ export class AsaasService {
    * Cria ou busca um cliente pelo documento ou email
    */
   static async getOrCreateCustomer(payload: AsaasCustomerPayload) {
-    console.log("🔍 Buscando/criando cliente no Asaas:", payload);
-    
     // Tenta buscar por CPF/CNPJ se disponível
     if (payload.cpfCnpj) {
-      console.log("📋 Buscando por CPF/CNPJ:", payload.cpfCnpj);
       const search = await this.request(`/customers?cpfCnpj=${payload.cpfCnpj}`);
       if (search.data && search.data.length > 0) {
-        console.log("✅ Cliente encontrado por CPF/CNPJ:", search.data[0]);
         // Se encontrou, verifica se precisa atualizar com CPF/CNPJ
         const customer = search.data[0];
         if (!customer.cpfCnpj && payload.cpfCnpj) {
-          console.log("🔄 Atualizando cliente com CPF/CNPJ...");
           const updated = await this.request(`/customers/${customer.id}`, "POST", {
             cpfCnpj: payload.cpfCnpj,
             mobilePhone: payload.mobilePhone,
             externalReference: payload.externalReference
           });
-          console.log("✅ Cliente atualizado:", updated);
           return updated;
         }
         return customer;
@@ -99,20 +93,16 @@ export class AsaasService {
     
     // Senão, busca por email
     if (payload.email) {
-      console.log("📧 Buscando por email:", payload.email);
       const search = await this.request(`/customers?email=${encodeURIComponent(payload.email)}`);
       if (search.data && search.data.length > 0) {
-        console.log("✅ Cliente encontrado por email:", search.data[0]);
         // Se encontrou, verifica se precisa atualizar com CPF/CNPJ
         const customer = search.data[0];
         if (!customer.cpfCnpj && payload.cpfCnpj) {
-          console.log("🔄 Atualizando cliente existente com CPF/CNPJ...");
           const updated = await this.request(`/customers/${customer.id}`, "POST", {
             cpfCnpj: payload.cpfCnpj,
             mobilePhone: payload.mobilePhone,
             externalReference: payload.externalReference
           });
-          console.log("✅ Cliente atualizado:", updated);
           return updated;
         }
         return customer;
@@ -120,10 +110,7 @@ export class AsaasService {
     }
     
     // Senão, cria novo
-    console.log("👤 Criando novo cliente...");
-    const newCustomer = await this.request("/customers", "POST", payload);
-    console.log("✅ Novo cliente criado:", newCustomer);
-    return newCustomer;
+    return this.request("/customers", "POST", payload);
   }
 
   /**

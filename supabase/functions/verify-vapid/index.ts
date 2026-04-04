@@ -15,8 +15,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    console.log("[Verify] Checking VAPID configuration...");
-    
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     const VAPID_PUBLIC_KEY = "BO9uhUEJOQdzq7bANXsX-6lKXuRqgd2PFAK43GXwB2NxPW_Wgb4yANtVk1-bxOtFUWjCRvxAX2k2jbagrPl2MaE";
     const VAPID_SUBJECT = "mailto:camila.lucas2604@gmail.com";
@@ -28,9 +26,6 @@ serve(async (req: Request) => {
       subject: VAPID_SUBJECT,
       environment: Deno.env.get("DENO_DEPLOYMENT_ID") || "unknown"
     };
-
-    console.log("[Verify] VAPID Configuration:", config);
-
     return new Response(JSON.stringify({
       success: true,
       message: "VAPID configuration verified",
@@ -40,7 +35,7 @@ serve(async (req: Request) => {
     });
 
   } catch (error) {
-    console.error("[Verify] Error:", error);
+    console.error("[Verify] Error");
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : "Unknown error"

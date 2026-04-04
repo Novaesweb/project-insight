@@ -37,8 +37,6 @@ serve(async (req: Request) => {
     const hojeStr = hoje.toISOString().split('T')[0]
     const tresDiasStr = tresDias.toISOString().split('T')[0]
 
-    console.log(`🔍 Buscando faturas pendentes com vencimento entre ${hojeStr} e ${tresDiasStr}...`)
-
     // Buscar do financeiro: pendentes, com vencimento nos próximos 3 dias, que ainda não foram enviadas ao Asaas
     const { data: faturas, error: fatErr } = await supabase
       .from('financeiro')
@@ -49,12 +47,11 @@ serve(async (req: Request) => {
       .gte('vencimento', hojeStr)
 
     if (fatErr) {
-      console.error('❌ Erro ao buscar faturas:', fatErr)
+      console.error('❌ Erro ao buscar faturas pendentes')
       throw fatErr
     }
 
     if (!faturas || faturas.length === 0) {
-      console.log('✅ Nenhuma fatura pendente para enviar ao Asaas')
       return new Response(JSON.stringify({ message: 'Nenhuma fatura para enviar', count: 0 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -76,13 +73,12 @@ serve(async (req: Request) => {
     for (const fatura of faturas) {
       // Pular se já tem cobrança no Asaas
       if (envidasSet.has(fatura.id)) {
-        console.log(`⏭️ Fatura ${fatura.id} já tem cobrança no Asaas, pulando...`)
         continue
       }
 
       const cliente = fatura.clientes
       if (!cliente) {
-        console.warn(`⚠️ Fatura ${fatura.id} sem cliente vinculado, pulando...`)
+        console.warn('⚠️ Fatura sem cliente vinculado, pulando envio ao Asaas')
         continue
       }
 
@@ -126,7 +122,7 @@ serve(async (req: Request) => {
           if (createData.id) {
             asaasCustomerId = createData.id
           } else {
-            console.error(`❌ Erro ao criar cliente ${cliente.nome} no Asaas:`, createData)
+            console.error('❌ Erro ao criar cliente no Asaas')
             erros++
             continue
           }
@@ -148,8 +144,6 @@ serve(async (req: Request) => {
         const paymentData = await paymentResp.json()
 
         if (paymentData.id) {
-          console.log(`✅ Cobrança criada no Asaas para ${cliente.nome}: ${paymentData.id}`)
-
           // 3. Atualizar recurrent_billing_history se existir
           await supabase
             .from('recurrent_billing_history')
@@ -171,24 +165,23 @@ serve(async (req: Request) => {
 
           enviadas++
         } else {
-          console.error(`❌ Erro ao criar cobrança para ${cliente.nome}:`, paymentData)
+          console.error('❌ Erro ao criar cobrança no Asaas')
           erros++
         }
       } catch (err) {
-        console.error(`❌ Erro processando fatura ${fatura.id}:`, err)
+        console.error('❌ Erro ao processar fatura para envio ao Asaas')
         erros++
       }
     }
 
     const result = { message: `Processamento concluído`, enviadas, erros, total: faturas.length }
-    console.log('📊 Resultado:', result)
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (error: any) {
-    console.error('❌ Erro geral:', error)
+    console.error('❌ Erro geral no envio automático ao Asaas')
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

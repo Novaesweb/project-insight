@@ -97,34 +97,30 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
 
   const loadData = useCallback(async () => {
     try {
-      console.log("Carregando dados do cliente:", clienteId);
-      
       const { data: c, error: errorCliente } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
       if (errorCliente) {
-        console.error("Erro ao carregar cliente:", errorCliente);
+        console.error("Erro ao carregar cliente");
         throw errorCliente;
       }
       if (c) setCliente(c);
 
       const { data: e, error: errorExtras } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
-      if (errorExtras) console.error("Erro ao carregar extras:", errorExtras);
+      if (errorExtras) console.error("Erro ao carregar extras do cliente");
       if (e) setExtras(e);
 
       const { data: p, error: errorProjetos } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
-      if (errorProjetos) console.error("Erro ao carregar projetos:", errorProjetos);
+      if (errorProjetos) console.error("Erro ao carregar projetos do cliente");
       if (p) setProjetos(p);
 
       const { data: ped, error: errorPedidos } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
-      if (errorPedidos) console.error("Erro ao carregar pedidos:", errorPedidos);
+      if (errorPedidos) console.error("Erro ao carregar pedidos do cliente");
       if (ped) setPedidos(ped);
 
       const { data: cat, error: errorCatalogo } = await supabase.from("extras_catalogo").select("*");
-      if (errorCatalogo) console.error("Erro ao carregar catálogo:", errorCatalogo);
+      if (errorCatalogo) console.error("Erro ao carregar catálogo de extras");
       if (cat) setCatalogo(cat);
-      
-      console.log("Dados carregados com sucesso");
     } catch (error) {
-      console.error("Erro ao carregar dados do cliente:", error);
+      console.error("Erro ao carregar dados do cliente");
       toast({ 
         title: "Erro ao carregar dados", 
         description: "Não foi possível carregar as informações do cliente", 

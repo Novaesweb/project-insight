@@ -87,7 +87,6 @@ function ReferralTracker() {
     const ref = params.get("ref");
     if (ref) {
       localStorage.setItem("nv_referral_code", ref);
-      console.log("Referral code captured:", ref);
     }
   }, [search]);
 
@@ -140,7 +139,6 @@ const DesktopNavigationHandler = () => {
   useEffect(() => {
     if (window.electron && window.electron.receive) {
       window.electron.receive("navigate-to", (url: string) => {
-        console.log("Navigating to:", url);
         navigate(url);
       });
     }

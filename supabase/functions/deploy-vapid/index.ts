@@ -15,8 +15,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    console.log("[Deploy] Forcing VAPID deployment check...");
-    
     // Verificar se as keys estão configuradas
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     const hasPrivateKey = !!VAPID_PRIVATE_KEY;
@@ -31,19 +29,17 @@ serve(async (req: Request) => {
         step1: "Configure VAPID_PRIVATE_KEY no Supabase Dashboard",
         step2: "Settings → Edge Functions → Secrets",
         step3: "Name: VAPID_PRIVATE_KEY",
-        step4: "Value: _3WQ52LJ9q_l5E7_WibbuHPRV6-RNCbtj3ufBWfpzbk",
+        step4: "Value: [cole aqui sua VAPID private key atual]",
         step5: "Wait 2-3 minutes for deployment"
       }
     };
-
-    console.log("[Deploy] Response:", response);
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
 
   } catch (error) {
-    console.error("[Deploy] Error:", error);
+    console.error("[Deploy] Error");
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : "Unknown error"

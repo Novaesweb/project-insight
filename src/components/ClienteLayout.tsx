@@ -199,7 +199,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           setReady(true);
         }
       } catch (error) {
-        console.error("Client portal session sync error:", error);
+        console.error("Client portal session sync error");
         clearClientProfile();
         await supabase.auth.signOut();
         if (active) {
@@ -244,8 +244,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           table: "clientes",
           filter: `id=eq.${cliente.id}`
         },
-        (payload) => {
-          console.log("Cliente deletado, desconectando...", payload);
+        () => {
           clearClientProfile();
 
           if (adminMirrorMode) {

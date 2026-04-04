@@ -154,7 +154,7 @@ export default function AdminRecurrentExtras() {
       }
       setClientes(Array.from(grouped.values()).sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome)));
     } catch (err) {
-      console.error("Erro:", err);
+      console.error("Erro ao carregar extras recorrentes");
       toast({ title: "Erro ao carregar clientes", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -176,8 +176,6 @@ export default function AdminRecurrentExtras() {
     const mesNum = parseInt(mesStr);
     const vencDia = parseInt(diaVencimento) || 10;
     const vencimento = `${anoStr}-${mesStr}-${vencDia.toString().padStart(2, "0")}`;
-
-    console.log("Gerando faturas para:", { selectedClientes: Array.from(selectedClientes), mesSelecionado, ano, mesNum, vencimento });
 
     for (const clienteId of selectedClientes) {
       const cliente = clientes.find(c => c.cliente_id === clienteId);
@@ -229,13 +227,13 @@ export default function AdminRecurrentExtras() {
         const { error: insertError } = await (supabase as any).from("recurrent_billing_history").insert(faturaData).select();
 
         if (insertError) {
-          console.error("Erro ao inserir fatura:", insertError);
+          console.error("Erro ao inserir fatura recorrente");
           erros++;
         } else {
           ok++;
         }
       } catch (err) {
-        console.error("Erro gerando fatura:", err);
+        console.error("Erro ao gerar fatura recorrente");
         erros++;
       }
     }
@@ -264,7 +262,7 @@ export default function AdminRecurrentExtras() {
       setSelectedCliente(cliente);
       setShowClienteDialog(true);
     } catch (err) {
-      console.error("Erro ao carregar histórico:", err);
+      console.error("Erro ao carregar histórico de faturamento");
       toast({ title: "Erro ao carregar histórico", variant: "destructive" });
     }
   };
@@ -310,7 +308,7 @@ export default function AdminRecurrentExtras() {
         description: "Fatura criada. O Asaas será acionado automaticamente 3 dias antes do vencimento.",
       });
     } catch (err: any) {
-      console.error("Erro ao enviar:", err);
+      console.error("Erro ao enviar fatura para o financeiro");
       toast({ title: "Erro ao enviar para financeiro", description: err?.message, variant: "destructive" });
     } finally {
       setEnviandoFinanceiro(null);
@@ -354,24 +352,19 @@ export default function AdminRecurrentExtras() {
     
     setDeletingFatura(fatura.id);
     try {
-      console.log("Excluindo fatura:", fatura.id);
-      
       // Remover do financeiro se existir
       if (fatura.financeiro_id) {
         await supabase.from("financeiro").delete().eq("id", fatura.financeiro_id);
-        console.log("Fatura do financeiro removida:", fatura.financeiro_id);
       }
       
       // Remover do recurrent_billing_history
       const { error } = await (supabase as any).from("recurrent_billing_history").delete().eq("id", fatura.id);
       
       if (error) {
-        console.error("Erro ao excluir fatura:", error);
+        console.error("Erro ao excluir fatura recorrente");
         throw error;
       }
-      
-      console.log("Fatura excluída com sucesso");
-      
+
       // Atualizar estado local
       setFaturasMes(prev => prev.filter(f => f.id !== fatura.id));
       
@@ -380,7 +373,7 @@ export default function AdminRecurrentExtras() {
         description: `Fatura de ${formatMes(fatura.mes)} foi removida com sucesso.` 
       });
     } catch (err: any) {
-      console.error("Erro ao excluir fatura:", err);
+      console.error("Erro ao excluir fatura recorrente");
       toast({ 
         title: "Erro ao excluir fatura", 
         description: err?.message || "Tente novamente",
@@ -408,9 +401,7 @@ export default function AdminRecurrentExtras() {
         toast({ title: "Valor inválido", description: "Digite um valor maior que 0", variant: "destructive" });
         return;
       }
-      
-      console.log("Editando fatura:", editingFatura.id, "Novo valor:", novoValor);
-      
+
       const { error } = await (supabase as any).from("recurrent_billing_history").update({
         valor_total: novoValor,
         descricao: editDescricao,
@@ -418,7 +409,7 @@ export default function AdminRecurrentExtras() {
       }).eq("id", editingFatura.id);
       
       if (error) {
-        console.error("Erro ao editar fatura:", error);
+        console.error("Erro ao editar fatura recorrente");
         throw error;
       }
       
@@ -445,7 +436,7 @@ export default function AdminRecurrentExtras() {
         description: `Fatura de ${formatMes(editingFatura.mes)} foi atualizada com sucesso.` 
       });
     } catch (err: any) {
-      console.error("Erro ao editar fatura:", err);
+      console.error("Erro ao editar fatura recorrente");
       toast({ 
         title: "Erro ao editar fatura", 
         description: err?.message || "Tente novamente",

@@ -21,8 +21,6 @@ serve(async (req) => {
     const body = await req.text()
     const event = JSON.parse(body)
 
-    console.log('Asaas webhook received:', event)
-
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -39,21 +37,17 @@ serve(async (req) => {
           .eq('descricao', `ilike.*Asaas: ${event.payment.id}%`)
 
         if (error) {
-          console.error('Error updating payment:', error)
-        } else {
-          console.log('Payment confirmed and updated:', event.payment.id)
+          console.error('Error updating payment status')
         }
         break
       }
 
       case 'PAYMENT_DELETED': {
         // Handle payment deletion
-        console.log('Payment deleted:', event.payment.id)
         break
       }
 
       default: {
-        console.log('Unhandled event type:', event.event)
         break
       }
     }
@@ -61,7 +55,7 @@ serve(async (req) => {
     return new Response('OK', { headers: corsHeaders })
 
   } catch (error) {
-    console.error('Webhook error:', error)
+    console.error('Webhook error')
     return new Response(
       JSON.stringify({ error: (error as Error).message }), 
       { 

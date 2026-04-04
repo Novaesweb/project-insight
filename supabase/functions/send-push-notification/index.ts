@@ -20,11 +20,9 @@ serve(async (req: Request) => {
   }
 
   try {
-    console.log("[Push] Starting request...");
-
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     if (!VAPID_PRIVATE_KEY) {
-      console.error("[Push] VAPID_PRIVATE_KEY not set");
+      console.error("[Push] VAPID private key not configured");
       return new Response(JSON.stringify({ error: "VAPID_PRIVATE_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -33,7 +31,6 @@ serve(async (req: Request) => {
 
     // Configure web-push with VAPID keys
     webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-    console.log("[Push] VAPID configured successfully");
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -42,8 +39,6 @@ serve(async (req: Request) => {
 
     const bodyData = await req.json();
     const { target, targetId, title, body, url, tag, directSubscription } = bodyData;
-
-    console.log("[Push] Request:", { target, targetId, title });
 
     let subscriptions: Array<{
       id: string;
@@ -56,7 +51,6 @@ serve(async (req: Request) => {
 
     // Direct subscription provided (test notification)
     if (directSubscription?.endpoint && directSubscription?.p256dh && directSubscription?.auth) {
-      console.log("[Push] Using direct subscription");
       const directUserId = directSubscription.user_id || targetId || "admin";
       const directUserType = directSubscription.user_type || target || "admin";
 
@@ -88,9 +82,8 @@ serve(async (req: Request) => {
       }
 
       const { data, error } = await query;
-      if (error) console.error("[Push] Error fetching subscriptions:", error);
+      if (error) console.error("[Push] Failed to fetch subscriptions");
       subscriptions = (data || []) as typeof subscriptions;
-      console.log("[Push] Found", subscriptions.length, "subscriptions");
     }
 
     // Save notification to history
@@ -145,21 +138,18 @@ serve(async (req: Request) => {
           }
         );
         sent++;
-        console.log("[Push] Sent to:", sub.endpoint.slice(0, 50));
       } catch (e: unknown) {
         const err = e as { statusCode?: number; message?: string };
-        console.error("[Push] Error sending:", err.statusCode, err.message);
+        console.error("[Push] Error sending notification:", err.statusCode ?? "unknown");
         if (err.statusCode === 410 || err.statusCode === 404) {
           // Subscription expired, remove it
           await supabaseAdmin.from("push_subscriptions").delete().eq("id", sub.id);
-          console.log("[Push] Removed expired subscription:", sub.id);
         } else {
           errors.push(`${err.statusCode}: ${err.message}`);
         }
       }
     }
 
-    console.log("[Push] Done. Sent:", sent, "of", subscriptions.length);
     return new Response(JSON.stringify({ sent, total: subscriptions.length, errors: errors.length > 0 ? errors : undefined }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

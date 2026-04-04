@@ -25,8 +25,7 @@ export default function ClientePedidosFome() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'menu_pedidos' },
-        (payload) => {
-          console.log('Change received!', payload);
+        () => {
           fetchPedidos();
         }
       )
