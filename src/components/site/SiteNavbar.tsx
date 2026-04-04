@@ -151,7 +151,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-6 ml-8">
           {/* Dropdown Empresa */}
           <div className="relative" onMouseEnter={() => setActiveDropdown("empresa")}>
             <button className="flex items-center gap-1.5 text-[13px] text-foreground/60 hover:text-foreground/90 transition-all font-bold tracking-[0.1em] uppercase group">
