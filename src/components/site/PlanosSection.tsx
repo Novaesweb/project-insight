@@ -75,7 +75,7 @@ const plans = [
   },
 ];
 
-function PlanCard({ plan }: { plan: typeof plans[number] }) {
+function PlanCard({ plan }: { plan: (typeof plans)[number] & Record<string, any> }) {
   return (
     <motion.div
       variants={fade}
