@@ -6,7 +6,7 @@ import { usePublicContact } from "@/hooks/usePublicContact";
 
 const ExitIntentPopup = memo(function ExitIntentPopup() {
   const [show, setShow] = useState(false);
-  const { whatsapp } = usePublicContact();
+  const { whatsappNumber } = usePublicContact();
 
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem("nw-exit-popup-shown");
