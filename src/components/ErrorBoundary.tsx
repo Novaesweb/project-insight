@@ -17,31 +17,31 @@ interface State {
 class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    (this as any).state = { hasError: false, error: null, errorInfo: null };
+    this.handleReset = this.handleReset.bind(this);
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    this.setState({ error, errorInfo });
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    (this as any).setState({ error, errorInfo });
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
-    }
+    const onError = (this as any).props.onError;
+    if (onError) onError(error, errorInfo);
   }
 
-  handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
-  };
+  handleReset(): void {
+    (this as any).setState({ hasError: false, error: null, errorInfo: null });
+  }
 
-  render() {
-    const state = this.state;
-    const props = this.props;
+  render(): React.ReactNode {
+    const s = (this as any).state as State;
+    const p = (this as any).props as Props;
 
-    if (state.hasError) {
-      if (props.fallback) return props.fallback;
+    if (s.hasError) {
+      if (p.fallback) return p.fallback;
 
       return (
         <div className="flex min-h-[400px] items-center justify-center p-6">
@@ -57,19 +57,19 @@ class ErrorBoundary extends React.Component<Props, State> {
                 Ocorreu um erro inesperado. Por favor, tente novamente ou entre em contato com o suporte.
               </p>
             </div>
-            {import.meta.env.DEV && state.error && (
+            {import.meta.env.DEV && s.error && (
               <details className="text-left">
                 <summary className="cursor-pointer text-sm font-mono text-muted-foreground hover:text-foreground">
                   Ver detalhes do erro
                 </summary>
                 <div className="mt-2 space-y-2">
                   <div className="rounded bg-muted p-2 text-xs font-mono">
-                    <strong>Erro:</strong> {state.error.message}
+                    <strong>Erro:</strong> {s.error.message}
                   </div>
-                  {state.errorInfo && (
+                  {s.errorInfo && (
                     <div className="rounded bg-muted p-2 text-xs font-mono max-h-32 overflow-auto">
                       <strong>Stack:</strong>
-                      <pre className="whitespace-pre-wrap">{state.errorInfo.componentStack}</pre>
+                      <pre className="whitespace-pre-wrap">{s.errorInfo.componentStack}</pre>
                     </div>
                   )}
                 </div>
@@ -89,7 +89,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    return props.children;
+    return p.children;
   }
 }
 
