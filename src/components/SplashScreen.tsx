@@ -7,7 +7,7 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
   const [visible, setVisible] = useState(true);
   const fullText = "Carregando seu painel...";
 
-  const onCompleteRef = React.useRef(onComplete);
+  const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
