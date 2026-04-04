@@ -23,13 +23,13 @@ const ExitIntentPopup = memo(function ExitIntentPopup() {
   const close = useCallback(() => setShow(false), []);
 
   const handleCTA = useCallback(() => {
-    const phone = whatsapp?.replace(/\D/g, "") || "5551991189293";
+    const phone = whatsappNumber?.replace(/\D/g, "") || "5551991189293";
     const msg = encodeURIComponent(
       "Olá! Vi a promoção de *demonstração grátis por 7 dias* no site e quero aproveitar! 🚀"
     );
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
     setShow(false);
-  }, [whatsapp]);
+  }, [whatsappNumber]);
 
   return (
     <AnimatePresence>
