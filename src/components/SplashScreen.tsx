@@ -7,6 +7,9 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
   const [visible, setVisible] = useState(true);
   const fullText = "Carregando seu painel...";
 
+  const onCompleteRef = React.useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   useEffect(() => {
     // Typing effect
     let i = 0;
@@ -30,7 +33,7 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
         clearInterval(progressInterval);
         setTimeout(() => {
           setVisible(false);
-          setTimeout(onComplete, 400);
+          setTimeout(() => onCompleteRef.current?.(), 400);
         }, 300);
       }
     }, 20);
@@ -39,7 +42,7 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
       clearInterval(typeInterval);
       clearInterval(progressInterval);
     };
-  }, [onComplete]);
+  }, []);
 
   return (
     <AnimatePresence>
