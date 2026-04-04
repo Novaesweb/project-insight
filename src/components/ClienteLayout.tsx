@@ -135,7 +135,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           setCliente(null);
           setAdminMirrorMode(false);
           setReady(true);
-          navigate("/cliente", { replace: true });
+          navigate("/cliente/login", { replace: true });
         }
         return;
       }
@@ -184,7 +184,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
             setCliente(null);
             setAdminMirrorMode(false);
             setReady(true);
-            navigate("/cliente", { replace: true });
+            navigate("/cliente/login", { replace: true });
           }
           return;
         }
@@ -203,7 +203,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           setCliente(null);
           setAdminMirrorMode(false);
           setReady(true);
-          navigate("/cliente", { replace: true });
+          navigate("/cliente/login", { replace: true });
         }
       }
     };
@@ -218,7 +218,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         setCliente(null);
         setAdminMirrorMode(false);
         setReady(true);
-        navigate("/cliente", { replace: true });
+        navigate("/cliente/login", { replace: true });
       }
     });
 
@@ -251,7 +251,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
           void supabase.auth.signOut();
           alert("⚠️ Acesso Revogado\n\nSeu acesso foi desativado pelo administrador. Você será redirecionado para a página de login.");
-          navigate("/cliente", { replace: true });
+          navigate("/cliente/login", { replace: true });
           window.location.reload();
         }
       )
@@ -273,7 +273,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
     }
 
     void supabase.auth.signOut();
-    navigate("/cliente", { replace: true });
+    navigate("/cliente/login", { replace: true });
   };
 
   return (

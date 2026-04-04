@@ -171,7 +171,8 @@ const App = () => (
               <Route path="/criacao-conteudo" element={<CriacaoConteudo />} />
           <Route path="/funcionalidades" element={<Funcionalidades />} />
           <Route path="/landing" element={<LandingPage />} />
-          <Route path="/cliente" element={<ClienteLogin />} />
+          <Route path="/cliente" element={<Navigate to="/cliente/login" replace />} />
+          <Route path="/cliente/login" element={<ClienteLogin />} />
           <Route path="/cliente/reset-password" element={<ClienteResetPassword />} />
 
               {/* Client Portal */}
