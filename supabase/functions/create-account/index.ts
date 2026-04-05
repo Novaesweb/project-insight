@@ -46,7 +46,7 @@ serve(async (req: Request) => {
     const { data: actorProfile, error: actorProfileError } = await supabaseAdmin
       .from("usuarios")
       .select("email, acesso, status, bloqueado")
-      .eq("email", actorEmail)
+      .ilike("email", actorEmail)
       .maybeSingle();
 
     if (actorProfileError) {
@@ -86,7 +86,10 @@ serve(async (req: Request) => {
     });
 
     if (createError) {
-      return jsonResponse({ error: createError.message }, 400);
+      const message = createError.message?.includes("already been registered")
+        ? "Já existe uma conta cadastrada com este e-mail."
+        : createError.message;
+      return jsonResponse({ error: message }, 400);
     }
 
     return jsonResponse({ user: userData.user, message: "Conta criada com sucesso" });

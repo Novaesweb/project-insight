@@ -80,7 +80,12 @@ export default function ClienteDashboard() {
     if (!cId) return;
     Promise.all([
       supabase.from("projetos").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "cancelado"),
-      supabase.from("financeiro").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "pago"),
+      supabase
+        .from("financeiro")
+        .select("id", { count: "exact", head: true })
+        .eq("cliente_id", cId)
+        .eq("tipo", "entrada")
+        .in("status", ["pendente", "em_atraso"]),
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
     ]).then(([p, f, t]) => setCounts({ projetos: p.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
 
@@ -169,6 +174,26 @@ export default function ClienteDashboard() {
   };
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!cId) return;
+
+    const handleFocus = () => load();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        load();
+      }
+    };
+
+    const interval = window.setInterval(load, 15000);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [cId, load]);
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("financeiro", load);
   useRealtimeSubscription("tickets", load);
@@ -177,7 +202,7 @@ export default function ClienteDashboard() {
 
   const kpis = [
     { label: "Soluções Ativas", value: counts.projetos, icon: FolderKanban },
-    { label: "Fluxo de Valor", value: counts.faturas, icon: Receipt },
+    { label: "Faturas em Aberto", value: counts.faturas, icon: Receipt },
     { label: "Dossiês de Evolução", value: counts.tickets, icon: Headphones },
   ];
 

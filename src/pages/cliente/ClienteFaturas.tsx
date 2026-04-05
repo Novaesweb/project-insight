@@ -34,6 +34,7 @@ export default function ClienteFaturas() {
       .from("financeiro")
       .select("*")
       .eq("cliente_id", cliente.id)
+      .eq("tipo", "entrada")
       .order("vencimento", { ascending: false });
 
     if (error) {
@@ -47,7 +48,9 @@ export default function ClienteFaturas() {
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("financeiro", load);
 
-  const totalPendente = faturas.filter(f => f.status !== "pago").reduce((a, f) => a + Number(f.valor), 0);
+  const totalPendente = faturas
+    .filter((f) => ["pendente", "em_atraso"].includes(f.status))
+    .reduce((a, f) => a + Number(f.valor), 0);
 
   const handleExport = async (f: any, type: "pdf" | "word" | "csv") => {
     const data = { 

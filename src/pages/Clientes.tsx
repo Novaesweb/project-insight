@@ -828,25 +828,36 @@ export default function Clientes() {
     const normalizedEmail = form.email.trim().toLowerCase();
     let authUserId: string | null = null;
 
-    if (criarConta) {
-      const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
-        body: {
-          email: normalizedEmail,
-          password: senhaCliente,
+      if (criarConta) {
+        const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
+          body: {
+            email: normalizedEmail,
+            password: senhaCliente,
           nome: form.nome,
           tipo: "cliente",
-        },
-      });
-
-      if (accountError || !accountData?.user?.id) {
-        toast({
-          title: "Erro ao provisionar acesso",
-          description: accountError?.message || accountData?.error || "Não foi possível criar a conta segura do cliente.",
-          variant: "destructive"
+          },
         });
-        setSaving(false);
-        return;
-      }
+
+        if (accountError || !accountData?.user?.id) {
+          let functionMessage = accountData?.error || null;
+
+          if (!functionMessage && accountError && "context" in accountError && accountError.context) {
+            try {
+              const errorPayload = await accountError.context.json();
+              functionMessage = errorPayload?.error || errorPayload?.message || null;
+            } catch {
+              functionMessage = null;
+            }
+          }
+
+          toast({
+            title: "Erro ao provisionar acesso",
+            description: functionMessage || accountError?.message || "Não foi possível criar a conta segura do cliente.",
+            variant: "destructive"
+          });
+          setSaving(false);
+          return;
+        }
 
       authUserId = accountData.user.id;
     }
