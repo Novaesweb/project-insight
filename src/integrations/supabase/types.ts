@@ -32,6 +32,56 @@ export type Database = {
         }
         Relationships: []
       }
+      cliente_checklist_items: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          item_key: string
+          ordem: number
+          status: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+          valor_texto: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          item_key: string
+          ordem?: number
+          status?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+          valor_texto?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          item_key?: string
+          ordem?: number
+          status?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor_texto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_checklist_items_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           auth_user_id: string | null

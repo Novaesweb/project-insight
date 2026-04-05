@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Sparkles,
   CalendarDays,
+  ClipboardList,
 } from "lucide-react";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -36,6 +37,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
       { href: "/admin/clientes", label: "Clientes", icon: Users },
+      { href: "/admin/checklist-clientes", label: "Checklist Clientes", icon: ClipboardList },
       { href: "/admin/leads", label: "Leads", icon: Headphones },
       { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
     ],

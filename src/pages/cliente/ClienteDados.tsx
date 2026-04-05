@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BellRing, Building2, MapPin, ShieldCheck } from "lucide-react";
+import { BellRing, Building2, ClipboardList, MapPin, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, isPushSupported } from "@/lib/push-notifications";
 import {
   getStoredClientProfile,
@@ -15,6 +18,19 @@ import {
   persistClientProfile,
   sanitizeClientProfile,
 } from "@/lib/client-portal-auth";
+import {
+  fetchAddressByCep,
+  formatCep,
+  formatCpfCnpj,
+  formatPhone,
+  getDocumentoProgressText,
+  getPhoneProgressText,
+  normalizeEmailSuggestion,
+} from "@/lib/client-registration";
+import {
+  getChecklistStatusMeta,
+  normalizeChecklistText,
+} from "@/lib/client-checklist";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -60,6 +76,21 @@ const enderecoFields = [
   { label: "Estado", key: "estado" },
 ] as const;
 
+type ClientChecklistItem = Tables<"cliente_checklist_items">;
+
+function formatClientFieldValue(key: string, value: string) {
+  if (key === "documento") return formatCpfCnpj(value);
+  if (key === "whatsapp" || key === "telefone") return formatPhone(value);
+  if (key === "cep") return formatCep(value);
+  return value;
+}
+
+function getClientFieldHelperText(key: string, value: string) {
+  if (key === "documento") return getDocumentoProgressText(value);
+  if (key === "whatsapp" || key === "telefone") return getPhoneProgressText(value);
+  return "";
+}
+
 export default function ClienteDados() {
   const cliente = getStoredClientProfile();
   const clienteId = cliente?.id ?? null;
@@ -67,10 +98,14 @@ export default function ClienteDados() {
 
   const [loading, setLoading] = useState(false);
   const [loadingDados, setLoadingDados] = useState(true);
+  const [loadingChecklist, setLoadingChecklist] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushSupported, setPushSupportedState] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [savingChecklist, setSavingChecklist] = useState(false);
+  const [checklist, setChecklist] = useState<ClientChecklistItem[]>([]);
+  const [checklistOriginal, setChecklistOriginal] = useState<Record<string, ClientChecklistItem>>({});
   const [dados, setDados] = useState({
     ...emptyDados,
     nome: cliente?.nome || "",
@@ -131,6 +166,46 @@ export default function ClienteDados() {
     };
   }, [clienteId, toast]);
 
+  useEffect(() => {
+    if (!clienteId) {
+      setLoadingChecklist(false);
+      return;
+    }
+
+    let active = true;
+
+    const loadChecklist = async () => {
+      const { data, error } = await supabase
+        .from("cliente_checklist_items")
+        .select("*")
+        .eq("cliente_id", clienteId)
+        .order("ordem", { ascending: true });
+
+      if (!active) return;
+
+      if (error) {
+        toast({
+          title: "Erro ao carregar checklist",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoadingChecklist(false);
+        return;
+      }
+
+      const items = (data || []) as ClientChecklistItem[];
+      setChecklist(items);
+      setChecklistOriginal(Object.fromEntries(items.map((item) => [item.id, item])));
+      setLoadingChecklist(false);
+    };
+
+    void loadChecklist();
+
+    return () => {
+      active = false;
+    };
+  }, [clienteId, toast]);
+
   const handleSave = async () => {
     if (!clienteId) return;
 
@@ -163,6 +238,140 @@ export default function ClienteDados() {
     }
 
     setLoading(false);
+  };
+
+  const handleDadosChange = (key: string, value: string) => {
+    setDados((prev) => ({
+      ...prev,
+      [key]: formatClientFieldValue(key, value),
+    }));
+  };
+
+  const handleEmailBlur = (value: string) => {
+    setDados((prev) => ({
+      ...prev,
+      email: normalizeEmailSuggestion(value),
+    }));
+  };
+
+  const handleCepLookup = async (value: string) => {
+    const normalizedCep = formatCep(value);
+
+    setDados((prev) => ({
+      ...prev,
+      cep: normalizedCep,
+    }));
+
+    try {
+      const address = await fetchAddressByCep(normalizedCep);
+      if (!address) return;
+
+      setDados((prev) => ({
+        ...prev,
+        cep: normalizedCep,
+        endereco: address.endereco || prev.endereco,
+        bairro: address.bairro || prev.bairro,
+        cidade: address.cidade || prev.cidade,
+        estado: address.estado || prev.estado,
+        complemento: prev.complemento || address.complemento || "",
+      }));
+
+      toast({
+        title: "CEP localizado",
+        description: "Endereço preenchido automaticamente no seu cadastro.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Não foi possível buscar o CEP",
+        description: error?.message || "Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleChecklistValueChange = (itemId: string, value: string) => {
+    setChecklist((current) =>
+      current.map((item) => {
+        if (item.id !== itemId) return item;
+
+        const normalizedValue = normalizeChecklistText(value);
+        const nextStatus = normalizedValue
+          ? item.status === "pendente"
+            ? "preenchido"
+            : item.status
+          : "pendente";
+
+        return {
+          ...item,
+          valor_texto: value,
+          status: nextStatus,
+        };
+      })
+    );
+  };
+
+  const handleSaveChecklist = async () => {
+    if (!clienteId || !checklist.length) return;
+
+    setSavingChecklist(true);
+
+    const payload = checklist.map((item) => {
+      const normalizedValue = normalizeChecklistText(item.valor_texto);
+      const originalItem = checklistOriginal[item.id];
+      const contentChanged = normalizeChecklistText(originalItem?.valor_texto) !== normalizedValue;
+
+      let nextStatus = item.status;
+
+      if (!normalizedValue) {
+        nextStatus = "pendente";
+      } else if (contentChanged || nextStatus === "pendente" || originalItem?.status === "aprovado") {
+        nextStatus = "preenchido";
+      }
+
+      return {
+        id: item.id,
+        valor_texto: normalizedValue || null,
+        status: nextStatus,
+        updated_by: "cliente",
+      };
+    });
+
+    const { error } = await supabase.from("cliente_checklist_items").upsert(payload as never[]);
+
+    if (error) {
+      toast({
+        title: "Erro ao salvar checklist",
+        description: error.message,
+        variant: "destructive",
+      });
+      setSavingChecklist(false);
+      return;
+    }
+
+    const refreshedChecklist = checklist.map((item) => {
+      const normalizedValue = normalizeChecklistText(item.valor_texto);
+      const originalItem = checklistOriginal[item.id];
+      const contentChanged = normalizeChecklistText(originalItem?.valor_texto) !== normalizedValue;
+
+      if (!normalizedValue) {
+        return { ...item, valor_texto: null, status: "pendente", updated_by: "cliente" };
+      }
+
+      if (contentChanged || item.status === "pendente" || originalItem?.status === "aprovado") {
+        return { ...item, valor_texto: normalizedValue, status: "preenchido", updated_by: "cliente" };
+      }
+
+      return { ...item, valor_texto: normalizedValue, updated_by: "cliente" };
+    });
+
+    setChecklist(refreshedChecklist);
+    setChecklistOriginal(Object.fromEntries(refreshedChecklist.map((item) => [item.id, item])));
+    setSavingChecklist(false);
+
+    toast({
+      title: "Checklist atualizado!",
+      description: "Suas informações iniciais foram enviadas para a equipe da NovaesWeb.",
+    });
   };
 
   const handleTogglePush = async () => {
@@ -232,10 +441,20 @@ export default function ClienteDados() {
                     <Input
                       type={field.type ?? "text"}
                       value={dados[field.key]}
-                      onChange={(e) => setDados((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      onChange={(e) => handleDadosChange(field.key, e.target.value)}
+                      onBlur={(e) => {
+                        if (field.key === "email") {
+                          handleEmailBlur(e.target.value);
+                        }
+                      }}
                       className="border-0 text-white mt-1 h-9 text-sm"
                       style={{ background: "rgba(255,255,255,0.06)" }}
                     />
+                    {getClientFieldHelperText(field.key, dados[field.key]) && (
+                      <p className="text-[10px] text-white/25 mt-1">
+                        {getClientFieldHelperText(field.key, dados[field.key])}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -255,7 +474,12 @@ export default function ClienteDados() {
                     <Label className="text-xs text-white/50">{field.label}</Label>
                     <Input
                       value={dados[field.key]}
-                      onChange={(e) => setDados((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      onChange={(e) => handleDadosChange(field.key, e.target.value)}
+                      onBlur={(e) => {
+                        if (field.key === "cep") {
+                          void handleCepLookup(e.target.value);
+                        }
+                      }}
                       className="border-0 text-white mt-1 h-9 text-sm"
                       style={{ background: "rgba(255,255,255,0.06)" }}
                     />
@@ -265,6 +489,64 @@ export default function ClienteDados() {
 
               <Button disabled={loading || loadingDados || !clienteId} className="gradient-primary border-0 text-white" onClick={handleSave}>
                 {loading ? "Salvando..." : loadingDados ? "Carregando..." : "Salvar cadastro"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-[0.5px] border-white/[0.08]" style={{ background: "rgba(255,255,255,0.04)" }}>
+            <CardContent className="p-5 space-y-5">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-white" />
+                <h2 className="text-sm font-bold text-white">Checklist Inicial</h2>
+              </div>
+
+              <p className="text-xs text-white/45">
+                Preencha o máximo possível aqui. A equipe da NovaesWeb recebe tudo no admin e aprova os itens para iniciar seu projeto.
+              </p>
+
+              {loadingChecklist ? (
+                <div className="rounded-xl border border-white/5 bg-white/[0.03] p-4 text-sm text-white/35">
+                  Carregando checklist...
+                </div>
+              ) : checklist.length === 0 ? (
+                <div className="rounded-xl border border-white/5 bg-white/[0.03] p-4 text-sm text-white/35">
+                  Nenhum item de checklist foi gerado para este cliente ainda.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {checklist.map((item) => {
+                    const statusMeta = getChecklistStatusMeta(item.status);
+
+                    return (
+                      <div key={item.id} className="rounded-2xl border border-white/5 bg-white/[0.03] p-4 space-y-3">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-sm font-bold text-white">{item.titulo}</p>
+                            <p className="text-xs text-white/40">{item.descricao}</p>
+                          </div>
+                          <Badge variant="outline" className={`border-[0.5px] rounded-full py-1 px-3 ${statusMeta.className}`}>
+                            {statusMeta.label}
+                          </Badge>
+                        </div>
+                        <Textarea
+                          value={item.valor_texto || ""}
+                          onChange={(event) => handleChecklistValueChange(item.id, event.target.value)}
+                          className="border-0 min-h-[110px] text-white text-sm"
+                          style={{ background: "rgba(255,255,255,0.06)" }}
+                          placeholder="Digite aqui as informações desse item..."
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <Button
+                disabled={savingChecklist || loadingChecklist || !checklist.length}
+                className="gradient-primary border-0 text-white"
+                onClick={handleSaveChecklist}
+              >
+                {savingChecklist ? "Salvando checklist..." : "Salvar checklist"}
               </Button>
             </CardContent>
           </Card>

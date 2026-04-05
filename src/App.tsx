@@ -30,6 +30,7 @@ import { getQueryClient } from "@/lib/query-client";
 const Site = React.lazy(() => import("./pages/Site"));
 const Index = React.lazy(() => import("./pages/Index"));
 const Clientes = React.lazy(() => import("./pages/Clientes"));
+const ChecklistClientes = React.lazy(() => import("./pages/ChecklistClientes"));
 const Projetos = React.lazy(() => import("./pages/Projetos"));
 const Pedidos = React.lazy(() => import("./pages/Pedidos"));
 const Extras = React.lazy(() => import("./pages/Extras"));
@@ -107,6 +108,7 @@ function AdminWithSplash() {
           <Routes>
             <Route index element={<Index />} />
             <Route path="clientes" element={<Clientes />} />
+            <Route path="checklist-clientes" element={<ChecklistClientes />} />
             <Route path="leads" element={<Leads />} />
             <Route path="projetos" element={<Projetos />} />
             <Route path="pedidos" element={<Pedidos />} />

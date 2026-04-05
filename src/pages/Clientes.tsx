@@ -5,7 +5,7 @@ import {
   Trash2, Pencil, ExternalLink, ArrowLeft,
   DollarSign, Package, Sparkles, FileText,
   AlertCircle, CheckCircle2, Clock, Zap,
-  ArrowRight, UserPlus, Copy, RefreshCw, Pause, StickyNote
+  ArrowRight, UserPlus, Copy, RefreshCw, Pause, StickyNote, ClipboardList
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -30,10 +30,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
 import InternalNotes from "@/components/InternalNotes";
+import {
+  fetchAddressByCep,
+  formatCep,
+  formatCpfCnpj,
+  formatPhone,
+  getDocumentoProgressText,
+  getPhoneProgressText,
+  normalizeEmailSuggestion,
+} from "@/lib/client-registration";
+import {
+  type ClientChecklistItem,
+  getChecklistPendingCount,
+  getChecklistProgress,
+} from "@/lib/client-checklist";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -120,8 +134,22 @@ const CLIENT_ADDRESS_FIELDS = [
   { key: "estado", label: "Estado" },
 ] as const;
 
+function formatClientFieldValue(key: string, value: string) {
+  if (key === "documento") return formatCpfCnpj(value);
+  if (key === "whatsapp" || key === "telefone") return formatPhone(value);
+  if (key === "cep") return formatCep(value);
+  return value;
+}
+
+function getClientFieldHelperText(key: string, value: string) {
+  if (key === "documento") return getDocumentoProgressText(value);
+  if (key === "whatsapp" || key === "telefone") return getPhoneProgressText(value);
+  return "";
+}
+
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleAcessarPortal = (cliente: any) => {
     persistClientProfile(sanitizeClientProfile(cliente));
@@ -134,6 +162,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const [projetos, setProjetos] = useState<any[]>([]);
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [catalogo, setCatalogo] = useState<any[]>([]);
+  const [checklistItems, setChecklistItems] = useState<ClientChecklistItem[]>([]);
   const [showAddExtra, setShowAddExtra] = useState(false);
   const [extraSelecionado, setExtraSelecionado] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -163,6 +192,14 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
       const { data: cat, error: errorCatalogo } = await supabase.from("extras_catalogo").select("*");
       if (errorCatalogo) console.error("Erro ao carregar catálogo de extras");
       if (cat) setCatalogo(cat);
+
+      const { data: checklistData, error: checklistError } = await supabase
+        .from("cliente_checklist_items")
+        .select("*")
+        .eq("cliente_id", clienteId)
+        .order("ordem", { ascending: true });
+      if (checklistError) console.error("Erro ao carregar checklist do cliente");
+      if (checklistData) setChecklistItems(checklistData as ClientChecklistItem[]);
     } catch (error) {
       console.error("Erro ao carregar dados do cliente");
       toast({ 
@@ -174,6 +211,38 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   }, [clienteId, toast]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  const handleClientCepLookup = async (value: string) => {
+    const normalizedCep = formatCep(value);
+
+    setCliente((current: any) => ({ ...current, cep: normalizedCep }));
+
+    try {
+      const address = await fetchAddressByCep(normalizedCep);
+      if (!address) return;
+
+      setCliente((current: any) => ({
+        ...current,
+        cep: normalizedCep,
+        endereco: address.endereco || current.endereco || "",
+        bairro: address.bairro || current.bairro || "",
+        cidade: address.cidade || current.cidade || "",
+        estado: address.estado || current.estado || "",
+        complemento: current.complemento || address.complemento || "",
+      }));
+
+      toast({
+        title: "CEP localizado",
+        description: "Endereço preenchido automaticamente no cadastro.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Não foi possível buscar o CEP",
+        description: error?.message || "Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleAddExtra = async () => {
     if (!extraSelecionado) return;
@@ -391,8 +460,26 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                       <Input
                         className="glass-input h-10"
                         value={(cliente as any)[field.key] || ""}
-                        onChange={(e) => setCliente({ ...cliente, [field.key]: e.target.value })}
+                        onChange={(e) =>
+                          setCliente({
+                            ...cliente,
+                            [field.key]: formatClientFieldValue(field.key, e.target.value),
+                          })
+                        }
+                        onBlur={(e) => {
+                          if (field.key === "email") {
+                            setCliente({
+                              ...cliente,
+                              [field.key]: normalizeEmailSuggestion(e.target.value),
+                            });
+                          }
+                        }}
                       />
+                      {getClientFieldHelperText(field.key, (cliente as any)[field.key] || "") && (
+                        <p className="text-[10px] text-white/25">
+                          {getClientFieldHelperText(field.key, (cliente as any)[field.key] || "")}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -404,10 +491,48 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                       <Input
                         className="glass-input h-10"
                         value={(cliente as any)[field.key] || ""}
-                        onChange={(e) => setCliente({ ...cliente, [field.key]: e.target.value })}
+                        onChange={(e) =>
+                          setCliente({
+                            ...cliente,
+                            [field.key]: formatClientFieldValue(field.key, e.target.value),
+                          })
+                        }
+                        onBlur={(e) => {
+                          if (field.key === "cep") {
+                            void handleClientCepLookup(e.target.value);
+                          }
+                        }}
                       />
                     </div>
                   ))}
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/35">Checklist inicial</p>
+                      <p className="text-sm text-white/50 mt-1">
+                        Acompanhe o que o cliente já enviou e abra a visão completa do onboarding.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="border-white/10 text-white hover:bg-white/5"
+                      onClick={() => navigate(`/admin/checklist-clientes?cliente=${clienteId}`)}
+                    >
+                      Abrir checklist completo
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                      <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/35">Progresso</p>
+                      <p className="text-xl font-black text-white mt-2">{getChecklistProgress(checklistItems)}%</p>
+                    </div>
+                    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                      <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/35">Itens pendentes</p>
+                      <p className="text-xl font-black text-amber-400 mt-2">{getChecklistPendingCount(checklistItems)}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end">
@@ -777,6 +902,7 @@ export default function Clientes() {
   const { toast } = useToast();
   const { requestDelete, dialogProps } = useDeleteConfirm();
   const location = useLocation();
+  const navigate = useNavigate();
   const [clientes, setClientes] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -794,6 +920,55 @@ export default function Clientes() {
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
   const [form, setForm] = useState(() => ({ ...INITIAL_CLIENT_FORM }));
   const [saving, setSaving] = useState(false);
+
+  const updateFormField = (key: string, value: string) => {
+    setForm((current) => ({
+      ...current,
+      [key]: formatClientFieldValue(key, value),
+    }));
+  };
+
+  const handleFormEmailBlur = (value: string) => {
+    setForm((current) => ({
+      ...current,
+      email: normalizeEmailSuggestion(value),
+    }));
+  };
+
+  const handleFormCepLookup = async (value: string) => {
+    const normalizedCep = formatCep(value);
+
+    setForm((current) => ({
+      ...current,
+      cep: normalizedCep,
+    }));
+
+    try {
+      const address = await fetchAddressByCep(normalizedCep);
+      if (!address) return;
+
+      setForm((current) => ({
+        ...current,
+        cep: normalizedCep,
+        endereco: address.endereco || current.endereco,
+        bairro: address.bairro || current.bairro,
+        cidade: address.cidade || current.cidade,
+        estado: address.estado || current.estado,
+        complemento: current.complemento || address.complemento || "",
+      }));
+
+      toast({
+        title: "CEP localizado",
+        description: "Endereço preenchido automaticamente para acelerar o cadastro.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Não foi possível buscar o CEP",
+        description: error?.message || "Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchClientes = useCallback(async () => {
     const { data } = await supabase.from("clientes").select("*").order("created_at", { ascending: false });
@@ -1004,10 +1179,18 @@ export default function Clientes() {
     <motion.div className="space-y-6" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}>
       <motion.div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" variants={fadeUp}>
         <div />
-        <Dialog open={showNew} onOpenChange={setShowNew}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
-          </DialogTrigger>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="border-white/10 text-white hover:bg-white/5 rounded-lg"
+            onClick={() => navigate("/admin/checklist-clientes")}
+          >
+            <ClipboardList className="w-4 h-4 mr-2" /> Checklist Clientes
+          </Button>
+          <Dialog open={showNew} onOpenChange={setShowNew}>
+            <DialogTrigger asChild>
+              <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
+            </DialogTrigger>
           <DialogContent className="glass-card border-[0.5px] text-white max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="text-white">Novo Cliente</DialogTitle></DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
@@ -1017,8 +1200,18 @@ export default function Clientes() {
                   <Input
                     className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
                     value={(form as any)[field.key]}
-                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                    onChange={(e) => updateFormField(field.key, e.target.value)}
+                    onBlur={(e) => {
+                      if (field.key === "email") {
+                        handleFormEmailBlur(e.target.value);
+                      }
+                    }}
                   />
+                  {getClientFieldHelperText(field.key, (form as any)[field.key] || "") && (
+                    <p className="text-[10px] text-white/25">
+                      {getClientFieldHelperText(field.key, (form as any)[field.key] || "")}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -1030,7 +1223,12 @@ export default function Clientes() {
                   <Input
                     className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
                     value={(form as any)[field.key]}
-                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                    onChange={(e) => updateFormField(field.key, e.target.value)}
+                    onBlur={(e) => {
+                      if (field.key === "cep") {
+                        void handleFormCepLookup(e.target.value);
+                      }
+                    }}
                   />
                 </div>
               ))}
@@ -1075,7 +1273,8 @@ export default function Clientes() {
               {saving ? "Salvando..." : "Salvar Cliente"}
             </Button>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </motion.div>
 
       <motion.div variants={fadeUp}>
