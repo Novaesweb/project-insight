@@ -197,6 +197,26 @@ section {
     background: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
   }
 
+  @keyframes founder-gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .plans-founder-banner {
+    background: linear-gradient(90deg, rgba(107, 33, 168, 0.96), rgba(236, 72, 153, 0.96), rgba(107, 33, 168, 0.96));
+    background-size: 200% 200%;
+    animation: founder-gradient-shift 6s ease infinite;
+  }
+
   .gradient-text {
     background: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
     -webkit-background-clip: text;

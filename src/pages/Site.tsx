@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense, useCallback, memo } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
+import MobileQuickLinks from "@/components/site/MobileQuickLinks";
 
 // Lazy load all below-fold sections
 const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSection"));
@@ -51,6 +52,7 @@ export default function Site() {
       <main className="relative z-10">
         <SiteNavbar onOpenModal={setModalOpen} />
         <HeroSection onOpenDemo={openDemo} />
+        <MobileQuickLinks onOpenModal={setModalOpen} />
         
         <Suspense fallback={null}>
           <OQueFazemosSection onOpenDemo={openDemo} />

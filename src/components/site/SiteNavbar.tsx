@@ -4,32 +4,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { handleSiteNavigation, siteCompanyLinks, siteNavLinks } from "@/lib/site-navigation";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
+import { scrollTo } from "@/lib/utils";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 interface SiteNavbarProps {
   onOpenModal: (id: string) => void;
 }
 
-const navLinks = [
-  { href: "#o-que-fazemos", label: "O Que Fazemos" },
-  { href: "#como-funciona", label: "Como Funciona" },
-  { href: "#automacao", label: "Automação" },
-  { href: "#planos", label: "Planos" },
-  { href: "/nichos", label: "Nichos" },
-  { href: "/sobre", label: "Sobre" },
-  { href: "#contato", label: "Contato" },
-];
-
-const companyLinks = [
-  { href: "/sobre", label: "Sobre a NovaesWeb", icon: Star },
-  { id: "quem-somos", label: "Quem Somos", icon: Users },
-  { id: "diferenciais", label: "Diferenciais", icon: Target },
-];
-
-
-
-import { scrollTo } from "@/lib/utils";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
+const companyLinks = siteCompanyLinks.map((link) => ({
+  ...link,
+  icon:
+    link.label === "Sobre a NovaesWeb"
+      ? Star
+      : link.label === "Quem Somos"
+        ? Users
+        : Target,
+}));
 
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   const location = useLocation();
@@ -46,8 +38,8 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   useEffect(() => {
-    const sectionLinks = navLinks.filter((link) => link.href.startsWith("#"));
-    const routeLinks = navLinks.filter((link) => link.href.startsWith("/"));
+    const sectionLinks = siteNavLinks.filter((link) => link.href.startsWith("#"));
+    const routeLinks = siteNavLinks.filter((link) => link.href.startsWith("/"));
 
     if (location.pathname !== "/") {
       const activeRoute = routeLinks.find((link) => link.href === location.pathname);
@@ -87,21 +79,14 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, [location.pathname]);
 
   const handleNavClick = (href: string, closeMenu?: (v: boolean) => void) => {
-    if (href.startsWith("/")) {
-      if (closeMenu) closeMenu(false);
-      navigate(href);
-      return;
-    }
-
-    if (location.pathname !== "/") {
-      if (closeMenu) closeMenu(false);
-      setActiveSection(href);
-      navigate(`/${href}`);
-      return;
-    }
-
-    setActiveSection(href);
-    scrollTo(href, closeMenu);
+    handleSiteNavigation({
+      href,
+      locationPathname: location.pathname,
+      navigate,
+      onOpenModal,
+      closeMenu,
+      setActiveSection,
+    });
   };
 
   const handleBudgetClick = (closeMenu?: (v: boolean) => void) => {
@@ -170,11 +155,14 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                       <button
                         key={link.href ?? link.id}
                         onClick={() => {
-                          if ("href" in link && link.href) {
-                            navigate(link.href);
-                          } else if ("id" in link && link.id) {
-                            onOpenModal(link.id);
-                          }
+                          handleSiteNavigation({
+                            href: link.href,
+                            id: link.id,
+                            locationPathname: location.pathname,
+                            navigate,
+                            onOpenModal,
+                            setActiveSection,
+                          });
                           setActiveDropdown(null);
                         }}
                         className="flex items-center gap-3 w-full p-3 hover:bg-white/[0.04] rounded-2xl transition-all text-left group/item"
@@ -189,7 +177,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             </AnimatePresence>
           </div>
 
-          {navLinks.map((link) => (
+          {siteNavLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => handleNavClick(link.href)}
@@ -274,11 +262,14 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                         onClick={() => {
                           setMenuOpen(false);
                           setTimeout(() => {
-                            if ("href" in link && link.href) {
-                              navigate(link.href);
-                            } else if ("id" in link && link.id) {
-                              onOpenModal(link.id);
-                            }
+                            handleSiteNavigation({
+                              href: link.href,
+                              id: link.id,
+                              locationPathname: location.pathname,
+                              navigate,
+                              onOpenModal,
+                              setActiveSection,
+                            });
                           }, 300);
                         }}
                         className="site-soft-surface flex items-center justify-between p-4 rounded-2xl text-white hover:bg-[hsl(var(--muted)/0.45)] transition-colors"
@@ -293,7 +284,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                 <div>
                   <p className="text-[10px] text-foreground/45 uppercase tracking-[0.3em] font-bold mb-4">Navegação</p>
                   <div className="grid grid-cols-2 gap-3">
-                    {navLinks.map((link) => (
+                    {siteNavLinks.map((link) => (
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link.href, setMenuOpen)}
