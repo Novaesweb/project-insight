@@ -1,7 +1,7 @@
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase, Target } from "lucide-react";
+import { motion, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
+import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase, Target, Globe, Layout, ShoppingBag, MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
@@ -32,10 +32,44 @@ const particles = [
   { delay: 2, x: "20%", y: "75%", size: 3 },
 ];
 
+const heroHighlights = [
+  { label: "Sites Profissionais", icon: Globe },
+  { label: "Painéis de Controlo", icon: Layout },
+  { label: "Gestão de Pedidos", icon: ShoppingBag },
+  { label: "Atendimento no WhatsApp", icon: MessageCircle },
+  { label: "Marketing Digital", icon: Target },
+];
 
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
   const navigate = useNavigate();
+  const shouldReduceMotion = useReducedMotion();
+  const [activeHighlight, setActiveHighlight] = useState(0);
+  const [desktopAutoRotate, setDesktopAutoRotate] = useState(false);
+
+  useEffect(() => {
+    const syncViewport = () => {
+      setDesktopAutoRotate(window.innerWidth >= 768);
+    };
+
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+
+    return () => window.removeEventListener("resize", syncViewport);
+  }, []);
+
+  useEffect(() => {
+    if (shouldReduceMotion || !desktopAutoRotate) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveHighlight((current) => (current + 1) % heroHighlights.length);
+    }, 2200);
+
+    return () => window.clearInterval(timer);
+  }, [desktopAutoRotate, shouldReduceMotion]);
+
   const scrollToCadastro = () => {
     const section = document.getElementById("cadastro");
     section?.scrollIntoView({ behavior: "smooth" });
@@ -93,7 +127,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="site-badge site-badge--accent mb-10 relative"
+            className="site-badge site-badge--accent hero-tech-badge mb-10 relative"
           >
             <Sparkles className="w-3.5 h-3.5" style={{ color: 'hsl(var(--accent))' }} />
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'hsl(var(--muted-foreground) / 0.86)' }}>
@@ -136,19 +170,70 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed font-medium site-copy-muted"
+            className="text-lg md:text-xl mb-6 max-w-2xl mx-auto leading-relaxed font-medium site-copy-muted"
           >
-            Estamos a selecionar apenas <span className="text-white font-bold">50 empreendedores</span> para testar a nova arquitetura digital da NovaesWeb, com <span className="text-white/90 font-semibold">sites profissionais, painéis de controlo, gestão de pedidos, automações de atendimento no WhatsApp e outras estruturas pensadas para vender mais</span>. <span className="text-[hsl(var(--gold))] font-black">Restam poucas vagas disponíveis.</span>
+            Estamos a selecionar apenas <span className="text-white font-bold">50 empreendedores</span> para testar a nova arquitetura digital da NovaesWeb. Criamos estruturas mais completas para vender, atender e organizar melhor o teu negócio.
           </motion.p>
 
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.72 }}
-            className="text-sm md:text-base mb-10 max-w-2xl mx-auto font-semibold text-white/55"
+            className="text-sm md:text-base mb-6 max-w-2xl mx-auto font-semibold text-white/55"
           >
-            Projeto Fundador: acesso antecipado a uma estrutura digital mais completa, moderna e preparada para crescer com o teu negócio.
+            A NovaesWeb junta tecnologia, automação e apresentação premium numa estrutura preparada para crescer com o teu negócio.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.82 }}
+            className="mb-6 max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3"
+          >
+            {heroHighlights.map((item, index) => {
+              const isActive = index === activeHighlight;
+
+              return (
+                <motion.div
+                  key={item.label}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className={`hero-service-chip ${isActive ? "hero-service-chip--active" : ""}`}
+                >
+                  <item.icon className="w-4 h-4 shrink-0" />
+                  <span>{item.label}</span>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.92 }}
+            className="mb-10 max-w-3xl mx-auto"
+          >
+            <div className="hero-founder-card rounded-[1.8rem] px-5 py-5 sm:px-6 sm:py-6 text-left">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] font-black text-[hsl(var(--gold))]">
+                    <Star className="w-3.5 h-3.5" />
+                    Projeto Fundador
+                  </div>
+                  <p className="text-sm sm:text-base text-white/85 font-semibold leading-relaxed">
+                    Acesso antecipado a uma estrutura digital mais moderna, tecnológica e preparada para vender, atender e escalar com mais controlo.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2.5 shrink-0">
+                  <span className="hero-founder-pill">
+                    50 empreendedores
+                  </span>
+                  <span className="hero-founder-pill hero-founder-pill--warning">
+                    Restam poucas vagas
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
