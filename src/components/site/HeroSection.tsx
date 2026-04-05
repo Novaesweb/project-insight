@@ -110,7 +110,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                Estruturas digitais que
+                Transforma as tuas ideias
               </motion.span>
               <motion.span
                 className="block site-gradient-text mt-2"
@@ -118,7 +118,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                atraem clientes
+                numa presença digital
               </motion.span>
               <motion.span
                 className="block text-foreground/50 mt-1"
@@ -126,7 +126,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                todos os dias
+                de elite
               </motion.span>
             </h1>
           </div>
@@ -138,7 +138,16 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed font-medium site-copy-muted"
           >
-            Criamos sites profissionais, sistemas de pedidos e automações no WhatsApp que transformam visitantes em clientes de forma automática.
+            Estamos a selecionar apenas <span className="text-white font-bold">50 empreendedores</span> para testar a nova arquitetura digital da NovaesWeb, com <span className="text-white/90 font-semibold">sites profissionais, painéis de controlo, gestão de pedidos, automações de atendimento no WhatsApp e outras estruturas pensadas para vender mais</span>. <span className="text-[hsl(var(--gold))] font-black">Restam poucas vagas disponíveis.</span>
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.72 }}
+            className="text-sm md:text-base mb-10 max-w-2xl mx-auto font-semibold text-white/55"
+          >
+            Projeto Fundador: acesso antecipado a uma estrutura digital mais completa, moderna e preparada para crescer com o teu negócio.
           </motion.p>
 
           {/* CTA Buttons */}
