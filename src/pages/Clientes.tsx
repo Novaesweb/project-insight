@@ -876,43 +876,64 @@ export default function Clientes() {
 
     if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); setSaving(false); return; }
  
-    // 2. Se houver projeto, criar Pedido + Projeto + Financeiro
-    if (form.projeto_titulo) {
-      const valor = Number(form.projeto_valor) || 0;
+    // 2. Se houver dados de onboarding, criar Pedido + Projeto + Financeiro
+    const valor = Number(form.projeto_valor) || 0;
+    const projetoInicialTitulo = form.projeto_titulo.trim() || "Projeto Inicial";
+    const deveCriarOnboarding = Boolean(form.projeto_titulo.trim() || valor > 0);
+
+    if (deveCriarOnboarding) {
       const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+      const dataLancamento = new Date().toISOString().split("T")[0];
 
       // Criar Pedido
-      const { data: novoPedido } = await supabase.from("pedidos").insert({
+      const { error: pedidoError } = await supabase.from("pedidos").insert({
         cliente_id: novoCliente.id,
         codigo: codigoPed,
-        tipo: form.projeto_titulo,
+        tipo: projetoInicialTitulo,
         valor,
         status: "pendente",
-        data: new Date().toISOString().split("T")[0]
-      }).select().single();
+        data: dataLancamento
+      });
+
+      if (pedidoError) {
+        toast({ title: "Erro ao criar pedido inicial", description: pedidoError.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
 
       // Criar Projeto
-      await supabase.from("projetos").insert({
+      const { error: projetoError } = await supabase.from("projetos").insert({
         cliente_id: novoCliente.id,
-        titulo: form.projeto_titulo,
+        titulo: projetoInicialTitulo,
         valor: valor,
         status: "briefing",
         progresso: 10,
-        descricao: `Projeto inicial: ${form.projeto_titulo}`
+        descricao: `Projeto inicial: ${projetoInicialTitulo}`
       });
+
+      if (projetoError) {
+        toast({ title: "Erro ao criar projeto inicial", description: projetoError.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
 
       // Lançar no Financeiro
       if (form.gerar_fatura && valor > 0) {
-        await supabase.from("financeiro").insert({
+        const { error: financeiroError } = await supabase.from("financeiro").insert({
           cliente_id: novoCliente.id,
-          tipo: "receita",
-          categoria: "Projetos",
+          tipo: "entrada",
           valor,
-          descricao: `Contrato Inicial: ${form.projeto_titulo} (${codigoPed})`,
-          data: new Date().toISOString().split("T")[0],
+          descricao: `Contrato Inicial: ${projetoInicialTitulo} (${codigoPed})`,
+          data: dataLancamento,
+          vencimento: dataLancamento,
           status: "pendente",
-          metodo: "asaas"
         });
+
+        if (financeiroError) {
+          toast({ title: "Erro ao lançar no financeiro", description: financeiroError.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
       }
     }
 
@@ -921,8 +942,8 @@ export default function Clientes() {
       setContaCriada({ email: normalizedEmail, senha: senhaCliente, link });
     }
 
-    toast({ title: "Onboarding Concluído!", description: "Cliente, Projeto e Financeiro configurados." });
-    sendPushToAdmins("🚀 Novo Contrato Elite", `${form.nome} - ${form.projeto_titulo}`, "/admin/clientes");
+    toast({ title: "Onboarding Concluído!", description: "Cliente, projeto e financeiro configurados." });
+    sendPushToAdmins("🚀 Novo Contrato Elite", `${form.nome} - ${projetoInicialTitulo}`, "/admin/clientes");
     setShowNew(false);
     setForm({ ...INITIAL_CLIENT_FORM });
     setSenhaCliente("");
