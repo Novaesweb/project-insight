@@ -16,6 +16,20 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   });
 }
 
+async function findAuthUserByEmail(supabaseAdmin: any, email: string) {
+  const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+    page: 1,
+    perPage: 1000,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const users = data?.users || [];
+  return users.find((user: any) => user.email?.trim().toLowerCase() === email) || null;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -74,7 +88,7 @@ serve(async (req: Request) => {
       return jsonResponse({ error: "Somente administradores podem criar novos admins." }, 403);
     }
 
-    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    let { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
       password,
       email_confirm: true,
@@ -84,6 +98,50 @@ serve(async (req: Request) => {
         provisioned_by: actorEmail,
       },
     });
+
+    if (
+      createError?.message?.toLowerCase().includes("already") &&
+      accountType === "cliente"
+    ) {
+      const existingAuthUser = await findAuthUserByEmail(supabaseAdmin, normalizedEmail);
+
+      const [{ data: linkedClient }, { data: linkedAdmin }] = await Promise.all([
+        supabaseAdmin
+          .from("clientes")
+          .select("id")
+          .ilike("email", normalizedEmail)
+          .limit(1)
+          .maybeSingle(),
+        supabaseAdmin
+          .from("usuarios")
+          .select("id")
+          .ilike("email", normalizedEmail)
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      if (existingAuthUser && !linkedClient && !linkedAdmin) {
+        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(existingAuthUser.id);
+
+        if (deleteError) {
+          return jsonResponse({ error: deleteError.message }, 400);
+        }
+
+        const retried = await supabaseAdmin.auth.admin.createUser({
+          email: normalizedEmail,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            nome: normalizedName,
+            tipo: accountType,
+            provisioned_by: actorEmail,
+          },
+        });
+
+        userData = retried.data;
+        createError = retried.error;
+      }
+    }
 
     if (createError) {
       const message = createError.message?.includes("already been registered")

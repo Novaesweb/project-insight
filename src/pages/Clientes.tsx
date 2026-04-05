@@ -971,9 +971,31 @@ export default function Clientes() {
 
   const handleDeleteCliente = (id: string) => {
     requestDelete(async () => {
-      const { error } = await supabase.from("clientes").delete().eq("id", id);
-      if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
-      toast({ title: "Cliente excluído com sucesso!" });
+      const { data, error } = await supabase.functions.invoke("delete-client-account", {
+        body: { clientId: id },
+      });
+
+      if (error || data?.error) {
+        let functionMessage = data?.error || null;
+
+        if (!functionMessage && error && "context" in error && error.context) {
+          try {
+            const errorPayload = await error.context.json();
+            functionMessage = errorPayload?.error || errorPayload?.message || null;
+          } catch {
+            functionMessage = null;
+          }
+        }
+
+        toast({
+          title: "Erro ao excluir",
+          description: functionMessage || error?.message || "Não foi possível remover o cliente e o acesso do portal.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({ title: "Cliente excluído com sucesso!", description: "O acesso do portal e o e-mail também foram liberados." });
       fetchClientes();
     }, "Excluir Cliente", "Este cliente e todos os seus dados serão removidos permanentemente.");
   };
