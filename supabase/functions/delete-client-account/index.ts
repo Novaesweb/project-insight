@@ -1,19 +1,14 @@
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/internal-security.ts";
 
 declare const Deno: any;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-function jsonResponse(body: Record<string, unknown>, status = 200) {
+function jsonResponse(body: Record<string, unknown>, status = 200, origin: string | null = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
   });
 }
 
@@ -32,8 +27,10 @@ async function findAuthUserByEmail(supabaseAdmin: any, email: string) {
 }
 
 serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(origin) });
   }
 
   try {
@@ -44,7 +41,7 @@ serve(async (req: Request) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return jsonResponse({ error: "Não autorizado" }, 401);
+      return jsonResponse({ error: "Não autorizado" }, 401, origin);
     }
 
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -54,7 +51,7 @@ serve(async (req: Request) => {
     } = await supabaseAdmin.auth.getUser(token);
 
     if (actorError || !actor?.email) {
-      return jsonResponse({ error: "Sessão inválida" }, 401);
+      return jsonResponse({ error: "Sessão inválida" }, 401, origin);
     }
 
     const actorEmail = actor.email.trim().toLowerCase();
@@ -65,18 +62,18 @@ serve(async (req: Request) => {
       .maybeSingle();
 
     if (actorProfileError) {
-      return jsonResponse({ error: actorProfileError.message }, 500);
+      return jsonResponse({ error: actorProfileError.message }, 500, origin);
     }
 
     if (!actorProfile || actorProfile.status !== "ativo" || actorProfile.bloqueado) {
-      return jsonResponse({ error: "Somente usuários internos ativos podem excluir clientes." }, 403);
+      return jsonResponse({ error: "Somente usuários internos ativos podem excluir clientes." }, 403, origin);
     }
 
     const { clientId } = await req.json();
     const normalizedClientId = typeof clientId === "string" ? clientId.trim() : "";
 
     if (!normalizedClientId) {
-      return jsonResponse({ error: "clientId é obrigatório." }, 400);
+      return jsonResponse({ error: "clientId é obrigatório." }, 400, origin);
     }
 
     const { data: clientRecord, error: clientError } = await supabaseAdmin
@@ -86,11 +83,11 @@ serve(async (req: Request) => {
       .maybeSingle();
 
     if (clientError) {
-      return jsonResponse({ error: clientError.message }, 500);
+      return jsonResponse({ error: clientError.message }, 500, origin);
     }
 
     if (!clientRecord) {
-      return jsonResponse({ error: "Cliente não encontrado." }, 404);
+      return jsonResponse({ error: "Cliente não encontrado." }, 404, origin);
     }
 
     const normalizedEmail = clientRecord.email?.trim().toLowerCase() || "";
@@ -105,7 +102,7 @@ serve(async (req: Request) => {
       const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
 
       if (deleteUserError && !deleteUserError.message?.toLowerCase().includes("user not found")) {
-        return jsonResponse({ error: deleteUserError.message }, 500);
+        return jsonResponse({ error: deleteUserError.message }, 500, origin);
       }
     }
 
@@ -115,11 +112,11 @@ serve(async (req: Request) => {
       .eq("id", normalizedClientId);
 
     if (deleteClientError) {
-      return jsonResponse({ error: deleteClientError.message }, 500);
+      return jsonResponse({ error: deleteClientError.message }, 500, origin);
     }
 
-    return jsonResponse({ success: true, message: "Cliente e acesso removidos com sucesso." });
+    return jsonResponse({ success: true, message: "Cliente e acesso removidos com sucesso." }, 200, origin);
   } catch (err: any) {
-    return jsonResponse({ error: err.message }, 500);
+    return jsonResponse({ error: err.message }, 500, origin);
   }
 });

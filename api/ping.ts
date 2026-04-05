@@ -1,6 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
 
+function json(res: any, status: number, body: Record<string, unknown>) {
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(status).json(body);
+}
+
 export default async function handler(req: any, res: any) {
+  if (req.method !== "GET") {
+    return json(res, 405, { ok: false });
+  }
+
+  const healthcheckSecret = process.env.HEALTHCHECK_SECRET;
+  const providedSecret = String(req.headers["x-healthcheck-key"] || "").trim();
+
+  if (!healthcheckSecret || providedSecret !== healthcheckSecret) {
+    return json(res, 401, { ok: false });
+  }
+
   try {
     const supabaseUrl =
       process.env.SUPABASE_URL ||
@@ -9,13 +25,15 @@ export default async function handler(req: any, res: any) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceRoleKey) {
-      return res.status(500).json({
-        ok: false,
-        error: "Variáveis não configuradas",
-      });
+      return json(res, 503, { ok: false });
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     const { error } = await supabase
       .from("healthcheck")
@@ -23,17 +41,11 @@ export default async function handler(req: any, res: any) {
       .limit(1);
 
     if (error) {
-      return res.status(500).json({
-        ok: false,
-        error: error.message,
-      });
+      return json(res, 503, { ok: false });
     }
 
-    return res.status(200).json({ ok: true });
-  } catch (err: any) {
-    return res.status(500).json({
-      ok: false,
-      error: err.message,
-    });
+    return json(res, 200, { ok: true });
+  } catch {
+    return json(res, 500, { ok: false });
   }
 }

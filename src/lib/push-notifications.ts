@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 // VAPID Public Key - segura para uso no frontend
 const VAPID_PUBLIC_KEY = "BO9uhUEJOQdzq7bANXsX-6lKXuRqgd2PFAK43GXwB2NxPW_Wgb4yANtVk1-bxOtFUWjCRvxAX2k2jbagrPl2MaE";
 const PUSH_SW_PATH = "/sw.js";
+const IS_DEV = import.meta.env.DEV;
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -21,7 +22,9 @@ async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> 
   try {
     return await navigator.serviceWorker.ready;
   } catch (e) {
-    console.error("Erro ao obter ServiceWorker via Vite PWA:", e);
+    if (IS_DEV) {
+      console.error("Erro ao obter ServiceWorker via Vite PWA:", e);
+    }
     return null;
   }
 }
@@ -44,7 +47,6 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     // Evita duplicidade no Desktop! O App Desktop (Electron) já tem o NativeNotificationManager
     const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
     if (isElectron) {
-      console.log("[Push] Ambiente Electron detectado. Usando apenas notificações nativas do sistema.");
       return false; 
     }
 
@@ -86,15 +88,16 @@ export async function subscribeToPush(userType: string, userId: string): Promise
     );
 
     if (upsertError) {
-      console.error("[Push] Failed to save subscription to DB:", upsertError);
-      // Even if DB save fails, the subscription is valid in the browser
-    } else {
-      console.log("[Push] Subscription saved to DB successfully");
+      if (IS_DEV) {
+        console.error("[Push] Failed to save subscription to DB:", upsertError);
+      }
     }
 
     return true;
   } catch (e) {
-    console.error("Push subscription failed:", e);
+    if (IS_DEV) {
+      console.error("Push subscription failed:", e);
+    }
     return false;
   }
 }
@@ -112,7 +115,9 @@ export async function unsubscribeFromPush(): Promise<boolean> {
     }
     return true;
   } catch (e) {
-    console.error("Push unsubscribe failed:", e);
+    if (IS_DEV) {
+      console.error("Push unsubscribe failed:", e);
+    }
     return false;
   }
 }
@@ -245,7 +250,9 @@ export async function sendPushToAdmins(title: string, body: string, url?: string
       body: { target: "admin", title, body, url: url || "/admin", directSubscription },
     });
   } catch (e) {
-    console.error("[Push] sendPushToAdmins failed:", e);
+    if (IS_DEV) {
+      console.error("[Push] sendPushToAdmins failed:", e);
+    }
   }
 }
 

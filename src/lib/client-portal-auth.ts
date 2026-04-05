@@ -122,8 +122,6 @@ export function clearClientProfile() {
 export async function loadClientProfileFromSession(session: Session | null) {
   if (!session?.user?.id || !session.user.email) return null;
 
-  const normalizedEmail = session.user.email.trim().toLowerCase();
-
   const { data: byAuthId, error: authIdError } = await supabase
     .from("clientes")
     .select(CLIENT_PORTAL_SELECT)
@@ -133,16 +131,7 @@ export async function loadClientProfileFromSession(session: Session | null) {
 
   if (authIdError) throw authIdError;
   if (byAuthId) return sanitizeClientProfile(byAuthId as Partial<ClientPortalProfile>);
-
-  const { data: byEmail, error: emailError } = await supabase
-    .from("clientes")
-    .select(CLIENT_PORTAL_SELECT)
-    .ilike("email", normalizedEmail)
-    .eq("status", "ativo")
-    .maybeSingle();
-
-  if (emailError) throw emailError;
-  return sanitizeClientProfile(byEmail as Partial<ClientPortalProfile> | null);
+  return null;
 }
 
 export async function loadClientProfileById(clientId: string) {

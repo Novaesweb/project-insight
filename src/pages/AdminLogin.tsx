@@ -86,8 +86,8 @@ export default function AdminLogin() {
           `${adminUser?.nome || normalizedEmail} entrou no painel administrativo.`,
           "/admin"
         );
-      } catch (auditError) {
-        console.error("Admin login audit error:", auditError);
+      } catch {
+        void 0;
       }
 
       toast({ title: "Sessão Iniciada!", description: "Bem-vindo à Cabine de Comando, Arquiteto." });

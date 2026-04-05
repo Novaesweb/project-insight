@@ -46,8 +46,8 @@ export default function ClienteLogin() {
     if (!authError && authData.session) {
       try {
         clienteRecord = await loadClientProfileFromSession(authData.session);
-      } catch (profileError: any) {
-        console.error("Client profile load error:", profileError);
+      } catch {
+        clienteRecord = null;
       }
     }
 

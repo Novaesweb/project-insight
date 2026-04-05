@@ -1,69 +1,84 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// deno-lint-ignore-file
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  createAdminClient,
+  getCorsHeaders,
+  jsonResponse,
+  requireInternalAdmin,
+} from "../_shared/internal-security.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+declare const Deno: any;
+
+const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "DELETE"]);
+
+function normalizePath(value: unknown) {
+  const raw = String(value || "").trim().replace(/^\/+/, "");
+  if (!raw || raw.includes("://") || raw.includes("..")) return null;
+  return raw;
 }
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: getCorsHeaders(origin) });
   }
 
   try {
-    const { path, method, body } = await req.json()
-    
-    // Get Asaas configuration from environment variables
-    const apiKey = Deno.env.get('ASAAS_API_KEY')
-    const environment = Deno.env.get('ASAAS_ENVIRONMENT') || 'sandbox'
-    
-    if (!apiKey) {
-      throw new Error('ASAAS_API_KEY not configured')
+    const supabaseAdmin = createAdminClient();
+    const auth = await requireInternalAdmin(req, supabaseAdmin, origin);
+    if (auth.response) {
+      return auth.response;
     }
 
-    // Determine base URL based on environment
-    const baseUrl = environment === 'production' 
-      ? 'https://api.asaas.com/v3' 
-      : 'https://sandbox.asaas.com/api/v3'
+    const { path, method, body } = await req.json();
+    const normalizedPath = normalizePath(path);
+    const normalizedMethod = String(method || "GET").toUpperCase();
 
-    const url = `${baseUrl}/${path}`
-    
-    const response = await fetch(url, {
-      method: method || 'GET',
+    if (!normalizedPath || !ALLOWED_METHODS.has(normalizedMethod)) {
+      return jsonResponse({ error: "Requisição inválida." }, 400, origin);
+    }
+
+    const apiKey = Deno.env.get("ASAAS_API_KEY");
+    const environment = Deno.env.get("ASAAS_ENVIRONMENT") || "sandbox";
+
+    if (!apiKey) {
+      return jsonResponse({ error: "Integração indisponível." }, 503, origin);
+    }
+
+    const baseUrl =
+      environment === "production"
+        ? "https://api.asaas.com/v3"
+        : "https://sandbox.asaas.com/api/v3";
+
+    const response = await fetch(`${baseUrl}/${normalizedPath}`, {
+      method: normalizedMethod,
       headers: {
-        'Content-Type': 'application/json',
-        'access_token': apiKey,
-        ...corsHeaders
+        "Content-Type": "application/json",
+        access_token: apiKey,
       },
-      body: body ? JSON.stringify(body) : undefined
-    })
+      body: body ? JSON.stringify(body) : undefined,
+    });
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Asaas API error: ${response.status} - ${errorText}`)
+      const errorText = await response.text();
+      return jsonResponse(
+        {
+          error: `Falha ao comunicar com o Asaas (${response.status}).`,
+          details: errorText || undefined,
+        },
+        response.status,
+        origin,
+      );
     }
 
-    const data = await response.json()
-    
-    return new Response(JSON.stringify(data), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
-    })
-
+    const data = await response.json();
+    return jsonResponse(data, 200, origin);
   } catch (error) {
-    console.error('Asaas API proxy error:', error)
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }), 
-      { 
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      }
-    )
+    return jsonResponse(
+      { error: error instanceof Error ? error.message : "Falha inesperada na ponte do Asaas." },
+      500,
+      origin,
+    );
   }
-})
+});

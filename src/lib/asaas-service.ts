@@ -50,7 +50,9 @@ export class AsaasService {
     });
 
     if (error) {
-      console.error("Erro na Edge Function do Asaas:", error.message);
+      if (import.meta.env.DEV) {
+        console.error("Erro na Edge Function do Asaas:", error.message);
+      }
       // Tenta extrair a mensagem de erro detalhada
       let errorMessage = "Falha na ponte de comunicação com o Asaas.";
       try {
