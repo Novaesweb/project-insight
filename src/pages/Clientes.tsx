@@ -15,6 +15,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Table, TableBody, TableCell, TableHead, 
   TableHeader, TableRow 
@@ -1062,20 +1069,24 @@ export default function Clientes() {
 
     if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); setSaving(false); return; }
  
-    // 2. Se houver dados de onboarding, criar Pedido + Projeto + Financeiro
+    // 2. Se houver dados de onboarding, criar Pedido + Financeiro
     const valor = Number(form.projeto_valor) || 0;
-    const projetoInicialTitulo = form.projeto_titulo.trim() || "Projeto Inicial";
+    const pedidoInicialTitulo = form.projeto_titulo.trim() || "Pedido Inicial";
+    const pedidoInicialTipo = form.projeto_tipo || "site";
     const deveCriarOnboarding = Boolean(form.projeto_titulo.trim() || valor > 0);
+    const dataLancamento = new Date().toISOString().split("T")[0];
 
     if (deveCriarOnboarding) {
       const codigoPed = `PED-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-      const dataLancamento = new Date().toISOString().split("T")[0];
 
       // Criar Pedido
       const { error: pedidoError } = await supabase.from("pedidos").insert({
         cliente_id: novoCliente.id,
         codigo: codigoPed,
-        tipo: projetoInicialTitulo,
+        tipo: pedidoInicialTipo,
+        titulo: pedidoInicialTitulo,
+        descricao: `Pedido inicial criado no cadastro do cliente ${form.nome}.`,
+        observacoes: null,
         valor,
         status: "pendente",
         data: dataLancamento
@@ -1087,29 +1098,13 @@ export default function Clientes() {
         return;
       }
 
-      // Criar Projeto
-      const { error: projetoError } = await supabase.from("projetos").insert({
-        cliente_id: novoCliente.id,
-        titulo: projetoInicialTitulo,
-        valor: valor,
-        status: "briefing",
-        progresso: 10,
-        descricao: `Projeto inicial: ${projetoInicialTitulo}`
-      });
-
-      if (projetoError) {
-        toast({ title: "Erro ao criar projeto inicial", description: projetoError.message, variant: "destructive" });
-        setSaving(false);
-        return;
-      }
-
       // Lançar no Financeiro
       if (form.gerar_fatura && valor > 0) {
         const { error: financeiroError } = await supabase.from("financeiro").insert({
           cliente_id: novoCliente.id,
           tipo: "entrada",
           valor,
-          descricao: `Contrato Inicial: ${projetoInicialTitulo} (${codigoPed})`,
+          descricao: `Pedido Inicial: ${pedidoInicialTitulo} (${codigoPed})`,
           data: dataLancamento,
           vencimento: dataLancamento,
           status: "pendente",
@@ -1128,8 +1123,20 @@ export default function Clientes() {
       setContaCriada({ email: normalizedEmail, senha: senhaCliente, link });
     }
 
-    toast({ title: "Onboarding Concluído!", description: "Cliente, projeto e financeiro configurados." });
-    sendPushToAdmins("🚀 Novo Contrato Elite", `${form.nome} - ${projetoInicialTitulo}`, "/admin/clientes");
+    toast({
+      title: deveCriarOnboarding ? "Onboarding Concluído!" : "Cliente criado com sucesso!",
+      description: deveCriarOnboarding
+        ? form.gerar_fatura && valor > 0
+          ? "Cliente, pedido e financeiro configurados."
+          : "Cliente e pedido configurados."
+        : "Cadastro realizado sem pedido inicial.",
+    });
+
+    if (deveCriarOnboarding) {
+      sendPushToAdmins("🚀 Novo Pedido Inicial", `${form.nome} - ${pedidoInicialTitulo}`, "/admin/pedidos");
+    } else {
+      sendPushToAdmins("👤 Novo Cliente", form.nome, "/admin/clientes");
+    }
     setShowNew(false);
     setForm({ ...INITIAL_CLIENT_FORM });
     setSenhaCliente("");
@@ -1237,12 +1244,28 @@ export default function Clientes() {
             <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
                <div className="flex items-center gap-2">
                  <Sparkles className="w-4 h-4 text-primary" />
-                 <h3 className="text-[10px] font-black text-white uppercase tracking-wider">🚀 Primeiro Projeto</h3>
+                 <h3 className="text-[10px] font-black text-white uppercase tracking-wider">🚀 Pedido Inicial</h3>
                </div>
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                  <div className="space-y-1">
-                   <Label className="text-[10px] text-white/50 uppercase font-bold">Título do Projeto</Label>
-                   <Input className="glass-input h-9 text-xs" placeholder="Ex: Landing Page" value={form.projeto_titulo} onChange={e => setForm({...form, projeto_titulo: e.target.value})} />
+                   <Label className="text-[10px] text-white/50 uppercase font-bold">Título do Pedido</Label>
+                   <Input className="glass-input h-9 text-xs" placeholder="Ex: Landing Page Premium" value={form.projeto_titulo} onChange={e => setForm({...form, projeto_titulo: e.target.value})} />
+                 </div>
+                 <div className="space-y-1">
+                   <Label className="text-[10px] text-white/50 uppercase font-bold">Serviço Inicial</Label>
+                   <Select value={form.projeto_tipo} onValueChange={(value) => setForm({ ...form, projeto_tipo: value })}>
+                     <SelectTrigger className="glass-input h-9 text-xs">
+                       <SelectValue placeholder="Selecione o serviço" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="site">Site</SelectItem>
+                       <SelectItem value="sistema">Sistema</SelectItem>
+                       <SelectItem value="landing_page">Landing Page</SelectItem>
+                       <SelectItem value="ecommerce">E-commerce</SelectItem>
+                       <SelectItem value="manutencao">Manutenção</SelectItem>
+                       <SelectItem value="outro">Outro</SelectItem>
+                     </SelectContent>
+                   </Select>
                  </div>
                  <div className="space-y-1">
                    <Label className="text-[10px] text-white/50 uppercase font-bold">Valor (R$)</Label>
@@ -1251,7 +1274,7 @@ export default function Clientes() {
                </div>
                <div className="flex items-center gap-2">
                  <input type="checkbox" id="gf" checked={form.gerar_fatura} onChange={e => setForm({...form, gerar_fatura: e.target.checked})} className="rounded accent-primary" />
-                 <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar fatura pendente</Label>
+                 <Label htmlFor="gf" className="text-[10px] text-white/60 cursor-pointer">Lançar financeiro pendente junto com o pedido</Label>
                </div>
             </div>
 

@@ -1007,9 +1007,12 @@ export type Database = {
           codigo: string
           created_at: string
           data: string
+          descricao: string | null
           id: string
+          observacoes: string | null
           projeto_id: string | null
           status: string
+          titulo: string | null
           tipo: string
           valor: number
         }
@@ -1018,9 +1021,12 @@ export type Database = {
           codigo: string
           created_at?: string
           data?: string
+          descricao?: string | null
           id?: string
+          observacoes?: string | null
           projeto_id?: string | null
           status?: string
+          titulo?: string | null
           tipo: string
           valor?: number
         }
@@ -1029,9 +1035,12 @@ export type Database = {
           codigo?: string
           created_at?: string
           data?: string
+          descricao?: string | null
           id?: string
+          observacoes?: string | null
           projeto_id?: string | null
           status?: string
+          titulo?: string | null
           tipo?: string
           valor?: number
         }
