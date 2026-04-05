@@ -8,7 +8,9 @@ import {
   Filter,
   Mail,
   MapPin,
+  Plus,
   Search,
+  Trash2,
   Users,
   XCircle,
 } from "lucide-react";
@@ -68,6 +70,7 @@ export default function ChecklistClientes() {
   const [savingChecklist, setSavingChecklist] = useState(false);
   const [editorItems, setEditorItems] = useState<ClientChecklistItem[]>([]);
   const [originalItems, setOriginalItems] = useState<Record<string, ClientChecklistItem>>({});
+  const [deletedItemIds, setDeletedItemIds] = useState<string[]>([]);
 
   const selectedClientId = searchParams.get("cliente");
 
@@ -137,6 +140,7 @@ export default function ChecklistClientes() {
     if (!clienteSelecionado) {
       setEditorItems([]);
       setOriginalItems({});
+      setDeletedItemIds([]);
       return;
     }
 
@@ -145,6 +149,7 @@ export default function ChecklistClientes() {
     setOriginalItems(
       Object.fromEntries(sortedItems.map((item) => [item.id, item]))
     );
+    setDeletedItemIds([]);
   }, [clienteSelecionado]);
 
   const clientesFiltrados = useMemo(() => {
@@ -225,12 +230,102 @@ export default function ChecklistClientes() {
     );
   };
 
+  const handleChecklistMetaChange = (
+    itemId: string,
+    field: "titulo" | "descricao",
+    value: string
+  ) => {
+    setEditorItems((current) =>
+      current.map((item) => {
+        if (item.id !== itemId) return item;
+
+        return {
+          ...item,
+          [field]: value,
+        };
+      })
+    );
+  };
+
+  const handleAddChecklistItem = () => {
+    if (!clienteSelecionado) return;
+
+    const now = new Date().toISOString();
+    const nextOrder = editorItems.length ? Math.max(...editorItems.map((item) => item.ordem)) + 1 : 1;
+
+    setEditorItems((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        cliente_id: clienteSelecionado.id,
+        item_key: `custom_${Date.now()}`,
+        titulo: "",
+        descricao: "",
+        valor_texto: "",
+        status: "pendente",
+        ordem: nextOrder,
+        updated_by: "admin",
+        created_at: now,
+        updated_at: now,
+      },
+    ]);
+  };
+
+  const handleRemoveChecklistItem = (itemId: string) => {
+    if (originalItems[itemId]) {
+      setDeletedItemIds((current) => [...new Set([...current, itemId])]);
+    }
+
+    setEditorItems((current) => current.filter((item) => item.id !== itemId));
+  };
+
+  const buildChecklistItemKey = (title: string, fallbackKey: string, index: number) => {
+    const base = title
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+    if (base) return base;
+    if (fallbackKey?.trim()) return fallbackKey.trim();
+    return `item_${index + 1}`;
+  };
+
   const handleSaveChecklist = async () => {
-    if (!clienteSelecionado || !editorItems.length) return;
+    if (!clienteSelecionado || (!editorItems.length && !deletedItemIds.length)) return;
 
     setSavingChecklist(true);
 
-    const payload = editorItems.map((item) => {
+    const emptyTitle = editorItems.find((item) => !item.titulo.trim());
+    if (emptyTitle) {
+      toast({
+        title: "Título obrigatório",
+        description: "Preencha o título de todos os itens do checklist antes de salvar.",
+        variant: "destructive",
+      });
+      setSavingChecklist(false);
+      return;
+    }
+
+    if (deletedItemIds.length) {
+      const { error: deleteError } = await supabase
+        .from("cliente_checklist_items")
+        .delete()
+        .in("id", deletedItemIds);
+
+      if (deleteError) {
+        toast({
+          title: "Erro ao remover item",
+          description: deleteError.message,
+          variant: "destructive",
+        });
+        setSavingChecklist(false);
+        return;
+      }
+    }
+
+    const payload = editorItems.map((item, index) => {
       const normalizedValue = normalizeChecklistText(item.valor_texto);
       const originalItem = originalItems[item.id];
 
@@ -246,8 +341,13 @@ export default function ChecklistClientes() {
 
       return {
         id: item.id,
+        cliente_id: clienteSelecionado.id,
+        item_key: buildChecklistItemKey(item.titulo, item.item_key, index),
+        titulo: item.titulo.trim(),
+        descricao: normalizeChecklistText(item.descricao) || null,
         valor_texto: normalizedValue || null,
         status: nextStatus,
+        ordem: index + 1,
         updated_by: "admin",
       };
     });
@@ -266,7 +366,7 @@ export default function ChecklistClientes() {
 
     toast({
       title: "Checklist atualizado!",
-      description: "As informações do onboarding foram sincronizadas com sucesso.",
+      description: "As informações e opções do checklist foram sincronizadas com sucesso.",
     });
 
     await loadClientes();
@@ -463,6 +563,15 @@ export default function ChecklistClientes() {
                     <Badge variant="outline" className="bg-black/10 border-white/10 text-white">
                       {getChecklistProgress(editorItems)}% concluído
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-white/15 bg-black/10 text-white hover:bg-white/10"
+                      onClick={handleAddChecklistItem}
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1.5" />
+                      Novo item
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -505,13 +614,40 @@ export default function ChecklistClientes() {
                       <Card key={item.id} className="glass-card border-[0.5px]">
                         <CardContent className="p-5 space-y-4">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                            <div className="space-y-1">
-                              <p className="text-sm font-black text-white">{item.titulo}</p>
-                              <p className="text-xs text-white/40">{item.descricao}</p>
+                            <div className="space-y-3 flex-1">
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] uppercase tracking-[0.22em] font-black text-white/35">Título do item</Label>
+                                <Input
+                                  value={item.titulo}
+                                  onChange={(event) => handleChecklistMetaChange(item.id, "titulo", event.target.value)}
+                                  className="glass-input border-white/10 text-white"
+                                  placeholder="Ex: Enviar logo em PNG"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] uppercase tracking-[0.22em] font-black text-white/35">Orientação para o cliente</Label>
+                                <Textarea
+                                  value={item.descricao || ""}
+                                  onChange={(event) => handleChecklistMetaChange(item.id, "descricao", event.target.value)}
+                                  className="glass-input min-h-[90px] border-white/10 text-white"
+                                  placeholder="Explique o que você quer que o cliente envie nesse item."
+                                />
+                              </div>
                             </div>
-                            <Badge variant="outline" className={cn("border-[0.5px] rounded-full py-1 px-3 shrink-0", statusMeta.className)}>
-                              {statusMeta.label}
-                            </Badge>
+                            <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
+                              <Badge variant="outline" className={cn("border-[0.5px] rounded-full py-1 px-3 shrink-0", statusMeta.className)}>
+                                {statusMeta.label}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                                onClick={() => handleRemoveChecklistItem(item.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                                Remover
+                              </Button>
+                            </div>
                           </div>
 
                           <div className="space-y-1.5">
@@ -554,7 +690,7 @@ export default function ChecklistClientes() {
                   <Button
                     className="gradient-primary text-white"
                     onClick={handleSaveChecklist}
-                    disabled={savingChecklist || !editorItems.length}
+                    disabled={savingChecklist || (!editorItems.length && !deletedItemIds.length)}
                   >
                     {savingChecklist ? "Salvando checklist..." : "Salvar checklist"}
                   </Button>
