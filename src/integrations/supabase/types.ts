@@ -36,16 +36,22 @@ export type Database = {
         Row: {
           auth_user_id: string | null
           avatar: string | null
+          bairro: string | null
           bloqueado: boolean | null
+          cep: string | null
           cidade: string | null
           codigo_desbloqueio: string | null
+          complemento: string | null
           created_at: string
           documento: string | null
           email: string
           endereco: string | null
           estado: string | null
           id: string
+          instagram: string | null
           nome: string
+          nome_empresa: string | null
+          numero_endereco: string | null
           referral_code: string | null
           senha: string | null
           site_url: string | null
@@ -54,20 +60,27 @@ export type Database = {
           tentativas_login: number | null
           trial_ends_at: string | null
           updated_at: string
+          whatsapp: string | null
         }
         Insert: {
           auth_user_id?: string | null
           avatar?: string | null
+          bairro?: string | null
           bloqueado?: boolean | null
+          cep?: string | null
           cidade?: string | null
           codigo_desbloqueio?: string | null
+          complemento?: string | null
           created_at?: string
           documento?: string | null
           email: string
           endereco?: string | null
           estado?: string | null
           id?: string
+          instagram?: string | null
           nome: string
+          nome_empresa?: string | null
+          numero_endereco?: string | null
           referral_code?: string | null
           senha?: string | null
           site_url?: string | null
@@ -76,20 +89,27 @@ export type Database = {
           tentativas_login?: number | null
           trial_ends_at?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
           auth_user_id?: string | null
           avatar?: string | null
+          bairro?: string | null
           bloqueado?: boolean | null
+          cep?: string | null
           cidade?: string | null
           codigo_desbloqueio?: string | null
+          complemento?: string | null
           created_at?: string
           documento?: string | null
           email?: string
           endereco?: string | null
           estado?: string | null
           id?: string
+          instagram?: string | null
           nome?: string
+          nome_empresa?: string | null
+          numero_endereco?: string | null
           referral_code?: string | null
           senha?: string | null
           site_url?: string | null
@@ -98,6 +118,7 @@ export type Database = {
           tentativas_login?: number | null
           trial_ends_at?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }

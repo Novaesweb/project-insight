@@ -4,9 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 export interface ClientPortalProfile {
   id: string;
   nome: string;
+  nome_empresa: string | null;
   email: string;
+  whatsapp: string | null;
   telefone: string | null;
+  instagram: string | null;
+  cep: string | null;
+  bairro: string | null;
   endereco: string | null;
+  numero_endereco: string | null;
+  complemento: string | null;
   cidade: string | null;
   estado: string | null;
   site_url: string | null;
@@ -26,9 +33,16 @@ type StoredClientPortalProfile = Pick<
 const CLIENT_PORTAL_SELECT = [
   "id",
   "nome",
+  "nome_empresa",
   "email",
+  "whatsapp",
   "telefone",
+  "instagram",
+  "cep",
+  "bairro",
   "endereco",
+  "numero_endereco",
+  "complemento",
   "cidade",
   "estado",
   "site_url",
@@ -46,9 +60,16 @@ export function sanitizeClientProfile(profile: Partial<ClientPortalProfile> | nu
   return {
     id: profile.id,
     nome: profile.nome,
+    nome_empresa: profile.nome_empresa ?? null,
     email: profile.email.trim().toLowerCase(),
+    whatsapp: profile.whatsapp ?? null,
     telefone: profile.telefone ?? null,
+    instagram: profile.instagram ?? null,
+    cep: profile.cep ?? null,
+    bairro: profile.bairro ?? null,
     endereco: profile.endereco ?? null,
+    numero_endereco: profile.numero_endereco ?? null,
+    complemento: profile.complemento ?? null,
     cidade: profile.cidade ?? null,
     estado: profile.estado ?? null,
     site_url: profile.site_url ?? null,
@@ -122,4 +143,17 @@ export async function loadClientProfileFromSession(session: Session | null) {
 
   if (emailError) throw emailError;
   return sanitizeClientProfile(byEmail as Partial<ClientPortalProfile> | null);
+}
+
+export async function loadClientProfileById(clientId: string) {
+  if (!clientId) return null;
+
+  const { data, error } = await supabase
+    .from("clientes")
+    .select(CLIENT_PORTAL_SELECT)
+    .eq("id", clientId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return sanitizeClientProfile(data as Partial<ClientPortalProfile> | null);
 }

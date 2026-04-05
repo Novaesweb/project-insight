@@ -76,6 +76,50 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const INITIAL_CLIENT_FORM = {
+  nome: "",
+  nome_empresa: "",
+  email: "",
+  whatsapp: "",
+  telefone: "",
+  documento: "",
+  instagram: "",
+  endereco: "",
+  numero_endereco: "",
+  complemento: "",
+  bairro: "",
+  cep: "",
+  cidade: "",
+  estado: "",
+  status: "ativo",
+  site_url: "",
+  projeto_titulo: "",
+  projeto_valor: "",
+  projeto_tipo: "site",
+  gerar_fatura: true,
+};
+
+const CLIENT_REGISTRATION_FIELDS = [
+  { key: "nome", label: "Nome completo" },
+  { key: "nome_empresa", label: "Empresa / marca" },
+  { key: "email", label: "E-mail" },
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "telefone", label: "Telefone secundário" },
+  { key: "documento", label: "CPF / CNPJ" },
+  { key: "instagram", label: "Instagram" },
+  { key: "site_url", label: "URL do Site" },
+] as const;
+
+const CLIENT_ADDRESS_FIELDS = [
+  { key: "cep", label: "CEP" },
+  { key: "endereco", label: "Endereço", fullWidth: true },
+  { key: "numero_endereco", label: "Número" },
+  { key: "complemento", label: "Complemento" },
+  { key: "bairro", label: "Bairro" },
+  { key: "cidade", label: "Cidade" },
+  { key: "estado", label: "Estado" },
+] as const;
+
 function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () => void }) {
   const { toast } = useToast();
 
@@ -186,7 +230,9 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               </div>
               <div className="flex-1 min-w-0 w-full">
                 <h2 className="text-lg sm:text-xl font-bold text-white truncate">{cliente.nome}</h2>
-                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] truncate">{cliente.email} · {cliente.telefone}</p>
+                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] truncate">
+                  {cliente.email} · {cliente.whatsapp || cliente.telefone || "Sem WhatsApp"}
+                </p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
                    <div className="flex-1 max-w-sm">
                       <Label className="text-[10px] text-white/30 uppercase font-bold mb-1 block">URL do Site</Label>
@@ -309,8 +355,11 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
       </motion.div>
 
       <motion.div variants={fadeUp}>
-        <Tabs defaultValue="extras" className="space-y-4">
+        <Tabs defaultValue="cadastro" className="space-y-4">
           <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1">
+            <TabsTrigger value="cadastro" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
+              <Users className="w-3.5 h-3.5" /> Cadastro
+            </TabsTrigger>
             <TabsTrigger value="extras" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
               <Package className="w-3.5 h-3.5" /> Extras ({extras.length})
             </TabsTrigger>
@@ -325,6 +374,80 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <StickyNote className="w-3.5 h-3.5" /> Notas
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="cadastro" className="space-y-6">
+            <Card className="glass-card border-[0.5px]">
+              <CardHeader>
+                <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">Ficha Completa do Cliente</CardTitle>
+                <CardDescription className="text-xs text-white/40">
+                  Tudo que você preencher aqui também pode ser atualizado pelo cliente em Meus Dados.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {CLIENT_REGISTRATION_FIELDS.map((field) => (
+                    <div key={field.key} className="space-y-1.5">
+                      <Label className="text-[10px] text-white/30 uppercase font-black">{field.label}</Label>
+                      <Input
+                        className="glass-input h-10"
+                        value={(cliente as any)[field.key] || ""}
+                        onChange={(e) => setCliente({ ...cliente, [field.key]: e.target.value })}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {CLIENT_ADDRESS_FIELDS.map((field) => (
+                    <div key={field.key} className={`space-y-1.5 ${field.fullWidth ? "md:col-span-2" : ""}`}>
+                      <Label className="text-[10px] text-white/30 uppercase font-black">{field.label}</Label>
+                      <Input
+                        className="glass-input h-10"
+                        value={(cliente as any)[field.key] || ""}
+                        onChange={(e) => setCliente({ ...cliente, [field.key]: e.target.value })}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    className="gradient-primary h-10 text-xs"
+                    onClick={async () => {
+                      const payload = {
+                        nome: cliente.nome,
+                        nome_empresa: cliente.nome_empresa || null,
+                        email: cliente.email?.trim().toLowerCase(),
+                        whatsapp: cliente.whatsapp || null,
+                        telefone: cliente.telefone || null,
+                        documento: cliente.documento || null,
+                        instagram: cliente.instagram || null,
+                        site_url: cliente.site_url || null,
+                        cep: cliente.cep || null,
+                        endereco: cliente.endereco || null,
+                        numero_endereco: cliente.numero_endereco || null,
+                        complemento: cliente.complemento || null,
+                        bairro: cliente.bairro || null,
+                        cidade: cliente.cidade || null,
+                        estado: cliente.estado || null,
+                      };
+
+                      const { error } = await supabase.from("clientes").update(payload as any).eq("id", clienteId);
+                      if (error) {
+                        toast({ title: "Erro ao salvar cadastro", description: error.message, variant: "destructive" });
+                        return;
+                      }
+
+                      toast({ title: "Cadastro atualizado!", description: "Os dados do cliente foram sincronizados." });
+                      loadData();
+                    }}
+                  >
+                    Salvar Cadastro
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="briefing" className="space-y-6">
             <Card className="glass-card border-[0.5px]">
@@ -669,14 +792,7 @@ export default function Clientes() {
   const [criarConta, setCriarConta] = useState(true);
   const [senhaCliente, setSenhaCliente] = useState("");
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
-  const [form, setForm] = useState({ 
-    nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "",
-    // Campos do Onboarding de Elite
-    projeto_titulo: "",
-    projeto_valor: "",
-    projeto_tipo: "site",
-    gerar_fatura: true
-  });
+  const [form, setForm] = useState(() => ({ ...INITIAL_CLIENT_FORM }));
   const [saving, setSaving] = useState(false);
 
   const fetchClientes = useCallback(async () => {
@@ -737,9 +853,25 @@ export default function Clientes() {
     
     // 1. Inserir Cliente
     const { data: novoCliente, error } = await supabase.from("clientes").insert({ 
-      nome: form.nome, email: normalizedEmail, telefone: form.telefone, documento: form.documento,
-      endereco: form.endereco, cidade: form.cidade, estado: form.estado, status: form.status,
-      site_url: form.site_url, avatar, auth_user_id: authUserId, senha: null
+      nome: form.nome,
+      nome_empresa: form.nome_empresa || null,
+      email: normalizedEmail,
+      whatsapp: form.whatsapp || null,
+      telefone: form.telefone || null,
+      documento: form.documento || null,
+      instagram: form.instagram || null,
+      endereco: form.endereco || null,
+      numero_endereco: form.numero_endereco || null,
+      complemento: form.complemento || null,
+      bairro: form.bairro || null,
+      cep: form.cep || null,
+      cidade: form.cidade || null,
+      estado: form.estado || null,
+      status: form.status,
+      site_url: form.site_url || null,
+      avatar,
+      auth_user_id: authUserId,
+      senha: null
     } as any).select().single();
 
     if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); setSaving(false); return; }
@@ -785,17 +917,14 @@ export default function Clientes() {
     }
 
     if (criarConta && senhaCliente.length >= 6) {
-      const link = `${window.location.origin}/cliente`;
+      const link = `${window.location.origin}/cliente/login`;
       setContaCriada({ email: normalizedEmail, senha: senhaCliente, link });
     }
 
     toast({ title: "Onboarding Concluído!", description: "Cliente, Projeto e Financeiro configurados." });
     sendPushToAdmins("🚀 Novo Contrato Elite", `${form.nome} - ${form.projeto_titulo}`, "/admin/clientes");
     setShowNew(false);
-    setForm({ 
-      nome: "", email: "", telefone: "", documento: "", endereco: "", cidade: "", estado: "", status: "ativo", site_url: "",
-      projeto_titulo: "", projeto_valor: "", projeto_tipo: "site", gerar_fatura: true
-    });
+    setForm({ ...INITIAL_CLIENT_FORM });
     setSenhaCliente("");
     setCriarConta(true);
     setSaving(false);
@@ -828,25 +957,27 @@ export default function Clientes() {
           <DialogContent className="glass-card border-[0.5px] text-white max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="text-white">Novo Cliente</DialogTitle></DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              {[
-                { key: "nome", label: "Nome completo" }, { key: "email", label: "E-mail" },
-                { key: "telefone", label: "Telefone" }, { key: "documento", label: "CPF/CNPJ" },
-                { key: "cidade", label: "Cidade" }, { key: "estado", label: "Estado" },
-              ].map((f) => (
-                <div key={f.key} className="space-y-1">
-                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{f.label}</Label>
-                  <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
-                    value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+              {CLIENT_REGISTRATION_FIELDS.map((field) => (
+                <div key={field.key} className="space-y-1">
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{field.label}</Label>
+                  <Input
+                    className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                    value={(form as any)[field.key]}
+                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                  />
                 </div>
               ))}
-              {[
-                { key: "endereco", label: "Endereço" },
-                { key: "site_url", label: "URL do Site" },
-              ].map((f) => (
-                <div key={f.key} className="space-y-1 sm:col-span-2">
-                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{f.label}</Label>
-                  <Input className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
-                    value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+              {CLIENT_ADDRESS_FIELDS.map((field) => (
+                <div key={field.key} className={`space-y-1 ${field.fullWidth ? "sm:col-span-2" : ""}`}>
+                  <Label className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase">{field.label}</Label>
+                  <Input
+                    className="glass-input border-[rgba(255,255,255,0.1)] text-white text-sm h-9"
+                    value={(form as any)[field.key]}
+                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                  />
                 </div>
               ))}
             </div>
@@ -934,7 +1065,7 @@ export default function Clientes() {
                       <StatusBadge status={c.status} />
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-[hsl(var(--muted-foreground))]">
-                      <span>{c.telefone || "—"}</span>
+                      <span>{c.whatsapp || c.telefone || "—"}</span>
                       <span>{c.cidade ? `${c.cidade}, ${c.estado}` : "—"}</span>
                     </div>
                     <div className="flex gap-2 pt-1 border-t border-[rgba(255,255,255,0.05)]">
@@ -961,7 +1092,7 @@ export default function Clientes() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-[rgba(255,255,255,0.06)]">
-                    {["Cliente", "E-mail", "Telefone", "Cidade", "Status", "Ações"].map(h => (
+                    {["Cliente", "E-mail", "WhatsApp", "Cidade", "Status", "Ações"].map(h => (
                       <TableHead key={h} className="text-[11px] text-[hsl(var(--muted-foreground))]">{h}</TableHead>
                     ))}
                   </TableRow>
@@ -982,7 +1113,7 @@ export default function Clientes() {
                           </div>
                         </TableCell>
                         <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.email}</TableCell>
-                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.telefone}</TableCell>
+                        <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.whatsapp || c.telefone || "—"}</TableCell>
                         <TableCell onClick={() => setSelectedCliente(c.id)} className="text-sm text-[hsl(var(--muted-foreground))]">{c.cidade}, {c.estado}</TableCell>
                         <TableCell onClick={() => setSelectedCliente(c.id)}><StatusBadge status={c.status} /></TableCell>
                         <TableCell>
