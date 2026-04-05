@@ -15,7 +15,7 @@ import { getFavoriteAdminRoutes, getRecentAdminRoutes, trackAdminRoute } from "@
 import {
   Menu, LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles, ArrowLeft, LockKeyhole, ClipboardList
+  LogOut, CalendarDays, Puzzle, ShieldCheck, Sparkles, ArrowLeft, LockKeyhole, ClipboardList, ServerCog
 } from "lucide-react";
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
@@ -44,6 +44,7 @@ const mobileNavGroups = [
     title: "Gestão",
     items: [
       { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
+      { href: "/admin/custos-sistema", label: "Custos do Sistema", icon: ServerCog },
       { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
       { href: "/admin/contratos", label: "Contratos", icon: ShieldCheck },
       { href: "/admin/suporte", label: "Suporte", icon: Headphones },

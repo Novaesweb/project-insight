@@ -18,7 +18,6 @@ import { sendPushToAdmins } from "@/lib/push-notifications";
 import { AsaasService } from "@/lib/asaas-service";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useSearchParams } from "react-router-dom";
-import SystemCostsSection from "@/components/admin/financeiro/SystemCostsSection";
 import UpcomingBillingPanel from "@/components/admin/financeiro/UpcomingBillingPanel";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -236,9 +235,6 @@ export default function Financeiro() {
           </CardContent>
         </Card>
       </motion.div>
-
-      <SystemCostsSection />
-
       <motion.div variants={fadeUp}>
         <Card className="glass-card border-[0.5px]">
           <CardHeader>

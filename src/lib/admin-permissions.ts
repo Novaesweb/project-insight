@@ -10,7 +10,7 @@ export const ADMIN_PERMISSION_MODULES = [
   { key: "pedidos", label: "Pedidos", description: "Pedidos, vendas e solicitações do time.", hrefs: ["/admin/pedidos"] },
   { key: "extras", label: "Extras", description: "Módulos, upgrades e extras vendidos.", hrefs: ["/admin/extras"] },
   { key: "recurrent_extras", label: "Extras Recorrentes", description: "Assinaturas e cobranças recorrentes de extras.", hrefs: ["/admin/recurrent-extras"] },
-  { key: "financeiro", label: "Financeiro", description: "Receitas, cobranças e saúde financeira.", hrefs: ["/admin/financeiro"] },
+  { key: "financeiro", label: "Financeiro", description: "Receitas, cobranças, custos internos e saúde financeira.", hrefs: ["/admin/financeiro", "/admin/custos-sistema"] },
   { key: "relatorios", label: "Relatórios", description: "Relatórios estratégicos, ROI e métricas.", hrefs: ["/admin/relatorios"] },
   { key: "contratos", label: "Contratos", description: "Documentos e gestão contratual.", hrefs: ["/admin/contratos"] },
   { key: "suporte", label: "Suporte", description: "Tickets e acompanhamento de atendimento.", hrefs: ["/admin/suporte"] },

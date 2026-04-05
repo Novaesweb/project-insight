@@ -36,6 +36,7 @@ const Pedidos = React.lazy(() => import("./pages/Pedidos"));
 const Extras = React.lazy(() => import("./pages/Extras"));
 const Relatorios = React.lazy(() => import("./pages/Relatorios"));
 const Financeiro = React.lazy(() => import("./pages/Financeiro"));
+const CustosSistema = React.lazy(() => import("./pages/CustosSistema"));
 const Suporte = React.lazy(() => import("./pages/Suporte"));
 const Usuarios = React.lazy(() => import("./pages/Usuarios"));
 const Leads = React.lazy(() => import("./pages/Leads"));
@@ -116,6 +117,7 @@ function AdminWithSplash() {
             <Route path="extras-ativos" element={<ExtrasAtivos />} />
             <Route path="relatorios" element={<Relatorios />} />
             <Route path="financeiro" element={<Financeiro />} />
+            <Route path="custos-sistema" element={<CustosSistema />} />
             <Route path="suporte" element={<Suporte />} />
             <Route path="usuarios" element={<Usuarios />} />
             <Route path="configuracoes" element={<Configuracoes />} />

@@ -17,6 +17,7 @@ export const adminRoutes: AdminRouteMeta[] = [
   { href: "/admin/extras", label: "Extras", shortLabel: "Extras", keywords: ["extras", "upgrades", "modulos"] },
   { href: "/admin/recurrent-extras", label: "Extras Recorrentes", shortLabel: "Recorrentes", keywords: ["recorrentes", "assinaturas"] },
   { href: "/admin/financeiro", label: "Financeiro", shortLabel: "Financeiro", keywords: ["financeiro", "receitas", "cobrancas"] },
+  { href: "/admin/custos-sistema", label: "Custos do Sistema", shortLabel: "Custos", keywords: ["custos", "sistema", "operacao", "despesas"] },
   { href: "/admin/relatorios", label: "Relatórios", shortLabel: "Relatórios", keywords: ["relatorios", "metricas", "roi"] },
   { href: "/admin/contratos", label: "Contratos", shortLabel: "Contratos", keywords: ["contratos", "juridico"] },
   { href: "/admin/suporte", label: "Suporte", shortLabel: "Suporte", keywords: ["suporte", "tickets"] },
