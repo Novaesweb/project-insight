@@ -1177,9 +1177,12 @@ export default function Clientes() {
         return;
       }
 
-      toast({ title: "Cliente excluído com sucesso!", description: "O acesso do portal e o e-mail também foram liberados." });
+      toast({
+        title: "Cliente excluído com sucesso!",
+        description: data?.message || "Projeto, pedidos e acesso do portal foram removidos. Dívidas em aberto permanecem no financeiro.",
+      });
       fetchClientes();
-    }, "Excluir Cliente", "Este cliente e todos os seus dados serão removidos permanentemente.");
+    }, "Excluir Cliente", "Projeto, pedidos, painel, checklist e dados operacionais serão removidos. Só permanecem lançamentos em aberto no financeiro, caso existam.");
   };
 
   return (
