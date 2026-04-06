@@ -114,7 +114,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="hero-editorial-grid">
-            <div className="hero-editorial-copy text-left">
+            <div className="hero-editorial-copy">
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -142,16 +142,25 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.24 }}
-                className="text-lg md:text-xl mt-8 max-w-2xl leading-relaxed font-medium site-copy-muted"
+                className="text-lg md:text-xl mt-8 max-w-3xl leading-relaxed font-medium site-copy-muted"
               >
-                Estamos a selecionar apenas <span className="text-white font-bold">50 empreendedores</span> para testar a nova arquitetura digital da NovaesWeb. Criamos uma base mais completa para vender, atender e organizar o teu negócio com mais clareza.
+                Estamos a selecionar apenas <span className="text-white font-bold">50 empreendedores</span> para testar a nova arquitetura digital da NovaesWeb. Uma base premium para apresentar melhor a marca, organizar o atendimento e vender com mais clareza.
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="text-sm md:text-base mt-4 max-w-2xl font-semibold text-white/55 leading-relaxed"
+              >
+                Site, pedidos, automação e marketing na mesma direção para o teu negócio crescer com mais controlo.
               </motion.p>
 
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.36 }}
-                className="mt-6 max-w-2xl"
+                className="mt-6 max-w-3xl w-full"
               >
                 <div className="hero-founder-card rounded-[1.8rem] px-5 py-5 sm:px-6 sm:py-6 text-left">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -176,7 +185,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.48 }}
-                className="mt-8 flex flex-col sm:flex-row items-stretch gap-4 max-w-2xl"
+                className="mt-8 flex flex-col sm:flex-row items-stretch gap-4 max-w-3xl w-full justify-center"
               >
                 <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
                   <Button
@@ -214,7 +223,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.62 }}
-            className="hero-proof-strip"
+            className="hero-proof-strip max-w-5xl mx-auto"
           >
             <div className="hero-proof-card">
               <Star className="w-4 h-4 text-white/70" />
@@ -245,7 +254,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.74 }}
-            className="hero-feature-grid"
+            className="hero-feature-grid max-w-6xl mx-auto"
           >
             {featureCards.map((card) => (
               <motion.button

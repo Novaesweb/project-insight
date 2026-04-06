@@ -305,57 +305,14 @@ section {
     display: flex;
     flex-direction: column;
     justify-content: center;
-  }
-
-  .hero-editorial-visual {
-    position: relative;
-    overflow: hidden;
-    border-radius: 2rem;
-    padding: 1.5rem;
-    min-height: 100%;
-  }
-
-  .hero-editorial-glow {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at top right, rgba(236, 72, 153, 0.16), transparent 28%),
-      radial-gradient(circle at bottom left, rgba(107, 33, 168, 0.16), transparent 34%);
-    opacity: 0.95;
-  }
-
-  .hero-visual-metric {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1.35rem;
-    padding: 1rem 1rem 1.05rem;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.025));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  }
-
-  .hero-visual-metric span {
-    display: inline-flex;
-    margin-bottom: 0.55rem;
-    font-size: 0.62rem;
-    font-weight: 900;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.42);
-  }
-
-  .hero-visual-metric p {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.92rem;
-    line-height: 1.45;
-    font-weight: 700;
+    align-items: center;
+    text-align: center;
   }
 
   .hero-proof-strip {
     display: grid;
     gap: 0.9rem;
-    margin-top: 1.15rem;
+    margin-top: 1.5rem;
   }
 
   .hero-proof-card {
@@ -367,6 +324,7 @@ section {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.022));
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: 0 20px 50px -38px rgba(236, 72, 153, 0.16);
+    text-align: left;
   }
 
   .hero-feature-grid {
@@ -915,11 +873,11 @@ section {
 
   @media (min-width: 768px) {
     .hero-proof-strip {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .hero-feature-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .public-page-container {
@@ -950,9 +908,8 @@ section {
   }
 
   @media (min-width: 1024px) {
-    .hero-editorial-grid {
-      grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.78fr);
-      gap: 2rem;
+    .hero-proof-strip {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .hero-feature-card {
@@ -960,8 +917,8 @@ section {
       min-height: 100%;
     }
 
-    .hero-editorial-visual {
-      padding: 1.8rem;
+    .hero-feature-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 }
