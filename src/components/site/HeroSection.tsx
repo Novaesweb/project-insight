@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase, Target, Globe, Layout, ShoppingBag, MessageCircle } from "lucide-react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase, Target, Layout } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
@@ -32,21 +32,9 @@ const particles = [
   { delay: 2, x: "20%", y: "75%", size: 3 },
 ];
 
-const heroHighlights = [
-  { label: "Sites Profissionais", icon: Globe },
-  { label: "Painéis de Controlo", icon: Layout },
-  { label: "Gestão de Pedidos", icon: ShoppingBag },
-  { label: "Atendimento no WhatsApp", icon: MessageCircle },
-  { label: "Marketing Digital", icon: Target },
-];
-
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
   const navigate = useNavigate();
-  const shouldReduceMotion = useReducedMotion();
-  const [activeHighlight, setActiveHighlight] = useState(0);
-  const [desktopAutoRotate, setDesktopAutoRotate] = useState(false);
-
   const featureCards = [
     {
       eyebrow: "Estratégia por segmento",
@@ -73,29 +61,6 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
       cta: "Ver demonstração",
     },
   ];
-
-  useEffect(() => {
-    const syncViewport = () => {
-      setDesktopAutoRotate(window.innerWidth >= 768);
-    };
-
-    syncViewport();
-    window.addEventListener("resize", syncViewport);
-
-    return () => window.removeEventListener("resize", syncViewport);
-  }, []);
-
-  useEffect(() => {
-    if (shouldReduceMotion || !desktopAutoRotate) {
-      return;
-    }
-
-    const timer = window.setInterval(() => {
-      setActiveHighlight((current) => (current + 1) % heroHighlights.length);
-    }, 2200);
-
-    return () => window.clearInterval(timer);
-  }, [desktopAutoRotate, shouldReduceMotion]);
 
   const scrollToCadastro = () => {
     const section = document.getElementById("cadastro");
@@ -243,72 +208,6 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 </motion.button>
               </motion.div>
             </div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.65, delay: 0.2 }}
-              className="hero-editorial-visual site-surface"
-            >
-              <div className="hero-editorial-glow" aria-hidden="true" />
-              <div className="relative z-10">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="site-badge site-badge--primary">
-                    <Layout className="w-3.5 h-3.5" />
-                    Arquitetura Digital
-                  </span>
-                  <span className="hero-founder-pill">Base NovaesWeb</span>
-                </div>
-
-                <div className="mt-7">
-                  <p className="text-[10px] uppercase tracking-[0.28em] font-black text-white/42 mb-3">
-                    Ecossistema Editorial
-                  </p>
-                  <h2 className="text-3xl md:text-[2.7rem] font-black tracking-tight leading-[0.95] text-white">
-                    Site, controlo e operação na mesma direção
-                  </h2>
-                  <p className="text-sm md:text-base site-copy-muted mt-4 leading-relaxed max-w-xl">
-                    Uma base pensada para apresentar melhor a marca, captar contactos, organizar o atendimento e sustentar o crescimento com mais controlo.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7">
-                  <div className="hero-visual-metric">
-                    <span>Apresentação</span>
-                    <p>Site premium com mais autoridade e clareza comercial.</p>
-                  </div>
-                  <div className="hero-visual-metric">
-                    <span>Operação</span>
-                    <p>Painel administrativo para acompanhar o ritmo do negócio.</p>
-                  </div>
-                  <div className="hero-visual-metric">
-                    <span>Pedidos</span>
-                    <p>Fluxo mais organizado para vendas, orçamento e acompanhamento.</p>
-                  </div>
-                  <div className="hero-visual-metric">
-                    <span>Marketing</span>
-                    <p>Campanhas e materiais visuais a reforçar a presença digital.</p>
-                  </div>
-                </div>
-
-                <div className="mt-7 flex flex-wrap gap-3">
-                  {heroHighlights.map((item, index) => {
-                    const isActive = index === activeHighlight;
-
-                    return (
-                      <motion.div
-                        key={item.label}
-                        whileHover={{ y: -4, scale: 1.02 }}
-                        className={`hero-service-chip ${isActive ? "hero-service-chip--active" : ""}`}
-                      >
-                        <item.icon className="w-4 h-4 shrink-0" />
-                        <span>{item.label}</span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
           </div>
 
           <motion.div
