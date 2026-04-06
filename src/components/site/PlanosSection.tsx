@@ -3,7 +3,6 @@ import {
   ArrowRight,
   CheckCircle,
   CreditCard,
-  Flame,
   Globe,
   Layers,
   MessageCircle,
@@ -146,52 +145,6 @@ function FounderAlert() {
             </Button>
           </a>
         </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function SlotsHighlight() {
-  return (
-    <motion.div variants={fade} className="max-w-2xl mx-auto mb-14">
-      <div
-        className="site-surface rounded-[1.75rem] p-5 md:p-6"
-        style={{
-          border: "1px solid hsl(var(--primary) / 0.22)",
-          boxShadow: "0 20px 60px rgba(220, 38, 38, 0.08)",
-        }}
-      >
-        <div className="flex items-end justify-between gap-4 mb-3">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.24em] font-black text-primary mb-1">
-              Status das vagas
-            </p>
-            <h3 className="text-base md:text-lg font-black text-foreground flex items-center gap-2">
-              <Flame className="w-4 h-4 text-primary" />
-              Projeto Fundador
-            </h3>
-          </div>
-          <div className="text-right">
-            <span className="text-3xl font-black text-primary">{founderSlots.filled}</span>
-            <span className="text-muted-foreground/70 text-lg">/{founderSlots.total}</span>
-          </div>
-        </div>
-
-        <div className="h-3 rounded-full overflow-hidden bg-white/5 border border-white/5">
-          <div
-            className="h-full rounded-full relative"
-            style={{
-              width: `${founderSlots.progress}%`,
-              background: "linear-gradient(90deg, rgba(107,33,168,0.95), rgba(236,72,153,0.96), rgba(255,184,0,0.95))",
-            }}
-          >
-            <div className="absolute inset-y-0 right-0 w-5 bg-white/45 blur-[4px]" />
-          </div>
-        </div>
-
-        <p className="text-center text-[11px] md:text-xs uppercase tracking-[0.22em] font-black text-muted-foreground/70 mt-4">
-          Restam apenas <span className="text-[hsl(var(--gold))]">{founderSlots.remaining} vagas</span> com desconto de custo
-        </p>
       </div>
     </motion.div>
   );
@@ -441,8 +394,6 @@ export default function PlanosSection() {
             Soluções de elite para transformar sua presença digital em uma estrutura que atrai clientes, organiza a operação e acelera o crescimento.
           </p>
         </motion.div>
-
-        <SlotsHighlight />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
           {plans.map((plan) => (
