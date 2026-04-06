@@ -22,6 +22,10 @@ import SEOHead from "@/components/SEOHead";
 import NativeNotificationManager from "@/components/NativeNotificationManager";
 import HttpsRedirect from "@/components/HttpsRedirect";
 import { getQueryClient } from "@/lib/query-client";
+import NichePage from "./pages/NichePage";
+import Nichos from "./pages/Nichos";
+import SobreNos from "./pages/SobreNos";
+import CriacaoConteudo from "./pages/CriacaoConteudo";
 
 // Importações críticas em memória (carregados no bundle principal)
 // Nenhuma página pesada deve estar aqui agora
@@ -45,10 +49,6 @@ const Contratos = React.lazy(() => import("./pages/Contratos"));
 const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
 const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
-const NichePage = React.lazy(() => import("./pages/NichePage"));
-const Nichos = React.lazy(() => import("./pages/Nichos"));
-const SobreNos = React.lazy(() => import("./pages/SobreNos"));
-const CriacaoConteudo = React.lazy(() => import("./pages/CriacaoConteudo"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
 const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
