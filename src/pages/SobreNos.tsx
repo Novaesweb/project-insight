@@ -234,7 +234,7 @@ export default function SobreNos() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {differencials.map((item) => (
+                {diferencials.map((item) => (
                   <motion.div key={item.title} variants={fadeUp} className="public-page-proof-card">
                     <div className="w-12 h-12 rounded-[1rem] flex items-center justify-center mb-4 bg-[linear-gradient(135deg,rgba(220,38,38,0.92),rgba(107,33,168,0.88),rgba(236,72,153,0.88))] shadow-[0_14px_34px_rgba(236,72,153,0.14)]">
                       <item.icon className="w-5 h-5 text-white" />

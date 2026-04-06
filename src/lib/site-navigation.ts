@@ -13,15 +13,21 @@ export interface SiteCompanyLink {
   label: string;
 }
 
-export const siteNavLinks: SiteNavLink[] = [
+export const sitePrimaryNavLinks: SiteNavLink[] = [
   { href: "#o-que-fazemos", label: "O Que Fazemos" },
   { href: "#como-funciona", label: "Como Funciona" },
   { href: "#automacao", label: "Automação" },
   { href: "#planos", label: "Planos" },
-  { href: "/nichos", label: "Nichos" },
   { href: "/sobre", label: "Sobre" },
   { href: "#contato", label: "Contato" },
 ];
+
+export const siteFeatureNavLinks: SiteNavLink[] = [
+  { href: "/nichos", label: "Nichos" },
+  { href: "/criacao-conteudo", label: "Área do Marketing" },
+];
+
+export const siteNavLinks: SiteNavLink[] = [...sitePrimaryNavLinks, ...siteFeatureNavLinks];
 
 export const siteCompanyLinks: SiteCompanyLink[] = [
   { href: "/sobre", label: "Sobre a NovaesWeb" },

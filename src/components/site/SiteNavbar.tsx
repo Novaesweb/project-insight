@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Zap, Target } from "lucide-react";
+import { ArrowRight, Menu, X, ChevronDown, ChevronRight, Star, Users, Target, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { handleSiteNavigation, siteCompanyLinks, siteNavLinks } from "@/lib/site-navigation";
+import { handleSiteNavigation, siteCompanyLinks, siteFeatureNavLinks, siteNavLinks, sitePrimaryNavLinks } from "@/lib/site-navigation";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
 import { scrollTo } from "@/lib/utils";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
@@ -23,6 +23,11 @@ const companyLinks = siteCompanyLinks.map((link) => ({
         : Target,
 }));
 
+const featureLinks = siteFeatureNavLinks.map((link) => ({
+  ...link,
+  icon: link.href === "/nichos" ? Briefcase : Target,
+}));
+
 export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -38,7 +43,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   }, []);
 
   useEffect(() => {
-    const sectionLinks = siteNavLinks.filter((link) => link.href.startsWith("#"));
+    const sectionLinks = sitePrimaryNavLinks.filter((link) => link.href.startsWith("#"));
     const routeLinks = siteNavLinks.filter((link) => link.href.startsWith("/"));
 
     if (location.pathname !== "/") {
@@ -136,7 +141,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-6 ml-8">
+        <div className="hidden lg:flex items-center gap-5 ml-10">
           {/* Dropdown Empresa */}
           <div className="relative" onMouseEnter={() => setActiveDropdown("empresa")}>
             <button className="flex items-center gap-1.5 text-[13px] text-foreground/60 hover:text-foreground/90 transition-all font-bold tracking-[0.1em] uppercase group">
@@ -177,7 +182,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             </AnimatePresence>
           </div>
 
-          {siteNavLinks.map((link) => (
+          {sitePrimaryNavLinks.map((link) => (
             <button
               key={link.href}
               onClick={() => handleNavClick(link.href)}
@@ -284,7 +289,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                 <div>
                   <p className="text-[10px] text-foreground/45 uppercase tracking-[0.3em] font-bold mb-4">Navegação</p>
                   <div className="grid grid-cols-2 gap-3">
-                    {siteNavLinks.map((link) => (
+                    {sitePrimaryNavLinks.map((link) => (
                       <button
                         key={link.href}
                         onClick={() => handleNavClick(link.href, setMenuOpen)}
@@ -294,6 +299,31 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                         )}
                       >
                         {link.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] text-foreground/45 uppercase tracking-[0.3em] font-bold mb-4">Destaques</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {featureLinks.map((link) => (
+                      <button
+                        key={link.href}
+                        onClick={() => handleNavClick(link.href, setMenuOpen)}
+                        className="site-surface flex items-start gap-3 text-left rounded-[1.25rem] px-4 py-4 hover:border-primary/25 transition-all"
+                      >
+                        <div className="w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center bg-white/[0.05] border border-white/10">
+                          <link.icon className="w-4 h-4 text-white/90" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-white">{link.label}</p>
+                          <p className="text-xs text-white/45 mt-1">
+                            {link.href === "/nichos"
+                              ? "Veja a NovaesWeb adaptada para diferentes segmentos."
+                              : "Explore campanhas e materiais visuais para complementar o projeto."}
+                          </p>
+                        </div>
                       </button>
                     ))}
                   </div>
