@@ -1,17 +1,32 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Zap, Instagram, Linkedin, Facebook, Sparkles } from "lucide-react";
 import codethioLogo from "@/assets/codethio-logo.webp";
 import sealImg from "@/assets/novaesweb-v10-seal-final.webp";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
 import nwIcon from "@/assets/novaesweb-nw-icon.png";
-import { scrollTo } from "@/lib/utils";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { handleSiteNavigation } from "@/lib/site-navigation";
 
 interface SiteFooterProps {
   onOpenModal: (id: string) => void;
 }
 
 export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const footerLinks = [
+    { href: "#o-que-fazemos", label: "O Que Fazemos" },
+    { href: "#como-funciona", label: "Como Funciona" },
+    { href: "#automacao", label: "Automação" },
+    { href: "#planos", label: "Planos" },
+    { href: "/nichos", label: "Nichos" },
+    { href: "/sobre", label: "Sobre" },
+    { href: "#contato", label: "Contato" },
+    { id: "privacidade", label: "Privacidade" },
+    { id: "termos", label: "Termos" },
+  ];
+
   return (
     <footer className="border-t border-white/[0.04] overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 pt-20 pb-10">
@@ -39,13 +54,21 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
               <div className="w-4 h-px bg-purple-500/30" /> Ecossistema
             </h4>
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              {["Serviços", "Soluções", "Processo", "Planos", "Resultados", "Privacidade", "Termos"].map((l, i) => (
+              {footerLinks.map((link) => (
                 <button 
-                  key={i} 
-                  onClick={() => l === "Privacidade" || l === "Termos" ? onOpenModal(l.toLowerCase()) : scrollTo(`#${l.toLowerCase()}`)} 
+                  key={link.href ?? link.id}
+                  onClick={() =>
+                    handleSiteNavigation({
+                      href: link.href,
+                      id: link.id,
+                      locationPathname: location.pathname,
+                      navigate,
+                      onOpenModal,
+                    })
+                  }
                   className="text-[12px] text-white/30 hover:text-white/60 transition-all text-left flex items-center gap-3 group font-medium"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/[0.06] group-hover:bg-purple-500/50 group-hover:scale-125 transition-all" /> {l}
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/[0.06] group-hover:bg-purple-500/50 group-hover:scale-125 transition-all" /> {link.label}
                 </button>
               ))}
             </div>

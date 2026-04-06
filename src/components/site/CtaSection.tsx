@@ -29,6 +29,9 @@ export default function CtaSection() {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
+        <div className="absolute inset-0 pointer-events-none opacity-80" style={{ background: "radial-gradient(circle at top center, rgba(236, 72, 153, 0.12), transparent 35%)" }} />
+        <div className="absolute inset-x-10 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(220,38,38,0.65), rgba(107,33,168,0.6), rgba(236,72,153,0.65), transparent)" }} />
+
         {/* Badge */}
         <span className="site-badge site-badge--primary mb-8">
           <Sparkles className="w-3.5 h-3.5" />
@@ -42,6 +45,17 @@ export default function CtaSection() {
         <p className="text-xl site-copy-muted mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
           Preencha o cadastro e nossa equipe entra em contato em tempo recorde para entender seu projeto e traçar o melhor plano de ação.
         </p>
+
+        <div className="max-w-2xl mx-auto mb-10 public-page-highlight-grid md:grid-cols-2">
+          <div className="public-page-highlight-card text-left">
+            <p className="text-[10px] uppercase tracking-[0.22em] font-black text-white/45 mb-2">Direcionamento</p>
+            <p className="text-base font-black text-white">Receba uma leitura mais clara sobre a melhor estrutura para o seu negócio.</p>
+          </div>
+          <div className="public-page-highlight-card text-left">
+            <p className="text-[10px] uppercase tracking-[0.22em] font-black text-white/45 mb-2">Próximo passo</p>
+            <p className="text-base font-black text-white">Site, painel, pedidos, automação ou marketing alinhados ao seu momento.</p>
+          </div>
+        </div>
 
         {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">

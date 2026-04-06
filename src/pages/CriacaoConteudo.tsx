@@ -1,10 +1,27 @@
+import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Camera, Smartphone, Target, Lightbulb, Monitor, ArrowRight, Sparkles, Check, ChevronDown, Palette, PenTool, Image as ImageIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  Image as ImageIcon,
+  LayoutGrid,
+  Lightbulb,
+  MessageCircle,
+  Monitor,
+  Palette,
+  PenTool,
+  Smartphone,
+  Sparkles,
+  Target,
+} from "lucide-react";
+
+import SEOHead from "@/components/SEOHead";
+import PublicPageLayout from "@/components/site/PublicPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePublicContact } from "@/hooks/usePublicContact";
-import SEOHead from "@/components/SEOHead";
-import { memo, useState } from "react";
 import marketingImg from "@/assets/area-marketing-novaesweb.jpeg";
 
 const fadeUp = {
@@ -12,284 +29,304 @@ const fadeUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-const stagger = { show: { transition: { staggerChildren: 0.12 } } };
-
-const GlobalBackground = memo(function GlobalBackground() {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0" style={{
-        background: 'linear-gradient(180deg, hsl(var(--background)), hsl(245 12% 5%))',
-      }} />
-      <div className="absolute inset-0 opacity-[0.012]" style={{
-        backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-        backgroundSize: '96px 96px',
-      }} />
-      <div className="absolute top-[10%] -left-[8%] w-[560px] h-[560px] rounded-full blur-[180px] opacity-[0.04]"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.32), transparent 72%)' }} />
-      <div className="absolute top-[28%] -right-[10%] w-[520px] h-[520px] rounded-full blur-[170px] opacity-[0.045]"
-        style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.28), transparent 72%)' }} />
-      <div className="absolute bottom-[-8%] left-[20%] w-[520px] h-[520px] rounded-full blur-[180px] opacity-[0.03]"
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.24), transparent 74%)' }} />
-    </div>
-  );
-});
-
 const tabs = [
   {
     id: "imagens",
     label: "Imagens Profissionais",
     icon: Camera,
-    emoji: "📸",
-    description: "Criamos imagens personalizadas para o seu negócio, ideais para redes sociais e campanhas.",
+    description: "Criamos peças visuais para o seu negócio se apresentar com mais impacto, qualidade e consistência.",
     items: [
-      "Imagens de produtos (hambúrguer, pizza, açaí, etc.)",
-      "Banners promocionais",
-      "Artes para Instagram",
-      "Imagens com aparência profissional",
+      "Imagens promocionais para produtos e serviços",
+      "Banners e campanhas para datas especiais",
+      "Artes para redes sociais com aparência mais premium",
+      "Visual alinhado ao nicho e à proposta comercial",
     ],
   },
   {
     id: "conteudo",
     label: "Conteúdo Social",
     icon: Smartphone,
-    emoji: "📱",
-    description: "Além das imagens, também criamos textos prontos para você postar.",
+    description: "Além da parte visual, ajudamos a estruturar textos e chamadas com foco em divulgação e venda.",
     items: [
       "Legendas para Instagram",
-      "Textos de promoção",
-      "Chamadas para venda",
-      "Ideias de campanhas",
+      "Textos de promoção e ativação",
+      "Chamadas para venda e captação",
+      "Ideias de campanhas para manter a marca viva",
     ],
   },
   {
     id: "identidade",
     label: "Identidade Visual",
     icon: Palette,
-    emoji: "🎨",
-    description: "Criamos toda a identidade visual do seu negócio de forma profissional.",
+    description: "Refinamos o visual do negócio para criar coerência entre site, redes sociais, campanhas e materiais.",
     items: [
-      "Logomarca personalizada",
-      "Paleta de cores da marca",
-      "Padrão visual para redes sociais",
-      "Materiais de divulgação",
+      "Direção visual da marca",
+      "Paleta de cores e presença mais profissional",
+      "Padrões para redes sociais e divulgação",
+      "Materiais que reforçam a percepção da marca",
     ],
   },
 ];
 
 const benefits = [
   { text: "Mais profissionalismo nas redes sociais", icon: PenTool },
-  { text: "Mais engajamento com clientes", icon: Target },
-  { text: "Mais pedidos e vendas", icon: Sparkles },
-  { text: "Facilidade na divulgação diária", icon: ImageIcon },
+  { text: "Mais consistência visual na divulgação", icon: Target },
+  { text: "Mais chances de gerar pedidos e procura", icon: Sparkles },
+  { text: "Mais facilidade para manter a marca ativa", icon: ImageIcon },
 ];
 
 const differentials = [
   { icon: Monitor, label: "Site + Sistema" },
-  { icon: Camera, label: "Imagens profissionais" },
+  { icon: Camera, label: "Visuais promocionais" },
   { icon: Smartphone, label: "Conteúdo para divulgação" },
 ];
+
+const marketingMetrics = [
+  { value: "1", label: "Estrutura mais completa" },
+  { value: "3", label: "Frentes de marketing" },
+  { value: "∞", label: "Possibilidades de campanha" },
+];
+
+const imageMotion = {
+  hidden: { opacity: 0, scale: 0.96 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.55 } },
+};
 
 export default function CriacaoConteudo() {
   const { buildWhatsAppUrl } = usePublicContact();
   const [activeTab, setActiveTab] = useState("imagens");
-  const activeService = tabs.find(t => t.id === activeTab)!;
+  const activeService = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   return (
-    <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
+    <PublicPageLayout>
       <SEOHead
         title="Área do Marketing | NovaesWeb"
         description="Veja exemplos reais da Área do Marketing da NovaesWeb com imagens profissionais, campanhas visuais e conteúdo para divulgar seu negócio."
       />
 
-      <GlobalBackground />
+      <section className="public-page-shell">
+        <div className="public-page-container">
+          <Link to="/" className="public-page-backlink mb-8">
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao site
+          </Link>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
-        {/* Back */}
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao site
-        </Link>
-
-        {/* Header */}
-        <motion.div initial="hidden" animate="show" variants={fadeUp} className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-xs font-semibold mb-5">
-            <Sparkles className="w-3.5 h-3.5" />
-            Área do Marketing
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[hsl(var(--foreground))] mb-4">
-            Exemplos reais da{" "}
-            <span className="site-gradient-text">Área do Marketing</span>
-          </h1>
-          <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto leading-relaxed">
-            Na NovaesWeb, além de sites e sistemas, também criamos materiais visuais que ajudam seu negócio a vender mais, se destacar e parecer mais profissional.
-          </p>
-        </motion.div>
-
-        {/* Marketing Image Banner */}
-        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-12">
-          <div className="relative rounded-2xl overflow-hidden border border-[hsl(var(--border))] shadow-2xl group">
-            <img
-              src={marketingImg}
-              alt="Exemplos de materiais da Área do Marketing da NovaesWeb para diferentes nichos"
-              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              width={640}
-              height={640}
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6">
-              <p className="text-white/90 text-sm sm:text-base font-medium drop-shadow-lg">
-                ✨ Alguns exemplos reais do que a <strong>NovaesWeb pode criar para o seu negócio</strong>
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Interactive Tabs */}
-        <motion.div initial="hidden" animate="show" variants={fadeUp} className="mb-8">
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            {tabs.map((tab) => (
-              <motion.button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm font-semibold transition-all duration-300 border ${
-                  activeTab === tab.id
-                    ? "bg-[hsl(var(--primary)/0.15)] border-[hsl(var(--primary)/0.5)] text-[hsl(var(--primary))] shadow-lg shadow-[hsl(var(--primary)/0.1)]"
-                    : "bg-[hsl(var(--muted)/0.3)] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary)/0.3)] hover:text-[hsl(var(--foreground))]"
-                }`}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.emoji}</span>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Active Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.3 }}
-            className="glass-card rounded-2xl p-6 sm:p-8 border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all duration-300 mb-12"
-          >
-            <div className="flex items-start gap-4 mb-6">
-              <motion.div
-                className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center text-2xl shrink-0"
-                initial={{ scale: 0.8, rotate: -10 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200 }}
-              >
-                {activeService.emoji}
-              </motion.div>
+          <motion.div initial="hidden" animate="show" variants={fadeUp} className="public-page-hero mb-10">
+            <div className="public-page-hero-grid">
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">{activeService.label}</h2>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{activeService.description}</p>
+                <span className="site-badge site-badge--accent mb-6">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Área do Marketing
+                </span>
+                <h1 className="public-page-title">
+                  Comunicação visual
+                  <br />
+                  com <span className="site-gradient-text">mais impacto</span>
+                </h1>
+                <p className="public-page-description mt-6">
+                  A NovaesWeb não trabalha só o site. Também ajuda o negócio a comunicar melhor no digital com visuais, campanhas,
+                  identidade e materiais que deixam a marca mais profissional.
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <span className="public-page-pill">
+                    <Camera className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    Imagens para campanhas
+                  </span>
+                  <span className="public-page-pill">
+                    <Palette className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    Identidade mais forte
+                  </span>
+                  <span className="public-page-pill">
+                    <Smartphone className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    Conteúdo para divulgar
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {activeService.items.map((item, i) => (
-                <motion.div
-                  key={item}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] hover:bg-[hsl(var(--primary)/0.05)] hover:border-[hsl(var(--primary)/0.3)] transition-all cursor-default"
-                >
-                  <Check className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
-                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{item}</span>
-                </motion.div>
-              ))}
+
+              <motion.div variants={imageMotion} className="public-page-highlight-card p-3">
+                <div className="relative overflow-hidden rounded-[1.4rem] border border-white/10">
+                  <img
+                    src={marketingImg}
+                    alt="Exemplos visuais da Área do Marketing da NovaesWeb"
+                    className="w-full h-auto object-cover"
+                    width={640}
+                    height={640}
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute left-4 right-4 bottom-4">
+                    <p className="text-sm text-white font-semibold leading-relaxed">
+                      Alguns exemplos reais do que a NovaesWeb pode criar para deixar um negócio mais forte visualmente.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
-        </AnimatePresence>
 
-        {/* Benefits */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="mb-16">
-          <div className="glass-card rounded-2xl p-6 sm:p-8 border border-[hsl(var(--border))]">
-            <div className="flex items-center gap-3 mb-6">
-              <Target className="w-6 h-6 text-[hsl(var(--primary))]" />
-              <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--foreground))]">Benefícios para o seu negócio</h2>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {benefits.map((b, i) => (
-                <motion.div
-                  key={b.text}
-                  initial={{ opacity: 0, y: 8 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.3)] transition-all cursor-default"
-                >
-                  <b.icon className="w-4 h-4 text-[hsl(var(--primary))] shrink-0" />
-                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{b.text}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Diferencial */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Lightbulb className="w-6 h-6 text-[hsl(var(--accent))]" />
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[hsl(var(--foreground))]">
-              Diferencial NovaesWeb
-            </h2>
-          </div>
-          <p className="text-[hsl(var(--muted-foreground))] max-w-lg mx-auto mb-8">
-            Enquanto outras empresas criam apenas o site, a NovaesWeb entrega uma estrutura completa para você:
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {differentials.map((d, i) => (
-              <motion.div
-                key={d.label}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ scale: 1.05, y: -4 }}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl glass-card border border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)] transition-all cursor-default"
-              >
-                <d.icon className="w-5 h-5 text-[hsl(var(--primary))]" />
-                <span className="text-sm font-semibold text-[hsl(var(--foreground))]">{d.label}</span>
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-10"
+          >
+            {marketingMetrics.map((metric) => (
+              <motion.div key={metric.label} variants={fadeUp} className="public-page-stat-card">
+                <span className="public-page-stat-value site-gradient-text">{metric.value}</span>
+                <p className="text-xs uppercase tracking-[0.18em] font-bold text-white/40">{metric.label}</p>
               </motion.div>
             ))}
-          </div>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mt-12">
-          <motion.div
-            className="glass-card rounded-2xl p-8 sm:p-12 border border-[hsl(var(--primary)/0.2)]"
-            whileHover={{ borderColor: "hsl(var(--primary) / 0.5)" }}
-          >
-            <p className="text-[hsl(var(--foreground))] font-semibold text-lg mb-2">
-              👉 Quer uma estrutura visual assim para o seu negócio?
-            </p>
-            <p className="text-[hsl(var(--muted-foreground))] mb-6">
-              Fale com a NovaesWeb e veja como aplicar a Área do Marketing no seu projeto.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href={buildWhatsAppUrl("Olá! Quero saber mais sobre a Área do Marketing da NovaesWeb.")} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-white h-12 px-8 rounded-xl text-sm font-bold">
-                  <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
-                </Button>
-              </a>
-              <Link to="/">
-                <Button variant="outline" className="h-12 px-8 rounded-xl border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))] text-sm font-bold">
-                  <ArrowRight className="w-4 h-4 mr-2" /> Ver planos
-                </Button>
-              </Link>
-            </div>
           </motion.div>
-        </motion.div>
-      </div>
-    </div>
+
+          <motion.div variants={fadeUp} initial="hidden" animate="show" className="public-page-section-card mb-10">
+            <div className="flex items-center gap-3 mb-4">
+              <LayoutGrid className="w-5 h-5 text-[hsl(var(--primary))]" />
+              <p className="text-sm font-bold text-white">A Área do Marketing funciona como extensão premium do seu projeto digital.</p>
+            </div>
+            <p className="site-copy-muted leading-relaxed">
+              Em vez de separar site, apresentação e divulgação, a NovaesWeb conecta tudo numa estrutura visual mais coerente.
+              O resultado é uma marca mais forte para vender, anunciar e aparecer com mais autoridade.
+            </p>
+          </motion.div>
+
+          <section className="public-page-section">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="public-page-section-card">
+              <div className="text-center max-w-3xl mx-auto mb-8">
+                <span className="site-badge site-badge--primary mb-5">
+                  <Target className="w-3.5 h-3.5" />
+                  Estrutura de entrega
+                </span>
+                <h2 className="public-page-section-title">
+                  O que a <span className="site-gradient-text">Área do Marketing</span> pode incluir
+                </h2>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+                {tabs.map((tab) => (
+                  <motion.button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    whileHover={{ y: -2, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`public-page-pill ${activeTab === tab.id ? "hero-service-chip--active" : ""}`}
+                  >
+                    <tab.icon className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    {tab.label}
+                  </motion.button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeService.id}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -14 }}
+                  transition={{ duration: 0.25 }}
+                  className="public-page-proof-card"
+                >
+                  <div className="flex items-start gap-4 mb-5">
+                    <div className="w-12 h-12 rounded-[1rem] flex items-center justify-center bg-[linear-gradient(135deg,rgba(220,38,38,0.92),rgba(107,33,168,0.88),rgba(236,72,153,0.88))] shadow-[0_16px_40px_rgba(236,72,153,0.15)]">
+                      <activeService.icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-white tracking-tight">{activeService.label}</h3>
+                      <p className="site-copy-muted text-sm leading-relaxed mt-2">{activeService.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {activeService.items.map((item) => (
+                      <div key={item} className="public-page-proof-card flex items-center gap-3 p-4">
+                        <Check className="w-4 h-4 shrink-0 text-[hsl(var(--primary))]" />
+                        <span className="text-sm site-copy-muted">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          </section>
+
+          <section className="public-page-section">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="public-page-section-card">
+              <div className="flex items-center gap-3 mb-6">
+                <Target className="w-6 h-6 text-[hsl(var(--primary))]" />
+                <h2 className="public-page-section-title">Benefícios para o seu negócio</h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {benefits.map((benefit) => (
+                  <div key={benefit.text} className="public-page-proof-card flex items-center gap-3">
+                    <benefit.icon className="w-4 h-4 shrink-0 text-[hsl(var(--primary))]" />
+                    <span className="text-sm site-copy-muted">{benefit.text}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </section>
+
+          <section className="public-page-section">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="public-page-section-card text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Lightbulb className="w-6 h-6 text-[hsl(var(--accent))]" />
+                <h2 className="public-page-section-title">Diferencial NovaesWeb</h2>
+              </div>
+              <p className="public-page-description mx-auto mb-8">
+                Enquanto muitas empresas entregam só a parte visual, a NovaesWeb conecta comunicação, site, estrutura digital e organização operacional.
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                {differentials.map((item) => (
+                  <div key={item.label} className="public-page-pill">
+                    <item.icon className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </section>
+
+          <section className="public-page-section">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="public-page-cta-card text-center">
+              <span className="site-badge site-badge--accent mb-6">
+                <MessageCircle className="w-3.5 h-3.5" />
+                Próximo passo
+              </span>
+              <h2 className="public-page-section-title">
+                Quer aplicar esta <span className="site-gradient-text">estrutura visual</span> ao seu negócio?
+              </h2>
+              <p className="public-page-description mt-5 mx-auto">
+                Fale com a NovaesWeb e veja como a Área do Marketing pode complementar o site, os pedidos, o atendimento e o posicionamento da sua marca.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a
+                  href={buildWhatsAppUrl("Olá! Quero saber mais sobre a Área do Marketing da NovaesWeb.")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    className="h-12 px-8 rounded-2xl text-white font-bold border-0"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
+                      boxShadow: "0 18px 42px rgba(236,72,153,0.16)",
+                    }}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Falar no WhatsApp
+                  </Button>
+                </a>
+                <Link to="/cadastro">
+                  <Button variant="outline" className="h-12 px-8 rounded-2xl border-[hsl(var(--border))] text-white hover:border-[hsl(var(--primary))]">
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    Solicitar orçamento
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </section>
+        </div>
+      </section>
+    </PublicPageLayout>
   );
 }

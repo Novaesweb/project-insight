@@ -587,6 +587,235 @@ section {
   .site-title-muted {
     color: hsl(var(--foreground) / 0.5);
   }
+
+  .public-page-shell {
+    position: relative;
+    padding: 8rem 0 6rem;
+  }
+
+  .public-page-container {
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding-inline: 1rem;
+  }
+
+  .public-page-backlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.8rem 1rem;
+    border-radius: 999px;
+    border: 1px solid hsl(var(--border));
+    background: linear-gradient(180deg, hsl(var(--secondary) / 0.38), hsl(var(--card) / 0.35));
+    color: hsl(var(--muted-foreground) / 0.82);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transition: border-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .public-page-backlink:hover {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.35);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 40px rgba(220, 38, 38, 0.08);
+  }
+
+  .public-page-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    padding: 1.75rem;
+    background:
+      radial-gradient(circle at top right, rgba(236, 72, 153, 0.12), transparent 32%),
+      radial-gradient(circle at left center, rgba(107, 33, 168, 0.15), transparent 36%),
+      linear-gradient(180deg, hsl(var(--card)), hsl(240 10% 8% / 0.9));
+    border: 1px solid hsl(var(--primary) / 0.18);
+    box-shadow:
+      0 24px 80px -48px rgba(0, 0, 0, 0.85),
+      0 0 0 1px rgba(255, 255, 255, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(18px);
+  }
+
+  .public-page-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.04), transparent 35%, rgba(236, 72, 153, 0.04) 100%);
+  }
+
+  .public-page-hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .public-page-title {
+    font-size: clamp(2.4rem, 6vw, 4.9rem);
+    line-height: 0.94;
+    letter-spacing: -0.05em;
+    font-weight: 900;
+    color: hsl(var(--foreground) / 0.94);
+  }
+
+  .public-page-description {
+    max-width: 42rem;
+    color: hsl(var(--muted-foreground) / 0.86);
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    line-height: 1.75;
+    font-weight: 500;
+  }
+
+  .public-page-highlight-grid {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .public-page-highlight-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    padding: 1.15rem 1.25rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .public-page-highlight-card::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(220, 38, 38, 0.32), rgba(107, 33, 168, 0.34), rgba(236, 72, 153, 0.3));
+  }
+
+  .public-page-stat-card {
+    border-radius: 1.5rem;
+    padding: 1.25rem 1rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    text-align: center;
+  }
+
+  .public-page-stat-value {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+  }
+
+  .public-page-section {
+    margin-top: 2rem;
+  }
+
+  .public-page-section-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.9rem;
+    padding: 1.5rem;
+    background:
+      radial-gradient(circle at top right, rgba(220, 38, 38, 0.06), transparent 28%),
+      linear-gradient(180deg, hsl(var(--card)), hsl(240 10% 8% / 0.86));
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+      0 22px 70px -52px rgba(0, 0, 0, 0.84),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+  }
+
+  .public-page-section-title {
+    font-size: clamp(1.65rem, 3vw, 2.5rem);
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: hsl(var(--foreground) / 0.92);
+  }
+
+  .public-page-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+    color: hsl(var(--foreground) / 0.84);
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: transform 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  .public-page-pill:hover {
+    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--foreground));
+  }
+
+  .public-page-proof-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    padding: 1.15rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .public-page-proof-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(var(--primary) / 0.28);
+    box-shadow: 0 20px 50px -34px rgba(236, 72, 153, 0.18);
+  }
+
+  .public-page-cta-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    padding: 2rem;
+    background:
+      radial-gradient(circle at top center, rgba(236, 72, 153, 0.12), transparent 35%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+    border: 1px solid hsl(var(--primary) / 0.2);
+    box-shadow:
+      0 30px 90px -56px rgba(236, 72, 153, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  @media (min-width: 768px) {
+    .public-page-container {
+      padding-inline: 1.5rem;
+    }
+
+    .public-page-hero {
+      padding: 2.25rem;
+    }
+
+    .public-page-hero-grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.75fr);
+      align-items: stretch;
+      gap: 1.8rem;
+    }
+
+    .public-page-highlight-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .public-page-section-card {
+      padding: 1.75rem;
+    }
+
+    .public-page-cta-card {
+      padding: 2.5rem;
+    }
+  }
 }
 
 /* Skeleton shimmer */

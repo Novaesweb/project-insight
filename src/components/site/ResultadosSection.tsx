@@ -34,6 +34,17 @@ export default function ResultadosSection() {
           </p>
         </motion.div>
 
+        <motion.div variants={fade} className="public-page-section-card mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="site-badge site-badge--accent">
+              Destaque premium
+            </span>
+          </div>
+          <p className="site-copy-muted text-base leading-relaxed max-w-3xl">
+            Cada entrega é pensada para fortalecer a imagem da empresa, melhorar o atendimento e criar uma estrutura digital que realmente parece mais profissional no mercado.
+          </p>
+        </motion.div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-24">
           {[
             { ref: empresas.ref, count: empresas.count, suffix: "+", label: "Empresas atendidas" },
@@ -41,7 +52,7 @@ export default function ResultadosSection() {
             { ref: prazo.ref, count: prazo.count, suffix: "d", label: "Prazo de entrega" },
             { ref: atendimento.ref, count: atendimento.count, suffix: "h", label: "Resposta Suporte" },
           ].map((stat) => (
-            <motion.div key={stat.label} ref={stat.ref} variants={fade} className="site-surface rounded-[2.5rem] p-8 text-center hover:border-white/10 transition-all info-card-hover">
+            <motion.div key={stat.label} ref={stat.ref} variants={fade} className="public-page-stat-card hover:border-[hsl(var(--primary)/0.24)] transition-all info-card-hover">
               <p className="text-4xl font-black site-gradient-text mb-2">{stat.count}{stat.suffix}</p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 font-bold">{stat.label}</p>
             </motion.div>
