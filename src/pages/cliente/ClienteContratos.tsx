@@ -66,7 +66,7 @@ export default function ClienteContratos() {
 
   const load = useCallback(() => {
     if (!cliente.id) return;
-    supabase.from("contratos").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
+    supabase.from("contratos").select("*").eq("cliente_id", cliente.id).is("builder_payload", null).order("created_at", { ascending: false })
       .then(({ data }) => setContratos(data || []));
   }, [cliente.id]);
 

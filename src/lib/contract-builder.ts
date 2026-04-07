@@ -1,0 +1,496 @@
+import type { Tables } from "@/integrations/supabase/types";
+import { PUBLIC_PLAN_CATALOG, type PublicPlanCatalogItem } from "@/lib/public-plans";
+
+export type BuilderPrimaryPlanId = PublicPlanCatalogItem["id"] | "none";
+export type BuilderItemGroup = "planos" | "fixo" | "intermediario" | "mensal";
+
+export interface ContractBuilderParty {
+  nome: string;
+  nomeEmpresa?: string;
+  documento: string;
+  email?: string;
+  whatsapp?: string;
+  telefone?: string;
+  instagram?: string;
+  siteUrl?: string;
+  endereco: string;
+  cep?: string;
+  cidade?: string;
+  estado?: string;
+}
+
+export interface ContractBuilderContractor {
+  nome: string;
+  representante: string;
+  documento: string;
+  endereco: string;
+  observacaoRecebimento: string;
+}
+
+export interface ContractBuilderItem {
+  id: string;
+  source: "plan" | "extra";
+  sourceId?: string;
+  group: BuilderItemGroup;
+  name: string;
+  description: string;
+  selected: boolean;
+  setupPrice: number;
+  monthlyPrice: number;
+  isPrimaryPlan: boolean;
+}
+
+export interface ContractBuilderPricing {
+  setupSubtotal: number;
+  monthlySubtotal: number;
+  negotiatedSetup: number;
+  entryValue: number;
+  balanceValue: number;
+  negotiatedMonthly: number;
+}
+
+export interface ContractBuilderPayload {
+  clienteId: string;
+  primaryPlanId: BuilderPrimaryPlanId;
+  contractante: ContractBuilderParty;
+  contratada: ContractBuilderContractor;
+  items: ContractBuilderItem[];
+  customScope: string;
+  prazoDias: string;
+  formaPagamento: string;
+  numeroRevisoes: string;
+  valorRevisao: string;
+  prazoSuporte: string;
+  observacoesComerciais: string;
+  escopoExclusoes: string;
+  pricing: ContractBuilderPricing;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function normalizeBuilderGroup(value: string | null | undefined): BuilderItemGroup {
+  if (value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal") {
+    return value;
+  }
+
+  return "fixo";
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const grupoLabels: Record<BuilderItemGroup, string> = {
+  planos: "PLANOS PRINCIPAIS",
+  fixo: "EXTRAS ÚNICOS",
+  intermediario: "EXTRAS PRO",
+  mensal: "EXTRAS MENSAIS",
+};
+
+export const DEFAULT_CONTRACTOR_DATA: ContractBuilderContractor = {
+  nome: "NovaesWeb",
+  representante: "Lucas Rodrigo Ferreira dos Santos",
+  documento: "503.328.838-50",
+  endereco: "Estrada da Prainha, 630 – Mato Grande, Canoas – RS",
+  observacaoRecebimento:
+    "A NovaesWeb está no início da operação e utiliza CPF como forma de recebimento neste momento.",
+};
+
+export const DEFAULT_SCOPE_EXCLUSIONS =
+  "Não estão inclusos serviços, licenças, integrações, campanhas pagas, textos, fotos, artes, hospedagem, domínio ou novas funcionalidades não descritas na proposta aprovada.";
+
+export const DEFAULT_COMMERCIAL_NOTES =
+  "Serviços recorrentes, extras, integrações, mídia paga, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do contratante.";
+
+export const DEFAULT_PAYMENT_METHOD =
+  "PIX, boleto, cartão ou link de pagamento";
+
+export function createEmptyBuilderPayload(
+  extras: Tables<"extras_catalogo">[],
+): ContractBuilderPayload {
+  const now = new Date().toISOString();
+  const items = buildContractBuilderItems(extras);
+
+  return {
+    clienteId: "",
+    primaryPlanId: "none",
+    contractante: {
+      nome: "",
+      nomeEmpresa: "",
+      documento: "",
+      email: "",
+      whatsapp: "",
+      telefone: "",
+      instagram: "",
+      siteUrl: "",
+      endereco: "",
+      cep: "",
+      cidade: "",
+      estado: "",
+    },
+    contratada: { ...DEFAULT_CONTRACTOR_DATA },
+    items,
+    customScope: "",
+    prazoDias: "15",
+    formaPagamento: DEFAULT_PAYMENT_METHOD,
+    numeroRevisoes: "2",
+    valorRevisao: "150,00",
+    prazoSuporte: "30 dias após a entrega",
+    observacoesComerciais: DEFAULT_COMMERCIAL_NOTES,
+    escopoExclusoes: DEFAULT_SCOPE_EXCLUSIONS,
+    pricing: computeBuilderPricing(items),
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function formatCurrencyBRL(value: number) {
+  return `R$ ${Number(value || 0).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+export function parseMoneyInput(value: string | number | null | undefined) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const normalized = String(value || "")
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+  const parsed = parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function composeClientAddress(
+  cliente: Partial<Tables<"clientes">> | ContractBuilderParty,
+) {
+  const enderecoBase = cliente.endereco?.trim() || "";
+  const numero = "numero_endereco" in cliente ? cliente.numero_endereco?.trim() || "" : "";
+  const complemento = cliente.complemento?.trim() || "";
+  const bairro = cliente.bairro?.trim() || "";
+  const cidade = cliente.cidade?.trim() || "";
+  const estado = cliente.estado?.trim() || "";
+  const cep = cliente.cep?.trim() || "";
+
+  const primeiraLinha = [enderecoBase, numero].filter(Boolean).join(", ");
+  const segundaLinha = [complemento, bairro].filter(Boolean).join(" — ");
+  const terceiraLinha = [cidade, estado].filter(Boolean).join(" / ");
+
+  return [primeiraLinha, segundaLinha, terceiraLinha, cep].filter(Boolean).join(" | ");
+}
+
+export function buildContractanteFromClient(cliente: Tables<"clientes">): ContractBuilderParty {
+  return {
+    nome: cliente.nome || "",
+    nomeEmpresa: cliente.nome_empresa || "",
+    documento: cliente.documento || "",
+    email: cliente.email || "",
+    whatsapp: cliente.whatsapp || "",
+    telefone: cliente.telefone || "",
+    instagram: cliente.instagram || "",
+    siteUrl: cliente.site_url || "",
+    endereco: composeClientAddress(cliente),
+    cep: cliente.cep || "",
+    cidade: cliente.cidade || "",
+    estado: cliente.estado || "",
+  };
+}
+
+export function buildContractBuilderItems(
+  extras: Tables<"extras_catalogo">[],
+): ContractBuilderItem[] {
+  const planItems: ContractBuilderItem[] = PUBLIC_PLAN_CATALOG.map((plan) => ({
+    id: `plan:${plan.id}`,
+    source: "plan",
+    sourceId: plan.id,
+    group: "planos",
+    name: plan.title,
+    description: plan.description,
+    selected: false,
+    setupPrice: plan.setupPrice,
+    monthlyPrice: plan.monthlyPrice,
+    isPrimaryPlan: true,
+  }));
+
+  const extraItems: ContractBuilderItem[] = extras.map((extra) => ({
+    id: `extra:${extra.id}`,
+    source: "extra",
+    sourceId: extra.id,
+    group: normalizeBuilderGroup(extra.categoria),
+    name: extra.nome,
+    description: extra.descricao || "",
+    selected: false,
+    setupPrice: Number(extra.preco_ativacao || 0),
+    monthlyPrice: Number(extra.preco_mensal || 0),
+    isPrimaryPlan: false,
+  }));
+
+  return [...planItems, ...extraItems];
+}
+
+export function selectPrimaryPlan(
+  items: ContractBuilderItem[],
+  planId: BuilderPrimaryPlanId,
+) {
+  return items.map((item) => {
+    if (!item.isPrimaryPlan) return item;
+    if (planId === "none") return { ...item, selected: false };
+    return {
+      ...item,
+      selected: item.id === `plan:${planId}`,
+    };
+  });
+}
+
+export function toggleBuilderItem(
+  items: ContractBuilderItem[],
+  itemId: string,
+  selected: boolean,
+) {
+  return items.map((item) =>
+    item.id === itemId ? { ...item, selected } : item,
+  );
+}
+
+export function updateBuilderItemPrice(
+  items: ContractBuilderItem[],
+  itemId: string,
+  field: "setupPrice" | "monthlyPrice",
+  value: number,
+) {
+  return items.map((item) =>
+    item.id === itemId
+      ? {
+          ...item,
+          [field]: Number.isFinite(value) ? value : 0,
+        }
+      : item,
+  );
+}
+
+export function computeBuilderPricing(
+  items: ContractBuilderItem[],
+  overrides?: Partial<ContractBuilderPricing>,
+): ContractBuilderPricing {
+  const setupSubtotal = items
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + item.setupPrice, 0);
+
+  const monthlySubtotal = items
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + item.monthlyPrice, 0);
+
+  const negotiatedSetup =
+    overrides?.negotiatedSetup ?? setupSubtotal;
+  const entryValue = overrides?.entryValue ?? 0;
+  const balanceValue = overrides?.balanceValue ?? Math.max(negotiatedSetup - entryValue, 0);
+  const negotiatedMonthly =
+    overrides?.negotiatedMonthly ?? monthlySubtotal;
+
+  return {
+    setupSubtotal,
+    monthlySubtotal,
+    negotiatedSetup,
+    entryValue,
+    balanceValue,
+    negotiatedMonthly,
+  };
+}
+
+export function getSelectedPrimaryPlanId(items: ContractBuilderItem[]): BuilderPrimaryPlanId {
+  const selectedPlan = items.find((item) => item.isPrimaryPlan && item.selected);
+  return (selectedPlan?.sourceId as BuilderPrimaryPlanId) || "none";
+}
+
+export function buildContractedServicesSummary(
+  items: ContractBuilderItem[],
+  primaryPlanId: BuilderPrimaryPlanId,
+  customScope: string,
+) {
+  if (primaryPlanId === "sob-medida" && customScope.trim()) {
+    return customScope.trim();
+  }
+
+  const selectedItems = items
+    .filter((item) => item.selected)
+    .map((item) => item.name);
+
+  return selectedItems.join(", ");
+}
+
+function describeItemPricing(item: ContractBuilderItem) {
+  if (!item.selected) return "(Não incluso neste pacote)";
+
+  const setupText = item.setupPrice > 0 ? formatCurrencyBRL(item.setupPrice) : "Incluso";
+  const monthlyText = item.monthlyPrice > 0 ? formatCurrencyBRL(item.monthlyPrice) : "Incluso";
+
+  if (item.group === "mensal" && item.setupPrice <= 0) {
+    return `${monthlyText}/mês`;
+  }
+
+  if (item.monthlyPrice > 0) {
+    return `${setupText} (Setup) / ${monthlyText} (Mensal)`;
+  }
+
+  return `${setupText} (Setup)`;
+}
+
+export function buildServicesTableText(
+  items: ContractBuilderItem[],
+  primaryPlanId: BuilderPrimaryPlanId,
+  customScope: string,
+  pricing: ContractBuilderPricing,
+) {
+  const grouped = items.reduce<Record<string, ContractBuilderItem[]>>((acc, item) => {
+    if (!acc[item.group]) acc[item.group] = [];
+    acc[item.group].push(item);
+    return acc;
+  }, {});
+
+  const lines = ["RESUMO DO PLANO CONTRATADO:", ""];
+
+  const selectedPlan = items.find((item) => item.isPrimaryPlan && item.selected);
+
+  const planItems = grouped.planos || [];
+  if (planItems.length) {
+    lines.push(`${grupoLabels.planos}:`);
+    planItems.forEach((item) => {
+      lines.push(
+        `${item.selected ? "☑" : "☐"} ${item.name} — ${describeItemPricing(item)}`,
+      );
+      if (item.selected && item.sourceId === "sob-medida" && customScope.trim()) {
+        lines.push(`Escopo: ${customScope.trim()}`);
+      }
+    });
+    lines.push("");
+  }
+
+  (["fixo", "intermediario", "mensal"] as BuilderItemGroup[]).forEach((group) => {
+    const groupItems = grouped[group];
+    if (!groupItems?.length) return;
+    lines.push(`${grupoLabels[group]}:`);
+    groupItems.forEach((item) => {
+      lines.push(
+        `${item.selected ? "☑" : "☐"} ${item.name} — ${describeItemPricing(item)}`,
+      );
+    });
+    lines.push("");
+  });
+
+  lines.push("TOTAL DE INVESTIMENTO:");
+  lines.push(
+    `Ativação Total: ${formatCurrencyBRL(pricing.negotiatedSetup)} (Entrada: ${formatCurrencyBRL(pricing.entryValue)} / Saldo: ${formatCurrencyBRL(pricing.balanceValue)})`,
+  );
+  lines.push(
+    `Manutenção Mensal: ${formatCurrencyBRL(pricing.negotiatedMonthly)}.`,
+  );
+
+  return lines.join("\n");
+}
+
+export function buildContratadaLegalText(contratada: ContractBuilderContractor) {
+  return `${contratada.nome}, representada por seu fundador e CEO ${contratada.representante}, CPF ${contratada.documento}, ${contratada.endereco}, doravante denominada simplesmente CONTRATADA. ${contratada.observacaoRecebimento}`;
+}
+
+export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
+  return {
+    nome_cliente: payload.contractante.nome,
+    cpf_cnpj: payload.contractante.documento,
+    endereco: payload.contractante.endereco,
+    nome_contratada: `${payload.contratada.nome}, representada por seu fundador e CEO ${payload.contratada.representante}`,
+    cpf_cnpj_contratada: payload.contratada.documento,
+    endereco_contratada: payload.contratada.endereco,
+    cidade_foro: "Canoas",
+    estado_foro: "RS",
+    lista_servicos: buildContractedServicesSummary(
+      payload.items,
+      payload.primaryPlanId,
+      payload.customScope,
+    ),
+    tabela_servicos: buildServicesTableText(
+      payload.items,
+      payload.primaryPlanId,
+      payload.customScope,
+      payload.pricing,
+    ),
+    escopo_exclusoes: payload.escopoExclusoes,
+    prazo_dias: payload.prazoDias,
+    valor_entrada: payload.pricing.entryValue.toFixed(2).replace(".", ","),
+    valor_saldo: payload.pricing.balanceValue.toFixed(2).replace(".", ","),
+    valor_mensal: payload.pricing.negotiatedMonthly.toFixed(2).replace(".", ","),
+    dia_vencimento: "10",
+    forma_pagamento: payload.formaPagamento,
+    numero_revisoes: payload.numeroRevisoes,
+    valor_revisao: payload.valorRevisao,
+    prazo_suporte: payload.prazoSuporte,
+    percentual_multa: "30",
+    observacoes_comerciais: payload.observacoesComerciais,
+    data: new Date().toISOString().slice(0, 10),
+  };
+}
+
+export function buildContractWordHtml(title: string, body: string) {
+  const safeTitle = escapeHtml(title);
+  const safeBody = escapeHtml(body).replace(/\n/g, "<br />");
+
+  return `<!DOCTYPE html>
+  <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8" />
+      <title>${safeTitle}</title>
+      <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          color: #16121f;
+          margin: 0;
+          background: #fff;
+        }
+        .sheet {
+          padding: 42px 42px 54px;
+        }
+        .brandbar {
+          background: linear-gradient(90deg, #7b1fa2, #e8334a, #c2185b);
+          color: white;
+          padding: 18px 24px;
+          border-radius: 20px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          font-size: 12px;
+        }
+        .title {
+          margin: 28px 0 10px;
+          font-size: 28px;
+          font-weight: 800;
+          color: #130d1a;
+        }
+        .copy {
+          white-space: pre-wrap;
+          line-height: 1.7;
+          font-size: 13px;
+        }
+        .footer {
+          margin-top: 40px;
+          padding-top: 18px;
+          border-top: 2px solid #f0d8ea;
+          font-size: 11px;
+          color: #6d5f77;
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="sheet">
+        <div class="brandbar">NovaesWeb • Contrato Comercial Premium</div>
+        <div class="title">${safeTitle}</div>
+        <div class="copy">${safeBody}</div>
+        <div class="footer">NovaesWeb • Estrutura digital premium • Documento gerado no painel administrativo</div>
+      </div>
+    </body>
+  </html>`;
+}

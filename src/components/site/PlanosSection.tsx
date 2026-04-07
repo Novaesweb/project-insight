@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 import { cn } from "@/lib/utils";
 
 const fade = {
@@ -29,92 +30,21 @@ const founderSlots = {
   progress: 72,
 };
 
-type Plan = {
-  tag: string;
-  eyebrow: string;
+type Plan = (typeof PUBLIC_PLAN_CATALOG)[number] & {
   icon: typeof Globe;
   accentHsl: string;
-  title: string;
-  desc: string;
-  oldPrice?: string;
-  pricePrefix?: string;
-  price: string;
-  priceLabel: string;
-  priceSub: string;
-  automation?: string;
-  features: string[];
-  cta: string;
-  whatsapp: string;
-  popular?: boolean;
 };
 
-const plans: Plan[] = [
-  {
-    tag: "Express",
-    eyebrow: "🚀 Lote fundador limitado",
-    icon: Globe,
-    accentHsl: "var(--warning)",
-    title: "Express",
-    desc: "A base sólida para colocar sua presença digital no ar com velocidade e aparência profissional.",
-    oldPrice: "R$ 597",
-    price: "R$ 180",
-    priceLabel: "Pagamento único",
-    priceSub: "Setup inicial para começar rápido",
-    automation: "+ R$ 60/mês com automação de WhatsApp opcional",
-    features: [
-      "Design moderno e totalmente responsivo",
-      "Vitrine estratégica de serviços",
-      "Página de captura e contato",
-      "Integração com mapas",
-      "Botão flutuante de WhatsApp",
-    ],
-    cta: "Iniciar Projeto Express",
-    whatsapp: "Olá! Quero iniciar meu Projeto Express com a NovaesWeb.",
-  },
-  {
-    tag: "Pro",
-    eyebrow: "🔥 Condição de fundador",
-    icon: Layers,
-    accentHsl: "var(--primary)",
-    title: "Pro",
-    desc: "Ecossistema desenhado para automatizar processos, organizar clientes e escalar resultados com estrutura própria.",
-    oldPrice: "R$ 1.200",
-    pricePrefix: "A partir de",
-    price: "R$ 349",
-    priceLabel: "Setup inicial",
-    priceSub: "Calculado de acordo com os módulos do projeto",
-    features: [
-      "Tudo do plano Express +",
-      "Painel administrativo exclusivo",
-      "Sistema de cadastro de clientes (CRM)",
-      "Módulo de recebimento de pedidos",
-      "Notificações em tempo real",
-    ],
-    cta: "Simular Ecossistema Pro",
-    whatsapp: "Olá! Quero simular meu Ecossistema Pro com a NovaesWeb.",
-    popular: true,
-  },
-  {
-    tag: "Sob Medida",
-    eyebrow: "💎 Projetos complexos",
-    icon: Rocket,
-    accentHsl: "var(--accent)",
-    title: "Sob Medida",
-    desc: "Para operações que precisam de sistemas internos, dashboards, marketing de atração e estrutura técnica personalizada.",
-    price: "Sob análise",
-    priceLabel: "Orçamento técnico",
-    priceSub: "Definido após análise do escopo",
-    features: [
-      "Sistemas de gestão internos",
-      "Dashboards analíticos",
-      "Marketing de atração para Instagram",
-      "Design de alta fidelidade",
-      "Consultoria técnica para expansão",
-    ],
-    cta: "Falar com Consultor",
-    whatsapp: "Olá! Quero falar sobre um projeto sob medida com a NovaesWeb.",
-  },
-];
+const planVisualMap: Record<string, { icon: typeof Globe; accentHsl: string }> = {
+  express: { icon: Globe, accentHsl: "var(--warning)" },
+  pro: { icon: Layers, accentHsl: "var(--primary)" },
+  "sob-medida": { icon: Rocket, accentHsl: "var(--accent)" },
+};
+
+const plans: Plan[] = PUBLIC_PLAN_CATALOG.map((plan) => ({
+  ...plan,
+  ...planVisualMap[plan.id],
+}));
 
 function FounderAlert() {
   return (
@@ -205,12 +135,12 @@ function PlanCard({ plan }: { plan: Plan }) {
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground leading-relaxed mb-6 min-h-[70px]">{plan.desc}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-6 min-h-[70px]">{plan.description}</p>
 
       <div className="mb-6 pb-6 border-b border-white/10 space-y-2">
         <div className="min-h-[18px]">
           {plan.oldPrice ? (
-            <p className="text-sm text-muted-foreground/55 line-through">De: {plan.oldPrice}</p>
+            <p className="text-sm text-muted-foreground/55 line-through">De: R$ {plan.oldPrice?.toLocaleString("pt-BR")}</p>
           ) : (
             <p className="text-sm text-transparent select-none">Espaço</p>
           )}
@@ -222,7 +152,9 @@ function PlanCard({ plan }: { plan: Plan }) {
               {plan.pricePrefix}
             </span>
           ) : null}
-          <span className="text-4xl md:text-5xl font-black text-white leading-none">{plan.price}</span>
+          <span className="text-4xl md:text-5xl font-black text-white leading-none">
+            {plan.id === "sob-medida" ? "Sob análise" : `R$ ${plan.setupPrice.toLocaleString("pt-BR")}`}
+          </span>
         </div>
 
         <p className="text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: `hsl(${plan.accentHsl})` }}>
@@ -230,7 +162,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         </p>
         <p className="text-xs text-muted-foreground/65">{plan.priceSub}</p>
 
-        {plan.automation ? (
+        {plan.monthlyNote ? (
           <div
             className="rounded-2xl px-4 py-3 flex items-start gap-3 mt-4"
             style={{
@@ -239,7 +171,7 @@ function PlanCard({ plan }: { plan: Plan }) {
             }}
           >
             <Sparkles className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
-            <p className="text-xs font-semibold text-emerald-300 leading-relaxed">{plan.automation}</p>
+            <p className="text-xs font-semibold text-emerald-300 leading-relaxed">{plan.monthlyNote}</p>
           </div>
         ) : null}
       </div>

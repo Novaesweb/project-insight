@@ -228,6 +228,7 @@ export type Database = {
         Row: {
           assinatura_admin: string | null
           assinatura_cliente: string | null
+          builder_payload: Json | null
           cliente_id: string | null
           corpo: string | null
           created_at: string
@@ -243,6 +244,7 @@ export type Database = {
         Insert: {
           assinatura_admin?: string | null
           assinatura_cliente?: string | null
+          builder_payload?: Json | null
           cliente_id?: string | null
           corpo?: string | null
           created_at?: string
@@ -258,6 +260,7 @@ export type Database = {
         Update: {
           assinatura_admin?: string | null
           assinatura_cliente?: string | null
+          builder_payload?: Json | null
           cliente_id?: string | null
           corpo?: string | null
           created_at?: string
