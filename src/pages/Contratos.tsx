@@ -37,6 +37,7 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
+  buildContractClauseExplanations,
   buildProposalSummary,
   buildBuilderTemplateValues,
   buildContractWordHtml,
@@ -49,6 +50,7 @@ import {
   toggleBuilderItem,
   updateBuilderItemPrice,
   type BuilderPrimaryPlanId,
+  type ContractClauseExplanation,
   type ContractBuilderPayload,
   type ContractBuilderPricing,
   type ContractProposalSummary,
@@ -145,6 +147,7 @@ function generateContractPDF(
   const margin = 18;
   const maxWidth = pageWidth - margin * 2;
   const summary = options?.proposal ? buildProposalSummary(options.proposal) : null;
+  const explanations = options?.proposal ? buildContractClauseExplanations(options.proposal) : [];
   const assinaturaAdmin = options?.assinaturaAdmin;
   const assinaturaCliente = options?.assinaturaCliente;
 
@@ -251,6 +254,50 @@ function generateContractPDF(
     });
 
     y += 3;
+    doc.setDrawColor(240, 216, 234);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+  }
+
+  if (explanations.length > 0) {
+    if (y > pageHeight - 28) {
+      doc.addPage();
+      y = 18;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(141, 60, 176);
+    doc.setFontSize(10);
+    doc.text("CONTRATO EXPLICADO EM LINGUAGEM SIMPLES", margin, y);
+    y += 7;
+
+    explanations.forEach((item) => {
+      if (y > pageHeight - 26) {
+        doc.addPage();
+        y = 18;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(76, 33, 102);
+      doc.setFontSize(9.8);
+      y = drawWrappedText(
+        doc,
+        `Cláusula ${item.number} — ${item.title}`,
+        margin,
+        y,
+        maxWidth,
+        4.9,
+        pageHeight,
+        18,
+      );
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(41, 31, 50);
+      doc.setFontSize(9.6);
+      y = drawWrappedText(doc, item.explanation, margin, y + 1, maxWidth, 4.8, pageHeight, 18);
+      y += 3.5;
+    });
+
     doc.setDrawColor(240, 216, 234);
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
@@ -494,14 +541,34 @@ function ContractSummaryCard({
   );
 }
 
+function ContractClauseExplanationCard({
+  item,
+}: {
+  item: ContractClauseExplanation;
+}) {
+  return (
+    <Card className="bg-white/[0.03] border-white/10">
+      <CardContent className="p-4 space-y-2">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Cláusula {item.number}</p>
+          <p className="text-sm font-semibold text-white">{item.title}</p>
+        </div>
+        <p className="text-sm text-white/65 leading-relaxed">{item.explanation}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function BuilderPreviewDocument({
   title,
   body,
   summary,
+  explanations,
 }: {
   title: string;
   body: string;
   summary: ContractProposalSummary | null;
+  explanations: ContractClauseExplanation[];
 }) {
   return (
     <div className="space-y-6">
@@ -608,7 +675,22 @@ function BuilderPreviewDocument({
 
       <Card className="glass-card border-[0.5px]">
         <CardContent className="p-0">
-          <Accordion type="single" collapsible defaultValue="corpo-contratual" className="w-full">
+          <Accordion type="multiple" defaultValue={["contrato-explicado"]} className="w-full">
+            <AccordionItem value="contrato-explicado">
+              <AccordionTrigger className="px-6 py-5 text-sm text-white hover:no-underline">
+                Contrato explicado em linguagem simples
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {explanations.map((item) => (
+                    <ContractClauseExplanationCard
+                      key={`${item.number}-${item.title}`}
+                      item={item}
+                    />
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="corpo-contratual" className="border-b-0">
               <AccordionTrigger className="px-6 py-5 text-sm text-white hover:no-underline">
                 Corpo contratual completo
@@ -2080,6 +2162,7 @@ export default function Contratos() {
                                   title={builderPrepared.title}
                                   body={builderPrepared.body}
                                   summary={builderSummary}
+                                  explanations={buildContractClauseExplanations(builderPrepared.normalizedPayload)}
                                 />
                               </>
                             ) : (
@@ -2178,6 +2261,7 @@ export default function Contratos() {
               title={previewState.title}
               body={previewState.body}
               summary={previewState.proposal ? buildProposalSummary(previewState.proposal) : null}
+              explanations={previewState.proposal ? buildContractClauseExplanations(previewState.proposal) : []}
             />
           )}
         </DialogContent>

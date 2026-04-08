@@ -24,8 +24,8 @@ Os campos entre chaves podem ser preenchidos manualmente ou usados como referên
 - `{numero_revisoes}`
 - `{valor_revisao}`
 - `{prazo_suporte}`
-- `{percentual_multa}`
 - `{observacoes_comerciais}`
+- `{tabela_servicos}`
 - `{data}`
 
 ---
@@ -72,7 +72,7 @@ c) Mensalidade ou recorrência, quando aplicável, no valor de R$ {valor_mensal}
 5.5. Demandas adicionais, evoluções, alterações de escopo e solicitações extraordinárias poderão ser faturadas à parte, mediante aprovação.
 
 CLÁUSULA 6 — DA INADIMPLÊNCIA  
-6.1. O inadimplemento de qualquer parcela ou mensalidade sujeitará o CONTRATANTE à incidência de multa, juros, correção e demais encargos legais cabíveis, sem prejuízo da multa contratual prevista neste instrumento.  
+6.1. O inadimplemento de qualquer parcela ou mensalidade sujeitará o CONTRATANTE à incidência de multa, juros, correção monetária e demais encargos legais cabíveis.  
 6.2. Em caso de atraso, a CONTRATADA poderá suspender parcial ou integralmente os serviços recorrentes, atendimento, manutenção, publicações, automações, entregas e liberações até a regularização financeira.  
 6.3. Caso haja saldo em aberto durante projeto em andamento, a CONTRATADA poderá congelar a continuidade da execução e reter entregas, acessos, arquivos e publicações até a quitação integral.
 
@@ -97,8 +97,8 @@ CLÁUSULA 10 — DO SUPORTE, MANUTENÇÃO E RECORRÊNCIA
 10.3. Não se incluem automaticamente em suporte ou manutenção recorrente: criação de novas páginas, novos módulos, mudanças profundas de layout, integrações não previstas, refações estratégicas, campanhas extraordinárias ou demandas fora do escopo contratado.
 
 CLÁUSULA 11 — DA RESCISÃO  
-11.1. Em caso de cancelamento imotivado pelo CONTRATANTE após o início dos trabalhos, será devida multa rescisória não compensatória de {percentual_multa}% sobre o valor remanescente do contrato, sem prejuízo da retenção proporcional dos valores referentes às etapas já executadas, horas técnicas consumidas, materiais produzidos e custos operacionais já incorridos.  
-11.2. Nos serviços recorrentes, a rescisão deverá observar aviso prévio mínimo de 30 (trinta) dias, permanecendo exigíveis os valores vencidos, proporcionais e obrigações já assumidas até a data efetiva do encerramento.  
+11.1. O CONTRATANTE poderá solicitar o cancelamento do contrato mesmo após o início dos trabalhos. Nessa hipótese, os valores já pagos para início, ativação, configuração, desenvolvimento, implantação e estruturação do projeto não serão devolvidos, considerando que a CONTRATADA já terá iniciado a operação técnica, reservado estrutura, utilizado plataformas, ferramentas e horas de produção para execução do serviço.  
+11.2. Em caso de cancelamento após o início do projeto, o site, sistema, painel, automação ou estrutura contratada permanecerá ativo apenas até o fim do período já pago pelo CONTRATANTE. Encerrado esse período, a CONTRATADA poderá suspender e cancelar automaticamente os serviços, sem obrigação de continuidade, reembolso ou manutenção adicional.  
 11.3. Em caso de descumprimento contratual grave, inadimplência reiterada, uso indevido da estrutura, fraude, má-fé ou exigências incompatíveis com a proposta aprovada, a CONTRATADA poderá rescindir o contrato de forma imediata, preservando o direito de cobrança dos valores devidos.
 
 CLÁUSULA 12 — DO SIGILO, DADOS E CONFORMIDADE  

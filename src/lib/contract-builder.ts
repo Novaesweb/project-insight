@@ -90,6 +90,12 @@ export interface ContractProposalSummary {
   customScope: string;
 }
 
+export interface ContractClauseExplanation {
+  number: string;
+  title: string;
+  explanation: string;
+}
+
 function normalizeBuilderGroup(value: string | null | undefined): BuilderItemGroup {
   if (value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal") {
     return value;
@@ -442,7 +448,6 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
     numero_revisoes: payload.numeroRevisoes,
     valor_revisao: payload.valorRevisao,
     prazo_suporte: payload.prazoSuporte,
-    percentual_multa: "30",
     observacoes_comerciais: payload.observacoesComerciais,
     data: new Date().toISOString().slice(0, 10),
   };
@@ -513,6 +518,119 @@ export function buildProposalSummary(payload: ContractBuilderPayload): ContractP
   };
 }
 
+export function buildContractClauseExplanations(
+  payload: ContractBuilderPayload,
+): ContractClauseExplanation[] {
+  const selectedPlan =
+    payload.items.find((item) => item.isPrimaryPlan && item.selected)?.name || "sem plano principal";
+  const selectedExtras = payload.items.filter((item) => item.selected && !item.isPrimaryPlan);
+  const selectedExtrasLabel = selectedExtras.length
+    ? `${selectedExtras.length} extra(s) adicional(is)`
+    : "nenhum extra adicional";
+  const customScopeText =
+    payload.primaryPlanId === "sob-medida" && payload.customScope.trim()
+      ? ` O escopo customizado desta proposta é: ${payload.customScope.trim()}.`
+      : "";
+  const reviewPrice =
+    payload.valorRevisao?.trim() ? ` por pelo menos R$ ${payload.valorRevisao.trim()}` : "";
+
+  return [
+    {
+      number: "Partes",
+      title: "Quem está assinando",
+      explanation: `Este contrato é entre ${payload.contractante.nome || "o cliente"} e ${
+        payload.contratada.nome || "a NovaesWeb"
+      }. Ele identifica quem contrata, quem presta o serviço e quais dados básicos valem para esta proposta.`,
+    },
+    {
+      number: "1",
+      title: "Objeto do contrato",
+      explanation: `A proposta cobre a estrutura digital contratada dentro do ecossistema NovaesWeb. Nesta venda, o plano principal é ${selectedPlan} e foram incluídos ${selectedExtrasLabel}.${customScopeText}`,
+    },
+    {
+      number: "2",
+      title: "Escopo e exclusões",
+      explanation:
+        "Tudo o que está descrito no resumo comercial faz parte da entrega. O que estiver fora do escopo, nas exclusões ou não estiver aprovado na proposta pode ser tratado como adicional e cobrado à parte.",
+    },
+    {
+      number: "3",
+      title: "Materiais e briefing",
+      explanation:
+        "O cliente precisa enviar logo, textos, fotos, acessos e demais materiais necessários. Se isso atrasar, o prazo do projeto também pode atrasar, porque a produção depende dessas informações.",
+    },
+    {
+      number: "4",
+      title: "Prazo e execução",
+      explanation: `O prazo estimado desta proposta é de ${payload.prazoDias} dias úteis. Esse prazo começa de verdade quando briefing, materiais e pagamento inicial estiverem em ordem.`,
+    },
+    {
+      number: "5",
+      title: "Valores e pagamento",
+      explanation: `A implantação negociada ficou em ${formatCurrencyBRL(
+        payload.pricing.negotiatedSetup,
+      )}, com entrada de ${formatCurrencyBRL(
+        payload.pricing.entryValue,
+      )} e saldo de ${formatCurrencyBRL(payload.pricing.balanceValue)}. A mensalidade contratada ficou em ${formatCurrencyBRL(
+        payload.pricing.negotiatedMonthly,
+      )}. A forma de pagamento combinada é ${payload.formaPagamento}.`,
+    },
+    {
+      number: "6",
+      title: "Inadimplência",
+      explanation:
+        "Se houver atraso no pagamento, a NovaesWeb pode suspender atendimento, manutenção, automações, publicações ou entregas até a regularização. Se o projeto ainda estiver em andamento, ele também pode ser congelado até quitar o valor pendente.",
+    },
+    {
+      number: "7",
+      title: "Revisões e mudanças",
+      explanation: `Esta proposta inclui ${payload.numeroRevisoes} rodada(s) de revisão dentro do que foi aprovado. Alterações fora do escopo ou novas demandas podem ser cobradas${reviewPrice}.`,
+    },
+    {
+      number: "8",
+      title: "Propriedade intelectual",
+      explanation:
+        "Enquanto o contrato não estiver quitado por completo, a estrutura, os arquivos, o painel, as páginas, o código e os demais ativos continuam sob titularidade da NovaesWeb. A liberação final acontece após pagamento integral.",
+    },
+    {
+      number: "9",
+      title: "Marketing e automações",
+      explanation:
+        "Quando houver marketing, atendimento automatizado ou processos comerciais, a NovaesWeb executa com base técnica e estratégica, mas não promete resultado absoluto de vendas, leads ou faturamento porque isso depende de fatores externos e da operação do cliente.",
+    },
+    {
+      number: "10",
+      title: "Suporte e recorrência",
+      explanation: `Suporte, manutenção e operação contínua só valem se estiverem contratados. Nesta proposta, a referência de atendimento ficou definida como: ${payload.prazoSuporte}.`,
+    },
+    {
+      number: "11",
+      title: "Rescisão",
+      explanation:
+        "O cliente pode cancelar mesmo depois do início do projeto, mas o valor inicial já pago para ativar e começar a estrutura não é devolvido. Se houver cancelamento, o site, painel, sistema ou automação continua ativo somente até o período já pago; depois disso, a NovaesWeb pode encerrar a estrutura automaticamente.",
+    },
+    {
+      number: "12",
+      title: "Sigilo e dados",
+      explanation:
+        "As informações trocadas para execução do projeto devem ser tratadas com sigilo. Os dados enviados pelo cliente serão usados para executar o serviço, dar suporte e cuidar da operação comercial e financeira do contrato.",
+    },
+    {
+      number: "13",
+      title: "Observações comerciais",
+      explanation:
+        payload.observacoesComerciais.trim() ||
+        "Qualquer observação comercial adicional da proposta passa a fazer parte deste contrato e vale como complemento das condições combinadas.",
+    },
+    {
+      number: "14",
+      title: "Foro",
+      explanation:
+        "Se surgir discussão jurídica que não seja resolvida entre as partes, o foro escolhido para tratar disso é Canoas/RS.",
+    },
+  ];
+}
+
 export function buildContractWordHtml(
   title: string,
   body: string,
@@ -521,6 +639,7 @@ export function buildContractWordHtml(
   const safeTitle = escapeHtml(title);
   const safeBody = escapeHtml(body).replace(/\n/g, "<br />");
   const summary = proposal ? buildProposalSummary(proposal) : null;
+  const explanations = proposal ? buildContractClauseExplanations(proposal) : [];
 
   const renderInfoCard = (section: ContractProposalSummarySection) => `
     <td class="info-card">
@@ -538,6 +657,14 @@ export function buildContractWordHtml(
       <div class="service-name">${escapeHtml(service.name)}</div>
       <div class="service-pricing">${escapeHtml(service.pricing)}</div>
       ${service.description ? `<div class="service-description">${escapeHtml(service.description)}</div>` : ""}
+    </div>
+  `;
+
+  const renderExplanationCard = (item: ContractClauseExplanation) => `
+    <div class="explanation-card">
+      <div class="explanation-kicker">Cláusula ${escapeHtml(item.number)}</div>
+      <div class="explanation-title">${escapeHtml(item.title)}</div>
+      <div class="explanation-copy">${escapeHtml(item.explanation)}</div>
     </div>
   `;
 
@@ -671,6 +798,32 @@ export function buildContractWordHtml(
           line-height: 1.7;
           color: #54495d;
         }
+        .explanation-card {
+          background: #ffffff;
+          border: 1px solid #ecdff4;
+          border-radius: 20px;
+          padding: 18px;
+          margin-bottom: 12px;
+        }
+        .explanation-kicker {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          color: #7f668f;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .explanation-title {
+          font-size: 15px;
+          font-weight: 800;
+          color: #1b1323;
+          margin-bottom: 8px;
+        }
+        .explanation-copy {
+          font-size: 12px;
+          line-height: 1.7;
+          color: #54495d;
+        }
         .copy {
           margin-top: 26px;
           background: #ffffff;
@@ -712,6 +865,14 @@ export function buildContractWordHtml(
         ${summary.selectedPlan ? renderServiceCard(summary.selectedPlan, true) : ""}
         ${summary.customScope ? `<div class="scope-box"><strong>Escopo customizado</strong><br />${escapeHtml(summary.customScope)}</div>` : ""}
         ${summary.selectedServices.map((service) => renderServiceCard(service)).join("")}
+        `
+            : ""
+        }
+        ${
+          explanations.length
+            ? `
+        <div class="section-title">Contrato explicado em linguagem simples</div>
+        ${explanations.map((item) => renderExplanationCard(item)).join("")}
         `
             : ""
         }
