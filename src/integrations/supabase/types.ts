@@ -226,6 +226,7 @@ export type Database = {
       }
       contratos: {
         Row: {
+          archived_at: string | null
           assinatura_admin: string | null
           assinatura_cliente: string | null
           builder_payload: Json | null
@@ -239,9 +240,11 @@ export type Database = {
           modelo: string | null
           status: string
           titulo: string
+          updated_at: string
           valor: number
         }
         Insert: {
+          archived_at?: string | null
           assinatura_admin?: string | null
           assinatura_cliente?: string | null
           builder_payload?: Json | null
@@ -255,9 +258,11 @@ export type Database = {
           modelo?: string | null
           status?: string
           titulo: string
+          updated_at?: string
           valor?: number
         }
         Update: {
+          archived_at?: string | null
           assinatura_admin?: string | null
           assinatura_cliente?: string | null
           builder_payload?: Json | null
@@ -271,6 +276,7 @@ export type Database = {
           modelo?: string | null
           status?: string
           titulo?: string
+          updated_at?: string
           valor?: number
         }
         Relationships: [
@@ -279,6 +285,53 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contrato_versions: {
+        Row: {
+          builder_payload: Json | null
+          contrato_id: string
+          corpo: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          status: string
+          titulo: string
+          valor: number
+          version_number: number
+        }
+        Insert: {
+          builder_payload?: Json | null
+          contrato_id: string
+          corpo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          status?: string
+          titulo: string
+          valor?: number
+          version_number: number
+        }
+        Update: {
+          builder_payload?: Json | null
+          contrato_id?: string
+          corpo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          status?: string
+          titulo?: string
+          valor?: number
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_versions_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
             referencedColumns: ["id"]
           },
         ]

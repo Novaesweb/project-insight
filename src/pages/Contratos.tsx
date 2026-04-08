@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
+  Archive,
   Boxes,
   CheckCircle2,
   CircleDollarSign,
@@ -10,22 +11,42 @@ import {
   Eye,
   FilePenLine,
   FileText,
+  History,
   Lock,
+  MoreHorizontal,
   Plus,
   RefreshCw,
+  RotateCcw,
   Save,
   Search,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Vault,
 } from "lucide-react";
 import jsPDF from "jspdf";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -66,6 +87,7 @@ type Contrato = Tables<"contratos"> & {
     nome: string;
   } | null;
 };
+type ContratoVersion = Tables<"contrato_versions">;
 
 interface PreviewState {
   title: string;
@@ -517,6 +539,38 @@ function formatContratoValue(value: number | null) {
   });
 }
 
+function formatContractClock(value: string | null | undefined) {
+  if (!value) return null;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function formatContractDateTime(value: string | null | undefined) {
+  if (!value) return null;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function buildBuilderDirtySignature(
+  payload: ContractBuilderPayload,
+  currentStep: ContractBuilderStepIndex,
+) {
+  return JSON.stringify({
+    ...payload,
+    lastStep: currentStep,
+    updatedAt: "",
+  });
+}
+
 const BUILDER_STEPS: Array<{
   id: ContractBuilderStepIndex;
   label: string;
@@ -568,6 +622,75 @@ function ContractClauseExplanationCard({
           <p className="text-sm font-semibold text-white">{item.title}</p>
         </div>
         <p className="text-sm text-white/65 leading-relaxed">{item.explanation}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function VersionComparisonCard({
+  label,
+  title,
+  description,
+  value,
+  summary,
+  createdAt,
+}: {
+  label: string;
+  title: string;
+  description?: string | null;
+  value: number;
+  summary: ContractProposalSummary | null;
+  createdAt?: string | null;
+}) {
+  return (
+    <Card className="bg-white/[0.03] border-white/10">
+      <CardContent className="p-5 space-y-4">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{label}</p>
+          <p className="text-base font-semibold text-white">{title}</p>
+          {description && <p className="text-sm text-white/50 leading-relaxed">{description}</p>}
+          <div className="flex items-center gap-2 flex-wrap text-xs text-white/45">
+            <span>Valor: {formatCurrencyBRL(value)}</span>
+            {createdAt && <span>• {formatContractDateTime(createdAt)}</span>}
+          </div>
+        </div>
+
+        {summary ? (
+          <div className="space-y-3 text-sm text-white/65">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Cliente</p>
+              <p className="text-white">{summary.contractante.title}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Plano</p>
+              <p className="text-white">{summary.selectedPlan?.name || "Sem plano principal"}</p>
+              {summary.selectedPlan && <p className="text-primary">{summary.selectedPlan.pricing}</p>}
+            </div>
+            {summary.customScope && (
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Escopo</p>
+                <p>{summary.customScope}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Itens contratados</p>
+              <div className="space-y-1.5">
+                {summary.selectedServices.length > 0 ? (
+                  summary.selectedServices.slice(0, 6).map((item) => (
+                    <div key={`${item.name}-${item.pricing}`} className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                      <p className="text-white">{item.name}</p>
+                      <p className="text-xs text-primary mt-1">{item.pricing}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p>Nenhum extra adicional selecionado.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-white/45">Resumo comercial indisponível nesta versão.</p>
+        )}
       </CardContent>
     </Card>
   );
@@ -811,15 +934,36 @@ export default function Contratos() {
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
   const [builderStep, setBuilderStep] = useState<ContractBuilderStepIndex>(0);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [cofreFilter, setCofreFilter] = useState<"ativos" | "arquivados">("ativos");
+  const [builderLastSavedSignature, setBuilderLastSavedSignature] = useState<string | null>(null);
+  const [builderLastSavedAt, setBuilderLastSavedAt] = useState<string | null>(null);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [versionsContract, setVersionsContract] = useState<Contrato | null>(null);
+  const [contractVersions, setContractVersions] = useState<ContratoVersion[]>([]);
+  const [compareVersion, setCompareVersion] = useState<ContratoVersion | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
 
   const masterTemplate = contractTemplates[0];
+
+  const syncBuilderSavedState = useCallback(
+    (
+      payload: ContractBuilderPayload,
+      step: ContractBuilderStepIndex,
+      savedAt?: string | null,
+    ) => {
+      setBuilderLastSavedSignature(buildBuilderDirtySignature(payload, step));
+      setBuilderLastSavedAt(savedAt || null);
+    },
+    [],
+  );
 
   const loadContratos = useCallback(() => {
     supabase
       .from("contratos")
       .select("*, clientes(nome)")
       .eq("modelo", BUILDER_TEMPLATE_ID)
-      .order("created_at", { ascending: false })
+      .order("updated_at", { ascending: false })
       .then(({ data }) => setContratos((data as Contrato[]) || []));
   }, []);
 
@@ -857,14 +1001,201 @@ export default function Contratos() {
 
   useEffect(() => {
     if (!builderPayload && extrasLoaded) {
-      setBuilderPayload(createEmptyBuilderPayload(extrasCatalogo));
+      const emptyPayload = createEmptyBuilderPayload(extrasCatalogo);
+      setBuilderPayload(emptyPayload);
+      syncBuilderSavedState(emptyPayload, 0, null);
     }
-  }, [builderPayload, extrasCatalogo, extrasLoaded]);
+  }, [builderPayload, extrasCatalogo, extrasLoaded, syncBuilderSavedState]);
 
   const openPreview = (nextState: PreviewState) => {
     setPreviewState(nextState);
     setPreviewOpen(true);
   };
+
+  const createContractVersionSnapshot = useCallback(
+    async (contrato: Contrato) => {
+      const { data: latestVersions, error: latestVersionError } = await supabase
+        .from("contrato_versions")
+        .select("version_number")
+        .eq("contrato_id", contrato.id)
+        .order("version_number", { ascending: false })
+        .limit(1);
+
+      if (latestVersionError) {
+        throw latestVersionError;
+      }
+
+      const nextVersionNumber = ((latestVersions?.[0] as ContratoVersion | undefined)?.version_number || 0) + 1;
+
+      const { error } = await supabase.from("contrato_versions").insert({
+        contrato_id: contrato.id,
+        version_number: nextVersionNumber,
+        titulo: contrato.titulo,
+        descricao: contrato.descricao,
+        valor: contrato.valor,
+        status: contrato.status,
+        corpo: contrato.corpo,
+        builder_payload: contrato.builder_payload as any,
+      });
+
+      if (error) {
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const handleOpenVersions = useCallback(
+    async (contrato: Contrato) => {
+      setVersionsOpen(true);
+      setVersionsContract(contrato);
+      setCompareVersion(null);
+      setVersionsLoading(true);
+
+      const { data, error } = await supabase
+        .from("contrato_versions")
+        .select("*")
+        .eq("contrato_id", contrato.id)
+        .order("version_number", { ascending: false });
+
+      if (error) {
+        toast({
+          title: "Erro ao carregar versões",
+          description: error.message,
+          variant: "destructive",
+        });
+        setContractVersions([]);
+      } else {
+        setContractVersions((data as ContratoVersion[]) || []);
+      }
+
+      setVersionsLoading(false);
+    },
+    [toast],
+  );
+
+  const handleArchiveContract = useCallback(
+    async (contrato: Contrato) => {
+      const { data, error } = await supabase
+        .from("contratos")
+        .update({ archived_at: new Date().toISOString() } as any)
+        .eq("id", contrato.id)
+        .select("*, clientes(nome)")
+        .single();
+
+      if (error) {
+        toast({
+          title: "Erro ao arquivar contrato",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (editingBuilderContract?.id === contrato.id) {
+        setEditingBuilderContract(data as Contrato);
+      }
+
+      setVersionsContract((current) => (current?.id === contrato.id ? (data as Contrato) : current));
+      toast({ title: "Contrato arquivado no cofre" });
+      loadContratos();
+    },
+    [editingBuilderContract?.id, loadContratos, toast],
+  );
+
+  const handleUnarchiveContract = useCallback(
+    async (contrato: Contrato) => {
+      const { data, error } = await supabase
+        .from("contratos")
+        .update({ archived_at: null } as any)
+        .eq("id", contrato.id)
+        .select("*, clientes(nome)")
+        .single();
+
+      if (error) {
+        toast({
+          title: "Erro ao desarquivar contrato",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (editingBuilderContract?.id === contrato.id) {
+        setEditingBuilderContract(data as Contrato);
+      }
+
+      setVersionsContract((current) => (current?.id === contrato.id ? (data as Contrato) : current));
+      toast({ title: "Contrato retornou para a lista principal" });
+      loadContratos();
+    },
+    [editingBuilderContract?.id, loadContratos, toast],
+  );
+
+  const handleDeleteDraft = useCallback(async () => {
+    if (!deleteTarget) return;
+
+    const target = deleteTarget;
+    const { error } = await supabase.from("contratos").delete().eq("id", target.id);
+
+    if (error) {
+      toast({
+        title: "Erro ao excluir rascunho",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingBuilderContract?.id === target.id) {
+      resetBuilder();
+    }
+
+    setDeleteTarget(null);
+    setVersionsOpen((current) => (versionsContract?.id === target.id ? false : current));
+    setVersionsContract((current) => (current?.id === target.id ? null : current));
+    setCompareVersion((current) => (current && versionsContract?.id === target.id ? null : current));
+    toast({ title: "Rascunho excluído do cofre" });
+    loadContratos();
+  }, [deleteTarget, editingBuilderContract?.id, loadContratos, resetBuilder, toast, versionsContract?.id]);
+
+  const handleRestoreVersion = useCallback(
+    (version: ContratoVersion) => {
+      if (!versionsContract) return;
+
+      const currentPayload = normalizeBuilderPayload(
+        versionsContract.builder_payload,
+        extrasCatalogo,
+        versionsContract.cliente_id,
+        4,
+      );
+      const currentStep = normalizeBuilderStep(currentPayload.lastStep, 4);
+      const restoredPayload = normalizeBuilderPayload(
+        version.builder_payload,
+        extrasCatalogo,
+        versionsContract.cliente_id,
+        currentStep,
+      );
+      const restoredStep = normalizeBuilderStep(restoredPayload.lastStep, currentStep);
+
+      syncBuilderSavedState(currentPayload, currentStep, versionsContract.updated_at || versionsContract.created_at);
+      setBuilderPayload({
+        ...restoredPayload,
+        updatedAt: new Date().toISOString(),
+      });
+      setEditingBuilderContract(versionsContract);
+      setBuilderStep(restoredStep);
+      setMobileSummaryOpen(false);
+      setVersionsOpen(false);
+      setCompareVersion(null);
+      setTab("montador");
+      toast({
+        title: `Versão ${version.version_number} carregada para revisão`,
+        description: "Revise a proposta restaurada e salve para transformá-la na versão atual.",
+      });
+    },
+    [extrasCatalogo, syncBuilderSavedState, toast, versionsContract],
+  );
 
   const recalculateBuilderPricing = useCallback(
     (items: ContractBuilderPayload["items"], previousPricing: ContractBuilderPricing) => {
@@ -891,12 +1222,14 @@ export default function Contratos() {
 
   const resetBuilder = useCallback(() => {
     if (!extrasLoaded) return;
-    setBuilderPayload(createEmptyBuilderPayload(extrasCatalogo));
+    const emptyPayload = createEmptyBuilderPayload(extrasCatalogo);
+    setBuilderPayload(emptyPayload);
     setEditingBuilderContract(null);
     setBuilderStep(0);
     setMobileSummaryOpen(false);
+    syncBuilderSavedState(emptyPayload, 0, null);
     setTab("montador");
-  }, [extrasCatalogo, extrasLoaded]);
+  }, [extrasCatalogo, extrasLoaded, syncBuilderSavedState]);
 
   const openBuilderContract = (contrato: Contrato) => {
     if (!extrasLoaded) {
@@ -914,6 +1247,7 @@ export default function Contratos() {
     setEditingBuilderContract(contrato);
     setBuilderStep(restoredStep);
     setMobileSummaryOpen(false);
+    syncBuilderSavedState(payload, restoredStep, contrato.updated_at || contrato.created_at);
     setTab("montador");
   };
 
@@ -1164,6 +1498,7 @@ export default function Contratos() {
       return false;
     }
 
+    const nowIso = new Date().toISOString();
     const payloadToPersist = {
       cliente_id: builderPayload.clienteId || null,
       titulo: prepared.title,
@@ -1174,9 +1509,18 @@ export default function Contratos() {
       modelo: BUILDER_TEMPLATE_ID,
       builder_payload: prepared.normalizedPayload as any,
       assinatura_admin: null,
+      updated_at: nowIso,
     };
 
     if (editingBuilderContract) {
+      try {
+        await createContractVersionSnapshot(editingBuilderContract);
+      } catch (snapshotError) {
+        const message = snapshotError instanceof Error ? snapshotError.message : "Não foi possível registrar a versão anterior.";
+        toast({ title: "Erro ao criar histórico da proposta", description: message, variant: "destructive" });
+        return false;
+      }
+
       const { data, error } = await supabase
         .from("contratos")
         .update(payloadToPersist as any)
@@ -1191,6 +1535,11 @@ export default function Contratos() {
 
       setBuilderPayload(prepared.normalizedPayload);
       setEditingBuilderContract(data as Contrato);
+      syncBuilderSavedState(
+        prepared.normalizedPayload,
+        prepared.normalizedPayload.lastStep,
+        (data as Contrato).updated_at || nowIso,
+      );
       toast({
         title: exitAfterSave ? "Rascunho atualizado. Você pode continuar depois." : "Contrato mestre atualizado!",
       });
@@ -1208,6 +1557,11 @@ export default function Contratos() {
 
       setBuilderPayload(prepared.normalizedPayload);
       setEditingBuilderContract(data as Contrato);
+      syncBuilderSavedState(
+        prepared.normalizedPayload,
+        prepared.normalizedPayload.lastStep,
+        (data as Contrato).updated_at || nowIso,
+      );
       toast({
         title: exitAfterSave ? "Rascunho salvo. Você pode continuar depois." : "Contrato mestre salvo no cofre!",
       });
@@ -1280,16 +1634,67 @@ export default function Contratos() {
     });
   };
 
+  const builderDirtySignature = useMemo(
+    () => (builderPayload ? buildBuilderDirtySignature(builderPayload, builderStep) : null),
+    [builderPayload, builderStep],
+  );
+
+  const builderHasUnsavedChanges = useMemo(() => {
+    if (!builderDirtySignature || !builderLastSavedSignature) return false;
+    return builderDirtySignature !== builderLastSavedSignature;
+  }, [builderDirtySignature, builderLastSavedSignature]);
+
+  const builderStatusLabel = useMemo(() => {
+    if (builderHasUnsavedChanges) {
+      return {
+        tone: "warning" as const,
+        title: "Alterações não salvas",
+        subtitle: "Salve o rascunho para atualizar o cofre e a etapa atual.",
+      };
+    }
+
+    if (builderLastSavedAt) {
+      const formattedClock = formatContractClock(builderLastSavedAt);
+      return {
+        tone: "saved" as const,
+        title: "Rascunho salvo",
+        subtitle: formattedClock ? `Salvo às ${formattedClock}` : "Salvo no cofre",
+      };
+    }
+
+    return {
+      tone: "new" as const,
+      title: "Novo rascunho",
+      subtitle: "Ainda não existe uma proposta salva no cofre.",
+    };
+  }, [builderHasUnsavedChanges, builderLastSavedAt]);
+
   const filteredContratos = useMemo(
     () =>
       contratos.filter((contrato) => {
-        const term = searchTerm.toLowerCase();
+        const isArchived = Boolean(contrato.archived_at);
+        if (cofreFilter === "ativos" && isArchived) return false;
+        if (cofreFilter === "arquivados" && !isArchived) return false;
+
+        const term = searchTerm.trim().toLowerCase();
+        if (!term) return true;
+
         return (
           contrato.titulo?.toLowerCase().includes(term) ||
           (contrato.clientes as any)?.nome?.toLowerCase().includes(term)
         );
       }),
-    [contratos, searchTerm],
+    [cofreFilter, contratos, searchTerm],
+  );
+
+  const activeContractsCount = useMemo(
+    () => contratos.filter((contrato) => !contrato.archived_at).length,
+    [contratos],
+  );
+
+  const archivedContractsCount = useMemo(
+    () => contratos.filter((contrato) => Boolean(contrato.archived_at)).length,
+    [contratos],
   );
 
   const groupedExtras = useMemo(
@@ -1361,14 +1766,40 @@ export default function Contratos() {
                       Somente contratos gerados pelo montador interativo
                     </CardDescription>
                   </div>
-                  <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[hsl(var(--muted-foreground))]" />
-                    <Input
-                      placeholder="Buscar contrato mestre..."
-                      value={searchTerm}
-                      onChange={(event) => setSearchTerm(event.target.value)}
-                      className="pl-9 glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-xs h-8"
-                    />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`border-white/10 text-xs ${
+                        cofreFilter === "ativos"
+                          ? "bg-primary/15 text-primary hover:bg-primary/20"
+                          : "bg-white/5 text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => setCofreFilter("ativos")}
+                    >
+                      Ativos ({activeContractsCount})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`border-white/10 text-xs ${
+                        cofreFilter === "arquivados"
+                          ? "bg-primary/15 text-primary hover:bg-primary/20"
+                          : "bg-white/5 text-white hover:bg-white/10"
+                      }`}
+                      onClick={() => setCofreFilter("arquivados")}
+                    >
+                      Arquivados ({archivedContractsCount})
+                    </Button>
+                    <div className="relative w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[hsl(var(--muted-foreground))]" />
+                      <Input
+                        placeholder="Buscar contrato mestre..."
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        className="pl-9 glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-xs h-8"
+                      />
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -1383,10 +1814,13 @@ export default function Contratos() {
                       <FileText className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                       <div>
                         <p className="text-sm font-medium text-[hsl(var(--foreground))]">{contrato.titulo}</p>
-                        <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
-                          {(contrato.clientes as any)?.nome || "Cliente"} • Valor: R$ {formatContratoValue(contrato.valor)} •
-                          Contrato Mestre
-                        </p>
+                        <div className="flex items-center gap-2 flex-wrap text-[11px] text-[hsl(var(--muted-foreground))]">
+                          <span>{(contrato.clientes as any)?.nome || "Cliente"}</span>
+                          <span>•</span>
+                          <span>Valor: R$ {formatContratoValue(contrato.valor)}</span>
+                          <span>•</span>
+                          <span>{formatContractDateTime(contrato.updated_at || contrato.created_at)}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -1442,6 +1876,40 @@ export default function Contratos() {
                       >
                         <FileText className="w-3 h-3" />
                       </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-white/40 hover:text-white text-xs h-7 px-2"
+                            title="Mais ações"
+                          >
+                            <MoreHorizontal className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem onClick={() => handleOpenVersions(contrato)}>
+                            <History className="w-4 h-4 mr-2" /> Histórico de versões
+                          </DropdownMenuItem>
+                          {contrato.archived_at ? (
+                            <DropdownMenuItem onClick={() => handleUnarchiveContract(contrato)}>
+                              <RotateCcw className="w-4 h-4 mr-2" /> Desarquivar
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => handleArchiveContract(contrato)}>
+                              <Archive className="w-4 h-4 mr-2" /> Arquivar
+                            </DropdownMenuItem>
+                          )}
+                          {contrato.status === "rascunho" && (
+                            <DropdownMenuItem
+                              className="text-red-300 focus:text-red-200"
+                              onClick={() => setDeleteTarget(contrato)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" /> Excluir rascunho
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Badge
                         variant="outline"
                         className="text-[9px] border-white/5 px-2 bg-white/5 text-white/60"
@@ -1449,17 +1917,29 @@ export default function Contratos() {
                       >
                         {statusLabels[contrato.status] || contrato.status}
                       </Badge>
+                      {contrato.archived_at && (
+                        <Badge
+                          variant="outline"
+                          className="text-[9px] border-amber-300/10 px-2 bg-amber-300/10 text-amber-200"
+                        >
+                          Arquivado
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 ))}
                 {filteredContratos.length === 0 && (
                   <div className="py-10 text-center space-y-4">
                     <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                      Nenhum contrato mestre salvo ainda.
+                      {cofreFilter === "ativos"
+                        ? "Nenhum contrato mestre ativo encontrado."
+                        : "Nenhum contrato arquivado encontrado."}
                     </p>
-                    <Button size="sm" className="gradient-primary border-0 text-white" onClick={resetBuilder}>
-                      Criar primeira proposta
-                    </Button>
+                    {cofreFilter === "ativos" ? (
+                      <Button size="sm" className="gradient-primary border-0 text-white" onClick={resetBuilder}>
+                        Criar primeira proposta
+                      </Button>
+                    ) : null}
                   </div>
                 )}
               </CardContent>
@@ -1538,6 +2018,18 @@ export default function Contratos() {
                             Editando proposta salva
                           </Badge>
                         )}
+                        <Badge
+                          variant="outline"
+                          className={
+                            builderStatusLabel.tone === "warning"
+                              ? "border-amber-300/20 bg-amber-300/10 text-amber-200"
+                              : builderStatusLabel.tone === "saved"
+                                ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
+                                : "border-white/15 bg-white/10 text-white/70"
+                          }
+                        >
+                          {builderStatusLabel.title}
+                        </Badge>
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-2xl font-semibold text-white">Montador comercial interativo</h3>
@@ -1564,6 +2056,7 @@ export default function Contratos() {
                         <p className="text-sm text-white font-medium">
                           {BUILDER_STEPS[builderStep].label} • {BUILDER_STEPS[builderStep].description}
                         </p>
+                        <p className="text-xs text-white/45 mt-1">{builderStatusLabel.subtitle}</p>
                       </div>
                       <p className="text-sm text-white/55">{Math.round(builderProgress)}% concluído</p>
                     </div>
@@ -2325,6 +2818,147 @@ export default function Contratos() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={versionsOpen}
+        onOpenChange={(open) => {
+          setVersionsOpen(open);
+          if (!open) {
+            setCompareVersion(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-[rgba(17,15,24,0.96)] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white text-base">
+              {versionsContract ? `Histórico de versões — ${versionsContract.titulo}` : "Histórico de versões"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {versionsLoading ? (
+            <div className="py-12 text-center text-sm text-white/45">Carregando snapshots da proposta...</div>
+          ) : contractVersions.length === 0 ? (
+            <div className="py-12 text-center text-sm text-white/45">
+              Esta proposta ainda não tem versões anteriores salvas.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6">
+              <div className="space-y-3">
+                {contractVersions.map((version) => (
+                  <Card key={version.id} className="bg-white/[0.03] border-white/10">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-white">Versão {version.version_number}</p>
+                          <Badge variant="outline" className="border-white/10 bg-white/5 text-white/60">
+                            {formatCurrencyBRL(version.valor)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-white/45">{formatContractDateTime(version.created_at)}</p>
+                        {version.descricao && <p className="text-sm text-white/55">{version.descricao}</p>}
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                          onClick={() => setCompareVersion(version)}
+                        >
+                          <History className="w-4 h-4 mr-2" /> Comparar
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="gradient-primary border-0 text-white"
+                          onClick={() => handleRestoreVersion(version)}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" /> Restaurar esta versão
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                {versionsContract && (
+                  <VersionComparisonCard
+                    label="Versão atual salva"
+                    title={versionsContract.titulo}
+                    description={versionsContract.descricao}
+                    value={versionsContract.valor}
+                    createdAt={versionsContract.updated_at || versionsContract.created_at}
+                    summary={
+                      versionsContract.builder_payload
+                        ? buildProposalSummary(
+                            normalizeBuilderPayload(
+                              versionsContract.builder_payload,
+                              extrasCatalogo,
+                              versionsContract.cliente_id,
+                              4,
+                            ),
+                          )
+                        : null
+                    }
+                  />
+                )}
+
+                {compareVersion ? (
+                  <VersionComparisonCard
+                    label={`Comparando com a versão ${compareVersion.version_number}`}
+                    title={compareVersion.titulo}
+                    description={compareVersion.descricao}
+                    value={compareVersion.valor}
+                    createdAt={compareVersion.created_at}
+                    summary={
+                      compareVersion.builder_payload
+                        ? buildProposalSummary(
+                            normalizeBuilderPayload(
+                              compareVersion.builder_payload,
+                              extrasCatalogo,
+                              versionsContract?.cliente_id,
+                              4,
+                            ),
+                          )
+                        : null
+                    }
+                  />
+                ) : (
+                  <Card className="bg-white/[0.03] border-white/10">
+                    <CardContent className="p-6 text-sm text-white/45">
+                      Escolha uma versão no histórico para comparar com a proposta atual salva.
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent className="bg-[rgba(17,15,24,0.96)] border-white/10 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir rascunho do cofre?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/55">
+              {deleteTarget
+                ? `O rascunho "${deleteTarget.titulo}" será removido permanentemente.`
+                : "O rascunho será removido permanentemente."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-white/10 bg-white/5 text-white hover:bg-white/10">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-500"
+              onClick={handleDeleteDraft}
+            >
+              Excluir rascunho
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }
