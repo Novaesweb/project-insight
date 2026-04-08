@@ -68,6 +68,28 @@ export interface ContractBuilderPayload {
   updatedAt: string;
 }
 
+export interface ContractProposalSummarySection {
+  eyebrow: string;
+  title: string;
+  lines: string[];
+}
+
+export interface ContractProposalSummaryService {
+  name: string;
+  description: string;
+  pricing: string;
+  highlight?: string;
+}
+
+export interface ContractProposalSummary {
+  contractante: ContractProposalSummarySection;
+  contratada: ContractProposalSummarySection;
+  comercial: ContractProposalSummarySection;
+  selectedPlan: ContractProposalSummaryService | null;
+  selectedServices: ContractProposalSummaryService[];
+  customScope: string;
+}
+
 function normalizeBuilderGroup(value: string | null | undefined): BuilderItemGroup {
   if (value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal") {
     return value;
@@ -312,18 +334,24 @@ export function buildContractedServicesSummary(
   primaryPlanId: BuilderPrimaryPlanId,
   customScope: string,
 ) {
+  const selectedItems = items.filter((item) => item.selected);
+
   if (primaryPlanId === "sob-medida" && customScope.trim()) {
-    return customScope.trim();
+    const selectedExtras = selectedItems
+      .filter((item) => !item.isPrimaryPlan)
+      .map((item) => item.name);
+
+    return [customScope.trim(), selectedExtras.length ? `Itens adicionais contratados: ${selectedExtras.join(", ")}` : null]
+      .filter(Boolean)
+      .join(" | ");
   }
 
-  const selectedItems = items
-    .filter((item) => item.selected)
-    .map((item) => item.name);
+  const selectedNames = selectedItems.map((item) => item.name);
 
-  return selectedItems.join(", ");
+  return selectedNames.join(", ");
 }
 
-function describeItemPricing(item: ContractBuilderItem) {
+export function describeBuilderItemPricing(item: ContractBuilderItem) {
   if (!item.selected) return "(Não incluso neste pacote)";
 
   const setupText = item.setupPrice > 0 ? formatCurrencyBRL(item.setupPrice) : "Incluso";
@@ -346,49 +374,35 @@ export function buildServicesTableText(
   customScope: string,
   pricing: ContractBuilderPricing,
 ) {
-  const grouped = items.reduce<Record<string, ContractBuilderItem[]>>((acc, item) => {
-    if (!acc[item.group]) acc[item.group] = [];
-    acc[item.group].push(item);
-    return acc;
-  }, {});
-
-  const lines = ["RESUMO DO PLANO CONTRATADO:", ""];
-
   const selectedPlan = items.find((item) => item.isPrimaryPlan && item.selected);
+  const selectedExtras = items.filter((item) => !item.isPrimaryPlan && item.selected);
+  const lines = ["RESUMO COMERCIAL DA PROPOSTA:", ""];
 
-  const planItems = grouped.planos || [];
-  if (planItems.length) {
-    lines.push(`${grupoLabels.planos}:`);
-    planItems.forEach((item) => {
-      lines.push(
-        `${item.selected ? "☑" : "☐"} ${item.name} — ${describeItemPricing(item)}`,
-      );
-      if (item.selected && item.sourceId === "sob-medida" && customScope.trim()) {
-        lines.push(`Escopo: ${customScope.trim()}`);
-      }
+  if (selectedPlan) {
+    lines.push("PLANO CONTRATADO:");
+    lines.push(`• ${selectedPlan.name} — ${describeBuilderItemPricing(selectedPlan)}`);
+    lines.push("");
+  }
+
+  if (primaryPlanId === "sob-medida" && customScope.trim()) {
+    lines.push("ESCOPO CUSTOMIZADO:");
+    lines.push(customScope.trim());
+    lines.push("");
+  }
+
+  if (selectedExtras.length) {
+    lines.push("SERVIÇOS E EXTRAS CONTRATADOS:");
+    selectedExtras.forEach((item) => {
+      lines.push(`• ${item.name} — ${describeBuilderItemPricing(item)}`);
     });
     lines.push("");
   }
 
-  (["fixo", "intermediario", "mensal"] as BuilderItemGroup[]).forEach((group) => {
-    const groupItems = grouped[group];
-    if (!groupItems?.length) return;
-    lines.push(`${grupoLabels[group]}:`);
-    groupItems.forEach((item) => {
-      lines.push(
-        `${item.selected ? "☑" : "☐"} ${item.name} — ${describeItemPricing(item)}`,
-      );
-    });
-    lines.push("");
-  });
-
-  lines.push("TOTAL DE INVESTIMENTO:");
-  lines.push(
-    `Ativação Total: ${formatCurrencyBRL(pricing.negotiatedSetup)} (Entrada: ${formatCurrencyBRL(pricing.entryValue)} / Saldo: ${formatCurrencyBRL(pricing.balanceValue)})`,
-  );
-  lines.push(
-    `Manutenção Mensal: ${formatCurrencyBRL(pricing.negotiatedMonthly)}.`,
-  );
+  lines.push("CONDIÇÕES COMERCIAIS:");
+  lines.push(`• Ativação total: ${formatCurrencyBRL(pricing.negotiatedSetup)}`);
+  lines.push(`• Entrada / sinal: ${formatCurrencyBRL(pricing.entryValue)}`);
+  lines.push(`• Saldo na entrega: ${formatCurrencyBRL(pricing.balanceValue)}`);
+  lines.push(`• Mensalidade contratada: ${formatCurrencyBRL(pricing.negotiatedMonthly)}`);
 
   return lines.join("\n");
 }
@@ -434,9 +448,98 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
   };
 }
 
-export function buildContractWordHtml(title: string, body: string) {
+export function buildProposalSummary(payload: ContractBuilderPayload): ContractProposalSummary {
+  const selectedPlan = payload.items.find((item) => item.isPrimaryPlan && item.selected) || null;
+  const selectedServices = payload.items
+    .filter((item) => item.selected && !item.isPrimaryPlan)
+    .map((item) => ({
+      name: item.name,
+      description: item.description,
+      pricing: describeBuilderItemPricing(item),
+      highlight: grupoLabels[item.group],
+    }));
+
+  const contractanteLines = [
+    payload.contractante.nomeEmpresa?.trim() ? `Empresa: ${payload.contractante.nomeEmpresa.trim()}` : null,
+    payload.contractante.documento?.trim() ? `Documento: ${payload.contractante.documento.trim()}` : null,
+    payload.contractante.email?.trim() ? `E-mail: ${payload.contractante.email.trim()}` : null,
+    payload.contractante.whatsapp?.trim() ? `WhatsApp: ${payload.contractante.whatsapp.trim()}` : null,
+    payload.contractante.telefone?.trim() ? `Telefone: ${payload.contractante.telefone.trim()}` : null,
+    payload.contractante.endereco?.trim() ? `Endereço: ${payload.contractante.endereco.trim()}` : null,
+  ].filter(Boolean) as string[];
+
+  const contratadaLines = [
+    `Representante: ${payload.contratada.representante}`,
+    `Documento: ${payload.contratada.documento}`,
+    `Endereço: ${payload.contratada.endereco}`,
+    payload.contratada.observacaoRecebimento.trim(),
+  ].filter(Boolean);
+
+  const comercialLines = [
+    `Ativação total: ${formatCurrencyBRL(payload.pricing.negotiatedSetup)}`,
+    `Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)}`,
+    `Saldo na entrega: ${formatCurrencyBRL(payload.pricing.balanceValue)}`,
+    `Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.negotiatedMonthly)}`,
+    `Prazo estimado: ${payload.prazoDias} dias úteis`,
+    `Pagamento: ${payload.formaPagamento}`,
+  ];
+
+  return {
+    contractante: {
+      eyebrow: "Contratante",
+      title: payload.contractante.nome.trim() || "Contratante",
+      lines: contractanteLines,
+    },
+    contratada: {
+      eyebrow: "Contratada",
+      title: payload.contratada.nome.trim() || "Contratada",
+      lines: contratadaLines,
+    },
+    comercial: {
+      eyebrow: "Comercial",
+      title: "Condições comerciais",
+      lines: comercialLines,
+    },
+    selectedPlan: selectedPlan
+      ? {
+          name: selectedPlan.name,
+          description: selectedPlan.description,
+          pricing: describeBuilderItemPricing(selectedPlan),
+          highlight: "Plano principal",
+        }
+      : null,
+    selectedServices,
+    customScope: payload.primaryPlanId === "sob-medida" ? payload.customScope.trim() : "",
+  };
+}
+
+export function buildContractWordHtml(
+  title: string,
+  body: string,
+  proposal?: ContractBuilderPayload | null,
+) {
   const safeTitle = escapeHtml(title);
   const safeBody = escapeHtml(body).replace(/\n/g, "<br />");
+  const summary = proposal ? buildProposalSummary(proposal) : null;
+
+  const renderInfoCard = (section: ContractProposalSummarySection) => `
+    <td class="info-card">
+      <div class="info-kicker">${escapeHtml(section.eyebrow)}</div>
+      <div class="info-title">${escapeHtml(section.title)}</div>
+      <div class="info-lines">
+        ${section.lines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
+      </div>
+    </td>
+  `;
+
+  const renderServiceCard = (service: ContractProposalSummaryService, featured = false) => `
+    <div class="${featured ? "service-card service-card-featured" : "service-card"}">
+      ${service.highlight ? `<div class="service-tag">${escapeHtml(service.highlight)}</div>` : ""}
+      <div class="service-name">${escapeHtml(service.name)}</div>
+      <div class="service-pricing">${escapeHtml(service.pricing)}</div>
+      ${service.description ? `<div class="service-description">${escapeHtml(service.description)}</div>` : ""}
+    </div>
+  `;
 
   return `<!DOCTYPE html>
   <html lang="pt-BR">
@@ -448,31 +551,135 @@ export function buildContractWordHtml(title: string, body: string) {
           font-family: Arial, Helvetica, sans-serif;
           color: #16121f;
           margin: 0;
-          background: #fff;
+          background: #f7f4fb;
         }
         .sheet {
-          padding: 42px 42px 54px;
+          padding: 34px 34px 48px;
         }
-        .brandbar {
-          background: linear-gradient(90deg, #7b1fa2, #e8334a, #c2185b);
+        .hero {
+          background: linear-gradient(135deg, #261135, #5d1f7a 48%, #e8334a 100%);
           color: white;
-          padding: 18px 24px;
-          border-radius: 20px;
-          font-weight: 700;
-          letter-spacing: 0.12em;
+          padding: 24px 26px;
+          border-radius: 24px;
+          box-shadow: 0 18px 40px rgba(35, 11, 44, 0.18);
+        }
+        .hero-kicker {
+          font-size: 11px;
           text-transform: uppercase;
-          font-size: 12px;
+          letter-spacing: 0.18em;
+          opacity: 0.72;
+          font-weight: 700;
+          margin-bottom: 10px;
         }
         .title {
-          margin: 28px 0 10px;
+          margin: 0;
           font-size: 28px;
           font-weight: 800;
-          color: #130d1a;
+          color: #fff;
+        }
+        .hero-copy {
+          margin-top: 12px;
+          font-size: 13px;
+          line-height: 1.7;
+          max-width: 640px;
+          color: rgba(255,255,255,0.84);
+        }
+        .summary-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0 14px;
+          margin-top: 20px;
+        }
+        .info-card {
+          width: 33.33%;
+          vertical-align: top;
+          background: #ffffff;
+          border: 1px solid #ecdff4;
+          border-radius: 20px;
+          padding: 18px 18px 16px;
+        }
+        .info-kicker {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          color: #7f668f;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .info-title {
+          font-size: 17px;
+          font-weight: 700;
+          color: #1b1323;
+          margin-bottom: 10px;
+        }
+        .info-lines {
+          font-size: 12px;
+          line-height: 1.7;
+          color: #54495d;
+        }
+        .section-title {
+          margin: 26px 0 12px;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.22em;
+          color: #8d3cb0;
+          font-weight: 800;
+        }
+        .service-card {
+          background: #ffffff;
+          border: 1px solid #ecdff4;
+          border-radius: 20px;
+          padding: 18px 18px 16px;
+          margin-bottom: 12px;
+        }
+        .service-card-featured {
+          background: linear-gradient(180deg, #fff, #fff7fb);
+          border-color: #e6b9d4;
+        }
+        .service-tag {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          color: #7f668f;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .service-name {
+          font-size: 16px;
+          font-weight: 800;
+          color: #1b1323;
+        }
+        .service-pricing {
+          margin-top: 6px;
+          font-size: 13px;
+          color: #a32161;
+          font-weight: 700;
+        }
+        .service-description {
+          margin-top: 8px;
+          font-size: 12px;
+          line-height: 1.7;
+          color: #54495d;
+        }
+        .scope-box {
+          margin-top: 12px;
+          background: #ffffff;
+          border: 1px solid #ecdff4;
+          border-radius: 20px;
+          padding: 18px;
+          font-size: 12px;
+          line-height: 1.7;
+          color: #54495d;
         }
         .copy {
+          margin-top: 26px;
+          background: #ffffff;
+          border: 1px solid #ecdff4;
+          border-radius: 24px;
+          padding: 26px;
           white-space: pre-wrap;
           line-height: 1.7;
-          font-size: 13px;
+          font-size: 12px;
         }
         .footer {
           margin-top: 40px;
@@ -486,8 +693,28 @@ export function buildContractWordHtml(title: string, body: string) {
     </head>
     <body>
       <div class="sheet">
-        <div class="brandbar">NovaesWeb • Contrato Comercial Premium</div>
-        <div class="title">${safeTitle}</div>
+        <div class="hero">
+          <div class="hero-kicker">NovaesWeb • Proposta comercial premium</div>
+          <div class="title">${safeTitle}</div>
+          <div class="hero-copy">Documento comercial gerado no montador da NovaesWeb, com escopo selecionado, condições financeiras e cláusulas contratuais organizadas para negociação e fechamento.</div>
+        </div>
+        ${
+          summary
+            ? `
+        <table class="summary-table">
+          <tr>
+            ${renderInfoCard(summary.contractante)}
+            ${renderInfoCard(summary.contratada)}
+            ${renderInfoCard(summary.comercial)}
+          </tr>
+        </table>
+        <div class="section-title">Plano e serviços contratados</div>
+        ${summary.selectedPlan ? renderServiceCard(summary.selectedPlan, true) : ""}
+        ${summary.customScope ? `<div class="scope-box"><strong>Escopo customizado</strong><br />${escapeHtml(summary.customScope)}</div>` : ""}
+        ${summary.selectedServices.map((service) => renderServiceCard(service)).join("")}
+        `
+            : ""
+        }
         <div class="copy">${safeBody}</div>
         <div class="footer">NovaesWeb • Estrutura digital premium • Documento gerado no painel administrativo</div>
       </div>

@@ -11,6 +11,7 @@ import {
   Lock,
   PenTool,
   Plus,
+  RefreshCw,
   Save,
   Search,
   Send,
@@ -36,6 +37,7 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
+  buildProposalSummary,
   buildBuilderTemplateValues,
   buildContractWordHtml,
   buildContractanteFromClient,
@@ -66,6 +68,7 @@ interface PreviewState {
   body: string;
   assinaturaAdmin?: string | null;
   assinaturaCliente?: string | null;
+  proposal?: ContractBuilderPayload | null;
 }
 
 const BUILDER_TEMPLATE_ID = "novaesweb-contrato-mestre";
@@ -99,17 +102,50 @@ function buildPdfFileName(title: string) {
   return title.replace(/[^a-zA-Z0-9]/g, "_");
 }
 
+function drawWrappedText(
+  doc: jsPDF,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  pageHeight: number,
+  bottomMargin: number,
+) {
+  const lines = doc.splitTextToSize(text, maxWidth);
+  let nextY = y;
+
+  for (const line of lines) {
+    if (nextY > pageHeight - bottomMargin) {
+      doc.addPage();
+      nextY = 18;
+    }
+    doc.text(line, x, nextY);
+    nextY += lineHeight;
+  }
+
+  return nextY;
+}
+
+type ContractPdfOptions = {
+  assinaturaAdmin?: string | null;
+  assinaturaCliente?: string | null;
+  proposal?: ContractBuilderPayload | null;
+};
+
 function generateContractPDF(
   titulo: string,
   corpo: string,
-  assinaturaAdmin?: string | null,
-  assinaturaCliente?: string | null,
+  options?: ContractPdfOptions,
 ) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 18;
   const maxWidth = pageWidth - margin * 2;
+  const summary = options?.proposal ? buildProposalSummary(options.proposal) : null;
+  const assinaturaAdmin = options?.assinaturaAdmin;
+  const assinaturaCliente = options?.assinaturaCliente;
 
   doc.setFillColor(123, 31, 162);
   doc.rect(0, 0, pageWidth / 3, 14, "F");
@@ -127,18 +163,129 @@ function generateContractPDF(
   doc.setFontSize(16);
   doc.text(titulo, margin, 26);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10.5);
-  const lines = doc.splitTextToSize(corpo, maxWidth);
   let y = 38;
 
-  for (const line of lines) {
-    if (y > pageHeight - 22) {
-      doc.addPage();
-      y = 18;
+  if (summary) {
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(92, 77, 104);
+    doc.setFontSize(9.5);
+    y = drawWrappedText(
+      doc,
+      "Proposta premium gerada pelo montador comercial da NovaesWeb com escopo selecionado, condições financeiras e corpo contratual consolidado.",
+      margin,
+      y,
+      maxWidth,
+      5,
+      pageHeight,
+      18,
+    );
+
+    const cardWidth = (maxWidth - 8) / 2;
+    const drawSummaryCard = (title: string, lines: string[], x: number, startY: number) => {
+      const contentLines = lines.flatMap((line) => doc.splitTextToSize(line, cardWidth - 10));
+      const cardHeight = Math.max(26, 16 + contentLines.length * 4.4);
+      doc.setDrawColor(236, 223, 244);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x, startY, cardWidth, cardHeight, 4, 4, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(141, 60, 176);
+      doc.text(title.toUpperCase(), x + 5, startY + 7);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(55, 43, 64);
+      let cardY = startY + 13;
+      contentLines.forEach((line) => {
+        doc.text(line, x + 5, cardY);
+        cardY += 4.4;
+      });
+      return cardHeight;
+    };
+
+    y += 4;
+    const leftHeight = drawSummaryCard(summary.contractante.title, summary.contractante.lines, margin, y);
+    const rightHeight = drawSummaryCard(summary.contratada.title, summary.contratada.lines, margin + cardWidth + 8, y);
+    y += Math.max(leftHeight, rightHeight) + 8;
+    const comercialHeight = drawSummaryCard(summary.comercial.title, summary.comercial.lines, margin, y);
+    y += comercialHeight + 8;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(141, 60, 176);
+    doc.text("PLANO E SERVIÇOS CONTRATADOS", margin, y);
+    y += 7;
+
+    const serviceLines: string[] = [];
+    if (summary.selectedPlan) {
+      serviceLines.push(`${summary.selectedPlan.name} — ${summary.selectedPlan.pricing}`);
     }
-    doc.text(line, margin, y);
-    y += 5;
+    if (summary.customScope) {
+      serviceLines.push(`Escopo customizado: ${summary.customScope}`);
+    }
+    summary.selectedServices.forEach((service) => {
+      serviceLines.push(`${service.name} — ${service.pricing}`);
+      if (service.description) {
+        serviceLines.push(`Descrição: ${service.description}`);
+      }
+    });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.4);
+    doc.setTextColor(41, 31, 50);
+    serviceLines.forEach((line) => {
+      if (y > pageHeight - 22) {
+        doc.addPage();
+        y = 18;
+      }
+      const wrapped = doc.splitTextToSize(`• ${line}`, maxWidth);
+      wrapped.forEach((entry: string) => {
+        if (y > pageHeight - 22) {
+          doc.addPage();
+          y = 18;
+        }
+        doc.text(entry, margin, y);
+        y += 4.8;
+      });
+      y += 1;
+    });
+
+    y += 3;
+    doc.setDrawColor(240, 216, 234);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(19, 13, 26);
+  doc.setFontSize(11);
+  doc.text("Corpo contratual", margin, y);
+  y += 7;
+
+  const paragraphs = corpo.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10.2);
+  doc.setTextColor(31, 23, 40);
+
+  for (const paragraph of paragraphs) {
+    const isClause = /^CLÁUSULA\s+\d+/i.test(paragraph) || /^CONTRATO /i.test(paragraph) || /^CONTRATANTE:/i.test(paragraph) || /^CONTRATADA:/i.test(paragraph);
+    if (isClause) {
+      if (y > pageHeight - 24) {
+        doc.addPage();
+        y = 18;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.6);
+      doc.setTextColor(90, 34, 122);
+      y = drawWrappedText(doc, paragraph, margin, y, maxWidth, 5.1, pageHeight, 18);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10.2);
+      doc.setTextColor(31, 23, 40);
+      y += 1.5;
+      continue;
+    }
+
+    y = drawWrappedText(doc, paragraph, margin, y, maxWidth, 5, pageHeight, 18);
+    y += 2.5;
   }
 
   if (assinaturaAdmin) {
@@ -183,8 +330,12 @@ function generateContractPDF(
   doc.save(`${buildPdfFileName(titulo)}.pdf`);
 }
 
-function downloadWordDocument(title: string, body: string) {
-  const blob = new Blob([buildContractWordHtml(title, body)], {
+function downloadWordDocument(
+  title: string,
+  body: string,
+  proposal?: ContractBuilderPayload | null,
+) {
+  const blob = new Blob([buildContractWordHtml(title, body, proposal)], {
     type: "application/msword;charset=utf-8",
   });
   const url = window.URL.createObjectURL(blob);
@@ -338,23 +489,23 @@ export default function Contratos() {
       .then(({ data }) => setClientes((data as Cliente[]) || []));
   }, []);
 
-  const loadExtrasCatalogo = useCallback(() => {
-    supabase
+  const loadExtrasCatalogo = useCallback(async () => {
+    const { data } = await supabase
       .from("extras_catalogo")
       .select("id, nome, descricao, categoria, preco_ativacao, preco_mensal, status, subcategoria")
       .eq("status", "ativo")
       .order("categoria", { ascending: true })
       .order("nome", { ascending: true })
-      .then(({ data }) => {
-        setExtrasCatalogo((data as ExtraCatalogo[]) || []);
-        setExtrasLoaded(true);
-      });
+    const extras = (data as ExtraCatalogo[]) || [];
+    setExtrasCatalogo(extras);
+    setExtrasLoaded(true);
+    return extras;
   }, []);
 
   useEffect(() => {
     loadContratos();
     loadClientes();
-    loadExtrasCatalogo();
+    void loadExtrasCatalogo();
   }, [loadContratos, loadClientes, loadExtrasCatalogo]);
 
   useRealtimeSubscription("contratos", loadContratos);
@@ -428,11 +579,16 @@ export default function Contratos() {
   };
 
   const handleViewContrato = (contrato: Contrato) => {
+    const proposal = isBuilderContract(contrato)
+      ? normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id)
+      : null;
+
     openPreview({
       title: contrato.titulo,
       body: (contrato as any).corpo || contrato.descricao || "Conteúdo não disponível",
       assinaturaAdmin: (contrato as any).assinatura_admin,
       assinaturaCliente: (contrato as any).assinatura_cliente,
+      proposal,
     });
   };
 
@@ -731,6 +887,7 @@ export default function Contratos() {
     openPreview({
       title: prepared.title,
       body: prepared.body,
+      proposal: prepared.normalizedPayload,
     });
   };
 
@@ -794,7 +951,9 @@ export default function Contratos() {
 
     const prepared = buildBuilderSavePayload(builderPayload);
     if (!prepared) return;
-    generateContractPDF(prepared.title, prepared.body);
+    generateContractPDF(prepared.title, prepared.body, {
+      proposal: prepared.normalizedPayload,
+    });
   };
 
   const handleBuilderWordDownload = () => {
@@ -802,7 +961,38 @@ export default function Contratos() {
 
     const prepared = buildBuilderSavePayload(builderPayload);
     if (!prepared) return;
-    downloadWordDocument(prepared.title, prepared.body);
+    downloadWordDocument(prepared.title, prepared.body, prepared.normalizedPayload);
+  };
+
+  const handleRefreshBuilderExtras = async () => {
+    if (!builderPayload) return;
+
+    const currentExtraIds = new Set(
+      builderPayload.items.filter((item) => item.source === "extra").map((item) => item.id),
+    );
+
+    const freshExtras = await loadExtrasCatalogo();
+    const normalizedPayload = normalizeBuilderPayload(
+      builderPayload,
+      freshExtras,
+      builderPayload.clienteId,
+    );
+    const newExtraCount = normalizedPayload.items.filter(
+      (item) => item.source === "extra" && !currentExtraIds.has(item.id),
+    ).length;
+
+    setBuilderPayload({
+      ...normalizedPayload,
+      updatedAt: new Date().toISOString(),
+    });
+
+    toast({
+      title: "Extras atualizados",
+      description:
+        newExtraCount > 0
+          ? `${newExtraCount} novo(s) extra(s) ativo(s) entraram no montador.`
+          : "Nenhum extra novo foi encontrado. Sua seleção atual foi preservada.",
+    });
   };
 
   const filteredContratos = contratos.filter((contrato) => {
@@ -936,8 +1126,13 @@ export default function Contratos() {
                           generateContractPDF(
                             contrato.titulo,
                             (contrato as any).corpo || contrato.descricao || "",
-                            (contrato as any).assinatura_admin,
-                            (contrato as any).assinatura_cliente,
+                            {
+                              assinaturaAdmin: (contrato as any).assinatura_admin,
+                              assinaturaCliente: (contrato as any).assinatura_cliente,
+                              proposal: isBuilderContract(contrato)
+                                ? normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id)
+                                : null,
+                            },
                           )
                         }
                       >
@@ -953,6 +1148,7 @@ export default function Contratos() {
                             downloadWordDocument(
                               contrato.titulo,
                               (contrato as any).corpo || contrato.descricao || "",
+                              normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
                             )
                           }
                         >
@@ -1212,12 +1408,24 @@ export default function Contratos() {
 
                   <Card className="glass-card border-[0.5px]">
                     <CardHeader>
-                      <CardTitle className="text-sm text-white flex items-center gap-2">
-                        <Boxes className="w-4 h-4 text-primary" /> Plano principal e extras
-                      </CardTitle>
-                      <CardDescription className="text-xs text-white/40">
-                        O plano principal funciona com seleção única. Extras podem ser combinados em checkbox.
-                      </CardDescription>
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                          <CardTitle className="text-sm text-white flex items-center gap-2">
+                            <Boxes className="w-4 h-4 text-primary" /> Plano principal e extras
+                          </CardTitle>
+                          <CardDescription className="text-xs text-white/40 mt-1">
+                            O plano principal funciona com seleção única. Extras podem ser combinados em checkbox.
+                          </CardDescription>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs gap-1.5"
+                          onClick={handleRefreshBuilderExtras}
+                        >
+                          <RefreshCw className="w-3 h-3" /> Atualizar extras
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div className="space-y-3">
@@ -1650,8 +1858,11 @@ export default function Contratos() {
                       generateContractPDF(
                         previewState.title,
                         previewState.body,
-                        previewState.assinaturaAdmin,
-                        previewState.assinaturaCliente,
+                        {
+                          assinaturaAdmin: previewState.assinaturaAdmin,
+                          assinaturaCliente: previewState.assinaturaCliente,
+                          proposal: previewState.proposal,
+                        },
                       )
                     }
                   >
@@ -1661,7 +1872,9 @@ export default function Contratos() {
                     size="sm"
                     variant="outline"
                     className="text-xs gap-1"
-                    onClick={() => downloadWordDocument(previewState.title, previewState.body)}
+                    onClick={() =>
+                      downloadWordDocument(previewState.title, previewState.body, previewState.proposal)
+                    }
                   >
                     <FileText className="w-3 h-3" /> Baixar Word
                   </Button>

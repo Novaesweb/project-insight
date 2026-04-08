@@ -129,7 +129,7 @@ CLÁUSULA 1 — DO OBJETO
 1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, de serviços digitais, estratégicos e operacionais dentro do ecossistema NovaesWeb, podendo abranger, de forma modular e conforme contratação específica, a criação, implantação, personalização, manutenção e evolução de site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos, automação de atendimento via WhatsApp, marketing digital, manutenção recorrente, módulos adicionais, integrações e extras.
 1.2. Os serviços efetivamente contratados neste instrumento são os seguintes: {lista_servicos}.
 
-1.3. Integra ainda o presente contrato o resumo comercial abaixo, com os itens inclusos e não inclusos no pacote contratado:
+1.3. Integra ainda o presente contrato o resumo comercial abaixo, contendo exclusivamente os itens efetivamente contratados nesta proposta:
 
 {tabela_servicos}
 
