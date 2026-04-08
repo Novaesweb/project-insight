@@ -159,6 +159,16 @@ function getContractErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function isJwtSessionErrorMessage(message: string) {
+  const normalized = message.trim().toLowerCase();
+  return (
+    normalized.includes("invalid jwt") ||
+    normalized.includes("jwt expired") ||
+    normalized.includes("sessão inválida") ||
+    normalized.includes("session expired")
+  );
+}
+
 async function extractFunctionErrorMessage(
   error: unknown,
   fallback = "Falha ao comunicar com o backend de contratos.",
@@ -1195,23 +1205,70 @@ export default function Contratos() {
 
   const invokeContractMutation = useCallback(
     async <T,>(payload: Record<string, unknown>) => {
-      const { data, error } = await supabase.functions.invoke("manage-contract-builder", {
-        body: payload,
-      });
+      const runMutation = async (forceRefresh = false) => {
+        const nowInSeconds = Math.floor(Date.now() / 1000);
+        const sessionResponse = forceRefresh
+          ? await supabase.auth.refreshSession()
+          : await supabase.auth.getSession();
 
-      if (error) {
-        const message = await extractFunctionErrorMessage(
-          error,
-          "Falha ao comunicar com o backend de contratos.",
-        );
-        throw new Error(message);
+        if (sessionResponse.error) {
+          throw new Error("Não foi possível validar sua sessão. Entre novamente no painel.");
+        }
+
+        let activeSession = sessionResponse.data.session;
+
+        if (
+          !forceRefresh &&
+          activeSession &&
+          activeSession.expires_at &&
+          activeSession.expires_at <= nowInSeconds + 30
+        ) {
+          const refreshedSession = await supabase.auth.refreshSession();
+
+          if (refreshedSession.error || !refreshedSession.data.session?.access_token) {
+            throw new Error("Sua sessão expirou. Entre novamente no painel para continuar.");
+          }
+
+          activeSession = refreshedSession.data.session;
+        }
+
+        if (!activeSession?.access_token) {
+          throw new Error("Sua sessão expirou. Entre novamente no painel para continuar.");
+        }
+
+        const { data, error } = await supabase.functions.invoke("manage-contract-builder", {
+          body: payload,
+          headers: {
+            Authorization: `Bearer ${activeSession.access_token}`,
+          },
+        });
+
+        if (error) {
+          const message = await extractFunctionErrorMessage(
+            error,
+            "Falha ao comunicar com o backend de contratos.",
+          );
+          throw new Error(message);
+        }
+
+        if (data?.error) {
+          throw new Error(String(data.error));
+        }
+
+        return data as T;
+      };
+
+      try {
+        return await runMutation(false);
+      } catch (error) {
+        const message = getContractErrorMessage(error, "");
+
+        if (message && isJwtSessionErrorMessage(message)) {
+          return await runMutation(true);
+        }
+
+        throw error;
       }
-
-      if (data?.error) {
-        throw new Error(String(data.error));
-      }
-
-      return data as T;
     },
     [],
   );
