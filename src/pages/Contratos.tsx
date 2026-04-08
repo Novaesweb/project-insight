@@ -1,26 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  ArrowLeft,
+  ArrowRight,
   Boxes,
-  ChevronLeft,
+  CheckCircle2,
   CircleDollarSign,
   Download,
   Eye,
   FilePenLine,
   FileText,
   Lock,
-  PenTool,
   Plus,
   RefreshCw,
   Save,
   Search,
-  Send,
   ShieldCheck,
   Sparkles,
   Vault,
 } from "lucide-react";
 import jsPDF from "jspdf";
 
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +32,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import SignaturePad from "@/components/SignaturePad";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,8 +51,9 @@ import {
   type BuilderPrimaryPlanId,
   type ContractBuilderPayload,
   type ContractBuilderPricing,
+  type ContractProposalSummary,
 } from "@/lib/contract-builder";
-import { contractTemplates, fillTemplate, getContractTypeLabel, type ContractTemplate } from "@/lib/contract-templates";
+import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 
 type Cliente = Tables<"clientes">;
@@ -267,7 +268,11 @@ function generateContractPDF(
   doc.setTextColor(31, 23, 40);
 
   for (const paragraph of paragraphs) {
-    const isClause = /^CLÁUSULA\s+\d+/i.test(paragraph) || /^CONTRATO /i.test(paragraph) || /^CONTRATANTE:/i.test(paragraph) || /^CONTRATADA:/i.test(paragraph);
+    const isClause =
+      /^CLÁUSULA\s+\d+/i.test(paragraph) ||
+      /^CONTRATO /i.test(paragraph) ||
+      /^CONTRATANTE:/i.test(paragraph) ||
+      /^CONTRATADA:/i.test(paragraph);
     if (isClause) {
       if (y > pageHeight - 24) {
         doc.addPage();
@@ -449,6 +454,253 @@ function formatContratoValue(value: number | null) {
   });
 }
 
+type BuilderStepIndex = 0 | 1 | 2 | 3 | 4;
+
+const BUILDER_STEPS: Array<{
+  id: BuilderStepIndex;
+  label: string;
+  description: string;
+}> = [
+  { id: 0, label: "Cliente", description: "Selecione o cadastro base da proposta." },
+  { id: 1, label: "Partes", description: "Revise contratante e contratada." },
+  { id: 2, label: "Plano e extras", description: "Monte o escopo comercial contratado." },
+  { id: 3, label: "Totais", description: "Ajuste valores, prazo e observações." },
+  { id: 4, label: "Preview final", description: "Confira a proposta premium antes de salvar ou exportar." },
+];
+
+function ContractSummaryCard({
+  title,
+  eyebrow,
+  lines,
+}: {
+  title: string;
+  eyebrow: string;
+  lines: string[];
+}) {
+  return (
+    <Card className="bg-white/[0.03] border-white/10">
+      <CardContent className="p-4 space-y-3">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{eyebrow}</p>
+          <p className="text-base font-semibold text-white">{title}</p>
+        </div>
+        <div className="space-y-1.5 text-sm text-white/65">
+          {lines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BuilderPreviewDocument({
+  title,
+  body,
+  summary,
+}: {
+  title: string;
+  body: string;
+  summary: ContractProposalSummary | null;
+}) {
+  return (
+    <div className="space-y-6">
+      <Card className="border-primary/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.16),rgba(194,24,91,0.2))]">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="border-white/15 bg-white/10 text-white/80">
+              NovaesWeb
+            </Badge>
+            <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+              Proposta premium
+            </Badge>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-semibold text-white leading-tight">{title}</h3>
+            <p className="text-sm text-white/65 max-w-3xl">
+              Estrutura comercial gerada no montador do contrato mestre, com escopo, condições financeiras e cláusulas
+              consolidadas para fechamento.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {summary && (
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <ContractSummaryCard
+              title={summary.contractante.title}
+              eyebrow={summary.contractante.eyebrow}
+              lines={summary.contractante.lines}
+            />
+            <ContractSummaryCard
+              title={summary.contratada.title}
+              eyebrow={summary.contratada.eyebrow}
+              lines={summary.contratada.lines}
+            />
+            <ContractSummaryCard
+              title={summary.comercial.title}
+              eyebrow={summary.comercial.eyebrow}
+              lines={summary.comercial.lines}
+            />
+          </div>
+
+          <Card className="glass-card border-[0.5px]">
+            <CardHeader>
+              <CardTitle className="text-sm text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" /> Plano e serviços contratados
+              </CardTitle>
+              <CardDescription className="text-xs text-white/40">
+                O documento final exibe somente os itens efetivamente contratados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {summary.selectedPlan && (
+                <Card className="bg-white/[0.03] border-primary/20">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+                        Plano principal
+                      </Badge>
+                      <p className="text-base font-semibold text-white">{summary.selectedPlan.name}</p>
+                    </div>
+                    <p className="text-sm text-primary">{summary.selectedPlan.pricing}</p>
+                    {summary.selectedPlan.description && (
+                      <p className="text-sm text-white/60">{summary.selectedPlan.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {summary.customScope && (
+                <Card className="bg-white/[0.03] border-white/10">
+                  <CardContent className="p-4 space-y-2">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Escopo customizado</p>
+                    <p className="text-sm text-white/75 leading-relaxed">{summary.customScope}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {summary.selectedServices.length > 0 && (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {summary.selectedServices.map((service) => (
+                    <Card key={`${service.name}-${service.pricing}`} className="bg-white/[0.03] border-white/10">
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {service.highlight && (
+                            <Badge variant="outline" className="border-white/10 text-white/55">
+                              {service.highlight}
+                            </Badge>
+                          )}
+                          <p className="text-sm font-semibold text-white">{service.name}</p>
+                        </div>
+                        <p className="text-sm text-primary">{service.pricing}</p>
+                        {service.description && <p className="text-sm text-white/60">{service.description}</p>}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      <Card className="glass-card border-[0.5px]">
+        <CardContent className="p-0">
+          <Accordion type="single" collapsible defaultValue="corpo-contratual" className="w-full">
+            <AccordionItem value="corpo-contratual" className="border-b-0">
+              <AccordionTrigger className="px-6 py-5 text-sm text-white hover:no-underline">
+                Corpo contratual completo
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <div className="rounded-2xl bg-white text-black p-6 font-serif text-sm leading-relaxed whitespace-pre-wrap">
+                  {body}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function BuilderLiveSummary({
+  summary,
+  selectedCount,
+}: {
+  summary: ContractProposalSummary | null;
+  selectedCount: number;
+}) {
+  if (!summary) {
+    return (
+      <Card className="glass-card border-[0.5px]">
+        <CardContent className="p-5 text-sm text-white/45">
+          Selecione o cliente e comece a montar a proposta para ver o resumo ao vivo.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="glass-card border-[0.5px]">
+      <CardHeader>
+        <CardTitle className="text-sm text-white flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-primary" /> Resumo ao vivo
+        </CardTitle>
+        <CardDescription className="text-xs text-white/40">
+          {selectedCount} item(ns) contratado(s) na proposta atual.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{summary.contractante.eyebrow}</p>
+          <p className="text-base font-semibold text-white">{summary.contractante.title}</p>
+          <div className="space-y-1 text-sm text-white/60">
+            {summary.contractante.lines.slice(0, 4).map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Plano principal</p>
+          <p className="text-sm font-medium text-white">{summary.selectedPlan?.name || "Sem plano principal"}</p>
+          {summary.selectedPlan && <p className="text-sm text-primary">{summary.selectedPlan.pricing}</p>}
+          {summary.customScope && <p className="text-sm text-white/60">{summary.customScope}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Condições comerciais</p>
+          <div className="space-y-1 text-sm text-white/60">
+            {summary.comercial.lines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        </div>
+
+        {summary.selectedServices.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Extras selecionados</p>
+            <div className="space-y-2">
+              {summary.selectedServices.slice(0, 6).map((service) => (
+                <div key={`${service.name}-${service.pricing}`} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                  <p className="text-sm font-medium text-white">{service.name}</p>
+                  <p className="text-xs text-primary mt-1">{service.pricing}</p>
+                </div>
+              ))}
+              {summary.selectedServices.length > 6 && (
+                <p className="text-xs text-white/40">+ {summary.selectedServices.length - 6} item(ns) adicional(is)</p>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Contratos() {
   const { toast } = useToast();
   const [contratos, setContratos] = useState<Contrato[]>([]);
@@ -457,23 +709,20 @@ export default function Contratos() {
   const [extrasLoaded, setExtrasLoaded] = useState(false);
   const [tab, setTab] = useState("lista");
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [selectedTemplate, setSelectedTemplate] = useState<ContractTemplate | null>(null);
-  const [selectedClienteId, setSelectedClienteId] = useState("");
-  const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState | null>(null);
-
-  const [signOpen, setSignOpen] = useState(false);
-  const [adminSignature, setAdminSignature] = useState<string>("");
-
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
+  const [builderStep, setBuilderStep] = useState<BuilderStepIndex>(0);
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+
+  const masterTemplate = contractTemplates[0];
 
   const loadContratos = useCallback(() => {
     supabase
       .from("contratos")
       .select("*, clientes(nome)")
+      .eq("modelo", BUILDER_TEMPLATE_ID)
       .order("created_at", { ascending: false })
       .then(({ data }) => setContratos((data as Contrato[]) || []));
   }, []);
@@ -495,7 +744,7 @@ export default function Contratos() {
       .select("id, nome, descricao, categoria, preco_ativacao, preco_mensal, status, subcategoria")
       .eq("status", "ativo")
       .order("categoria", { ascending: true })
-      .order("nome", { ascending: true })
+      .order("nome", { ascending: true });
     const extras = (data as ExtraCatalogo[]) || [];
     setExtrasCatalogo(extras);
     setExtrasLoaded(true);
@@ -516,133 +765,9 @@ export default function Contratos() {
     }
   }, [builderPayload, extrasCatalogo, extrasLoaded]);
 
-  useEffect(() => {
-    if (!selectedClienteId || !selectedTemplate) return;
-    const cliente = clientes.find((item) => item.id === selectedClienteId);
-    if (!cliente) return;
-
-    setFormValues((prev) => ({
-      ...prev,
-      nome_cliente: cliente.nome,
-      cpf_cnpj: cliente.documento || "",
-      endereco: cliente.endereco || "",
-    }));
-  }, [selectedClienteId, clientes, selectedTemplate]);
-
-  useEffect(() => {
-    if (!selectedTemplate) return;
-
-    const defaults: Record<string, string> = {};
-    selectedTemplate.variaveis.forEach((variable) => {
-      if (variable.defaultValue) defaults[variable.key] = variable.defaultValue;
-      if (variable.autoFill === "data") defaults[variable.key] = new Date().toISOString().slice(0, 10);
-    });
-
-    const config = localStorage.getItem("config_empresa");
-    if (config) {
-      const parsed = JSON.parse(config);
-      if (parsed.cnpj) {
-        defaults.cnpj_novaesweb = parsed.cnpj;
-        defaults.cpf_cnpj_contratada = parsed.cnpj;
-      }
-      if (parsed.nome) defaults.nome_contratada = parsed.nome;
-      if (parsed.endereco) defaults.endereco_contratada = parsed.endereco;
-    }
-
-    setFormValues((prev) => ({ ...defaults, ...prev }));
-  }, [selectedTemplate]);
-
   const openPreview = (nextState: PreviewState) => {
     setPreviewState(nextState);
     setPreviewOpen(true);
-  };
-
-  const handleSelectTemplate = (templateId: string) => {
-    const template = contractTemplates.find((item) => item.id === templateId);
-    if (!template) return;
-
-    setSelectedTemplate(template);
-    setFormValues({});
-    setSelectedClienteId("");
-    setAdminSignature("");
-    setTab("criar");
-  };
-
-  const handlePreview = () => {
-    if (!selectedTemplate) return;
-
-    openPreview({
-      title: `${selectedTemplate.nome} — ${formValues.nome_cliente || "Pré-visualização"}`,
-      body: fillTemplate(selectedTemplate.corpo, formValues),
-      assinaturaAdmin: adminSignature || null,
-    });
-  };
-
-  const handleViewContrato = (contrato: Contrato) => {
-    const proposal = isBuilderContract(contrato)
-      ? normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id)
-      : null;
-
-    openPreview({
-      title: contrato.titulo,
-      body: (contrato as any).corpo || contrato.descricao || "Conteúdo não disponível",
-      assinaturaAdmin: (contrato as any).assinatura_admin,
-      assinaturaCliente: (contrato as any).assinatura_cliente,
-      proposal,
-    });
-  };
-
-  const getValorFromForm = () => {
-    const valorTotal = parseFloat(formValues.valor_total || "0") || 0;
-    const valorEntrada = parseFloat(formValues.valor_entrada || "0") || 0;
-    const valorSaldo = parseFloat(formValues.valor_saldo || "0") || 0;
-    const valorMensal = parseFloat(formValues.valor_mensal || "0") || 0;
-
-    if (valorTotal > 0) return valorTotal;
-    if (valorEntrada > 0 || valorSaldo > 0) return valorEntrada + valorSaldo;
-    return valorMensal;
-  };
-
-  const handleSave = async (status: "rascunho" | "aguardando") => {
-    if (!selectedTemplate || !selectedClienteId) {
-      toast({ title: "Selecione um cliente", variant: "destructive" });
-      return;
-    }
-
-    if (status === "aguardando" && !adminSignature) {
-      toast({
-        title: "Assine o contrato antes de enviar",
-        description: "Clique em 'Assinar' para adicionar sua assinatura.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const body = fillTemplate(selectedTemplate.corpo, formValues);
-    const { error } = await supabase.from("contratos").insert({
-      cliente_id: selectedClienteId,
-      titulo: `${selectedTemplate.nome} — ${formValues.nome_cliente || ""}`,
-      descricao: `Modelo: ${selectedTemplate.nome}`,
-      valor: getValorFromForm(),
-      status,
-      corpo: body,
-      modelo: selectedTemplate.id,
-      assinatura_admin: adminSignature || null,
-    } as any);
-
-    if (error) {
-      toast({ title: "Erro ao salvar contrato", description: error.message, variant: "destructive" });
-      return;
-    }
-
-    toast({
-      title: status === "rascunho" ? "Rascunho salvo!" : "Contrato enviado para assinatura!",
-    });
-    setTab("lista");
-    setSelectedTemplate(null);
-    setFormValues({});
-    setAdminSignature("");
-    loadContratos();
   };
 
   const recalculateBuilderPricing = useCallback(
@@ -672,6 +797,8 @@ export default function Contratos() {
     if (!extrasLoaded) return;
     setBuilderPayload(createEmptyBuilderPayload(extrasCatalogo));
     setEditingBuilderContract(null);
+    setBuilderStep(0);
+    setMobileSummaryOpen(false);
     setTab("montador");
   }, [extrasCatalogo, extrasLoaded]);
 
@@ -688,7 +815,23 @@ export default function Contratos() {
     const payload = normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id);
     setBuilderPayload(payload);
     setEditingBuilderContract(contrato);
+    setBuilderStep(4);
+    setMobileSummaryOpen(false);
     setTab("montador");
+  };
+
+  const handleViewContrato = (contrato: Contrato) => {
+    const proposal = isBuilderContract(contrato)
+      ? normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id)
+      : null;
+
+    openPreview({
+      title: contrato.titulo,
+      body: (contrato as any).corpo || contrato.descricao || "Conteúdo não disponível",
+      assinaturaAdmin: (contrato as any).assinatura_admin,
+      assinaturaCliente: (contrato as any).assinatura_cliente,
+      proposal,
+    });
   };
 
   const handleBuilderClientChange = (clienteId: string) => {
@@ -836,63 +979,80 @@ export default function Contratos() {
     });
   };
 
-  const validateBuilder = () => {
-    if (!builderPayload) return false;
+  const getBuilderStepError = useCallback(
+    (step: Exclude<BuilderStepIndex, 4>) => {
+      if (!builderPayload) {
+        return "Aguarde o carregamento do montador.";
+      }
 
-    if (!builderPayload.clienteId) {
-      toast({ title: "Selecione um cliente", variant: "destructive" });
-      return false;
-    }
+      switch (step) {
+        case 0:
+          if (!builderPayload.clienteId) return "Selecione um cliente para iniciar a proposta.";
+          return null;
+        case 1:
+          if (!builderPayload.contractante.nome.trim()) return "Preencha o nome do contratante.";
+          if (!builderPayload.contratada.nome.trim()) return "Preencha o nome da contratada.";
+          if (!builderPayload.contratada.representante.trim()) return "Preencha o representante da contratada.";
+          if (!builderPayload.contratada.documento.trim()) return "Preencha o documento da contratada.";
+          if (!builderPayload.contratada.endereco.trim()) return "Preencha o endereço da contratada.";
+          return null;
+        case 2: {
+          const selectedItems = builderPayload.items.filter((item) => item.selected);
+          if (!selectedItems.length) {
+            return "Selecione pelo menos um plano ou extra para montar o contrato.";
+          }
+          if (builderPayload.primaryPlanId === "sob-medida" && !builderPayload.customScope.trim()) {
+            return "Descreva o escopo customizado para propostas Sob Medida.";
+          }
+          return null;
+        }
+        case 3:
+          if (!builderPayload.prazoDias.trim()) return "Informe o prazo estimado da proposta.";
+          if (!builderPayload.formaPagamento.trim()) return "Informe a forma de pagamento.";
+          if (builderPayload.pricing.entryValue > builderPayload.pricing.negotiatedSetup) {
+            return "A entrada não pode ser maior que o valor negociado.";
+          }
+          return null;
+        default:
+          return null;
+      }
+    },
+    [builderPayload],
+  );
 
-    const selectedItems = builderPayload.items.filter((item) => item.selected);
-    if (!selectedItems.length) {
-      toast({
-        title: "Selecione pelo menos um serviço",
-        description: "Marque um plano principal ou algum item adicional para montar o contrato.",
-        variant: "destructive",
-      });
-      return false;
-    }
+  const validateBuilderStep = useCallback(
+    (step: Exclude<BuilderStepIndex, 4>, notify = true) => {
+      const error = getBuilderStepError(step);
+      if (error && notify) {
+        toast({ title: error, variant: "destructive" });
+      }
+      return !error;
+    },
+    [getBuilderStepError, toast],
+  );
 
-    if (builderPayload.primaryPlanId === "sob-medida" && !builderPayload.customScope.trim()) {
-      toast({
-        title: "Descreva o escopo customizado",
-        description: "O plano Sob Medida precisa de um escopo claro para proteger a negociação.",
-        variant: "destructive",
-      });
-      return false;
-    }
+  const validateBuilderAll = useCallback(() => {
+    const stepsToValidate: Array<Exclude<BuilderStepIndex, 4>> = [0, 1, 2, 3];
+    return stepsToValidate.every((step) => validateBuilderStep(step));
+  }, [validateBuilderStep]);
 
-    if (!builderPayload.contractante.nome.trim()) {
-      toast({
-        title: "Preencha os dados do contratante",
-        description: "O nome do cliente é obrigatório para gerar o contrato.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleBuilderPreview = () => {
-    if (!validateBuilder() || !builderPayload) return;
-
-    const prepared = buildBuilderSavePayload(builderPayload);
-    if (!prepared) {
-      toast({ title: "Modelo mestre não encontrado", variant: "destructive" });
+  const handleBuilderStepChange = (nextStep: BuilderStepIndex) => {
+    if (nextStep <= builderStep) {
+      setBuilderStep(nextStep);
       return;
     }
 
-    openPreview({
-      title: prepared.title,
-      body: prepared.body,
-      proposal: prepared.normalizedPayload,
-    });
+    for (let currentStep = builderStep; currentStep < nextStep; currentStep += 1) {
+      if (!validateBuilderStep(currentStep as Exclude<BuilderStepIndex, 4>)) {
+        return;
+      }
+    }
+
+    setBuilderStep(nextStep);
   };
 
   const handleSaveBuilder = async () => {
-    if (!validateBuilder() || !builderPayload) return;
+    if (!validateBuilderAll() || !builderPayload) return;
 
     const prepared = buildBuilderSavePayload(builderPayload);
     if (!prepared) {
@@ -926,7 +1086,7 @@ export default function Contratos() {
       }
 
       setEditingBuilderContract(data as Contrato);
-      toast({ title: "Contrato comercial atualizado!" });
+      toast({ title: "Contrato mestre atualizado!" });
     } else {
       const { data, error } = await supabase
         .from("contratos")
@@ -940,14 +1100,14 @@ export default function Contratos() {
       }
 
       setEditingBuilderContract(data as Contrato);
-      toast({ title: "Contrato comercial salvo no cofre!" });
+      toast({ title: "Contrato mestre salvo no cofre!" });
     }
 
     loadContratos();
   };
 
   const handleBuilderPdfDownload = () => {
-    if (!validateBuilder() || !builderPayload) return;
+    if (!validateBuilderAll() || !builderPayload) return;
 
     const prepared = buildBuilderSavePayload(builderPayload);
     if (!prepared) return;
@@ -957,7 +1117,7 @@ export default function Contratos() {
   };
 
   const handleBuilderWordDownload = () => {
-    if (!validateBuilder() || !builderPayload) return;
+    if (!validateBuilderAll() || !builderPayload) return;
 
     const prepared = buildBuilderSavePayload(builderPayload);
     if (!prepared) return;
@@ -995,21 +1155,42 @@ export default function Contratos() {
     });
   };
 
-  const filteredContratos = contratos.filter((contrato) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      contrato.titulo?.toLowerCase().includes(term) ||
-      (contrato.clientes as any)?.nome?.toLowerCase().includes(term)
-    );
-  });
+  const filteredContratos = useMemo(
+    () =>
+      contratos.filter((contrato) => {
+        const term = searchTerm.toLowerCase();
+        return (
+          contrato.titulo?.toLowerCase().includes(term) ||
+          (contrato.clientes as any)?.nome?.toLowerCase().includes(term)
+        );
+      }),
+    [contratos, searchTerm],
+  );
 
-  const groupedExtras = builderPayload?.items
-    .filter((item) => !item.isPrimaryPlan)
-    .reduce<Record<string, typeof builderPayload.items>>((acc, item) => {
-      if (!acc[item.group]) acc[item.group] = [];
-      acc[item.group].push(item);
-      return acc;
-    }, {});
+  const groupedExtras = useMemo(
+    () =>
+      builderPayload?.items
+        .filter((item) => !item.isPrimaryPlan)
+        .reduce<Record<string, typeof builderPayload.items>>((acc, item) => {
+          if (!acc[item.group]) acc[item.group] = [];
+          acc[item.group].push(item);
+          return acc;
+        }, {}),
+    [builderPayload],
+  );
+
+  const builderPrepared = useMemo(
+    () => (builderPayload ? buildBuilderSavePayload(builderPayload) : null),
+    [builderPayload],
+  );
+
+  const builderSummary = useMemo(
+    () => (builderPayload ? buildProposalSummary(builderPayload) : null),
+    [builderPayload],
+  );
+
+  const selectedItemsCount = builderPayload?.items.filter((item) => item.selected).length || 0;
+  const builderProgress = ((builderStep + 1) / BUILDER_STEPS.length) * 100;
 
   return (
     <motion.div
@@ -1026,28 +1207,20 @@ export default function Contratos() {
                 value="lista"
                 className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4"
               >
-                <ShieldCheck className="w-3.5 h-3.5" /> Ativos Blindados
+                <ShieldCheck className="w-3.5 h-3.5" /> Cofre
               </TabsTrigger>
               <TabsTrigger
                 value="modelos"
                 className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4"
               >
-                <Plus className="w-3.5 h-3.5" /> Nova Estrutura
+                <Boxes className="w-3.5 h-3.5" /> Modelo Mestre
               </TabsTrigger>
               <TabsTrigger
                 value="montador"
                 className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4"
               >
-                <FilePenLine className="w-3.5 h-3.5" /> Montador Comercial
+                <FilePenLine className="w-3.5 h-3.5" /> Montador
               </TabsTrigger>
-              {selectedTemplate && (
-                <TabsTrigger
-                  value="criar"
-                  className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5"
-                >
-                  <FileText className="w-3.5 h-3.5" /> {selectedTemplate.nome}
-                </TabsTrigger>
-              )}
             </TabsList>
           </div>
 
@@ -1057,16 +1230,16 @@ export default function Contratos() {
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
                     <CardTitle className="text-sm text-white flex items-center gap-2">
-                      <Vault className="w-4 h-4 text-primary" /> Cofre de Ativos Digitais
+                      <Vault className="w-4 h-4 text-primary" /> Cofre do Contrato Mestre
                     </CardTitle>
                     <CardDescription className="text-[10px] text-white/40 uppercase tracking-widest mt-1">
-                      Contratos manuais e propostas do montador comercial
+                      Somente contratos gerados pelo montador interativo
                     </CardDescription>
                   </div>
                   <div className="relative w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[hsl(var(--muted-foreground))]" />
                     <Input
-                      placeholder="Buscar..."
+                      placeholder="Buscar contrato mestre..."
                       value={searchTerm}
                       onChange={(event) => setSearchTerm(event.target.value)}
                       className="pl-9 glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-xs h-8"
@@ -1081,33 +1254,26 @@ export default function Contratos() {
                     className="flex items-center justify-between gap-4 p-3 rounded-lg"
                     style={{ background: "rgba(255,255,255,0.04)" }}
                   >
-                    <div
-                      className="flex items-center gap-3 cursor-pointer"
-                      onClick={() => handleViewContrato(contrato)}
-                    >
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleViewContrato(contrato)}>
                       <FileText className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                       <div>
                         <p className="text-sm font-medium text-[hsl(var(--foreground))]">{contrato.titulo}</p>
                         <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
-                          {(contrato.clientes as any)?.nome || "Cliente"} • Valor: R$ {formatContratoValue(contrato.valor)}
-                          {isBuilderContract(contrato)
-                            ? " • Montador Comercial"
-                            : ` • ${contrato.data_envio ? `Enviado em ${contrato.data_envio}` : "Fluxo manual"}`}
+                          {(contrato.clientes as any)?.nome || "Cliente"} • Valor: R$ {formatContratoValue(contrato.valor)} •
+                          Contrato Mestre
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
-                      {isBuilderContract(contrato) && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-primary hover:text-primary text-xs h-7 px-2"
-                          title="Abrir montador"
-                          onClick={() => openBuilderContract(contrato)}
-                        >
-                          <FilePenLine className="w-3 h-3" />
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-primary hover:text-primary text-xs h-7 px-2"
+                        title="Abrir montador"
+                        onClick={() => openBuilderContract(contrato)}
+                      >
+                        <FilePenLine className="w-3 h-3" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -1129,38 +1295,32 @@ export default function Contratos() {
                             {
                               assinaturaAdmin: (contrato as any).assinatura_admin,
                               assinaturaCliente: (contrato as any).assinatura_cliente,
-                              proposal: isBuilderContract(contrato)
-                                ? normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id)
-                                : null,
+                              proposal: normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
                             },
                           )
                         }
                       >
                         <Download className="w-3 h-3" />
                       </Button>
-                      {isBuilderContract(contrato) && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-white/40 hover:text-white text-xs h-7 px-2"
-                          title="Baixar Word"
-                          onClick={() =>
-                            downloadWordDocument(
-                              contrato.titulo,
-                              (contrato as any).corpo || contrato.descricao || "",
-                              normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
-                            )
-                          }
-                        >
-                          <FileText className="w-3 h-3" />
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white/40 hover:text-white text-xs h-7 px-2"
+                        title="Baixar Word"
+                        onClick={() =>
+                          downloadWordDocument(
+                            contrato.titulo,
+                            (contrato as any).corpo || contrato.descricao || "",
+                            normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
+                          )
+                        }
+                      >
+                        <FileText className="w-3 h-3" />
+                      </Button>
                       <Badge
                         variant="outline"
                         className="text-[9px] border-white/5 px-2 bg-white/5 text-white/60"
-                        style={{
-                          color: statusColors[contrato.status] || "#94a3b8",
-                        }}
+                        style={{ color: statusColors[contrato.status] || "#94a3b8" }}
                       >
                         {statusLabels[contrato.status] || contrato.status}
                       </Badge>
@@ -1168,738 +1328,857 @@ export default function Contratos() {
                   </div>
                 ))}
                 {filteredContratos.length === 0 && (
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-8">
-                    Nenhum contrato encontrado
-                  </p>
+                  <div className="py-10 text-center space-y-4">
+                    <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                      Nenhum contrato mestre salvo ainda.
+                    </p>
+                    <Button size="sm" className="gradient-primary border-0 text-white" onClick={resetBuilder}>
+                      Criar primeira proposta
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="modelos">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {contractTemplates.map((template) => (
-                <Card
-                  key={template.id}
-                  className="glass-card border-[0.5px] cursor-pointer hover:border-[hsl(var(--primary))]/50 transition-all"
-                  onClick={() => handleSelectTemplate(template.id)}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center"
-                        style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.6))" }}
-                      >
-                        <FileText className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{template.nome}</p>
-                        <Badge
-                          variant="outline"
-                          className="text-[9px] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))]"
-                        >
-                          {getContractTypeLabel(template.tipo)}
-                        </Badge>
-                      </div>
+            <Card className="glass-card border-[0.5px]">
+              <CardContent className="p-6 grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6 items-start">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[linear-gradient(135deg,hsl(var(--primary)),rgba(232,51,74,0.8))]">
+                      <Boxes className="w-6 h-6 text-white" />
                     </div>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                      {template.variaveis.length} variáveis configuráveis
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="montador">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" /> Montador Comercial do Contrato Mestre
-                  </h2>
-                  <p className="text-xs text-white/50 mt-1">
-                    Escolha o cliente, monte a proposta com planos e extras, edite os dados e exporte em PDF ou Word.
+                    <div>
+                      <p className="text-lg font-semibold text-white">{masterTemplate.nome}</p>
+                      <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary mt-1">
+                        {getContractTypeLabel(masterTemplate.tipo)}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="text-sm text-white/65 leading-relaxed max-w-2xl">
+                    Este é o único modelo oficial do painel. Ele concentra cliente, partes, plano principal, extras,
+                    escopo Sob Medida, totais e exportação premium em PDF e Word.
                   </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-white/[0.03] border-white/10">
+                      <CardContent className="p-4 space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Fluxo</p>
+                        <p className="text-sm text-white">Wizard guiado com preview ao vivo</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-white/[0.03] border-white/10">
+                      <CardContent className="p-4 space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Proteção</p>
+                        <p className="text-sm text-white">Só mostra itens contratados no documento final</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-white/[0.03] border-white/10">
+                      <CardContent className="p-4 space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Saída</p>
+                        <p className="text-sm text-white">Exportação premium em PDF e Word</p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {editingBuilderContract && (
-                    <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary text-[10px] px-3 py-1">
-                      Editando contrato salvo
-                    </Badge>
-                  )}
-                  <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={resetBuilder}>
-                    <Plus className="w-3.5 h-3.5" /> Novo montador
-                  </Button>
-                </div>
-              </div>
 
-              {!builderPayload ? (
-                <Card className="glass-card border-[0.5px]">
-                  <CardContent className="p-8 text-sm text-white/50 text-center">
-                    Carregando catálogo comercial...
+                <Card className="bg-white/[0.03] border-primary/20">
+                  <CardContent className="p-5 space-y-4">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Variáveis do modelo</p>
+                    <p className="text-3xl font-semibold text-white">{masterTemplate.variaveis.length}</p>
+                    <p className="text-sm text-white/60">
+                      Cliente, contratada, escopo, revisão, forma de pagamento, totais e cláusulas comerciais.
+                    </p>
+                    <Button className="gradient-primary border-0 text-white w-full" onClick={resetBuilder}>
+                      Abrir montador do contrato mestre
+                    </Button>
                   </CardContent>
                 </Card>
-              ) : (
-                <>
-                  <Card className="glass-card border-[0.5px]">
-                    <CardHeader>
-                      <CardTitle className="text-sm text-white flex items-center gap-2">
-                        <FilePenLine className="w-4 h-4 text-primary" /> Base do contrato
-                      </CardTitle>
-                      <CardDescription className="text-xs text-white/40">
-                        Escolha o cliente para puxar CPF/CNPJ, telefone, e-mail e endereço automaticamente.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cliente</Label>
-                        <Select value={builderPayload.clienteId || ""} onValueChange={handleBuilderClientChange}>
-                          <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-sm h-9">
-                            <SelectValue placeholder="Selecione o cliente para autofill..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {clientes.map((cliente) => (
-                              <SelectItem key={cliente.id} value={cliente.id}>
-                                {cliente.nome} — {cliente.email}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="border-white/10 text-white/60">
-                              Dados do Contratante
-                            </Badge>
-                            <span className="text-[11px] text-white/40">Puxados do cadastro e editáveis</span>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome do cliente</Label>
-                              <Input
-                                value={builderPayload.contractante.nome}
-                                onChange={(event) => updateBuilderContractante("nome", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Empresa</Label>
-                              <Input
-                                value={builderPayload.contractante.nomeEmpresa || ""}
-                                onChange={(event) => updateBuilderContractante("nomeEmpresa", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Documento do cliente (CPF/CNPJ)</Label>
-                              <Input
-                                value={builderPayload.contractante.documento}
-                                onChange={(event) => updateBuilderContractante("documento", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">E-mail</Label>
-                              <Input
-                                value={builderPayload.contractante.email || ""}
-                                onChange={(event) => updateBuilderContractante("email", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">WhatsApp</Label>
-                              <Input
-                                value={builderPayload.contractante.whatsapp || ""}
-                                onChange={(event) => updateBuilderContractante("whatsapp", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Telefone</Label>
-                              <Input
-                                value={builderPayload.contractante.telefone || ""}
-                                onChange={(event) => updateBuilderContractante("telefone", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Instagram</Label>
-                              <Input
-                                value={builderPayload.contractante.instagram || ""}
-                                onChange={(event) => updateBuilderContractante("instagram", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Site</Label>
-                              <Input
-                                value={builderPayload.contractante.siteUrl || ""}
-                                onChange={(event) => updateBuilderContractante("siteUrl", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5 md:col-span-2">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Endereço completo</Label>
-                              <Textarea
-                                value={builderPayload.contractante.endereco}
-                                onChange={(event) => updateBuilderContractante("endereco", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[84px]"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="border-white/10 text-white/60">
-                              Dados da Contratada
-                            </Badge>
-                            <span className="text-[11px] text-white/40">NovaesWeb já vem preenchida, mas você pode ajustar manualmente</span>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Nome da contratada</Label>
-                              <Input
-                                value={builderPayload.contratada.nome}
-                                onChange={(event) => updateBuilderContratada("nome", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Representante / CEO</Label>
-                              <Input
-                                value={builderPayload.contratada.representante}
-                                onChange={(event) => updateBuilderContratada("representante", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">CPF da contratada</Label>
-                              <Input
-                                value={builderPayload.contratada.documento}
-                                onChange={(event) => updateBuilderContratada("documento", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                              />
-                            </div>
-                            <div className="space-y-1.5 md:col-span-2">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Endereço da contratada</Label>
-                              <Textarea
-                                value={builderPayload.contratada.endereco}
-                                onChange={(event) => updateBuilderContratada("endereco", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[84px]"
-                              />
-                            </div>
-                            <div className="space-y-1.5 md:col-span-2">
-                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Observação jurídica da contratada</Label>
-                              <Textarea
-                                value={builderPayload.contratada.observacaoRecebimento}
-                                onChange={(event) => updateBuilderContratada("observacaoRecebimento", event.target.value)}
-                                className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[96px]"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="glass-card border-[0.5px]">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-3 flex-wrap">
-                        <div>
-                          <CardTitle className="text-sm text-white flex items-center gap-2">
-                            <Boxes className="w-4 h-4 text-primary" /> Plano principal e extras
-                          </CardTitle>
-                          <CardDescription className="text-xs text-white/40 mt-1">
-                            O plano principal funciona com seleção única. Extras podem ser combinados em checkbox.
-                          </CardDescription>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs gap-1.5"
-                          onClick={handleRefreshBuilderExtras}
-                        >
-                          <RefreshCw className="w-3 h-3" /> Atualizar extras
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="space-y-3">
-                        <Label className="text-xs text-[hsl(var(--muted-foreground))]">Plano principal</Label>
-                        <RadioGroup
-                          value={builderPayload.primaryPlanId}
-                          onValueChange={(value) => handlePrimaryPlanChange(value as BuilderPrimaryPlanId)}
-                          className="grid grid-cols-1 lg:grid-cols-3 gap-4"
-                        >
-                          <label className="glass-card border-[0.5px] rounded-2xl p-4 cursor-pointer flex items-start gap-3">
-                            <RadioGroupItem value="none" className="mt-1" />
-                            <div className="space-y-1">
-                              <p className="text-sm font-semibold text-white">Sem plano principal</p>
-                              <p className="text-xs text-white/50">
-                                Use esta opção se o contrato for composto apenas por extras ou estrutura personalizada avulsa.
-                              </p>
-                            </div>
-                          </label>
-                          {PUBLIC_PLAN_CATALOG.map((plan) => (
-                            <label key={plan.id} className="glass-card border-[0.5px] rounded-2xl p-4 cursor-pointer flex items-start gap-3">
-                              <RadioGroupItem value={plan.id} className="mt-1" />
-                              <div className="space-y-2 flex-1">
-                                <div className="flex items-center justify-between gap-2">
-                                  <p className="text-sm font-semibold text-white">{plan.title}</p>
-                                  {plan.popular && (
-                                    <Badge className="gradient-primary border-0 text-white text-[9px] px-2 py-0.5">
-                                      Mais popular
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-xs text-white/50">{plan.description}</p>
-                                <div className="text-xs text-primary font-medium">
-                                  {plan.id === "sob-medida"
-                                    ? "Sob análise comercial"
-                                    : `${plan.pricePrefix ? `${plan.pricePrefix} ` : ""}${formatCurrencyBRL(plan.setupPrice)}`}
-                                </div>
-                              </div>
-                            </label>
-                          ))}
-                        </RadioGroup>
-                      </div>
-
-                      {builderPayload.primaryPlanId === "sob-medida" && (
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">
-                            Descrição do Escopo Customizado
-                          </Label>
-                          <Textarea
-                            value={builderPayload.customScope}
-                            onChange={(event) => updateBuilderTextField("customScope", event.target.value)}
-                            placeholder="Ex.: Desenvolvimento de sistema de agendamento com integração com agenda Google e painel de controle de prestadores."
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[110px]"
-                          />
-                        </div>
-                      )}
-
-                      <div className="space-y-4">
-                        {Object.entries(groupedExtras || {}).map(([group, items]) => (
-                          <div key={group} className="space-y-3">
-                            <div className="flex items-center justify-between gap-3 flex-wrap">
-                              <Label className="text-xs uppercase tracking-[0.18em] text-white/45">
-                                {builderGroupTitles[group] || group}
-                              </Label>
-                              <Badge variant="outline" className="border-white/10 text-white/50">
-                                {items.length} item(ns)
-                              </Badge>
-                            </div>
-                            <div className="rounded-2xl border border-white/10 overflow-hidden">
-                              <div className="hidden md:grid grid-cols-[80px_1.2fr_1.5fr_160px_160px] gap-3 px-4 py-3 text-[10px] uppercase tracking-[0.18em] text-white/40 bg-white/[0.03]">
-                                <span>Incluir</span>
-                                <span>Serviço</span>
-                                <span>Descrição</span>
-                                <span>Setup</span>
-                                <span>Mensal</span>
-                              </div>
-                              {items.map((item) => (
-                                <div
-                                  key={item.id}
-                                  className="grid grid-cols-1 md:grid-cols-[80px_1.2fr_1.5fr_160px_160px] gap-3 px-4 py-4 border-t border-white/5 first:border-t-0 bg-white/[0.02]"
-                                >
-                                  <div className="flex items-center md:justify-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={item.selected}
-                                      onChange={(event) => handleBuilderItemToggle(item.id, event.target.checked)}
-                                      className="h-4 w-4 rounded border-white/20 bg-transparent accent-[hsl(var(--primary))]"
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium text-white">{item.name}</p>
-                                    <p className="text-[11px] text-white/40 md:hidden mt-1">{item.description}</p>
-                                  </div>
-                                  <p className="hidden md:block text-sm text-white/55">{item.description}</p>
-                                  <div className="space-y-1.5">
-                                    <Label className="text-[10px] uppercase tracking-[0.16em] text-white/35 md:hidden">Setup</Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={item.setupPrice}
-                                      onChange={(event) => handleBuilderItemPriceChange(item.id, "setupPrice", event.target.value)}
-                                      className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-9"
-                                    />
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    <Label className="text-[10px] uppercase tracking-[0.16em] text-white/35 md:hidden">Mensal</Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={item.monthlyPrice}
-                                      onChange={(event) => handleBuilderItemPriceChange(item.id, "monthlyPrice", event.target.value)}
-                                      className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] h-9"
-                                    />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="glass-card border-[0.5px]">
-                    <CardHeader>
-                      <CardTitle className="text-sm text-white flex items-center gap-2">
-                        <CircleDollarSign className="w-4 h-4 text-primary" /> Totais, condições e observações
-                      </CardTitle>
-                      <CardDescription className="text-xs text-white/40">
-                        Os totais começam automáticos, mas você pode ajustar negociação, entrada, saldo e mensalidade.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <Card className="bg-white/[0.03] border-white/10">
-                          <CardContent className="p-4 space-y-1">
-                            <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Total implantação</p>
-                            <p className="text-xl font-semibold text-white">{formatCurrencyBRL(builderPayload.pricing.setupSubtotal)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card className="bg-white/[0.03] border-white/10">
-                          <CardContent className="p-4 space-y-1">
-                            <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Total mensal</p>
-                            <p className="text-xl font-semibold text-white">{formatCurrencyBRL(builderPayload.pricing.monthlySubtotal)}</p>
-                          </CardContent>
-                        </Card>
-                        <Card className="bg-white/[0.03] border-white/10">
-                          <CardContent className="p-4 space-y-1">
-                            <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Saldo na entrega</p>
-                            <p className="text-xl font-semibold text-white">{formatCurrencyBRL(builderPayload.pricing.balanceValue)}</p>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Valor negociado</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={builderPayload.pricing.negotiatedSetup}
-                            onChange={(event) => handleBuilderPricingChange("negotiatedSetup", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Entrada / sinal</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={builderPayload.pricing.entryValue}
-                            onChange={(event) => handleBuilderPricingChange("entryValue", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Saldo na entrega</Label>
-                          <Input
-                            value={builderPayload.pricing.balanceValue}
-                            readOnly
-                            className="glass-input border-[rgba(255,255,255,0.08)] text-[hsl(var(--foreground))] opacity-80"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Mensalidade negociada</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={builderPayload.pricing.negotiatedMonthly}
-                            onChange={(event) => handleBuilderPricingChange("negotiatedMonthly", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Prazo em dias</Label>
-                          <Input
-                            value={builderPayload.prazoDias}
-                            onChange={(event) => updateBuilderTextField("prazoDias", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Forma de pagamento</Label>
-                          <Input
-                            value={builderPayload.formaPagamento}
-                            onChange={(event) => updateBuilderTextField("formaPagamento", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Revisões incluídas</Label>
-                          <Input
-                            value={builderPayload.numeroRevisoes}
-                            onChange={(event) => updateBuilderTextField("numeroRevisoes", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Valor de revisão extra</Label>
-                          <Input
-                            value={builderPayload.valorRevisao}
-                            onChange={(event) => updateBuilderTextField("valorRevisao", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Prazo de suporte</Label>
-                          <Input
-                            value={builderPayload.prazoSuporte}
-                            onChange={(event) => updateBuilderTextField("prazoSuporte", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))]"
-                          />
-                        </div>
-                        <div className="space-y-1.5 xl:col-span-2">
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">Observações comerciais</Label>
-                          <Textarea
-                            value={builderPayload.observacoesComerciais}
-                            onChange={(event) => updateBuilderTextField("observacoesComerciais", event.target.value)}
-                            className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[110px]"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-[hsl(var(--muted-foreground))]">Escopo e exclusões</Label>
-                        <Textarea
-                          value={builderPayload.escopoExclusoes}
-                          onChange={(event) => updateBuilderTextField("escopoExclusoes", event.target.value)}
-                          className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] min-h-[110px]"
-                        />
-                      </div>
-
-                      <div className="flex flex-wrap gap-3 pt-4 border-t border-[hsl(var(--border))]">
-                        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={handleBuilderPreview}>
-                          <Eye className="w-3 h-3" /> Pré-visualizar
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={handleSaveBuilder}>
-                          <Save className="w-3 h-3" /> {editingBuilderContract ? "Atualizar contrato" : "Salvar no cofre"}
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={handleBuilderPdfDownload}>
-                          <Download className="w-3 h-3" /> Baixar PDF
-                        </Button>
-                        <Button size="sm" className="gradient-primary border-0 text-white text-xs gap-1.5" onClick={handleBuilderWordDownload}>
-                          <FileText className="w-3 h-3" /> Baixar Word
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="criar">
-            {selectedTemplate && (
-              <div className="space-y-6">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-[hsl(var(--muted-foreground))] text-xs"
-                  onClick={() => {
-                    setTab("modelos");
-                    setSelectedTemplate(null);
-                  }}
-                >
-                  <ChevronLeft className="w-3 h-3 mr-1" /> Voltar aos modelos
-                </Button>
-
-                <Card className="glass-card border-[0.5px]">
-                  <CardHeader>
-                    <CardTitle className="text-sm text-white">{selectedTemplate.nome}</CardTitle>
-                    <CardDescription className="text-xs text-white/40">
-                      Configure os parâmetros do contrato manual
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-[hsl(var(--muted-foreground))]">Cliente</Label>
-                      <Select value={selectedClienteId} onValueChange={setSelectedClienteId}>
-                        <SelectTrigger className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-sm h-9">
-                          <SelectValue placeholder="Selecione o cliente..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientes.map((cliente) => (
-                            <SelectItem key={cliente.id} value={cliente.id}>
-                              {cliente.nome} — {cliente.email}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+          <TabsContent value="montador" className="space-y-6">
+            <Card className="glass-card border-[0.5px] overflow-hidden">
+              <CardContent className="p-0">
+                <div className="bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.16),rgba(194,24,91,0.2))] p-6 space-y-5">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="border-white/15 bg-white/10 text-white/80">
+                          Contrato Mestre NovaesWeb
+                        </Badge>
+                        {editingBuilderContract && (
+                          <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+                            Editando proposta salva
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-2xl font-semibold text-white">Montador comercial interativo</h3>
+                        <p className="text-sm text-white/65 max-w-3xl">
+                          Monte a proposta por etapas, revise o resumo ao vivo e finalize com preview premium antes de salvar
+                          ou exportar.
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedTemplate.variaveis.map((variable) => (
-                        <div
-                          key={variable.key}
-                          className={`space-y-1.5 ${variable.type === "textarea" ? "md:col-span-2" : ""}`}
+                    <Button
+                      variant="outline"
+                      className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      onClick={resetBuilder}
+                    >
+                      <Plus className="w-4 h-4 mr-2" /> Novo montador
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-white/40">Etapa atual</p>
+                        <p className="text-sm text-white font-medium">
+                          {BUILDER_STEPS[builderStep].label} • {BUILDER_STEPS[builderStep].description}
+                        </p>
+                      </div>
+                      <p className="text-sm text-white/55">{Math.round(builderProgress)}% concluído</p>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[linear-gradient(90deg,hsl(var(--primary)),rgba(232,51,74,0.95),rgba(194,24,91,0.9))] transition-all duration-300"
+                        style={{ width: `${builderProgress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                    {BUILDER_STEPS.map((step) => {
+                      const isActive = step.id === builderStep;
+                      const isCompleted = step.id < builderStep;
+
+                      return (
+                        <button
+                          key={step.id}
+                          type="button"
+                          onClick={() => handleBuilderStepChange(step.id)}
+                          className={`rounded-2xl border p-4 text-left transition-all ${
+                            isActive
+                              ? "border-primary/30 bg-primary/12"
+                              : isCompleted
+                                ? "border-emerald-400/25 bg-emerald-400/10"
+                                : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
+                          }`}
                         >
-                          <Label className="text-xs text-[hsl(var(--muted-foreground))]">{variable.label}</Label>
-                          {variable.type === "textarea" ? (
-                            <Textarea
-                              value={formValues[variable.key] || ""}
-                              onChange={(event) =>
-                                setFormValues((prev) => ({ ...prev, [variable.key]: event.target.value }))
-                              }
-                              className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-sm min-h-[80px]"
-                            />
-                          ) : (
-                            <Input
-                              type={
-                                variable.type === "number"
-                                  ? "number"
-                                  : variable.type === "date"
-                                    ? "date"
-                                    : "text"
-                              }
-                              value={formValues[variable.key] || ""}
-                              onChange={(event) =>
-                                setFormValues((prev) => ({ ...prev, [variable.key]: event.target.value }))
-                              }
-                              className="glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-sm h-9"
-                            />
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Etapa {step.id + 1}</p>
+                              <p className="text-sm font-medium text-white mt-1">{step.label}</p>
+                            </div>
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center border ${
+                                isCompleted
+                                  ? "border-emerald-400/35 bg-emerald-400/15 text-emerald-300"
+                                  : isActive
+                                    ? "border-primary/30 bg-primary/15 text-primary"
+                                    : "border-white/10 bg-white/[0.04] text-white/45"
+                              }`}
+                            >
+                              {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <span className="text-xs">{step.id + 1}</span>}
+                            </div>
+                          </div>
+                          <p className="text-xs text-white/45 mt-3 leading-relaxed">{step.description}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="xl:hidden">
+              <Card className="glass-card border-[0.5px]">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-white">Resumo ao vivo</p>
+                      <p className="text-xs text-white/45">Cliente, escopo e totais atualizados em tempo real.</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      onClick={() => setMobileSummaryOpen((current) => !current)}
+                    >
+                      {mobileSummaryOpen ? "Ocultar" : "Mostrar"}
+                    </Button>
+                  </div>
+                  {mobileSummaryOpen && <BuilderLiveSummary summary={builderSummary} selectedCount={selectedItemsCount} />}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
+              <div className="space-y-6">
+                {!builderPayload ? (
+                  <Card className="glass-card border-[0.5px]">
+                    <CardContent className="p-8 text-center text-sm text-white/55">
+                      Carregando estrutura do montador...
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <Card className="glass-card border-[0.5px]">
+                      <CardHeader>
+                        <CardTitle className="text-sm text-white">{BUILDER_STEPS[builderStep].label}</CardTitle>
+                        <CardDescription className="text-xs text-white/45">
+                          {BUILDER_STEPS[builderStep].description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {builderStep === 0 && (
+                          <div className="space-y-6">
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase tracking-[0.18em] text-white/45">Cliente</Label>
+                              <Select value={builderPayload.clienteId} onValueChange={handleBuilderClientChange}>
+                                <SelectTrigger className="glass-input border-white/10 text-white">
+                                  <SelectValue placeholder="Selecione um cliente ativo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {clientes.map((cliente) => (
+                                    <SelectItem key={cliente.id} value={cliente.id}>
+                                      {cliente.nome} {cliente.nome_empresa ? `• ${cliente.nome_empresa}` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              <Card className="bg-white/[0.03] border-white/10">
+                                <CardContent className="p-5 space-y-3">
+                                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Contratante</p>
+                                  <p className="text-lg font-semibold text-white">
+                                    {builderPayload.contractante.nome || "Nenhum cliente selecionado"}
+                                  </p>
+                                  <div className="space-y-1.5 text-sm text-white/60">
+                                    {builderPayload.contractante.nomeEmpresa && (
+                                      <p>Empresa: {builderPayload.contractante.nomeEmpresa}</p>
+                                    )}
+                                    {builderPayload.contractante.documento && (
+                                      <p>Documento: {builderPayload.contractante.documento}</p>
+                                    )}
+                                    {builderPayload.contractante.email && (
+                                      <p>E-mail: {builderPayload.contractante.email}</p>
+                                    )}
+                                    {builderPayload.contractante.whatsapp && (
+                                      <p>WhatsApp: {builderPayload.contractante.whatsapp}</p>
+                                    )}
+                                    {builderPayload.contractante.endereco && (
+                                      <p>Endereço: {builderPayload.contractante.endereco}</p>
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
+
+                              <Card className="bg-white/[0.03] border-primary/20">
+                                <CardContent className="p-5 space-y-3">
+                                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">O que acontece nesta etapa</p>
+                                  <div className="space-y-2 text-sm text-white/65 leading-relaxed">
+                                    <p>1. Você escolhe um cliente ativo já cadastrado no admin.</p>
+                                    <p>2. O montador puxa nome, documento, contato e endereço automaticamente.</p>
+                                    <p>3. Na próxima etapa você ainda pode revisar e editar tudo manualmente.</p>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          </div>
+                        )}
+
+                        {builderStep === 1 && (
+                          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <Card className="bg-white/[0.03] border-white/10">
+                              <CardHeader>
+                                <CardTitle className="text-sm text-white">Dados do contratante</CardTitle>
+                                <CardDescription className="text-xs text-white/45">
+                                  Dados puxados do cadastro do cliente, com edição manual liberada.
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Nome do contratante</Label>
+                                  <Input
+                                    value={builderPayload.contractante.nome}
+                                    onChange={(event) => updateBuilderContractante("nome", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Nome da empresa</Label>
+                                  <Input
+                                    value={builderPayload.contractante.nomeEmpresa || ""}
+                                    onChange={(event) => updateBuilderContractante("nomeEmpresa", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">Documento (CPF/CNPJ)</Label>
+                                    <Input
+                                      value={builderPayload.contractante.documento}
+                                      onChange={(event) => updateBuilderContractante("documento", event.target.value)}
+                                      className="glass-input border-white/10 text-white"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">E-mail</Label>
+                                    <Input
+                                      value={builderPayload.contractante.email || ""}
+                                      onChange={(event) => updateBuilderContractante("email", event.target.value)}
+                                      className="glass-input border-white/10 text-white"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">WhatsApp</Label>
+                                    <Input
+                                      value={builderPayload.contractante.whatsapp || ""}
+                                      onChange={(event) => updateBuilderContractante("whatsapp", event.target.value)}
+                                      className="glass-input border-white/10 text-white"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">Telefone</Label>
+                                    <Input
+                                      value={builderPayload.contractante.telefone || ""}
+                                      onChange={(event) => updateBuilderContractante("telefone", event.target.value)}
+                                      className="glass-input border-white/10 text-white"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">Instagram</Label>
+                                    <Input
+                                      value={builderPayload.contractante.instagram || ""}
+                                      onChange={(event) => updateBuilderContractante("instagram", event.target.value)}
+                                      className="glass-input border-white/10 text-white"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">Site</Label>
+                                    <Input
+                                      value={builderPayload.contractante.siteUrl || ""}
+                                      onChange={(event) => updateBuilderContractante("siteUrl", event.target.value)}
+                                      className="glass-input border-white/10 text-white"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Endereço completo</Label>
+                                  <Textarea
+                                    rows={4}
+                                    value={builderPayload.contractante.endereco}
+                                    onChange={(event) => updateBuilderContractante("endereco", event.target.value)}
+                                    className="glass-input border-white/10 text-white resize-none"
+                                  />
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="bg-white/[0.03] border-primary/20">
+                              <CardHeader>
+                                <CardTitle className="text-sm text-white">Dados da contratada</CardTitle>
+                                <CardDescription className="text-xs text-white/45">
+                                  Preenchidos com os dados atuais da NovaesWeb e editáveis quando necessário.
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Nome da contratada</Label>
+                                  <Input
+                                    value={builderPayload.contratada.nome}
+                                    onChange={(event) => updateBuilderContratada("nome", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Representante</Label>
+                                  <Input
+                                    value={builderPayload.contratada.representante}
+                                    onChange={(event) => updateBuilderContratada("representante", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Documento</Label>
+                                  <Input
+                                    value={builderPayload.contratada.documento}
+                                    onChange={(event) => updateBuilderContratada("documento", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Endereço</Label>
+                                  <Textarea
+                                    rows={4}
+                                    value={builderPayload.contratada.endereco}
+                                    onChange={(event) => updateBuilderContratada("endereco", event.target.value)}
+                                    className="glass-input border-white/10 text-white resize-none"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Observação de recebimento</Label>
+                                  <Textarea
+                                    rows={4}
+                                    value={builderPayload.contratada.observacaoRecebimento}
+                                    onChange={(event) => updateBuilderContratada("observacaoRecebimento", event.target.value)}
+                                    className="glass-input border-white/10 text-white resize-none"
+                                  />
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        )}
+
+                        {builderStep === 2 && (
+                          <div className="space-y-6">
+                            <Card className="bg-white/[0.03] border-primary/20">
+                              <CardHeader className="pb-4">
+                                <CardTitle className="text-sm text-white">Plano principal</CardTitle>
+                                <CardDescription className="text-xs text-white/45">
+                                  Escolha única. O contrato final mostrará apenas o plano selecionado e os extras marcados.
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <RadioGroup
+                                  value={builderPayload.primaryPlanId}
+                                  onValueChange={(value) => handlePrimaryPlanChange(value as BuilderPrimaryPlanId)}
+                                  className="space-y-4"
+                                >
+                                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 flex items-center justify-between gap-4">
+                                    <div>
+                                      <p className="text-sm font-medium text-white">Sem plano principal</p>
+                                      <p className="text-xs text-white/45">Use quando a proposta for baseada apenas em extras ou composição manual.</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <Label htmlFor="plan-none" className="text-xs text-white/55">Selecionar</Label>
+                                      <RadioGroupItem id="plan-none" value="none" />
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                    {PUBLIC_PLAN_CATALOG.map((plan) => {
+                                      const selected = builderPayload.primaryPlanId === plan.id;
+                                      return (
+                                        <Label
+                                          key={plan.id}
+                                          htmlFor={`plan-${plan.id}`}
+                                          className={`rounded-2xl border p-5 cursor-pointer space-y-4 transition-all ${
+                                            selected
+                                              ? "border-primary/30 bg-primary/12"
+                                              : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
+                                          }`}
+                                        >
+                                          <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                              <p className="text-sm font-semibold text-white">{plan.title}</p>
+                                              <p className="text-xs text-white/50 mt-1">{plan.description}</p>
+                                            </div>
+                                            <RadioGroupItem id={`plan-${plan.id}`} value={plan.id} />
+                                          </div>
+                                          <div className="space-y-1 text-sm">
+                                            <p className="text-primary font-medium">Setup: {formatCurrencyBRL(plan.setupPrice)}</p>
+                                            <p className="text-white/60">Mensal: {formatCurrencyBRL(plan.monthlyPrice)}</p>
+                                          </div>
+                                        </Label>
+                                      );
+                                    })}
+                                  </div>
+                                </RadioGroup>
+
+                                {builderPayload.primaryPlanId === "sob-medida" && (
+                                  <div className="space-y-2">
+                                    <Label className="text-xs uppercase tracking-[0.18em] text-white/45">
+                                      Descrição do escopo customizado
+                                    </Label>
+                                    <Textarea
+                                      rows={5}
+                                      value={builderPayload.customScope}
+                                      onChange={(event) => updateBuilderTextField("customScope", event.target.value)}
+                                      className="glass-input border-white/10 text-white resize-none"
+                                      placeholder="Ex.: Desenvolvimento de dashboard de vendas com painel de estoque integrado."
+                                    />
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+
+                            <Card className="bg-white/[0.03] border-white/10">
+                              <CardHeader className="pb-4">
+                                <div className="flex items-center justify-between gap-3 flex-wrap">
+                                  <div>
+                                    <CardTitle className="text-sm text-white">Extras e serviços adicionais</CardTitle>
+                                    <CardDescription className="text-xs text-white/45">
+                                      Somente extras ativos entram no montador. O refresh preserva seleção e preços já editados.
+                                    </CardDescription>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                    onClick={handleRefreshBuilderExtras}
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5 mr-2" /> Atualizar extras
+                                  </Button>
+                                </div>
+                              </CardHeader>
+                              <CardContent className="space-y-5">
+                                {groupedExtras && Object.keys(groupedExtras).length > 0 ? (
+                                  Object.entries(groupedExtras).map(([group, items]) => (
+                                    <div key={group} className="space-y-3">
+                                      <div className="flex items-center justify-between gap-3">
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">
+                                          {builderGroupTitles[group] || "Extras"}
+                                        </p>
+                                        <p className="text-xs text-white/40">{items.length} item(ns)</p>
+                                      </div>
+                                      <div className="space-y-3">
+                                        {items.map((item) => (
+                                          <div
+                                            key={item.id}
+                                            className={`rounded-2xl border p-4 transition-colors ${
+                                              item.selected
+                                                ? "border-primary/30 bg-primary/12"
+                                                : "border-white/10 bg-white/[0.02]"
+                                            }`}
+                                          >
+                                            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_140px_140px] gap-4 items-start">
+                                              <div className="space-y-2">
+                                                <div className="flex items-start gap-3">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={item.selected}
+                                                    onChange={(event) => handleBuilderItemToggle(item.id, event.target.checked)}
+                                                    className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent accent-[hsl(var(--primary))]"
+                                                  />
+                                                  <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-white">{item.name}</p>
+                                                    <p className="text-xs text-white/50 leading-relaxed">
+                                                      {item.description || "Sem descrição adicional."}
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              <div className="space-y-2">
+                                                <Label className="text-[10px] uppercase tracking-[0.18em] text-white/35">Setup</Label>
+                                                <Input
+                                                  value={item.setupPrice.toFixed(2).replace(".", ",")}
+                                                  onChange={(event) =>
+                                                    handleBuilderItemPriceChange(item.id, "setupPrice", event.target.value)
+                                                  }
+                                                  className="glass-input border-white/10 text-white"
+                                                />
+                                              </div>
+
+                                              <div className="space-y-2">
+                                                <Label className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensal</Label>
+                                                <Input
+                                                  value={item.monthlyPrice.toFixed(2).replace(".", ",")}
+                                                  onChange={(event) =>
+                                                    handleBuilderItemPriceChange(item.id, "monthlyPrice", event.target.value)
+                                                  }
+                                                  className="glass-input border-white/10 text-white"
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm text-white/45">
+                                    Nenhum extra ativo encontrado no catálogo.
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </div>
+                        )}
+
+                        {builderStep === 3 && (
+                          <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <Card className="bg-white/[0.03] border-white/10">
+                                <CardContent className="p-5 space-y-2">
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Implantação base</p>
+                                  <p className="text-2xl font-semibold text-white">
+                                    {formatCurrencyBRL(builderPayload.pricing.setupSubtotal)}
+                                  </p>
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-white/[0.03] border-white/10">
+                                <CardContent className="p-5 space-y-2">
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensal base</p>
+                                  <p className="text-2xl font-semibold text-white">
+                                    {formatCurrencyBRL(builderPayload.pricing.monthlySubtotal)}
+                                  </p>
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-white/[0.03] border-primary/20">
+                                <CardContent className="p-5 space-y-2">
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Itens contratados</p>
+                                  <p className="text-2xl font-semibold text-white">{selectedItemsCount}</p>
+                                </CardContent>
+                              </Card>
+                            </div>
+
+                            <Card className="bg-white/[0.03] border-primary/20">
+                              <CardHeader>
+                                <CardTitle className="text-sm text-white flex items-center gap-2">
+                                  <CircleDollarSign className="w-4 h-4 text-primary" /> Totais e pagamento
+                                </CardTitle>
+                                <CardDescription className="text-xs text-white/45">
+                                  Você pode negociar os totais finais sem perder a composição detalhada da proposta.
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Valor negociado da implantação</Label>
+                                  <Input
+                                    value={builderPayload.pricing.negotiatedSetup.toFixed(2).replace(".", ",")}
+                                    onChange={(event) => handleBuilderPricingChange("negotiatedSetup", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Entrada / sinal</Label>
+                                  <Input
+                                    value={builderPayload.pricing.entryValue.toFixed(2).replace(".", ",")}
+                                    onChange={(event) => handleBuilderPricingChange("entryValue", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Saldo na entrega</Label>
+                                  <Input
+                                    value={builderPayload.pricing.balanceValue.toFixed(2).replace(".", ",")}
+                                    readOnly
+                                    className="glass-input border-white/10 text-white/75"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Mensalidade negociada</Label>
+                                  <Input
+                                    value={builderPayload.pricing.negotiatedMonthly.toFixed(2).replace(".", ",")}
+                                    onChange={(event) => handleBuilderPricingChange("negotiatedMonthly", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Prazo estimado (dias úteis)</Label>
+                                  <Input
+                                    value={builderPayload.prazoDias}
+                                    onChange={(event) => updateBuilderTextField("prazoDias", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Forma de pagamento</Label>
+                                  <Input
+                                    value={builderPayload.formaPagamento}
+                                    onChange={(event) => updateBuilderTextField("formaPagamento", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Número de revisões inclusas</Label>
+                                  <Input
+                                    value={builderPayload.numeroRevisoes}
+                                    onChange={(event) => updateBuilderTextField("numeroRevisoes", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Valor da revisão extra</Label>
+                                  <Input
+                                    value={builderPayload.valorRevisao}
+                                    onChange={(event) => updateBuilderTextField("valorRevisao", event.target.value)}
+                                    className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                              <Card className="bg-white/[0.03] border-white/10">
+                                <CardHeader>
+                                  <CardTitle className="text-sm text-white">Observações comerciais</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <Textarea
+                                    rows={7}
+                                    value={builderPayload.observacoesComerciais}
+                                    onChange={(event) => updateBuilderTextField("observacoesComerciais", event.target.value)}
+                                    className="glass-input border-white/10 text-white resize-none"
+                                  />
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-white/[0.03] border-white/10">
+                                <CardHeader>
+                                  <CardTitle className="text-sm text-white">Escopo não incluso / exclusões</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <Textarea
+                                    rows={5}
+                                    value={builderPayload.escopoExclusoes}
+                                    onChange={(event) => updateBuilderTextField("escopoExclusoes", event.target.value)}
+                                    className="glass-input border-white/10 text-white resize-none"
+                                  />
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-white/55">Janela de suporte / atendimento</Label>
+                                    <Textarea
+                                      rows={3}
+                                      value={builderPayload.prazoSuporte}
+                                      onChange={(event) => updateBuilderTextField("prazoSuporte", event.target.value)}
+                                      className="glass-input border-white/10 text-white resize-none"
+                                    />
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          </div>
+                        )}
+
+                        {builderStep === 4 && (
+                          <div className="space-y-5">
+                            {builderPrepared ? (
+                              <>
+                                <div className="flex items-center justify-between gap-3 flex-wrap">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Resumo executivo</p>
+                                    <p className="text-sm text-white/60">
+                                      Revise a proposta final e expanda o corpo jurídico se quiser ler o contrato completo.
+                                    </p>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                    onClick={() =>
+                                      openPreview({
+                                        title: builderPrepared.title,
+                                        body: builderPrepared.body,
+                                        proposal: builderPrepared.normalizedPayload,
+                                      })
+                                    }
+                                  >
+                                    <Eye className="w-4 h-4 mr-2" /> Abrir preview em modal
+                                  </Button>
+                                </div>
+                                <BuilderPreviewDocument
+                                  title={builderPrepared.title}
+                                  body={builderPrepared.body}
+                                  summary={builderSummary}
+                                />
+                              </>
+                            ) : (
+                              <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-sm text-white/45">
+                                O template do contrato mestre não foi encontrado.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="glass-card border-[0.5px]">
+                      <CardContent className="p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-white">Navegação do wizard</p>
+                          <p className="text-xs text-white/45">
+                            {builderStep < 4
+                              ? "Avance etapa por etapa. A validação impede seguir com campos críticos vazios."
+                              : "Com o preview final validado, salve no cofre ou exporte a proposta."}
+                          </p>
+                          {builderStep < 4 && getBuilderStepError(builderStep as Exclude<BuilderStepIndex, 4>) && (
+                            <p className="text-xs text-amber-300">
+                              {getBuilderStepError(builderStep as Exclude<BuilderStepIndex, 4>)}
+                            </p>
                           )}
                         </div>
-                      ))}
-                    </div>
 
-                    <div className="pt-4 border-t border-[hsl(var(--border))]">
-                      {adminSignature ? (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-emerald-400 flex items-center gap-1">
-                            <PenTool className="w-3 h-3" /> Assinatura da CONTRATADA adicionada
-                          </p>
-                          <div className="bg-white rounded-lg p-2 inline-block">
-                            <img src={adminSignature} alt="Assinatura Admin" className="h-12" />
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-xs text-[hsl(var(--muted-foreground))]"
-                            onClick={() => setSignOpen(true)}
-                          >
-                            Refazer assinatura
-                          </Button>
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                          {builderStep > 0 && (
+                            <Button
+                              variant="outline"
+                              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                              onClick={() => handleBuilderStepChange((builderStep - 1) as BuilderStepIndex)}
+                            >
+                              <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+                            </Button>
+                          )}
+
+                          {builderStep < 4 ? (
+                            <Button
+                              className="gradient-primary border-0 text-white"
+                              onClick={() => handleBuilderStepChange((builderStep + 1) as BuilderStepIndex)}
+                            >
+                              Próxima etapa <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="outline"
+                                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                onClick={handleSaveBuilder}
+                              >
+                                <Save className="w-4 h-4 mr-2" />
+                                {editingBuilderContract ? "Atualizar no cofre" : "Salvar no cofre"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                onClick={handleBuilderPdfDownload}
+                              >
+                                <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                              </Button>
+                              <Button className="gradient-primary border-0 text-white" onClick={handleBuilderWordDownload}>
+                                <FileText className="w-4 h-4 mr-2" /> Baixar Word
+                              </Button>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setSignOpen(true)}>
-                          <PenTool className="w-3 h-3" /> Assinar como CONTRATADA
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-3 pt-4 border-t border-[hsl(var(--border))]">
-                      <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={handlePreview}>
-                        <Eye className="w-3 h-3" /> Pré-visualizar
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => handleSave("rascunho")}>
-                        <Save className="w-3 h-3" /> Salvar rascunho
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="gradient-primary border-0 text-white text-xs gap-1.5"
-                        onClick={() => handleSave("aguardando")}
-                      >
-                        <Send className="w-3 h-3" /> Enviar para assinatura
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
-            )}
+
+              <div className="hidden xl:block">
+                <div className="sticky top-24">
+                  <BuilderLiveSummary summary={builderSummary} selectedCount={selectedItemsCount} />
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </motion.div>
 
-      <Dialog open={signOpen} onOpenChange={setSignOpen}>
-        <DialogContent className="glass-card border-[0.5px] max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-[hsl(var(--foreground))] text-sm">Assinatura da CONTRATADA</DialogTitle>
-          </DialogHeader>
-          <SignaturePad
-            label="Assine abaixo como representante da NovaesWeb"
-            onSave={(dataUrl) => {
-              setAdminSignature(dataUrl);
-              setSignOpen(false);
-              toast({ title: "Assinatura adicionada!" });
-            }}
-            onCancel={() => setSignOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto glass-card border-[0.5px]">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-[rgba(17,15,24,0.96)] border-white/10">
           <DialogHeader>
-            <DialogTitle className="text-[hsl(var(--foreground))] text-sm flex items-center justify-between gap-2">
-              <span>{previewState?.title || "Pré-visualização do contrato"}</span>
-              {previewState && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs gap-1"
-                    onClick={() =>
-                      generateContractPDF(
-                        previewState.title,
-                        previewState.body,
-                        {
-                          assinaturaAdmin: previewState.assinaturaAdmin,
-                          assinaturaCliente: previewState.assinaturaCliente,
-                          proposal: previewState.proposal,
-                        },
-                      )
-                    }
-                  >
-                    <Download className="w-3 h-3" /> Baixar PDF
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs gap-1"
-                    onClick={() =>
-                      downloadWordDocument(previewState.title, previewState.body, previewState.proposal)
-                    }
-                  >
-                    <FileText className="w-3 h-3" /> Baixar Word
-                  </Button>
-                </div>
-              )}
+            <DialogTitle className="text-white text-base">
+              {previewState?.title || "Preview do contrato mestre"}
             </DialogTitle>
           </DialogHeader>
-          <div className="bg-white text-black p-8 rounded-lg font-serif text-sm leading-relaxed whitespace-pre-wrap">
-            {previewState?.body}
-          </div>
-          {previewState && (previewState.assinaturaAdmin || previewState.assinaturaCliente) && (
-            <div className="bg-white p-4 rounded-lg space-y-4">
-              {previewState.assinaturaAdmin && (
-                <div>
-                  <p className="text-xs font-bold text-gray-600 mb-1">Assinatura CONTRATADA:</p>
-                  <img src={previewState.assinaturaAdmin} alt="Assinatura Admin" className="h-16" />
-                </div>
-              )}
-              {previewState.assinaturaCliente && (
-                <div>
-                  <p className="text-xs font-bold text-gray-600 mb-1">Assinatura CONTRATANTE:</p>
-                  <img src={previewState.assinaturaCliente} alt="Assinatura Cliente" className="h-16" />
-                </div>
-              )}
-            </div>
+
+          {previewState && (
+            <BuilderPreviewDocument
+              title={previewState.title}
+              body={previewState.body}
+              summary={previewState.proposal ? buildProposalSummary(previewState.proposal) : null}
+            />
           )}
         </DialogContent>
       </Dialog>
