@@ -54,6 +54,7 @@ import {
   type ContractBuilderPayload,
   type ContractBuilderPricing,
   type ContractProposalSummary,
+  type ContractBuilderStepIndex,
 } from "@/lib/contract-builder";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
@@ -408,6 +409,7 @@ function normalizeBuilderPayload(
   rawPayload: unknown,
   extras: ExtraCatalogo[],
   fallbackClientId = "",
+  fallbackStep: ContractBuilderStepIndex = 0,
 ): ContractBuilderPayload {
   const base = createEmptyBuilderPayload(extras);
 
@@ -453,6 +455,7 @@ function normalizeBuilderPayload(
     ...base,
     ...payload,
     clienteId: payload.clienteId || fallbackClientId,
+    lastStep: normalizeBuilderStep(payload.lastStep, fallbackStep),
     primaryPlanId,
     contractante: {
       ...base.contractante,
@@ -469,12 +472,16 @@ function normalizeBuilderPayload(
   };
 }
 
-function buildBuilderSavePayload(payload: ContractBuilderPayload) {
+function buildBuilderSavePayload(
+  payload: ContractBuilderPayload,
+  currentStep: ContractBuilderStepIndex = payload.lastStep,
+) {
   const template = contractTemplates.find((item) => item.id === BUILDER_TEMPLATE_ID);
   if (!template) return null;
 
   const normalizedPayload: ContractBuilderPayload = {
     ...payload,
+    lastStep: currentStep,
     updatedAt: new Date().toISOString(),
   };
 
@@ -494,6 +501,15 @@ function buildBuilderSavePayload(payload: ContractBuilderPayload) {
   };
 }
 
+function normalizeBuilderStep(
+  value: unknown,
+  fallback: ContractBuilderStepIndex,
+): ContractBuilderStepIndex {
+  return value === 0 || value === 1 || value === 2 || value === 3 || value === 4
+    ? value
+    : fallback;
+}
+
 function formatContratoValue(value: number | null) {
   return Number(value || 0).toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
@@ -501,10 +517,8 @@ function formatContratoValue(value: number | null) {
   });
 }
 
-type BuilderStepIndex = 0 | 1 | 2 | 3 | 4;
-
 const BUILDER_STEPS: Array<{
-  id: BuilderStepIndex;
+  id: ContractBuilderStepIndex;
   label: string;
   description: string;
 }> = [
@@ -795,7 +809,7 @@ export default function Contratos() {
   const [previewState, setPreviewState] = useState<PreviewState | null>(null);
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
-  const [builderStep, setBuilderStep] = useState<BuilderStepIndex>(0);
+  const [builderStep, setBuilderStep] = useState<ContractBuilderStepIndex>(0);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
   const masterTemplate = contractTemplates[0];
@@ -894,10 +908,11 @@ export default function Contratos() {
       return;
     }
 
-    const payload = normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id);
+    const payload = normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id, 4);
+    const restoredStep = normalizeBuilderStep(payload.lastStep, 4);
     setBuilderPayload(payload);
     setEditingBuilderContract(contrato);
-    setBuilderStep(4);
+    setBuilderStep(restoredStep);
     setMobileSummaryOpen(false);
     setTab("montador");
   };
@@ -1062,7 +1077,7 @@ export default function Contratos() {
   };
 
   const getBuilderStepError = useCallback(
-    (step: Exclude<BuilderStepIndex, 4>) => {
+    (step: Exclude<ContractBuilderStepIndex, 4>) => {
       if (!builderPayload) {
         return "Aguarde o carregamento do montador.";
       }
@@ -1103,7 +1118,7 @@ export default function Contratos() {
   );
 
   const validateBuilderStep = useCallback(
-    (step: Exclude<BuilderStepIndex, 4>, notify = true) => {
+    (step: Exclude<ContractBuilderStepIndex, 4>, notify = true) => {
       const error = getBuilderStepError(step);
       if (error && notify) {
         toast({ title: error, variant: "destructive" });
@@ -1114,18 +1129,18 @@ export default function Contratos() {
   );
 
   const validateBuilderAll = useCallback(() => {
-    const stepsToValidate: Array<Exclude<BuilderStepIndex, 4>> = [0, 1, 2, 3];
+    const stepsToValidate: Array<Exclude<ContractBuilderStepIndex, 4>> = [0, 1, 2, 3];
     return stepsToValidate.every((step) => validateBuilderStep(step));
   }, [validateBuilderStep]);
 
-  const handleBuilderStepChange = (nextStep: BuilderStepIndex) => {
+  const handleBuilderStepChange = (nextStep: ContractBuilderStepIndex) => {
     if (nextStep <= builderStep) {
       setBuilderStep(nextStep);
       return;
     }
 
     for (let currentStep = builderStep; currentStep < nextStep; currentStep += 1) {
-      if (!validateBuilderStep(currentStep as Exclude<BuilderStepIndex, 4>)) {
+      if (!validateBuilderStep(currentStep as Exclude<ContractBuilderStepIndex, 4>)) {
         return;
       }
     }
@@ -1133,17 +1148,24 @@ export default function Contratos() {
     setBuilderStep(nextStep);
   };
 
-  const handleSaveBuilder = async () => {
-    if (!validateBuilderAll() || !builderPayload) return;
+  const persistBuilderDraft = async ({
+    exitAfterSave = false,
+    requireCompleteValidation = false,
+  }: {
+    exitAfterSave?: boolean;
+    requireCompleteValidation?: boolean;
+  } = {}) => {
+    if (!builderPayload) return false;
+    if (requireCompleteValidation && !validateBuilderAll()) return false;
 
-    const prepared = buildBuilderSavePayload(builderPayload);
+    const prepared = buildBuilderSavePayload(builderPayload, builderStep);
     if (!prepared) {
       toast({ title: "Modelo mestre não encontrado", variant: "destructive" });
-      return;
+      return false;
     }
 
     const payloadToPersist = {
-      cliente_id: builderPayload.clienteId,
+      cliente_id: builderPayload.clienteId || null,
       titulo: prepared.title,
       descricao: prepared.description,
       valor: prepared.value,
@@ -1164,11 +1186,14 @@ export default function Contratos() {
 
       if (error) {
         toast({ title: "Erro ao atualizar contrato", description: error.message, variant: "destructive" });
-        return;
+        return false;
       }
 
+      setBuilderPayload(prepared.normalizedPayload);
       setEditingBuilderContract(data as Contrato);
-      toast({ title: "Contrato mestre atualizado!" });
+      toast({
+        title: exitAfterSave ? "Rascunho atualizado. Você pode continuar depois." : "Contrato mestre atualizado!",
+      });
     } else {
       const { data, error } = await supabase
         .from("contratos")
@@ -1178,20 +1203,38 @@ export default function Contratos() {
 
       if (error) {
         toast({ title: "Erro ao salvar contrato", description: error.message, variant: "destructive" });
-        return;
+        return false;
       }
 
+      setBuilderPayload(prepared.normalizedPayload);
       setEditingBuilderContract(data as Contrato);
-      toast({ title: "Contrato mestre salvo no cofre!" });
+      toast({
+        title: exitAfterSave ? "Rascunho salvo. Você pode continuar depois." : "Contrato mestre salvo no cofre!",
+      });
     }
 
     loadContratos();
+
+    if (exitAfterSave) {
+      setMobileSummaryOpen(false);
+      setTab("lista");
+    }
+
+    return true;
+  };
+
+  const handleSaveBuilder = async () => {
+    await persistBuilderDraft({ requireCompleteValidation: true });
+  };
+
+  const handleSaveBuilderAndExit = async () => {
+    await persistBuilderDraft({ exitAfterSave: true });
   };
 
   const handleBuilderPdfDownload = () => {
     if (!validateBuilderAll() || !builderPayload) return;
 
-    const prepared = buildBuilderSavePayload(builderPayload);
+    const prepared = buildBuilderSavePayload(builderPayload, builderStep);
     if (!prepared) return;
     generateContractPDF(prepared.title, prepared.body, {
       proposal: prepared.normalizedPayload,
@@ -1201,7 +1244,7 @@ export default function Contratos() {
   const handleBuilderWordDownload = () => {
     if (!validateBuilderAll() || !builderPayload) return;
 
-    const prepared = buildBuilderSavePayload(builderPayload);
+    const prepared = buildBuilderSavePayload(builderPayload, builderStep);
     if (!prepared) return;
     downloadWordDocument(prepared.title, prepared.body, prepared.normalizedPayload);
   };
@@ -1262,8 +1305,8 @@ export default function Contratos() {
   );
 
   const builderPrepared = useMemo(
-    () => (builderPayload ? buildBuilderSavePayload(builderPayload) : null),
-    [builderPayload],
+    () => (builderPayload ? buildBuilderSavePayload(builderPayload, builderStep) : null),
+    [builderPayload, builderStep],
   );
 
   const builderSummary = useMemo(
@@ -2184,39 +2227,55 @@ export default function Contratos() {
                               ? "Avance etapa por etapa. A validação impede seguir com campos críticos vazios."
                               : "Com o preview final validado, salve no cofre ou exporte a proposta."}
                           </p>
-                          {builderStep < 4 && getBuilderStepError(builderStep as Exclude<BuilderStepIndex, 4>) && (
+                          {builderStep < 4 && getBuilderStepError(builderStep as Exclude<ContractBuilderStepIndex, 4>) && (
                             <p className="text-xs text-amber-300">
-                              {getBuilderStepError(builderStep as Exclude<BuilderStepIndex, 4>)}
+                              {getBuilderStepError(builderStep as Exclude<ContractBuilderStepIndex, 4>)}
                             </p>
                           )}
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap justify-end">
                           {builderStep > 0 && (
-                            <Button
-                              variant="outline"
-                              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                              onClick={() => handleBuilderStepChange((builderStep - 1) as BuilderStepIndex)}
-                            >
-                              <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
-                            </Button>
-                          )}
-
-                          {builderStep < 4 ? (
-                            <Button
-                              className="gradient-primary border-0 text-white"
-                              onClick={() => handleBuilderStepChange((builderStep + 1) as BuilderStepIndex)}
-                            >
-                              Próxima etapa <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
-                          ) : (
-                            <>
                               <Button
                                 variant="outline"
                                 className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                                onClick={handleSaveBuilder}
+                                onClick={() => handleBuilderStepChange((builderStep - 1) as ContractBuilderStepIndex)}
                               >
-                                <Save className="w-4 h-4 mr-2" />
+                                <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+                              </Button>
+                            )}
+
+                            {builderStep < 4 ? (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                  onClick={handleSaveBuilderAndExit}
+                                >
+                                  <Save className="w-4 h-4 mr-2" /> Salvar rascunho e sair
+                                </Button>
+                                <Button
+                                  className="gradient-primary border-0 text-white"
+                                  onClick={() => handleBuilderStepChange((builderStep + 1) as ContractBuilderStepIndex)}
+                                >
+                                  Próxima etapa <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                  onClick={handleSaveBuilderAndExit}
+                                >
+                                  <Save className="w-4 h-4 mr-2" /> Salvar rascunho e sair
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                  onClick={handleSaveBuilder}
+                                >
+                                  <Save className="w-4 h-4 mr-2" />
                                 {editingBuilderContract ? "Atualizar no cofre" : "Salvar no cofre"}
                               </Button>
                               <Button

@@ -3,6 +3,7 @@ import { PUBLIC_PLAN_CATALOG, type PublicPlanCatalogItem } from "@/lib/public-pl
 
 export type BuilderPrimaryPlanId = PublicPlanCatalogItem["id"] | "none";
 export type BuilderItemGroup = "planos" | "fixo" | "intermediario" | "mensal";
+export type ContractBuilderStepIndex = 0 | 1 | 2 | 3 | 4;
 
 export interface ContractBuilderParty {
   nome: string;
@@ -51,6 +52,7 @@ export interface ContractBuilderPricing {
 
 export interface ContractBuilderPayload {
   clienteId: string;
+  lastStep: ContractBuilderStepIndex;
   primaryPlanId: BuilderPrimaryPlanId;
   contractante: ContractBuilderParty;
   contratada: ContractBuilderContractor;
@@ -146,6 +148,7 @@ export function createEmptyBuilderPayload(
 
   return {
     clienteId: "",
+    lastStep: 0,
     primaryPlanId: "none",
     contractante: {
       nome: "",
