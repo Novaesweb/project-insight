@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
@@ -77,6 +77,7 @@ import {
   type ContractProposalSummary,
   type ContractBuilderStepIndex,
 } from "@/lib/contract-builder";
+import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 
@@ -124,8 +125,37 @@ const builderGroupTitles: Record<string, string> = {
   mensal: "Extras Mensais",
 };
 
+const moneyDraftFieldPattern = /^(item|pricing):(.+):(setupPrice|monthlyPrice|negotiatedSetup|entryValue|negotiatedMonthly)$/;
+
+type MoneyDraftField = "setupPrice" | "monthlyPrice" | "negotiatedSetup" | "entryValue" | "negotiatedMonthly";
+
 function buildPdfFileName(title: string) {
   return title.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
+function formatMoneyInputValue(value: number) {
+  return Number(value || 0).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function buildItemMoneyDraftKey(itemId: string, field: "setupPrice" | "monthlyPrice") {
+  return `item:${itemId}:${field}`;
+}
+
+function buildPricingMoneyDraftKey(field: "negotiatedSetup" | "entryValue" | "negotiatedMonthly") {
+  return `pricing:root:${field}`;
+}
+
+function getContractErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return fallback;
 }
 
 function drawWrappedText(
@@ -473,7 +503,7 @@ function normalizeBuilderPayload(
     negotiatedMonthly: Number(payload.pricing?.negotiatedMonthly ?? payload.pricing?.monthlySubtotal ?? 0),
   });
 
-  return {
+  const normalizedPayload: ContractBuilderPayload = {
     ...base,
     ...payload,
     clienteId: payload.clienteId || fallbackClientId,
@@ -492,6 +522,12 @@ function normalizeBuilderPayload(
     createdAt: payload.createdAt || base.createdAt,
     updatedAt: new Date().toISOString(),
   };
+
+  try {
+    return validateAndSanitizeBuilderPayload(normalizedPayload);
+  } catch {
+    return normalizedPayload;
+  }
 }
 
 function buildBuilderSavePayload(
@@ -501,11 +537,11 @@ function buildBuilderSavePayload(
   const template = contractTemplates.find((item) => item.id === BUILDER_TEMPLATE_ID);
   if (!template) return null;
 
-  const normalizedPayload: ContractBuilderPayload = {
+  const normalizedPayload = validateAndSanitizeBuilderPayload({
     ...payload,
     lastStep: currentStep,
     updatedAt: new Date().toISOString(),
-  };
+  });
 
   const templateValues = buildBuilderTemplateValues(normalizedPayload);
   const selectedCount = normalizedPayload.items.filter((item) => item.selected).length;
@@ -624,6 +660,71 @@ function ContractClauseExplanationCard({
         <p className="text-sm text-white/65 leading-relaxed">{item.explanation}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function AnimatedValue({
+  value,
+  format,
+  className,
+}: {
+  value: number;
+  format: (value: number) => string;
+  className?: string;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+  const [displayValue, setDisplayValue] = useState(value);
+  const previousValueRef = useRef(value);
+
+  useEffect(() => {
+    const from = previousValueRef.current;
+    previousValueRef.current = value;
+
+    if (shouldReduceMotion || Math.abs(from - value) < 0.01) {
+      setDisplayValue(value);
+      return;
+    }
+
+    const startedAt = performance.now();
+    const duration = 320;
+    let frameId = 0;
+
+    const step = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(from + (value - from) * eased);
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(step);
+      }
+    };
+
+    frameId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [shouldReduceMotion, value]);
+
+  return <span className={className}>{format(displayValue)}</span>;
+}
+
+function SummaryMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{label}</p>
+      <AnimatedValue
+        value={value}
+        format={formatCurrencyBRL}
+        className="mt-2 block text-lg font-semibold text-white"
+      />
+    </div>
   );
 }
 
@@ -854,7 +955,7 @@ function BuilderLiveSummary({
 }) {
   if (!summary) {
     return (
-      <Card className="glass-card border-[0.5px]">
+      <Card className="glass-card border-[0.5px] bg-[linear-gradient(180deg,rgba(17,15,24,0.95),rgba(17,15,24,0.82))]">
         <CardContent className="p-5 text-sm text-white/45">
           Selecione o cliente e comece a montar a proposta para ver o resumo ao vivo.
         </CardContent>
@@ -862,20 +963,47 @@ function BuilderLiveSummary({
     );
   }
 
+  const comercialMap = summary.comercial.lines.reduce<Record<string, number>>((acc, line) => {
+    const normalized = line.toLowerCase();
+    const numericValue = parseMoneyInput(line);
+
+    if (normalized.includes("ativação total")) acc.setup = numericValue;
+    if (normalized.includes("entrada / sinal")) acc.entry = numericValue;
+    if (normalized.includes("saldo na entrega")) acc.balance = numericValue;
+    if (normalized.includes("mensalidade contratada")) acc.monthly = numericValue;
+    return acc;
+  }, {});
+
   return (
-    <Card className="glass-card border-[0.5px]">
-      <CardHeader>
-        <CardTitle className="text-sm text-white flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-primary" /> Resumo ao vivo
-        </CardTitle>
-        <CardDescription className="text-xs text-white/40">
-          {selectedCount} item(ns) contratado(s) na proposta atual.
-        </CardDescription>
+    <Card className="glass-card overflow-hidden border-[0.5px] border-cyan-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.98),rgba(17,15,24,0.85))] shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
+      <CardHeader className="border-b border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(34,211,238,0.12))]">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-sm text-white flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-cyan-300" /> Resumo ao vivo
+            </CardTitle>
+            <CardDescription className="text-xs text-white/50">
+              {selectedCount} item(ns) contratado(s) na proposta atual.
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="border-cyan-400/20 bg-cyan-400/10 text-cyan-100">
+            Workspace premium
+          </Badge>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="space-y-2">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{summary.contractante.eyebrow}</p>
-          <p className="text-base font-semibold text-white">{summary.contractante.title}</p>
+      <CardContent className="space-y-5 p-5">
+        <div className="grid grid-cols-2 gap-3">
+          <SummaryMetric label="Implantação" value={comercialMap.setup || 0} />
+          <SummaryMetric label="Mensalidade" value={comercialMap.monthly || 0} />
+          <SummaryMetric label="Entrada" value={comercialMap.entry || 0} />
+          <SummaryMetric label="Saldo" value={comercialMap.balance || 0} />
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{summary.contractante.eyebrow}</p>
+            <p className="text-base font-semibold text-white">{summary.contractante.title}</p>
+          </div>
           <div className="space-y-1 text-sm text-white/60">
             {summary.contractante.lines.slice(0, 4).map((line) => (
               <p key={line}>{line}</p>
@@ -883,18 +1011,25 @@ function BuilderLiveSummary({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Plano principal</p>
+        <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Plano principal</p>
+            <Badge variant="outline" className="border-white/10 text-white/60">
+              {selectedCount} item(ns)
+            </Badge>
+          </div>
           <p className="text-sm font-medium text-white">{summary.selectedPlan?.name || "Sem plano principal"}</p>
           {summary.selectedPlan && <p className="text-sm text-primary">{summary.selectedPlan.pricing}</p>}
-          {summary.customScope && <p className="text-sm text-white/60">{summary.customScope}</p>}
+          {summary.customScope && <p className="text-sm text-white/60 leading-relaxed">{summary.customScope}</p>}
         </div>
 
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Condições comerciais</p>
-          <div className="space-y-1 text-sm text-white/60">
+          <div className="space-y-2 text-sm text-white/60">
             {summary.comercial.lines.map((line) => (
-              <p key={line}>{line}</p>
+              <div key={line} className="rounded-xl border border-white/10 bg-white/[0.025] px-3 py-2">
+                {line}
+              </div>
             ))}
           </div>
         </div>
@@ -904,10 +1039,14 @@ function BuilderLiveSummary({
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Extras selecionados</p>
             <div className="space-y-2">
               {summary.selectedServices.slice(0, 6).map((service) => (
-                <div key={`${service.name}-${service.pricing}`} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <motion.div
+                  key={`${service.name}-${service.pricing}`}
+                  layout
+                  className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
+                >
                   <p className="text-sm font-medium text-white">{service.name}</p>
                   <p className="text-xs text-primary mt-1">{service.pricing}</p>
-                </div>
+                </motion.div>
               ))}
               {summary.selectedServices.length > 6 && (
                 <p className="text-xs text-white/40">+ {summary.selectedServices.length - 6} item(ns) adicional(is)</p>
@@ -943,6 +1082,8 @@ export default function Contratos() {
   const [contractVersions, setContractVersions] = useState<ContratoVersion[]>([]);
   const [compareVersion, setCompareVersion] = useState<ContratoVersion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
+  const [moneyDrafts, setMoneyDrafts] = useState<Record<string, string>>({});
+  const shouldReduceMotion = useReducedMotion();
 
   const masterTemplate = contractTemplates[0];
 
@@ -1012,35 +1153,21 @@ export default function Contratos() {
     setPreviewOpen(true);
   };
 
-  const createContractVersionSnapshot = useCallback(
-    async (contrato: Contrato) => {
-      const { data: latestVersions, error: latestVersionError } = await supabase
-        .from("contrato_versions")
-        .select("version_number")
-        .eq("contrato_id", contrato.id)
-        .order("version_number", { ascending: false })
-        .limit(1);
-
-      if (latestVersionError) {
-        throw latestVersionError;
-      }
-
-      const nextVersionNumber = ((latestVersions?.[0] as ContratoVersion | undefined)?.version_number || 0) + 1;
-
-      const { error } = await supabase.from("contrato_versions").insert({
-        contrato_id: contrato.id,
-        version_number: nextVersionNumber,
-        titulo: contrato.titulo,
-        descricao: contrato.descricao,
-        valor: contrato.valor,
-        status: contrato.status,
-        corpo: contrato.corpo,
-        builder_payload: contrato.builder_payload as any,
+  const invokeContractMutation = useCallback(
+    async <T,>(payload: Record<string, unknown>) => {
+      const { data, error } = await supabase.functions.invoke("manage-contract-builder", {
+        body: payload,
       });
 
       if (error) {
-        throw error;
+        throw new Error(error.message || "Falha ao comunicar com o backend de contratos.");
       }
+
+      if (data?.error) {
+        throw new Error(String(data.error));
+      }
+
+      return data as T;
     },
     [],
   );
@@ -1076,88 +1203,95 @@ export default function Contratos() {
 
   const handleArchiveContract = useCallback(
     async (contrato: Contrato) => {
-      const { data, error } = await supabase
-        .from("contratos")
-        .update({ archived_at: new Date().toISOString() } as any)
-        .eq("id", contrato.id)
-        .select("*, clientes(nome)")
-        .single();
+      try {
+        const response = await invokeContractMutation<{ contrato: Contrato }>({
+          action: "archive",
+          contractId: contrato.id,
+        });
+        const updatedContrato = response.contrato;
 
-      if (error) {
+        if (editingBuilderContract?.id === contrato.id) {
+          setEditingBuilderContract(updatedContrato);
+        }
+
+        setVersionsContract((current) => (current?.id === contrato.id ? updatedContrato : current));
+        toast({ title: "Contrato arquivado no cofre" });
+        loadContratos();
+      } catch (error) {
         toast({
           title: "Erro ao arquivar contrato",
-          description: error.message,
+          description: getContractErrorMessage(error, "Não foi possível arquivar o contrato."),
           variant: "destructive",
         });
-        return;
       }
-
-      if (editingBuilderContract?.id === contrato.id) {
-        setEditingBuilderContract(data as Contrato);
-      }
-
-      setVersionsContract((current) => (current?.id === contrato.id ? (data as Contrato) : current));
-      toast({ title: "Contrato arquivado no cofre" });
-      loadContratos();
     },
-    [editingBuilderContract?.id, loadContratos, toast],
+    [editingBuilderContract?.id, invokeContractMutation, loadContratos, toast],
   );
 
   const handleUnarchiveContract = useCallback(
     async (contrato: Contrato) => {
-      const { data, error } = await supabase
-        .from("contratos")
-        .update({ archived_at: null } as any)
-        .eq("id", contrato.id)
-        .select("*, clientes(nome)")
-        .single();
+      try {
+        const response = await invokeContractMutation<{ contrato: Contrato }>({
+          action: "unarchive",
+          contractId: contrato.id,
+        });
+        const updatedContrato = response.contrato;
 
-      if (error) {
+        if (editingBuilderContract?.id === contrato.id) {
+          setEditingBuilderContract(updatedContrato);
+        }
+
+        setVersionsContract((current) => (current?.id === contrato.id ? updatedContrato : current));
+        toast({ title: "Contrato retornou para a lista principal" });
+        loadContratos();
+      } catch (error) {
         toast({
           title: "Erro ao desarquivar contrato",
-          description: error.message,
+          description: getContractErrorMessage(error, "Não foi possível desarquivar o contrato."),
           variant: "destructive",
         });
-        return;
       }
-
-      if (editingBuilderContract?.id === contrato.id) {
-        setEditingBuilderContract(data as Contrato);
-      }
-
-      setVersionsContract((current) => (current?.id === contrato.id ? (data as Contrato) : current));
-      toast({ title: "Contrato retornou para a lista principal" });
-      loadContratos();
     },
-    [editingBuilderContract?.id, loadContratos, toast],
+    [editingBuilderContract?.id, invokeContractMutation, loadContratos, toast],
   );
 
   const handleDeleteDraft = useCallback(async () => {
     if (!deleteTarget) return;
 
     const target = deleteTarget;
-    const { error } = await supabase.from("contratos").delete().eq("id", target.id);
+    try {
+      await invokeContractMutation({
+        action: "delete-draft",
+        contractId: target.id,
+      });
 
-    if (error) {
+      if (editingBuilderContract?.id === target.id) {
+        if (extrasLoaded) {
+          const emptyPayload = createEmptyBuilderPayload(extrasCatalogo);
+          setBuilderPayload(emptyPayload);
+          setEditingBuilderContract(null);
+          setBuilderStep(0);
+          setMobileSummaryOpen(false);
+          setMoneyDrafts({});
+          syncBuilderSavedState(emptyPayload, 0, null);
+          setTab("montador");
+        }
+      }
+
+      setDeleteTarget(null);
+      setVersionsOpen((current) => (versionsContract?.id === target.id ? false : current));
+      setVersionsContract((current) => (current?.id === target.id ? null : current));
+      setCompareVersion((current) => (current && versionsContract?.id === target.id ? null : current));
+      toast({ title: "Rascunho excluído do cofre" });
+      loadContratos();
+    } catch (error) {
       toast({
         title: "Erro ao excluir rascunho",
-        description: error.message,
+        description: getContractErrorMessage(error, "Não foi possível excluir o rascunho."),
         variant: "destructive",
       });
-      return;
     }
-
-    if (editingBuilderContract?.id === target.id) {
-      resetBuilder();
-    }
-
-    setDeleteTarget(null);
-    setVersionsOpen((current) => (versionsContract?.id === target.id ? false : current));
-    setVersionsContract((current) => (current?.id === target.id ? null : current));
-    setCompareVersion((current) => (current && versionsContract?.id === target.id ? null : current));
-    toast({ title: "Rascunho excluído do cofre" });
-    loadContratos();
-  }, [deleteTarget, editingBuilderContract?.id, loadContratos, resetBuilder, toast, versionsContract?.id]);
+  }, [deleteTarget, editingBuilderContract?.id, extrasCatalogo, extrasLoaded, invokeContractMutation, loadContratos, syncBuilderSavedState, toast, versionsContract?.id]);
 
   const handleRestoreVersion = useCallback(
     (version: ContratoVersion) => {
@@ -1186,6 +1320,7 @@ export default function Contratos() {
       setEditingBuilderContract(versionsContract);
       setBuilderStep(restoredStep);
       setMobileSummaryOpen(false);
+      setMoneyDrafts({});
       setVersionsOpen(false);
       setCompareVersion(null);
       setTab("montador");
@@ -1220,6 +1355,110 @@ export default function Contratos() {
     [],
   );
 
+  const applyMoneyDraftsToPayload = useCallback(
+    (payload: ContractBuilderPayload) => {
+      const draftEntries = Object.entries(moneyDrafts);
+      if (draftEntries.length === 0) return payload;
+
+      let nextPayload: ContractBuilderPayload = {
+        ...payload,
+        items: payload.items.map((item) => ({ ...item })),
+        pricing: { ...payload.pricing },
+      };
+
+      for (const [key, draftValue] of draftEntries) {
+        const matched = key.match(moneyDraftFieldPattern);
+        if (!matched) continue;
+
+        const [, target, targetId, fieldName] = matched;
+        const numericValue = Math.max(parseMoneyInput(draftValue), 0);
+
+        if (target === "item" && (fieldName === "setupPrice" || fieldName === "monthlyPrice")) {
+          nextPayload = {
+            ...nextPayload,
+            items: updateBuilderItemPrice(
+              nextPayload.items,
+              targetId,
+              fieldName,
+              numericValue,
+            ),
+          };
+          nextPayload = {
+            ...nextPayload,
+            pricing: recalculateBuilderPricing(nextPayload.items, nextPayload.pricing),
+          };
+        }
+
+        if (
+          target === "pricing" &&
+          (fieldName === "negotiatedSetup" || fieldName === "entryValue" || fieldName === "negotiatedMonthly")
+        ) {
+          const nextPricing = { ...nextPayload.pricing };
+
+          if (fieldName === "negotiatedSetup") {
+            nextPricing.negotiatedSetup = numericValue;
+            nextPricing.entryValue = Math.min(nextPricing.entryValue, numericValue);
+            nextPricing.balanceValue = Math.max(numericValue - nextPricing.entryValue, 0);
+          }
+
+          if (fieldName === "entryValue") {
+            nextPricing.entryValue = Math.min(numericValue, nextPricing.negotiatedSetup);
+            nextPricing.balanceValue = Math.max(nextPricing.negotiatedSetup - nextPricing.entryValue, 0);
+          }
+
+          if (fieldName === "negotiatedMonthly") {
+            nextPricing.negotiatedMonthly = numericValue;
+          }
+
+          nextPayload = {
+            ...nextPayload,
+            pricing: nextPricing,
+          };
+        }
+      }
+
+      return {
+        ...nextPayload,
+        updatedAt: new Date().toISOString(),
+      };
+    },
+    [moneyDrafts, recalculateBuilderPricing],
+  );
+
+  const getWorkingBuilderPayload = useCallback(
+    () => (builderPayload ? applyMoneyDraftsToPayload(builderPayload) : null),
+    [applyMoneyDraftsToPayload, builderPayload],
+  );
+
+  const syncMoneyDraftsToState = useCallback(() => {
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return null;
+
+    if (Object.keys(moneyDrafts).length > 0) {
+      setBuilderPayload(currentPayload);
+      setMoneyDrafts({});
+    }
+
+    return currentPayload;
+  }, [getWorkingBuilderPayload, moneyDrafts]);
+
+  const setMoneyDraftValue = useCallback((key: string, value: string) => {
+    setMoneyDrafts((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }, []);
+
+  const clearMoneyDraftValue = useCallback((key: string) => {
+    setMoneyDrafts((current) => {
+      if (!(key in current)) return current;
+
+      const nextDrafts = { ...current };
+      delete nextDrafts[key];
+      return nextDrafts;
+    });
+  }, []);
+
   const resetBuilder = useCallback(() => {
     if (!extrasLoaded) return;
     const emptyPayload = createEmptyBuilderPayload(extrasCatalogo);
@@ -1227,9 +1466,15 @@ export default function Contratos() {
     setEditingBuilderContract(null);
     setBuilderStep(0);
     setMobileSummaryOpen(false);
+    setMoneyDrafts({});
     syncBuilderSavedState(emptyPayload, 0, null);
     setTab("montador");
   }, [extrasCatalogo, extrasLoaded, syncBuilderSavedState]);
+
+  const workingBuilderPayload = useMemo(
+    () => (builderPayload ? applyMoneyDraftsToPayload(builderPayload) : null),
+    [applyMoneyDraftsToPayload, builderPayload],
+  );
 
   const openBuilderContract = (contrato: Contrato) => {
     if (!extrasLoaded) {
@@ -1247,6 +1492,7 @@ export default function Contratos() {
     setEditingBuilderContract(contrato);
     setBuilderStep(restoredStep);
     setMobileSummaryOpen(false);
+    setMoneyDrafts({});
     syncBuilderSavedState(payload, restoredStep, contrato.updated_at || contrato.created_at);
     setTab("montador");
   };
@@ -1267,10 +1513,11 @@ export default function Contratos() {
 
   const handleBuilderClientChange = (clienteId: string) => {
     const cliente = clientes.find((item) => item.id === clienteId);
-    if (!cliente || !builderPayload) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!cliente || !currentPayload) return;
 
     setBuilderPayload({
-      ...builderPayload,
+      ...currentPayload,
       clienteId,
       contractante: buildContractanteFromClient(cliente),
       updatedAt: new Date().toISOString(),
@@ -1281,11 +1528,12 @@ export default function Contratos() {
     field: keyof ContractBuilderPayload["contractante"],
     value: string,
   ) => {
-    if (!builderPayload) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return;
     setBuilderPayload({
-      ...builderPayload,
+      ...currentPayload,
       contractante: {
-        ...builderPayload.contractante,
+        ...currentPayload.contractante,
         [field]: value,
       },
       updatedAt: new Date().toISOString(),
@@ -1296,11 +1544,12 @@ export default function Contratos() {
     field: keyof ContractBuilderPayload["contratada"],
     value: string,
   ) => {
-    if (!builderPayload) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return;
     setBuilderPayload({
-      ...builderPayload,
+      ...currentPayload,
       contratada: {
-        ...builderPayload.contratada,
+        ...currentPayload.contratada,
         [field]: value,
       },
       updatedAt: new Date().toISOString(),
@@ -1319,22 +1568,24 @@ export default function Contratos() {
       | "escopoExclusoes",
     value: string,
   ) => {
-    if (!builderPayload) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return;
     setBuilderPayload({
-      ...builderPayload,
+      ...currentPayload,
       [field]: value,
       updatedAt: new Date().toISOString(),
     });
   };
 
   const handlePrimaryPlanChange = (planId: BuilderPrimaryPlanId) => {
-    if (!builderPayload) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return;
 
-    const nextItems = selectPrimaryPlan(builderPayload.items, planId);
-    const nextPricing = recalculateBuilderPricing(nextItems, builderPayload.pricing);
+    const nextItems = selectPrimaryPlan(currentPayload.items, planId);
+    const nextPricing = recalculateBuilderPricing(nextItems, currentPayload.pricing);
 
     setBuilderPayload({
-      ...builderPayload,
+      ...currentPayload,
       primaryPlanId: planId,
       items: nextItems,
       pricing: nextPricing,
@@ -1343,13 +1594,14 @@ export default function Contratos() {
   };
 
   const handleBuilderItemToggle = (itemId: string, selected: boolean) => {
-    if (!builderPayload) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return;
 
-    const nextItems = toggleBuilderItem(builderPayload.items, itemId, selected);
-    const nextPricing = recalculateBuilderPricing(nextItems, builderPayload.pricing);
+    const nextItems = toggleBuilderItem(currentPayload.items, itemId, selected);
+    const nextPricing = recalculateBuilderPricing(nextItems, currentPayload.pricing);
 
     setBuilderPayload({
-      ...builderPayload,
+      ...currentPayload,
       items: nextItems,
       pricing: nextPricing,
       updatedAt: new Date().toISOString(),
@@ -1361,86 +1613,67 @@ export default function Contratos() {
     field: "setupPrice" | "monthlyPrice",
     rawValue: string,
   ) => {
-    if (!builderPayload) return;
-
-    const nextItems = updateBuilderItemPrice(
-      builderPayload.items,
-      itemId,
-      field,
-      parseMoneyInput(rawValue),
-    );
-    const nextPricing = recalculateBuilderPricing(nextItems, builderPayload.pricing);
-
-    setBuilderPayload({
-      ...builderPayload,
-      items: nextItems,
-      pricing: nextPricing,
-      updatedAt: new Date().toISOString(),
-    });
+    setMoneyDraftValue(buildItemMoneyDraftKey(itemId, field), rawValue);
   };
 
   const handleBuilderPricingChange = (
     field: "negotiatedSetup" | "entryValue" | "negotiatedMonthly",
     rawValue: string,
   ) => {
-    if (!builderPayload) return;
-
-    const numericValue = parseMoneyInput(rawValue);
-    const nextPricing = { ...builderPayload.pricing };
-
-    if (field === "negotiatedSetup") {
-      nextPricing.negotiatedSetup = numericValue;
-      nextPricing.entryValue = Math.min(nextPricing.entryValue, numericValue);
-      nextPricing.balanceValue = Math.max(numericValue - nextPricing.entryValue, 0);
-    }
-
-    if (field === "entryValue") {
-      nextPricing.entryValue = Math.min(numericValue, nextPricing.negotiatedSetup);
-      nextPricing.balanceValue = Math.max(nextPricing.negotiatedSetup - nextPricing.entryValue, 0);
-    }
-
-    if (field === "negotiatedMonthly") {
-      nextPricing.negotiatedMonthly = numericValue;
-    }
-
-    setBuilderPayload({
-      ...builderPayload,
-      pricing: nextPricing,
-      updatedAt: new Date().toISOString(),
-    });
+    setMoneyDraftValue(buildPricingMoneyDraftKey(field), rawValue);
   };
+
+  const getMoneyInputDisplayValue = useCallback(
+    (key: string, value: number) => moneyDrafts[key] ?? formatMoneyInputValue(value),
+    [moneyDrafts],
+  );
+
+  const commitMoneyDraft = useCallback(
+    (key: string) => {
+      if (!(key in moneyDrafts)) return;
+
+      const currentPayload = getWorkingBuilderPayload();
+      if (!currentPayload) return;
+
+      setBuilderPayload(currentPayload);
+      clearMoneyDraftValue(key);
+    },
+    [clearMoneyDraftValue, getWorkingBuilderPayload, moneyDrafts],
+  );
 
   const getBuilderStepError = useCallback(
     (step: Exclude<ContractBuilderStepIndex, 4>) => {
-      if (!builderPayload) {
+      const currentPayload = getWorkingBuilderPayload();
+
+      if (!currentPayload) {
         return "Aguarde o carregamento do montador.";
       }
 
       switch (step) {
         case 0:
-          if (!builderPayload.clienteId) return "Selecione um cliente para iniciar a proposta.";
+          if (!currentPayload.clienteId) return "Selecione um cliente para iniciar a proposta.";
           return null;
         case 1:
-          if (!builderPayload.contractante.nome.trim()) return "Preencha o nome do contratante.";
-          if (!builderPayload.contratada.nome.trim()) return "Preencha o nome da contratada.";
-          if (!builderPayload.contratada.representante.trim()) return "Preencha o representante da contratada.";
-          if (!builderPayload.contratada.documento.trim()) return "Preencha o documento da contratada.";
-          if (!builderPayload.contratada.endereco.trim()) return "Preencha o endereço da contratada.";
+          if (!currentPayload.contractante.nome.trim()) return "Preencha o nome do contratante.";
+          if (!currentPayload.contratada.nome.trim()) return "Preencha o nome da contratada.";
+          if (!currentPayload.contratada.representante.trim()) return "Preencha o representante da contratada.";
+          if (!currentPayload.contratada.documento.trim()) return "Preencha o documento da contratada.";
+          if (!currentPayload.contratada.endereco.trim()) return "Preencha o endereço da contratada.";
           return null;
         case 2: {
-          const selectedItems = builderPayload.items.filter((item) => item.selected);
+          const selectedItems = currentPayload.items.filter((item) => item.selected);
           if (!selectedItems.length) {
             return "Selecione pelo menos um plano ou extra para montar o contrato.";
           }
-          if (builderPayload.primaryPlanId === "sob-medida" && !builderPayload.customScope.trim()) {
+          if (currentPayload.primaryPlanId === "sob-medida" && !currentPayload.customScope.trim()) {
             return "Descreva o escopo customizado para propostas Sob Medida.";
           }
           return null;
         }
         case 3:
-          if (!builderPayload.prazoDias.trim()) return "Informe o prazo estimado da proposta.";
-          if (!builderPayload.formaPagamento.trim()) return "Informe a forma de pagamento.";
-          if (builderPayload.pricing.entryValue > builderPayload.pricing.negotiatedSetup) {
+          if (!currentPayload.prazoDias.trim()) return "Informe o prazo estimado da proposta.";
+          if (!currentPayload.formaPagamento.trim()) return "Informe a forma de pagamento.";
+          if (currentPayload.pricing.entryValue > currentPayload.pricing.negotiatedSetup) {
             return "A entrada não pode ser maior que o valor negociado.";
           }
           return null;
@@ -1448,7 +1681,7 @@ export default function Contratos() {
           return null;
       }
     },
-    [builderPayload],
+    [getWorkingBuilderPayload],
   );
 
   const validateBuilderStep = useCallback(
@@ -1469,6 +1702,7 @@ export default function Contratos() {
 
   const handleBuilderStepChange = (nextStep: ContractBuilderStepIndex) => {
     if (nextStep <= builderStep) {
+      syncMoneyDraftsToState();
       setBuilderStep(nextStep);
       return;
     }
@@ -1479,6 +1713,7 @@ export default function Contratos() {
       }
     }
 
+    syncMoneyDraftsToState();
     setBuilderStep(nextStep);
   };
 
@@ -1489,10 +1724,23 @@ export default function Contratos() {
     exitAfterSave?: boolean;
     requireCompleteValidation?: boolean;
   } = {}) => {
-    if (!builderPayload) return false;
+    const currentPayload = syncMoneyDraftsToState();
+    if (!currentPayload) return false;
     if (requireCompleteValidation && !validateBuilderAll()) return false;
 
-    const prepared = buildBuilderSavePayload(builderPayload, builderStep);
+    let prepared: ReturnType<typeof buildBuilderSavePayload> = null;
+
+    try {
+      prepared = buildBuilderSavePayload(currentPayload, builderStep);
+    } catch (error) {
+      toast({
+        title: "Erro ao validar a proposta",
+        description: getContractErrorMessage(error, "Revise os dados da proposta antes de salvar."),
+        variant: "destructive",
+      });
+      return false;
+    }
+
     if (!prepared) {
       toast({ title: "Modelo mestre não encontrado", variant: "destructive" });
       return false;
@@ -1500,7 +1748,7 @@ export default function Contratos() {
 
     const nowIso = new Date().toISOString();
     const payloadToPersist = {
-      cliente_id: builderPayload.clienteId || null,
+      cliente_id: prepared.normalizedPayload.clienteId || null,
       titulo: prepared.title,
       descricao: prepared.description,
       valor: prepared.value,
@@ -1512,59 +1760,45 @@ export default function Contratos() {
       updated_at: nowIso,
     };
 
-    if (editingBuilderContract) {
-      try {
-        await createContractVersionSnapshot(editingBuilderContract);
-      } catch (snapshotError) {
-        const message = snapshotError instanceof Error ? snapshotError.message : "Não foi possível registrar a versão anterior.";
-        toast({ title: "Erro ao criar histórico da proposta", description: message, variant: "destructive" });
-        return false;
-      }
+    try {
+      const response = await invokeContractMutation<{ contrato: Contrato }>({
+        action: "save-draft",
+        contractId: editingBuilderContract?.id ?? null,
+        contrato: payloadToPersist,
+      });
 
-      const { data, error } = await supabase
-        .from("contratos")
-        .update(payloadToPersist as any)
-        .eq("id", editingBuilderContract.id)
-        .select("*, clientes(nome)")
-        .single();
-
-      if (error) {
-        toast({ title: "Erro ao atualizar contrato", description: error.message, variant: "destructive" });
-        return false;
-      }
-
-      setBuilderPayload(prepared.normalizedPayload);
-      setEditingBuilderContract(data as Contrato);
-      syncBuilderSavedState(
-        prepared.normalizedPayload,
+      const savedContrato = response.contrato;
+      const savedPayload = normalizeBuilderPayload(
+        savedContrato.builder_payload,
+        extrasCatalogo,
+        savedContrato.cliente_id,
         prepared.normalizedPayload.lastStep,
-        (data as Contrato).updated_at || nowIso,
+      );
+
+      setBuilderPayload(savedPayload);
+      setEditingBuilderContract(savedContrato);
+      setMoneyDrafts({});
+      syncBuilderSavedState(
+        savedPayload,
+        savedPayload.lastStep,
+        savedContrato.updated_at || nowIso,
       );
       toast({
-        title: exitAfterSave ? "Rascunho atualizado. Você pode continuar depois." : "Contrato mestre atualizado!",
+        title: exitAfterSave
+          ? editingBuilderContract
+            ? "Rascunho atualizado. Você pode continuar depois."
+            : "Rascunho salvo. Você pode continuar depois."
+          : editingBuilderContract
+            ? "Contrato mestre atualizado!"
+            : "Contrato mestre salvo no cofre!",
       });
-    } else {
-      const { data, error } = await supabase
-        .from("contratos")
-        .insert(payloadToPersist as any)
-        .select("*, clientes(nome)")
-        .single();
-
-      if (error) {
-        toast({ title: "Erro ao salvar contrato", description: error.message, variant: "destructive" });
-        return false;
-      }
-
-      setBuilderPayload(prepared.normalizedPayload);
-      setEditingBuilderContract(data as Contrato);
-      syncBuilderSavedState(
-        prepared.normalizedPayload,
-        prepared.normalizedPayload.lastStep,
-        (data as Contrato).updated_at || nowIso,
-      );
+    } catch (error) {
       toast({
-        title: exitAfterSave ? "Rascunho salvo. Você pode continuar depois." : "Contrato mestre salvo no cofre!",
+        title: editingBuilderContract ? "Erro ao atualizar contrato" : "Erro ao salvar contrato",
+        description: getContractErrorMessage(error, "Não foi possível salvar a proposta."),
+        variant: "destructive",
       });
+      return false;
     }
 
     loadContratos();
@@ -1586,9 +1820,10 @@ export default function Contratos() {
   };
 
   const handleBuilderPdfDownload = () => {
-    if (!validateBuilderAll() || !builderPayload) return;
+    const currentPayload = syncMoneyDraftsToState();
+    if (!validateBuilderAll() || !currentPayload) return;
 
-    const prepared = buildBuilderSavePayload(builderPayload, builderStep);
+    const prepared = buildBuilderSavePayload(currentPayload, builderStep);
     if (!prepared) return;
     generateContractPDF(prepared.title, prepared.body, {
       proposal: prepared.normalizedPayload,
@@ -1596,25 +1831,28 @@ export default function Contratos() {
   };
 
   const handleBuilderWordDownload = () => {
-    if (!validateBuilderAll() || !builderPayload) return;
+    const currentPayload = syncMoneyDraftsToState();
+    if (!validateBuilderAll() || !currentPayload) return;
 
-    const prepared = buildBuilderSavePayload(builderPayload, builderStep);
+    const prepared = buildBuilderSavePayload(currentPayload, builderStep);
     if (!prepared) return;
     downloadWordDocument(prepared.title, prepared.body, prepared.normalizedPayload);
   };
 
   const handleRefreshBuilderExtras = async () => {
-    if (!builderPayload) return;
+    const currentPayload = syncMoneyDraftsToState();
+    if (!currentPayload) return;
 
     const currentExtraIds = new Set(
-      builderPayload.items.filter((item) => item.source === "extra").map((item) => item.id),
+      currentPayload.items.filter((item) => item.source === "extra").map((item) => item.id),
     );
 
     const freshExtras = await loadExtrasCatalogo();
     const normalizedPayload = normalizeBuilderPayload(
-      builderPayload,
+      currentPayload,
       freshExtras,
-      builderPayload.clienteId,
+      currentPayload.clienteId,
+      builderStep,
     );
     const newExtraCount = normalizedPayload.items.filter(
       (item) => item.source === "extra" && !currentExtraIds.has(item.id),
@@ -1624,6 +1862,7 @@ export default function Contratos() {
       ...normalizedPayload,
       updatedAt: new Date().toISOString(),
     });
+    setMoneyDrafts({});
 
     toast({
       title: "Extras atualizados",
@@ -1635,8 +1874,8 @@ export default function Contratos() {
   };
 
   const builderDirtySignature = useMemo(
-    () => (builderPayload ? buildBuilderDirtySignature(builderPayload, builderStep) : null),
-    [builderPayload, builderStep],
+    () => (workingBuilderPayload ? buildBuilderDirtySignature(workingBuilderPayload, builderStep) : null),
+    [builderStep, workingBuilderPayload],
   );
 
   const builderHasUnsavedChanges = useMemo(() => {
@@ -1710,16 +1949,24 @@ export default function Contratos() {
   );
 
   const builderPrepared = useMemo(
-    () => (builderPayload ? buildBuilderSavePayload(builderPayload, builderStep) : null),
-    [builderPayload, builderStep],
+    () => {
+      if (!workingBuilderPayload) return null;
+
+      try {
+        return buildBuilderSavePayload(workingBuilderPayload, builderStep);
+      } catch {
+        return null;
+      }
+    },
+    [builderStep, workingBuilderPayload],
   );
 
   const builderSummary = useMemo(
-    () => (builderPayload ? buildProposalSummary(builderPayload) : null),
-    [builderPayload],
+    () => (workingBuilderPayload ? buildProposalSummary(workingBuilderPayload) : null),
+    [workingBuilderPayload],
   );
 
-  const selectedItemsCount = builderPayload?.items.filter((item) => item.selected).length || 0;
+  const selectedItemsCount = workingBuilderPayload?.items.filter((item) => item.selected).length || 0;
   const builderProgress = ((builderStep + 1) / BUILDER_STEPS.length) * 100;
 
   return (
@@ -2074,16 +2321,17 @@ export default function Contratos() {
                       const isCompleted = step.id < builderStep;
 
                       return (
-                        <button
+                        <motion.button
                           key={step.id}
                           type="button"
                           onClick={() => handleBuilderStepChange(step.id)}
+                          whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
                           className={`rounded-2xl border p-4 text-left transition-all ${
                             isActive
-                              ? "border-primary/30 bg-primary/12"
+                              ? "border-cyan-400/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(34,211,238,0.12))] shadow-[0_16px_32px_rgba(34,211,238,0.08)]"
                               : isCompleted
                                 ? "border-emerald-400/25 bg-emerald-400/10"
-                                : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
+                                : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07] hover:border-white/20"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-3">
@@ -2104,7 +2352,7 @@ export default function Contratos() {
                             </div>
                           </div>
                           <p className="text-xs text-white/45 mt-3 leading-relaxed">{step.description}</p>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -2112,29 +2360,46 @@ export default function Contratos() {
               </CardContent>
             </Card>
 
-            <div className="xl:hidden">
-              <Card className="glass-card border-[0.5px]">
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-white">Resumo ao vivo</p>
-                      <p className="text-xs text-white/45">Cliente, escopo e totais atualizados em tempo real.</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                      onClick={() => setMobileSummaryOpen((current) => !current)}
-                    >
-                      {mobileSummaryOpen ? "Ocultar" : "Mostrar"}
-                    </Button>
+            <div className="xl:hidden fixed inset-x-4 bottom-4 z-30">
+              <motion.div
+                layout
+                className="overflow-hidden rounded-[28px] border border-cyan-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.96),rgba(17,15,24,0.9))] shadow-[0_24px_60px_rgba(2,6,23,0.45)] backdrop-blur-xl"
+              >
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                  onClick={() => setMobileSummaryOpen((current) => !current)}
+                >
+                  <div>
+                    <p className="text-sm font-medium text-white">Resumo financeiro</p>
+                    <p className="text-xs text-white/45">Cliente, escopo e totais atualizados em tempo real.</p>
                   </div>
-                  {mobileSummaryOpen && <BuilderLiveSummary summary={builderSummary} selectedCount={selectedItemsCount} />}
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="border-white/10 bg-white/5 text-white/70">
+                      {selectedItemsCount} item(ns)
+                    </Badge>
+                    <span className="text-xs text-cyan-200">{mobileSummaryOpen ? "Recolher" : "Expandir"}</span>
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {mobileSummaryOpen ? (
+                    <motion.div
+                      key="mobile-summary"
+                      initial={shouldReduceMotion ? false : { opacity: 0, height: 0 }}
+                      animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, height: "auto" }}
+                      exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                      transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" }}
+                      className="px-4 pb-4"
+                    >
+                      <BuilderLiveSummary summary={builderSummary} selectedCount={selectedItemsCount} />
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </motion.div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start pb-36 xl:pb-0">
               <div className="space-y-6">
                 {!builderPayload ? (
                   <Card className="glass-card border-[0.5px]">
@@ -2152,6 +2417,15 @@ export default function Contratos() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-6">
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.div
+                            key={builderStep}
+                            initial={shouldReduceMotion ? false : { opacity: 0, y: 18, scale: 0.985 }}
+                            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                            exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -12, scale: 0.99 }}
+                            transition={{ duration: shouldReduceMotion ? 0 : 0.24, ease: "easeOut" }}
+                            className="space-y-6"
+                          >
                         {builderStep === 0 && (
                           <div className="space-y-6">
                             <div className="space-y-2">
@@ -2393,8 +2667,8 @@ export default function Contratos() {
                                           htmlFor={`plan-${plan.id}`}
                                           className={`rounded-2xl border p-5 cursor-pointer space-y-4 transition-all ${
                                             selected
-                                              ? "border-primary/30 bg-primary/12"
-                                              : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
+                                              ? "border-cyan-400/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(34,211,238,0.12))] shadow-[0_18px_36px_rgba(34,211,238,0.08)]"
+                                              : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20"
                                           }`}
                                         >
                                           <div className="flex items-start justify-between gap-4">
@@ -2466,8 +2740,8 @@ export default function Contratos() {
                                             key={item.id}
                                             className={`rounded-2xl border p-4 transition-colors ${
                                               item.selected
-                                                ? "border-primary/30 bg-primary/12"
-                                                : "border-white/10 bg-white/[0.02]"
+                                                ? "border-cyan-400/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.2),rgba(34,211,238,0.08))]"
+                                                : "border-white/10 bg-white/[0.02] hover:border-white/20"
                                             }`}
                                           >
                                             <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_140px_140px] gap-4 items-start">
@@ -2491,10 +2765,14 @@ export default function Contratos() {
                                               <div className="space-y-2">
                                                 <Label className="text-[10px] uppercase tracking-[0.18em] text-white/35">Setup</Label>
                                                 <Input
-                                                  value={item.setupPrice.toFixed(2).replace(".", ",")}
+                                                  value={getMoneyInputDisplayValue(
+                                                    buildItemMoneyDraftKey(item.id, "setupPrice"),
+                                                    item.setupPrice,
+                                                  )}
                                                   onChange={(event) =>
                                                     handleBuilderItemPriceChange(item.id, "setupPrice", event.target.value)
                                                   }
+                                                  onBlur={() => commitMoneyDraft(buildItemMoneyDraftKey(item.id, "setupPrice"))}
                                                   className="glass-input border-white/10 text-white"
                                                 />
                                               </div>
@@ -2502,10 +2780,14 @@ export default function Contratos() {
                                               <div className="space-y-2">
                                                 <Label className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensal</Label>
                                                 <Input
-                                                  value={item.monthlyPrice.toFixed(2).replace(".", ",")}
+                                                  value={getMoneyInputDisplayValue(
+                                                    buildItemMoneyDraftKey(item.id, "monthlyPrice"),
+                                                    item.monthlyPrice,
+                                                  )}
                                                   onChange={(event) =>
                                                     handleBuilderItemPriceChange(item.id, "monthlyPrice", event.target.value)
                                                   }
+                                                  onBlur={() => commitMoneyDraft(buildItemMoneyDraftKey(item.id, "monthlyPrice"))}
                                                   className="glass-input border-white/10 text-white"
                                                 />
                                               </div>
@@ -2531,17 +2813,21 @@ export default function Contratos() {
                               <Card className="bg-white/[0.03] border-white/10">
                                 <CardContent className="p-5 space-y-2">
                                   <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Implantação base</p>
-                                  <p className="text-2xl font-semibold text-white">
-                                    {formatCurrencyBRL(builderPayload.pricing.setupSubtotal)}
-                                  </p>
+                                  <AnimatedValue
+                                    value={workingBuilderPayload?.pricing.setupSubtotal || builderPayload.pricing.setupSubtotal}
+                                    format={formatCurrencyBRL}
+                                    className="block text-2xl font-semibold text-white"
+                                  />
                                 </CardContent>
                               </Card>
                               <Card className="bg-white/[0.03] border-white/10">
                                 <CardContent className="p-5 space-y-2">
                                   <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensal base</p>
-                                  <p className="text-2xl font-semibold text-white">
-                                    {formatCurrencyBRL(builderPayload.pricing.monthlySubtotal)}
-                                  </p>
+                                  <AnimatedValue
+                                    value={workingBuilderPayload?.pricing.monthlySubtotal || builderPayload.pricing.monthlySubtotal}
+                                    format={formatCurrencyBRL}
+                                    className="block text-2xl font-semibold text-white"
+                                  />
                                 </CardContent>
                               </Card>
                               <Card className="bg-white/[0.03] border-primary/20">
@@ -2565,23 +2851,33 @@ export default function Contratos() {
                                 <div className="space-y-2">
                                   <Label className="text-xs text-white/55">Valor negociado da implantação</Label>
                                   <Input
-                                    value={builderPayload.pricing.negotiatedSetup.toFixed(2).replace(".", ",")}
+                                    value={getMoneyInputDisplayValue(
+                                      buildPricingMoneyDraftKey("negotiatedSetup"),
+                                      builderPayload.pricing.negotiatedSetup,
+                                    )}
                                     onChange={(event) => handleBuilderPricingChange("negotiatedSetup", event.target.value)}
+                                    onBlur={() => commitMoneyDraft(buildPricingMoneyDraftKey("negotiatedSetup"))}
                                     className="glass-input border-white/10 text-white"
                                   />
                                 </div>
                                 <div className="space-y-2">
                                   <Label className="text-xs text-white/55">Entrada / sinal</Label>
                                   <Input
-                                    value={builderPayload.pricing.entryValue.toFixed(2).replace(".", ",")}
+                                    value={getMoneyInputDisplayValue(
+                                      buildPricingMoneyDraftKey("entryValue"),
+                                      builderPayload.pricing.entryValue,
+                                    )}
                                     onChange={(event) => handleBuilderPricingChange("entryValue", event.target.value)}
+                                    onBlur={() => commitMoneyDraft(buildPricingMoneyDraftKey("entryValue"))}
                                     className="glass-input border-white/10 text-white"
                                   />
                                 </div>
                                 <div className="space-y-2">
                                   <Label className="text-xs text-white/55">Saldo na entrega</Label>
                                   <Input
-                                    value={builderPayload.pricing.balanceValue.toFixed(2).replace(".", ",")}
+                                    value={formatMoneyInputValue(
+                                      workingBuilderPayload?.pricing.balanceValue || builderPayload.pricing.balanceValue,
+                                    )}
                                     readOnly
                                     className="glass-input border-white/10 text-white/75"
                                   />
@@ -2589,8 +2885,12 @@ export default function Contratos() {
                                 <div className="space-y-2">
                                   <Label className="text-xs text-white/55">Mensalidade negociada</Label>
                                   <Input
-                                    value={builderPayload.pricing.negotiatedMonthly.toFixed(2).replace(".", ",")}
+                                    value={getMoneyInputDisplayValue(
+                                      buildPricingMoneyDraftKey("negotiatedMonthly"),
+                                      builderPayload.pricing.negotiatedMonthly,
+                                    )}
                                     onChange={(event) => handleBuilderPricingChange("negotiatedMonthly", event.target.value)}
+                                    onBlur={() => commitMoneyDraft(buildPricingMoneyDraftKey("negotiatedMonthly"))}
                                     className="glass-input border-white/10 text-white"
                                   />
                                 </div>
@@ -2708,6 +3008,8 @@ export default function Contratos() {
                             )}
                           </div>
                         )}
+                          </motion.div>
+                        </AnimatePresence>
                       </CardContent>
                     </Card>
 

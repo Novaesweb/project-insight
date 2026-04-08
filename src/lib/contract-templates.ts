@@ -23,6 +23,26 @@ export interface ContractTemplate {
   corpo: string;
 }
 
+const CONTROL_CHARS_REGEX = new RegExp(
+  `[${[
+    [0x00, 0x08],
+    [0x0b, 0x0c],
+    [0x0e, 0x1f],
+  ]
+    .map(([start, end]) => `${String.fromCharCode(start)}-${String.fromCharCode(end)}`)
+    .join("")}${String.fromCharCode(0x7f)}]`,
+  "g",
+);
+const HTML_TAG_REGEX = /<[^>]*>/g;
+
+function sanitizeTemplateValue(value: string) {
+  return String(value || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(CONTROL_CHARS_REGEX, "")
+    .replace(HTML_TAG_REGEX, "")
+    .trim();
+}
+
 const contratoMestreVars: ContractVariable[] = [
   {
     key: "nome_contratada",
@@ -192,9 +212,10 @@ CONTRATADA: ___________________________`,
 export function fillTemplate(corpo: string, values: Record<string, string>) {
   let result = corpo;
   for (const [key, value] of Object.entries(values)) {
-    const nextValue = /^\d{4}-\d{2}-\d{2}$/.test(value || "")
-      ? new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR")
-      : value;
+    const safeValue = sanitizeTemplateValue(value);
+    const nextValue = /^\d{4}-\d{2}-\d{2}$/.test(safeValue || "")
+      ? new Date(`${safeValue}T00:00:00`).toLocaleDateString("pt-BR")
+      : safeValue;
     result = result.replace(new RegExp(`\\{${key}\\}`, "g"), nextValue || `{${key}}`);
   }
   return result;
