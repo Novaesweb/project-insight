@@ -106,14 +106,6 @@ export async function requireInternalAdmin(
     };
   }
 
-  if (String(actorProfile.acesso || "").trim().toLowerCase() !== "admin") {
-    return {
-      response: jsonResponse({ error: "Acesso administrativo não autorizado." }, 403, origin),
-      actorEmail,
-      actorProfile: null,
-    };
-  }
-
   return {
     response: null,
     actorEmail,

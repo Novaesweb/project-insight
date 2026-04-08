@@ -25,7 +25,12 @@ const HTML_TAG_REGEX = /<[^>]*>/g;
 const MULTISPACE_REGEX = /[^\S\n]+/g;
 const MULTILINE_GAP_REGEX = /\n{3,}/g;
 
-type BuilderAction = "save-draft" | "archive" | "unarchive" | "delete-draft";
+type BuilderAction =
+  | "save-draft"
+  | "archive"
+  | "unarchive"
+  | "delete-draft"
+  | "send-to-client";
 
 function normalizeNewlines(value: string) {
   return value.replace(/\r\n?/g, "\n");
@@ -287,6 +292,8 @@ function validateBuilderPayload(payload: Record<string, any> | null) {
 }
 
 function sanitizeContractRecord(record: Record<string, unknown>) {
+  const normalizedStatus = sanitizePlainText(record.status, { maxLength: 32 }).toLowerCase();
+
   return {
     cliente_id:
       typeof record.cliente_id === "string" && record.cliente_id.trim().length > 0
@@ -295,7 +302,7 @@ function sanitizeContractRecord(record: Record<string, unknown>) {
     titulo: sanitizePlainText(record.titulo, { maxLength: 240 }),
     descricao: sanitizePlainText(record.descricao, { maxLength: 400, preserveLineBreaks: true }),
     valor: sanitizeMoney(record.valor),
-    status: "rascunho",
+    status: normalizedStatus === "aguardando" ? "aguardando" : "rascunho",
     corpo: sanitizePlainText(record.corpo, { maxLength: 50000, preserveLineBreaks: true }),
     modelo: BUILDER_TEMPLATE_ID,
     builder_payload: validateBuilderPayload(
@@ -459,6 +466,34 @@ serve(async (req: Request) => {
       }
 
       return jsonResponse({ success: true }, 200, origin);
+    }
+
+    if (action === "send-to-client") {
+      if (!existing.cliente_id) {
+        return jsonResponse({ error: "Selecione um cliente válido antes de liberar a leitura." }, 400, origin);
+      }
+
+      if (!existing.titulo || !existing.corpo) {
+        return jsonResponse({ error: "O contrato precisa estar salvo no cofre antes do envio." }, 400, origin);
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("contratos")
+        .update({
+          status: "aguardando",
+          data_envio: new Date().toISOString().slice(0, 10),
+          archived_at: null,
+        } as any)
+        .eq("id", contractId)
+        .eq("modelo", BUILDER_TEMPLATE_ID)
+        .select("*, clientes(nome)")
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return jsonResponse({ contrato: data }, 200, origin);
     }
 
     return jsonResponse({ error: "Ação inválida." }, 400, origin);

@@ -69,7 +69,8 @@ export default function ClienteContratos() {
       .from("contratos")
       .select("*")
       .eq("cliente_id", cliente.id)
-      .is("builder_payload", null)
+      .is("archived_at", null)
+      .not("status", "eq", "rascunho")
       .order("updated_at", { ascending: false })
       .then(({ data }) => setContratos(data || []));
   }, [cliente.id]);

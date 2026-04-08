@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Save,
   Search,
+  Send,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -113,7 +114,7 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
-  aguardando: "Aguardando",
+  aguardando: "Leitura do cliente",
   assinado: "Assinado",
   cancelado: "Cancelado",
   rascunho: "Rascunho",
@@ -1293,6 +1294,65 @@ export default function Contratos() {
     }
   }, [deleteTarget, editingBuilderContract?.id, extrasCatalogo, extrasLoaded, invokeContractMutation, loadContratos, syncBuilderSavedState, toast, versionsContract?.id]);
 
+  const handleSendContractToClient = useCallback(
+    async (contrato?: Contrato | null) => {
+      const target = contrato ?? editingBuilderContract;
+
+      if (!target) {
+        toast({
+          title: "Salve o contrato antes de enviar",
+          description: "Primeiro salve a proposta no cofre para gerar a versão que será liberada ao cliente.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (!target.cliente_id) {
+        toast({
+          title: "Cliente obrigatório",
+          description: "Selecione um cliente válido antes de liberar o contrato para leitura.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      try {
+        const response = await invokeContractMutation<{ contrato: Contrato }>({
+          action: "send-to-client",
+          contractId: target.id,
+        });
+
+        const updatedContrato = response.contrato;
+
+        setEditingBuilderContract((current) =>
+          current?.id === updatedContrato.id ? updatedContrato : current,
+        );
+        setContratos((current) =>
+          current.map((item) => (item.id === updatedContrato.id ? updatedContrato : item)),
+        );
+        loadContratos();
+
+        toast({
+          title:
+            target.status === "aguardando"
+              ? "Leitura do cliente atualizada"
+              : "Contrato liberado para leitura",
+          description: "O cliente já pode abrir esse contrato no portal em modo somente leitura.",
+        });
+
+        return true;
+      } catch (error) {
+        toast({
+          title: "Erro ao enviar contrato para leitura",
+          description: getContractErrorMessage(error, "Não foi possível liberar o contrato no portal do cliente."),
+          variant: "destructive",
+        });
+        return false;
+      }
+    },
+    [editingBuilderContract, invokeContractMutation, loadContratos, toast],
+  );
+
   const handleRestoreVersion = useCallback(
     (version: ContratoVersion) => {
       if (!versionsContract) return;
@@ -1752,7 +1812,7 @@ export default function Contratos() {
       titulo: prepared.title,
       descricao: prepared.description,
       valor: prepared.value,
-      status: "rascunho",
+      status: editingBuilderContract?.status === "aguardando" ? "aguardando" : "rascunho",
       corpo: prepared.body,
       modelo: BUILDER_TEMPLATE_ID,
       builder_payload: prepared.normalizedPayload as any,
@@ -2138,6 +2198,12 @@ export default function Contratos() {
                           <DropdownMenuItem onClick={() => handleOpenVersions(contrato)}>
                             <History className="w-4 h-4 mr-2" /> Histórico de versões
                           </DropdownMenuItem>
+                          {!contrato.archived_at && (
+                            <DropdownMenuItem onClick={() => void handleSendContractToClient(contrato)}>
+                              <Send className="w-4 h-4 mr-2" />
+                              {contrato.status === "aguardando" ? "Atualizar leitura do cliente" : "Enviar leitura ao cliente"}
+                            </DropdownMenuItem>
+                          )}
                           {contrato.archived_at ? (
                             <DropdownMenuItem onClick={() => handleUnarchiveContract(contrato)}>
                               <RotateCcw className="w-4 h-4 mr-2" /> Desarquivar
@@ -3065,13 +3131,24 @@ export default function Contratos() {
                                 >
                                   <Save className="w-4 h-4 mr-2" /> Salvar rascunho e sair
                                 </Button>
-                                <Button
-                                  variant="outline"
-                                  className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                                  onClick={handleSaveBuilder}
-                                >
-                                  <Save className="w-4 h-4 mr-2" />
+                              <Button
+                                variant="outline"
+                                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                onClick={handleSaveBuilder}
+                              >
+                                <Save className="w-4 h-4 mr-2" />
                                 {editingBuilderContract ? "Atualizar no cofre" : "Salvar no cofre"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                                disabled={!editingBuilderContract || builderHasUnsavedChanges}
+                                onClick={() => void handleSendContractToClient(editingBuilderContract)}
+                              >
+                                <Send className="w-4 h-4 mr-2" />
+                                {editingBuilderContract?.status === "aguardando"
+                                  ? "Atualizar leitura do cliente"
+                                  : "Enviar leitura ao cliente"}
                               </Button>
                               <Button
                                 variant="outline"
