@@ -159,6 +159,45 @@ function getContractErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+async function extractFunctionErrorMessage(
+  error: unknown,
+  fallback = "Falha ao comunicar com o backend de contratos.",
+) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "context" in error &&
+    error.context instanceof Response
+  ) {
+    try {
+      const response = error.context.clone();
+      const contentType = response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const payload = await response.json();
+        if (payload && typeof payload === "object") {
+          if ("error" in payload && typeof payload.error === "string" && payload.error.trim()) {
+            return payload.error;
+          }
+
+          if ("message" in payload && typeof payload.message === "string" && payload.message.trim()) {
+            return payload.message;
+          }
+        }
+      }
+
+      const text = await response.text();
+      if (text.trim()) {
+        return text.trim();
+      }
+    } catch {
+      return getContractErrorMessage(error, fallback);
+    }
+  }
+
+  return getContractErrorMessage(error, fallback);
+}
+
 function drawWrappedText(
   doc: jsPDF,
   text: string,
@@ -1161,7 +1200,11 @@ export default function Contratos() {
       });
 
       if (error) {
-        throw new Error(error.message || "Falha ao comunicar com o backend de contratos.");
+        const message = await extractFunctionErrorMessage(
+          error,
+          "Falha ao comunicar com o backend de contratos.",
+        );
+        throw new Error(message);
       }
 
       if (data?.error) {
