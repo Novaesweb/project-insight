@@ -11,7 +11,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     const checkAccess = async () => {
-      const session = await getCompatibleAdminSession();
+      const session = await getCompatibleAdminSession({
+        allowRefresh: true,
+        clearInvalidLocalSession: false,
+      });
 
       if (!session) {
         setAuthenticated(false);

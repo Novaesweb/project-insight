@@ -7,6 +7,7 @@ export const ADMIN_SESSION_RECOVERY_EVENT = "novaesweb:admin-session-recovery";
 export const ADMIN_SESSION_RESTORED_EVENT = "novaesweb:admin-session-restored";
 export const ADMIN_RETURN_TO_STORAGE_KEY = "novaesweb:admin:return-to";
 const ADMIN_SESSION_REFRESH_THROTTLE_MS = 45_000;
+const ADMIN_SESSION_REFRESH_RETRY_DELAY_MS = 350;
 
 let lastAdminSessionRefreshAt = 0;
 
@@ -130,6 +131,39 @@ async function signOutLocalSession() {
   }
 }
 
+async function attemptAdminSessionRefresh() {
+  const refreshed = await supabase.auth.refreshSession();
+  const refreshedSession = refreshed.data.session;
+
+  if (!refreshed.error && refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
+    lastAdminSessionRefreshAt = Date.now();
+    return refreshedSession;
+  }
+
+  return null;
+}
+
+export async function refreshAdminSessionSilently({
+  force = false,
+}: {
+  force?: boolean;
+} = {}) {
+  if (!force && Date.now() - lastAdminSessionRefreshAt <= ADMIN_SESSION_REFRESH_THROTTLE_MS) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session ?? null;
+  }
+
+  const firstAttempt = await attemptAdminSessionRefresh();
+  if (firstAttempt) {
+    return firstAttempt;
+  }
+
+  await new Promise((resolve) => window.setTimeout(resolve, ADMIN_SESSION_REFRESH_RETRY_DELAY_MS));
+  return attemptAdminSessionRefresh();
+}
+
 export function storeAdminReturnTo(path: string) {
   if (typeof window === "undefined") return;
   sessionStorage.setItem(ADMIN_RETURN_TO_STORAGE_KEY, path);
@@ -196,11 +230,9 @@ export async function getCompatibleAdminSession({
 
   const nowInSeconds = Math.floor(Date.now() / 1000);
   if (session.expires_at && session.expires_at <= nowInSeconds + 60) {
-    const refreshed = await supabase.auth.refreshSession();
-    const refreshedSession = refreshed.data.session;
+    const refreshedSession = await refreshAdminSessionSilently({ force: true });
 
-    if (!refreshed.error && refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
-      lastAdminSessionRefreshAt = Date.now();
+    if (refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
       return refreshedSession;
     }
 
@@ -288,11 +320,9 @@ async function ensureSessionForAdminCall(forceRefresh = false) {
     return session;
   }
 
-  const refreshed = await supabase.auth.refreshSession();
-  const refreshedSession = refreshed.data.session;
+  const refreshedSession = await refreshAdminSessionSilently({ force: true });
 
-  if (!refreshed.error && refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
-    lastAdminSessionRefreshAt = Date.now();
+  if (refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
     return refreshedSession;
   }
 

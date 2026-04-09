@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ADMIN_SESSION_RECOVERY_EVENT,
   ADMIN_SESSION_RESTORED_EVENT,
+  refreshAdminSessionSilently,
   storeAdminReturnTo,
 } from "@/lib/admin-function-client";
 import { cn } from "@/lib/utils";
@@ -256,6 +257,47 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     }
   }, [sessionEmail, sessionRecoveryEmail, sessionRecoveryOpen]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const keepSessionAlive = async () => {
+      if (cancelled || sessionRecoveryOpen) return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+
+      try {
+        await refreshAdminSessionSilently({ force: true });
+      } catch {
+        void 0;
+      }
+    };
+
+    void keepSessionAlive();
+
+    const interval = window.setInterval(() => {
+      void keepSessionAlive();
+    }, 4 * 60 * 1000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void keepSessionAlive();
+      }
+    };
+
+    const handleFocus = () => {
+      void keepSessionAlive();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [sessionRecoveryOpen]);
+
   const handleSessionRecovery = async () => {
     const normalizedEmail = sessionRecoveryEmail.trim().toLowerCase();
     if (!normalizedEmail || !sessionRecoveryPassword.trim()) {
@@ -475,7 +517,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
               onClick={handleSessionRecovery}
               disabled={sessionRecoveryLoading}
             >
-              {sessionRecoveryLoading ? "Redirecionando..." : "Entrar novamente"}
+              {sessionRecoveryLoading ? "Renovando sessão..." : "Entrar novamente"}
             </Button>
           </DialogFooter>
         </DialogContent>

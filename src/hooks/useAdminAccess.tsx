@@ -54,7 +54,10 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
 
-    const session = await getCompatibleAdminSession();
+    const session = await getCompatibleAdminSession({
+      allowRefresh: true,
+      clearInvalidLocalSession: false,
+    });
 
     if (!session) {
       setCurrentUser(null);

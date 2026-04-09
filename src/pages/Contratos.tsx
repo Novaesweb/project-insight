@@ -2052,8 +2052,15 @@ export default function Contratos() {
               : "Rascunho salvo. Você pode continuar depois."
             : editingBuilderContract
               ? "Contrato mestre atualizado!"
-              : "Contrato mestre salvo no cofre!",
+            : "Contrato mestre salvo no cofre!",
         });
+      }
+
+      if (requireCompleteValidation) {
+        setCofreFilter("ativos");
+        setSearchTerm("");
+        setMobileSummaryOpen(false);
+        setTab("lista");
       }
     } catch (error) {
       if (!silent) {
