@@ -54,11 +54,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useContractsRealtime } from "@/hooks/useContractsRealtime";
 import { useToast } from "@/hooks/use-toast";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { invokeAdminFunction, refreshAdminSessionSilently } from "@/lib/admin-function-client";
+import { refreshAdminSessionSilently } from "@/lib/admin-function-client";
 import {
   buildContractClauseExplanations,
   buildProposalSummary,
@@ -87,6 +87,12 @@ import {
   saveContractRecoverySnapshot,
   type ContractRecoveryOriginAction,
 } from "@/lib/contract-recovery";
+import {
+  CONTRACT_STATUS_ORDER,
+  getContractStatusBadgeClass,
+  getContractStatusColor,
+  getContractStatusLabel,
+} from "@/lib/contract-status";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 
@@ -112,20 +118,6 @@ const BUILDER_TEMPLATE_ID = "novaesweb-contrato-mestre";
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
-
-const statusColors: Record<string, string> = {
-  aguardando: "#4ade80",
-  assinado: "#4ade80",
-  cancelado: "#ef4444",
-  rascunho: "#94a3b8",
-};
-
-const statusLabels: Record<string, string> = {
-  aguardando: "Enviado",
-  assinado: "Assinado",
-  cancelado: "Cancelado",
-  rascunho: "Rascunho",
 };
 
 const builderGroupTitles: Record<string, string> = {
@@ -970,12 +962,80 @@ function BuilderPreviewDocument({
   );
 }
 
+function ContractLifecycleTimeline({
+  status,
+  dataEnvio,
+  dataVisualizacao,
+  dataAssinatura,
+}: {
+  status: string;
+  dataEnvio?: string | null;
+  dataVisualizacao?: string | null;
+  dataAssinatura?: string | null;
+}) {
+  const steps = [
+    { id: "rascunho", label: "Rascunho", date: null },
+    { id: "enviado", label: "Enviado", date: dataEnvio },
+    { id: "visualizado", label: "Visualizado", date: dataVisualizacao },
+    { id: "assinado", label: "Assinado", date: dataAssinatura },
+  ];
+  const activeIndex = Math.min(
+    Math.max(CONTRACT_STATUS_ORDER.indexOf(status as (typeof CONTRACT_STATUS_ORDER)[number]), 0),
+    steps.length - 1,
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Ciclo do contrato</p>
+        <Badge variant="outline" className={getContractStatusBadgeClass(status)}>
+          {getContractStatusLabel(status)}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+        {steps.map((step, index) => {
+          const isActive = index <= activeIndex;
+          const isCurrent = steps[activeIndex]?.id === step.id;
+
+          return (
+            <div
+              key={step.id}
+              className={`rounded-2xl border p-3 transition-all ${
+                isCurrent
+                  ? "border-fuchsia-300/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.26),rgba(232,51,74,0.18),rgba(194,24,91,0.2))] shadow-[0_16px_32px_rgba(194,24,91,0.18)]"
+                  : isActive
+                    ? "border-emerald-300/20 bg-emerald-300/10"
+                    : "border-white/10 bg-white/[0.03]"
+              }`}
+            >
+              <p className="text-xs font-medium text-white">{step.label}</p>
+              <p className="mt-1 text-[11px] text-white/45">
+                {step.date ? formatContractDateTime(step.date) : isCurrent ? "Etapa atual" : "Pendente"}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function BuilderLiveSummary({
   summary,
   selectedCount,
+  syncState,
+  contractStatus,
+  contractDates,
 }: {
   summary: ContractProposalSummary | null;
   selectedCount: number;
+  syncState: "idle" | "saving" | "saved" | "error";
+  contractStatus?: string | null;
+  contractDates?: {
+    dataEnvio?: string | null;
+    dataVisualizacao?: string | null;
+    dataAssinatura?: string | null;
+  };
 }) {
   if (!summary) {
     return (
@@ -999,19 +1059,32 @@ function BuilderLiveSummary({
   }, {});
 
   return (
-    <Card className="glass-card overflow-hidden border-[0.5px] border-cyan-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.98),rgba(17,15,24,0.85))] shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
-      <CardHeader className="border-b border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(34,211,238,0.12))]">
+    <Card className="glass-card overflow-hidden border-[0.5px] border-fuchsia-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.98),rgba(17,15,24,0.85))] shadow-[0_20px_50px_rgba(35,8,52,0.5)]">
+      <CardHeader className="border-b border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(232,51,74,0.16),rgba(194,24,91,0.18))]">
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="text-sm text-white flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-cyan-300" /> Resumo ao vivo
+              <ShieldCheck className="w-4 h-4 text-fuchsia-200" /> Resumo ao vivo
             </CardTitle>
             <CardDescription className="text-xs text-white/50">
               {selectedCount} item(ns) contratado(s) na proposta atual.
             </CardDescription>
           </div>
-          <Badge variant="outline" className="border-cyan-400/20 bg-cyan-400/10 text-cyan-100">
-            Workspace premium
+          <Badge
+            variant="outline"
+            className={
+              syncState === "saving"
+                ? "border-fuchsia-300/20 bg-fuchsia-300/10 text-fuchsia-100"
+                : syncState === "error"
+                  ? "border-red-300/20 bg-red-300/10 text-red-100"
+                  : "border-white/15 bg-white/10 text-white/80"
+            }
+          >
+            {syncState === "saving"
+              ? "Sincronizando"
+              : syncState === "error"
+                ? "Falha no sync"
+                : "NovaesWeb live"}
           </Badge>
         </div>
       </CardHeader>
@@ -1058,6 +1131,15 @@ function BuilderLiveSummary({
           </div>
         </div>
 
+        {contractStatus && (
+          <ContractLifecycleTimeline
+            status={contractStatus}
+            dataEnvio={contractDates?.dataEnvio}
+            dataVisualizacao={contractDates?.dataVisualizacao}
+            dataAssinatura={contractDates?.dataAssinatura}
+          />
+        )}
+
         {summary.selectedServices.length > 0 && (
           <div className="space-y-2">
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Extras selecionados</p>
@@ -1099,6 +1181,7 @@ export default function Contratos() {
   const [builderStep, setBuilderStep] = useState<ContractBuilderStepIndex>(0);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [cofreFilter, setCofreFilter] = useState<"ativos" | "arquivados">("ativos");
+  const [cofreStatusFilter, setCofreStatusFilter] = useState<"todos" | "rascunho" | "enviado" | "visualizado" | "assinado" | "cancelado">("todos");
   const [builderLastSavedSignature, setBuilderLastSavedSignature] = useState<string | null>(null);
   const [builderLastSavedAt, setBuilderLastSavedAt] = useState<string | null>(null);
   const [versionsOpen, setVersionsOpen] = useState(false);
@@ -1109,10 +1192,56 @@ export default function Contratos() {
   const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
   const [moneyDrafts, setMoneyDrafts] = useState<Record<string, string>>({});
   const [builderRecoveredLocally, setBuilderRecoveredLocally] = useState(false);
+  const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const shouldReduceMotion = useReducedMotion();
   const contractRecoveryRestoredRef = useRef(false);
   const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
+  const contractRemoteAutosaveSignatureRef = useRef<string | null>(null);
   const masterTemplate = contractTemplates[0];
+
+  const decorateContrato = useCallback(
+    (contrato: Tables<"contratos"> | Contrato): Contrato => {
+      const clienteNome =
+        "clientes" in contrato && contrato.clientes?.nome
+          ? contrato.clientes.nome
+          : clientes.find((item) => item.id === contrato.cliente_id)?.nome || null;
+
+      return {
+        ...(contrato as Contrato),
+        clientes: clienteNome ? { nome: clienteNome } : null,
+      };
+    },
+    [clientes],
+  );
+
+  const sortContratosByUpdatedAt = useCallback((items: Contrato[]) => {
+    return [...items].sort((left, right) => {
+      const leftDate = new Date(left.updated_at || left.created_at).getTime();
+      const rightDate = new Date(right.updated_at || right.created_at).getTime();
+      return rightDate - leftDate;
+    });
+  }, []);
+
+  const upsertContratoState = useCallback(
+    (contrato: Tables<"contratos"> | Contrato) => {
+      const decorated = decorateContrato(contrato);
+      setContratos((current) => {
+        const next = current.filter((item) => item.id !== decorated.id);
+        next.unshift(decorated);
+        return sortContratosByUpdatedAt(next);
+      });
+      setEditingBuilderContract((current) => (current?.id === decorated.id ? decorated : current));
+      setVersionsContract((current) => (current?.id === decorated.id ? decorated : current));
+      return decorated;
+    },
+    [decorateContrato, sortContratosByUpdatedAt],
+  );
+
+  const removeContratoState = useCallback((contractId: string) => {
+    setContratos((current) => current.filter((item) => item.id !== contractId));
+    setEditingBuilderContract((current) => (current?.id === contractId ? null : current));
+    setVersionsContract((current) => (current?.id === contractId ? null : current));
+  }, []);
 
   const syncBuilderSavedState = useCallback(
     (
@@ -1123,7 +1252,9 @@ export default function Contratos() {
       setBuilderLastSavedSignature(buildBuilderDirtySignature(payload, step));
       setBuilderLastSavedAt(savedAt || null);
       setBuilderRecoveredLocally(false);
+      setBuilderRemoteAutosaveState(savedAt ? "saved" : "idle");
       contractRecoveryAutosaveSignatureRef.current = buildBuilderDirtySignature(payload, step);
+      contractRemoteAutosaveSignatureRef.current = buildBuilderDirtySignature(payload, step);
     },
     [],
   );
@@ -1161,10 +1292,10 @@ export default function Contratos() {
       .eq("modelo", BUILDER_TEMPLATE_ID)
       .order("updated_at", { ascending: false })
       .then(({ data }) => {
-        setContratos((data as Contrato[]) || []);
+        setContratos(sortContratosByUpdatedAt(((data as Contrato[]) || []).map((item) => decorateContrato(item))));
         setContratosLoaded(true);
       });
-  }, []);
+  }, [decorateContrato, sortContratosByUpdatedAt]);
 
   const loadClientes = useCallback(() => {
     supabase
@@ -1196,7 +1327,17 @@ export default function Contratos() {
     void loadExtrasCatalogo();
   }, [loadContratos, loadClientes, loadExtrasCatalogo]);
 
-  useRealtimeSubscription("contratos", loadContratos);
+  useContractsRealtime({
+    channelName: "contracts-admin-realtime",
+    filter: `modelo=eq.${BUILDER_TEMPLATE_ID}`,
+    enabled: contratosLoaded,
+    onUpsert: (contrato) => {
+      upsertContratoState(contrato);
+    },
+    onDelete: (contractId) => {
+      removeContratoState(contractId);
+    },
+  });
 
   useEffect(() => {
     if (!builderPayload && extrasLoaded) {
@@ -1294,34 +1435,19 @@ export default function Contratos() {
     setPreviewOpen(true);
   };
 
-  const invokeContractMutation = useCallback(
-    async <T,>(
-      payload: Record<string, unknown>,
-      options?: {
-        onInvalidSession?: () => Promise<void> | void;
-      },
-    ) =>
-      invokeAdminFunction<T>("manage-contract-builder", {
-        body: payload,
-        returnTo: "/admin/contratos",
-        source: "contract-builder",
-        fallbackMessage: "Falha ao comunicar com o backend de contratos.",
-        onInvalidSession: options?.onInvalidSession,
-      }),
-    [],
-  );
-
   const saveBuilderContractDirectly = useCallback(
     async ({
       contractId,
       payloadToPersist,
+      createVersionSnapshot = true,
     }: {
       contractId: string | null;
       payloadToPersist: Record<string, unknown>;
+      createVersionSnapshot?: boolean;
     }) => {
       await refreshAdminSessionSilently({ force: false });
 
-      if (contractId) {
+      if (contractId && createVersionSnapshot) {
         const { data: latestVersion, error: latestVersionError } = await supabase
           .from("contrato_versions")
           .select("version_number")
@@ -1370,6 +1496,22 @@ export default function Contratos() {
         return data as Contrato;
       }
 
+      if (contractId) {
+        const { data, error } = await supabase
+          .from("contratos")
+          .update(payloadToPersist as any)
+          .eq("id", contractId)
+          .eq("modelo", BUILDER_TEMPLATE_ID)
+          .select("*, clientes(nome)")
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        return data as Contrato;
+      }
+
       const { data, error } = await supabase
         .from("contratos")
         .insert(payloadToPersist as any)
@@ -1393,8 +1535,9 @@ export default function Contratos() {
       const { data, error } = await supabase
         .from("contratos")
         .update({
-          status: "aguardando",
+          status: "enviado",
           data_envio: sentAt.slice(0, 10),
+          data_visualizacao: null,
           archived_at: null,
           updated_at: sentAt,
         } as any)
@@ -1444,11 +1587,20 @@ export default function Contratos() {
   const handleArchiveContract = useCallback(
     async (contrato: Contrato) => {
       try {
-        const response = await invokeContractMutation<{ contrato: Contrato }>({
-          action: "archive",
-          contractId: contrato.id,
-        });
-        const updatedContrato = response.contrato;
+        await refreshAdminSessionSilently({ force: false });
+        const { data, error } = await supabase
+          .from("contratos")
+          .update({
+            archived_at: new Date().toISOString(),
+          } as any)
+          .eq("id", contrato.id)
+          .eq("modelo", BUILDER_TEMPLATE_ID)
+          .select("*, clientes(nome)")
+          .single();
+
+        if (error) throw error;
+
+        const updatedContrato = upsertContratoState(data as Contrato);
 
         if (editingBuilderContract?.id === contrato.id) {
           setEditingBuilderContract(updatedContrato);
@@ -1456,7 +1608,6 @@ export default function Contratos() {
 
         setVersionsContract((current) => (current?.id === contrato.id ? updatedContrato : current));
         toast({ title: "Contrato arquivado no cofre" });
-        loadContratos();
       } catch (error) {
         toast({
           title: "Erro ao arquivar contrato",
@@ -1465,17 +1616,26 @@ export default function Contratos() {
         });
       }
     },
-    [editingBuilderContract?.id, invokeContractMutation, loadContratos, toast],
+    [editingBuilderContract?.id, toast, upsertContratoState],
   );
 
   const handleUnarchiveContract = useCallback(
     async (contrato: Contrato) => {
       try {
-        const response = await invokeContractMutation<{ contrato: Contrato }>({
-          action: "unarchive",
-          contractId: contrato.id,
-        });
-        const updatedContrato = response.contrato;
+        await refreshAdminSessionSilently({ force: false });
+        const { data, error } = await supabase
+          .from("contratos")
+          .update({
+            archived_at: null,
+          } as any)
+          .eq("id", contrato.id)
+          .eq("modelo", BUILDER_TEMPLATE_ID)
+          .select("*, clientes(nome)")
+          .single();
+
+        if (error) throw error;
+
+        const updatedContrato = upsertContratoState(data as Contrato);
 
         if (editingBuilderContract?.id === contrato.id) {
           setEditingBuilderContract(updatedContrato);
@@ -1483,7 +1643,6 @@ export default function Contratos() {
 
         setVersionsContract((current) => (current?.id === contrato.id ? updatedContrato : current));
         toast({ title: "Contrato retornou para a lista principal" });
-        loadContratos();
       } catch (error) {
         toast({
           title: "Erro ao desarquivar contrato",
@@ -1492,7 +1651,7 @@ export default function Contratos() {
         });
       }
     },
-    [editingBuilderContract?.id, invokeContractMutation, loadContratos, toast],
+    [editingBuilderContract?.id, toast, upsertContratoState],
   );
 
   const handleDeleteDraft = useCallback(async () => {
@@ -1500,10 +1659,15 @@ export default function Contratos() {
 
     const target = deleteTarget;
     try {
-      await invokeContractMutation({
-        action: "delete-draft",
-        contractId: target.id,
-      });
+      await refreshAdminSessionSilently({ force: false });
+      const { error } = await supabase
+        .from("contratos")
+        .delete()
+        .eq("id", target.id)
+        .eq("modelo", BUILDER_TEMPLATE_ID)
+        .eq("status", "rascunho");
+
+      if (error) throw error;
 
       if (editingBuilderContract?.id === target.id) {
         if (extrasLoaded) {
@@ -1523,8 +1687,8 @@ export default function Contratos() {
       setVersionsOpen((current) => (versionsContract?.id === target.id ? false : current));
       setVersionsContract((current) => (current?.id === target.id ? null : current));
       setCompareVersion((current) => (current && versionsContract?.id === target.id ? null : current));
+      removeContratoState(target.id);
       toast({ title: "Rascunho excluído do cofre" });
-      loadContratos();
     } catch (error) {
       toast({
         title: "Erro ao excluir rascunho",
@@ -1532,7 +1696,7 @@ export default function Contratos() {
         variant: "destructive",
       });
     }
-  }, [deleteTarget, editingBuilderContract?.id, extrasCatalogo, extrasLoaded, invokeContractMutation, loadContratos, syncBuilderSavedState, toast, versionsContract?.id]);
+  }, [deleteTarget, editingBuilderContract?.id, extrasCatalogo, extrasLoaded, removeContratoState, syncBuilderSavedState, toast, versionsContract?.id]);
 
   const handleSendContractToClient = useCallback(
     async (contrato?: Contrato | null) => {
@@ -1562,14 +1726,11 @@ export default function Contratos() {
         setEditingBuilderContract((current) =>
           current?.id === updatedContrato.id ? updatedContrato : current,
         );
-        setContratos((current) =>
-          current.map((item) => (item.id === updatedContrato.id ? updatedContrato : item)),
-        );
-        loadContratos();
+        upsertContratoState(updatedContrato);
 
         toast({
           title:
-            target.status === "aguardando"
+            target.status === "enviado" || target.status === "visualizado"
               ? "Contrato enviado atualizado"
               : "Contrato enviado ao cliente",
           description: "O contrato já está disponível no portal do cliente para visualização e download.",
@@ -1585,7 +1746,7 @@ export default function Contratos() {
         return false;
       }
     },
-    [editingBuilderContract, loadContratos, sendBuilderContractToClientDirectly, toast],
+    [editingBuilderContract, sendBuilderContractToClientDirectly, toast, upsertContratoState],
   );
 
   const handleRestoreVersion = useCallback(
@@ -1762,6 +1923,8 @@ export default function Contratos() {
     setBuilderStep(0);
     setMobileSummaryOpen(false);
     setMoneyDrafts({});
+    setBuilderRemoteAutosaveState("idle");
+    contractRemoteAutosaveSignatureRef.current = null;
     syncBuilderSavedState(emptyPayload, 0, null);
     clearContractRecoverySnapshot();
     setTab("montador");
@@ -1809,6 +1972,7 @@ export default function Contratos() {
     setBuilderStep(restoredStep);
     setMobileSummaryOpen(false);
     setMoneyDrafts({});
+    setBuilderRemoteAutosaveState("saved");
     syncBuilderSavedState(payload, restoredStep, contrato.updated_at || contrato.created_at);
     setTab("montador");
   };
@@ -2033,14 +2197,16 @@ export default function Contratos() {
     setBuilderStep(nextStep);
   };
 
-  const persistBuilderDraft = async ({
+  const persistBuilderDraft = useCallback(async ({
     exitAfterSave = false,
     requireCompleteValidation = false,
     silent = false,
+    autosaveRemote = false,
   }: {
     exitAfterSave?: boolean;
     requireCompleteValidation?: boolean;
     silent?: boolean;
+    autosaveRemote?: boolean;
   } = {}) => {
     const currentPayload = syncMoneyDraftsToState();
     if (!currentPayload) return false;
@@ -2081,12 +2247,16 @@ export default function Contratos() {
     );
 
     const nowIso = new Date().toISOString();
+    const persistedStatus =
+      editingBuilderContract?.status && editingBuilderContract.status !== "cancelado"
+        ? editingBuilderContract.status
+        : "rascunho";
     const payloadToPersist = {
       cliente_id: prepared.normalizedPayload.clienteId || null,
       titulo: prepared.title,
       descricao: prepared.description,
       valor: prepared.value,
-      status: editingBuilderContract?.status === "aguardando" ? "aguardando" : "rascunho",
+      status: persistedStatus,
       corpo: prepared.body,
       modelo: BUILDER_TEMPLATE_ID,
       builder_payload: prepared.normalizedPayload as any,
@@ -2095,9 +2265,13 @@ export default function Contratos() {
     };
 
     try {
+      if (autosaveRemote) {
+        setBuilderRemoteAutosaveState("saving");
+      }
       const savedContrato = await saveBuilderContractDirectly({
         contractId: editingBuilderContract?.id ?? null,
         payloadToPersist,
+        createVersionSnapshot: !autosaveRemote,
       });
       const savedPayload = normalizeBuilderPayload(
         savedContrato.builder_payload,
@@ -2114,7 +2288,10 @@ export default function Contratos() {
         savedPayload.lastStep,
         savedContrato.updated_at || nowIso,
       );
-      clearContractRecoverySnapshot();
+      upsertContratoState(savedContrato);
+      if (!autosaveRemote) {
+        clearContractRecoverySnapshot();
+      }
       if (!silent) {
         toast({
           title: exitAfterSave
@@ -2125,6 +2302,9 @@ export default function Contratos() {
               ? "Contrato mestre atualizado!"
             : "Contrato mestre salvo no cofre!",
         });
+      }
+      if (autosaveRemote) {
+        setBuilderRemoteAutosaveState("saved");
       }
 
       if (requireCompleteValidation) {
@@ -2141,10 +2321,11 @@ export default function Contratos() {
           variant: "destructive",
         });
       }
+      if (autosaveRemote) {
+        setBuilderRemoteAutosaveState("error");
+      }
       return false;
     }
-
-    loadContratos();
 
     if (exitAfterSave) {
       setMobileSummaryOpen(false);
@@ -2152,7 +2333,18 @@ export default function Contratos() {
     }
 
     return true;
-  };
+  }, [
+    builderStep,
+    editingBuilderContract,
+    extrasCatalogo,
+    saveBuilderContractDirectly,
+    saveBuilderRecoveryLocally,
+    syncBuilderSavedState,
+    syncMoneyDraftsToState,
+    toast,
+    upsertContratoState,
+    validateBuilderAll,
+  ]);
 
   const handleSaveBuilder = async () => {
     await persistBuilderDraft({ requireCompleteValidation: true });
@@ -2161,6 +2353,31 @@ export default function Contratos() {
   const handleSaveBuilderAndExit = async () => {
     await persistBuilderDraft({ exitAfterSave: true });
   };
+
+  useEffect(() => {
+    if (!workingBuilderPayload) return;
+    if (!workingBuilderPayload.clienteId) return;
+    if (!hasMeaningfulBuilderState(workingBuilderPayload) && !editingBuilderContract?.id) return;
+
+    const payloadSignature = buildBuilderDirtySignature(workingBuilderPayload, builderStep);
+    if (contractRemoteAutosaveSignatureRef.current === payloadSignature) return;
+    if (builderRemoteAutosaveState === "saving") return;
+
+    const timer = window.setTimeout(() => {
+      void persistBuilderDraft({
+        silent: true,
+        autosaveRemote: true,
+      });
+    }, editingBuilderContract?.id ? 2200 : 1400);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    builderRemoteAutosaveState,
+    builderStep,
+    editingBuilderContract?.id,
+    persistBuilderDraft,
+    workingBuilderPayload,
+  ]);
 
   const handleBuilderPdfDownload = () => {
     const currentPayload = syncMoneyDraftsToState();
@@ -2228,11 +2445,27 @@ export default function Contratos() {
   }, [builderDirtySignature, builderLastSavedSignature, builderRecoveredLocally]);
 
   const builderStatusLabel = useMemo(() => {
+    if (builderRemoteAutosaveState === "saving") {
+      return {
+        tone: "syncing" as const,
+        title: "Sincronizando rascunho",
+        subtitle: "O cofre está recebendo a versão mais recente da proposta.",
+      };
+    }
+
     if (builderHasUnsavedChanges) {
       return {
         tone: "warning" as const,
         title: "Alterações não salvas",
-        subtitle: "Salve o rascunho para atualizar o cofre e a etapa atual.",
+        subtitle: "O autosave local protege a proposta. O cofre será sincronizado em seguida.",
+      };
+    }
+
+    if (builderRemoteAutosaveState === "error") {
+      return {
+        tone: "warning" as const,
+        title: "Falha de sincronização",
+        subtitle: "O rascunho local foi preservado. Tente salvar novamente para atualizar o cofre.",
       };
     }
 
@@ -2240,8 +2473,8 @@ export default function Contratos() {
       const formattedClock = formatContractClock(builderLastSavedAt);
       return {
         tone: "saved" as const,
-        title: "Rascunho salvo",
-        subtitle: formattedClock ? `Salvo às ${formattedClock}` : "Salvo no cofre",
+        title: editingBuilderContract ? "Sincronizado com o cofre" : "Rascunho salvo",
+        subtitle: formattedClock ? `Sincronizado às ${formattedClock}` : "Salvo no cofre",
       };
     }
 
@@ -2250,7 +2483,7 @@ export default function Contratos() {
       title: "Novo rascunho",
       subtitle: "Ainda não existe uma proposta salva no cofre.",
     };
-  }, [builderHasUnsavedChanges, builderLastSavedAt]);
+  }, [builderHasUnsavedChanges, builderLastSavedAt, builderRemoteAutosaveState, editingBuilderContract]);
 
   const filteredContratos = useMemo(
     () =>
@@ -2258,6 +2491,7 @@ export default function Contratos() {
         const isArchived = Boolean(contrato.archived_at);
         if (cofreFilter === "ativos" && isArchived) return false;
         if (cofreFilter === "arquivados" && !isArchived) return false;
+        if (cofreStatusFilter !== "todos" && contrato.status !== cofreStatusFilter) return false;
 
         const term = searchTerm.trim().toLowerCase();
         if (!term) return true;
@@ -2267,7 +2501,7 @@ export default function Contratos() {
           (contrato.clientes as any)?.nome?.toLowerCase().includes(term)
         );
       }),
-    [cofreFilter, contratos, searchTerm],
+    [cofreFilter, cofreStatusFilter, contratos, searchTerm],
   );
 
   const activeContractsCount = useMemo(
@@ -2277,6 +2511,15 @@ export default function Contratos() {
 
   const archivedContractsCount = useMemo(
     () => contratos.filter((contrato) => Boolean(contrato.archived_at)).length,
+    [contratos],
+  );
+
+  const contractStatusCounts = useMemo(
+    () =>
+      contratos.reduce<Record<string, number>>((acc, contrato) => {
+        acc[contrato.status] = (acc[contrato.status] || 0) + 1;
+        return acc;
+      }, {}),
     [contratos],
   );
 
@@ -2346,7 +2589,7 @@ export default function Contratos() {
           </div>
 
           <TabsContent value="lista">
-            <Card className="glass-card border-[0.5px]">
+            <Card className="glass-card overflow-hidden border-[0.5px] border-fuchsia-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.98),rgba(17,15,24,0.9))]">
               <CardHeader>
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
@@ -2357,6 +2600,17 @@ export default function Contratos() {
                       Somente contratos gerados pelo montador interativo
                     </CardDescription>
                   </div>
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[hsl(var(--muted-foreground))]" />
+                    <Input
+                      placeholder="Buscar contrato mestre..."
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      className="pl-9 glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-xs h-9"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3 pt-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Button
                       size="sm"
@@ -2382,146 +2636,175 @@ export default function Contratos() {
                     >
                       Arquivados ({archivedContractsCount})
                     </Button>
-                    <div className="relative w-64">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[hsl(var(--muted-foreground))]" />
-                      <Input
-                        placeholder="Buscar contrato mestre..."
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        className="pl-9 glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-xs h-8"
-                      />
-                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`border-white/10 text-xs ${
+                        cofreStatusFilter === "todos"
+                          ? "bg-white/10 text-white"
+                          : "bg-white/[0.03] text-white/65 hover:bg-white/10"
+                      }`}
+                      onClick={() => setCofreStatusFilter("todos")}
+                    >
+                      Todos ({contratos.length})
+                    </Button>
+                    {CONTRACT_STATUS_ORDER.map((status) => (
+                      <Button
+                        key={status}
+                        size="sm"
+                        variant="outline"
+                        className={`border-white/10 text-xs ${
+                          cofreStatusFilter === status
+                            ? `${getContractStatusBadgeClass(status)}`
+                            : "bg-white/[0.03] text-white/65 hover:bg-white/10"
+                        }`}
+                        onClick={() => setCofreStatusFilter(status)}
+                      >
+                        {getContractStatusLabel(status)} ({contractStatusCounts[status] || 0})
+                      </Button>
+                    ))}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {filteredContratos.map((contrato) => (
                   <div
                     key={contrato.id}
-                    className="flex items-center justify-between gap-4 p-3 rounded-lg"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
+                    className="rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.12),rgba(232,51,74,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_18px_40px_rgba(26,8,40,0.28)]"
                   >
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleViewContrato(contrato)}>
-                      <FileText className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                      <div>
-                        <p className="text-sm font-medium text-[hsl(var(--foreground))]">{contrato.titulo}</p>
-                        <div className="flex items-center gap-2 flex-wrap text-[11px] text-[hsl(var(--muted-foreground))]">
-                          <span>{(contrato.clientes as any)?.nome || "Cliente"}</span>
-                          <span>•</span>
-                          <span>Valor: R$ {formatContratoValue(contrato.valor)}</span>
-                          <span>•</span>
-                          <span>{formatContractDateTime(contrato.updated_at || contrato.created_at)}</span>
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="min-w-0 space-y-4">
+                        <div className="flex items-start gap-3 cursor-pointer" onClick={() => handleViewContrato(contrato)}>
+                          <div className="mt-1 rounded-2xl border border-white/10 bg-white/[0.05] p-2">
+                            <FileText className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-semibold text-[hsl(var(--foreground))] truncate">{contrato.titulo}</p>
+                              <Badge variant="outline" className={getContractStatusBadgeClass(contrato.status)}>
+                                {getContractStatusLabel(contrato.status)}
+                              </Badge>
+                              {contrato.archived_at && (
+                                <Badge variant="outline" className="border-amber-300/10 px-2 bg-amber-300/10 text-amber-200">
+                                  Arquivado
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px] text-[hsl(var(--muted-foreground))]">
+                              <span>{(contrato.clientes as any)?.nome || "Cliente"}</span>
+                              <span>•</span>
+                              <span>Valor: R$ {formatContratoValue(contrato.valor)}</span>
+                              <span>•</span>
+                              <span>{formatContractDateTime(contrato.updated_at || contrato.created_at)}</span>
+                            </div>
+                          </div>
                         </div>
+                        <ContractLifecycleTimeline
+                          status={contrato.status}
+                          dataEnvio={contrato.data_envio}
+                          dataVisualizacao={contrato.data_visualizacao}
+                          dataAssinatura={contrato.data_assinatura}
+                        />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap justify-end">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-primary hover:text-primary text-xs h-7 px-2"
-                        title="Abrir montador"
-                        onClick={() => openBuilderContract(contrato)}
-                      >
-                        <FilePenLine className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-white/40 hover:text-white text-xs h-7 px-2"
-                        title="Ver contrato"
-                        onClick={() => handleViewContrato(contrato)}
-                      >
-                        <Lock className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-white/40 hover:text-white text-xs h-7 px-2"
-                        title="Baixar PDF"
-                        onClick={() =>
-                          generateContractPDF(
-                            contrato.titulo,
-                            (contrato as any).corpo || contrato.descricao || "",
-                            {
-                              assinaturaAdmin: (contrato as any).assinatura_admin,
-                              assinaturaCliente: (contrato as any).assinatura_cliente,
-                              proposal: normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
-                            },
-                          )
-                        }
-                      >
-                        <Download className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-white/40 hover:text-white text-xs h-7 px-2"
-                        title="Baixar Word"
-                        onClick={() =>
-                          downloadWordDocument(
-                            contrato.titulo,
-                            (contrato as any).corpo || contrato.descricao || "",
-                            normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
-                          )
-                        }
-                      >
-                        <FileText className="w-3 h-3" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                      <div className="flex items-center gap-2 flex-wrap justify-end xl:max-w-[260px] xl:justify-start">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-primary hover:text-primary text-xs h-8 px-3"
+                          title="Abrir montador"
+                          onClick={() => openBuilderContract(contrato)}
+                        >
+                          <FilePenLine className="w-3.5 h-3.5 mr-1.5" /> Editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-white/60 hover:text-white text-xs h-8 px-3"
+                          title="Ver contrato"
+                          onClick={() => handleViewContrato(contrato)}
+                        >
+                          <Lock className="w-3.5 h-3.5 mr-1.5" /> Visualizar
+                        </Button>
+                        {!contrato.archived_at && (
                           <Button
                             size="sm"
-                            variant="ghost"
-                            className="text-white/40 hover:text-white text-xs h-7 px-2"
-                            title="Mais ações"
+                            variant="outline"
+                            className="border-emerald-300/20 bg-emerald-300/10 text-emerald-100 hover:bg-emerald-300/20"
+                            onClick={() => void handleSendContractToClient(contrato)}
                           >
-                            <MoreHorizontal className="w-3 h-3" />
+                            <Send className="w-3.5 h-3.5 mr-1.5" />
+                            {contrato.status === "enviado" || contrato.status === "visualizado"
+                              ? "Atualizar envio"
+                              : "Enviar"}
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuItem onClick={() => handleOpenVersions(contrato)}>
-                            <History className="w-4 h-4 mr-2" /> Histórico de versões
-                          </DropdownMenuItem>
-                          {!contrato.archived_at && (
-                            <DropdownMenuItem onClick={() => void handleSendContractToClient(contrato)}>
-                              <Send className="w-4 h-4 mr-2" />
-                              {contrato.status === "aguardando" ? "Atualizar leitura do cliente" : "Enviar leitura ao cliente"}
-                            </DropdownMenuItem>
-                          )}
-                          {contrato.archived_at ? (
-                            <DropdownMenuItem onClick={() => handleUnarchiveContract(contrato)}>
-                              <RotateCcw className="w-4 h-4 mr-2" /> Desarquivar
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => handleArchiveContract(contrato)}>
-                              <Archive className="w-4 h-4 mr-2" /> Arquivar
-                            </DropdownMenuItem>
-                          )}
-                          {contrato.status === "rascunho" && (
-                            <DropdownMenuItem
-                              className="text-red-300 focus:text-red-200"
-                              onClick={() => setDeleteTarget(contrato)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" /> Excluir rascunho
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <Badge
-                        variant="outline"
-                        className="text-[9px] border-white/5 px-2 bg-white/5 text-white/60"
-                        style={{ color: statusColors[contrato.status] || "#94a3b8" }}
-                      >
-                        {statusLabels[contrato.status] || contrato.status}
-                      </Badge>
-                      {contrato.archived_at && (
-                        <Badge
-                          variant="outline"
-                          className="text-[9px] border-amber-300/10 px-2 bg-amber-300/10 text-amber-200"
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-white/60 hover:text-white text-xs h-8 px-3"
+                          title="Baixar PDF"
+                          onClick={() =>
+                            generateContractPDF(
+                              contrato.titulo,
+                              (contrato as any).corpo || contrato.descricao || "",
+                              {
+                                assinaturaAdmin: (contrato as any).assinatura_admin,
+                                assinaturaCliente: (contrato as any).assinatura_cliente,
+                                proposal: normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
+                              },
+                            )
+                          }
                         >
-                          Arquivado
-                        </Badge>
-                      )}
+                          <Download className="w-3.5 h-3.5 mr-1.5" /> PDF
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-white/60 hover:text-white text-xs h-8 px-3"
+                              title="Mais ações"
+                            >
+                              <MoreHorizontal className="w-3.5 h-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuItem onClick={() => handleOpenVersions(contrato)}>
+                              <History className="w-4 h-4 mr-2" /> Histórico de versões
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                downloadWordDocument(
+                                  contrato.titulo,
+                                  (contrato as any).corpo || contrato.descricao || "",
+                                  normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
+                                )
+                              }
+                            >
+                              <FileText className="w-4 h-4 mr-2" /> Baixar Word
+                            </DropdownMenuItem>
+                            {contrato.archived_at ? (
+                              <DropdownMenuItem onClick={() => handleUnarchiveContract(contrato)}>
+                                <RotateCcw className="w-4 h-4 mr-2" /> Desarquivar
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleArchiveContract(contrato)}>
+                                <Archive className="w-4 h-4 mr-2" /> Arquivar
+                              </DropdownMenuItem>
+                            )}
+                            {contrato.status === "rascunho" && (
+                              <DropdownMenuItem
+                                className="text-red-300 focus:text-red-200"
+                                onClick={() => setDeleteTarget(contrato)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" /> Excluir rascunho
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -2620,6 +2903,8 @@ export default function Contratos() {
                           className={
                             builderStatusLabel.tone === "warning"
                               ? "border-amber-300/20 bg-amber-300/10 text-amber-200"
+                              : builderStatusLabel.tone === "syncing"
+                                ? "border-fuchsia-300/20 bg-fuchsia-300/10 text-fuchsia-100"
                               : builderStatusLabel.tone === "saved"
                                 ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
                                 : "border-white/15 bg-white/10 text-white/70"
@@ -2678,7 +2963,7 @@ export default function Contratos() {
                           whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
                           className={`rounded-2xl border p-4 text-left transition-all ${
                             isActive
-                              ? "border-cyan-400/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(34,211,238,0.12))] shadow-[0_16px_32px_rgba(34,211,238,0.08)]"
+                              ? "border-fuchsia-300/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(232,51,74,0.14),rgba(194,24,91,0.16))] shadow-[0_16px_32px_rgba(194,24,91,0.16)]"
                               : isCompleted
                                 ? "border-emerald-400/25 bg-emerald-400/10"
                                 : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07] hover:border-white/20"
@@ -2713,7 +2998,7 @@ export default function Contratos() {
             <div className="xl:hidden fixed inset-x-4 bottom-4 z-30">
               <motion.div
                 layout
-                className="overflow-hidden rounded-[28px] border border-cyan-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.96),rgba(17,15,24,0.9))] shadow-[0_24px_60px_rgba(2,6,23,0.45)] backdrop-blur-xl"
+                className="overflow-hidden rounded-[28px] border border-fuchsia-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.96),rgba(17,15,24,0.9))] shadow-[0_24px_60px_rgba(47,11,64,0.42)] backdrop-blur-xl"
               >
                 <button
                   type="button"
@@ -2728,7 +3013,7 @@ export default function Contratos() {
                     <Badge variant="outline" className="border-white/10 bg-white/5 text-white/70">
                       {selectedItemsCount} item(ns)
                     </Badge>
-                    <span className="text-xs text-cyan-200">{mobileSummaryOpen ? "Recolher" : "Expandir"}</span>
+                    <span className="text-xs text-rose-200">{mobileSummaryOpen ? "Recolher" : "Expandir"}</span>
                   </div>
                 </button>
 
@@ -2742,7 +3027,17 @@ export default function Contratos() {
                       transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" }}
                       className="px-4 pb-4"
                     >
-                      <BuilderLiveSummary summary={builderSummary} selectedCount={selectedItemsCount} />
+                      <BuilderLiveSummary
+                        summary={builderSummary}
+                        selectedCount={selectedItemsCount}
+                        syncState={builderRemoteAutosaveState}
+                        contractStatus={editingBuilderContract?.status}
+                        contractDates={{
+                          dataEnvio: editingBuilderContract?.data_envio,
+                          dataVisualizacao: editingBuilderContract?.data_visualizacao,
+                          dataAssinatura: editingBuilderContract?.data_assinatura,
+                        }}
+                      />
                     </motion.div>
                   ) : null}
                 </AnimatePresence>
@@ -3017,7 +3312,7 @@ export default function Contratos() {
                                           htmlFor={`plan-${plan.id}`}
                                           className={`rounded-2xl border p-5 cursor-pointer space-y-4 transition-all ${
                                             selected
-                                              ? "border-cyan-400/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(34,211,238,0.12))] shadow-[0_18px_36px_rgba(34,211,238,0.08)]"
+                                              ? "border-fuchsia-300/25 bg-[linear-gradient(135deg,rgba(123,31,162,0.24),rgba(232,51,74,0.14),rgba(194,24,91,0.16))] shadow-[0_18px_36px_rgba(194,24,91,0.16)]"
                                               : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20"
                                           }`}
                                         >
@@ -3090,7 +3385,7 @@ export default function Contratos() {
                                             key={item.id}
                                             className={`rounded-2xl border p-4 transition-colors ${
                                               item.selected
-                                                ? "border-cyan-400/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.2),rgba(34,211,238,0.08))]"
+                                                ? "border-fuchsia-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.2),rgba(232,51,74,0.12),rgba(194,24,91,0.14))]"
                                                 : "border-white/10 bg-white/[0.02] hover:border-white/20"
                                             }`}
                                           >
@@ -3430,7 +3725,7 @@ export default function Contratos() {
                                 onClick={() => void handleSendContractToClient(editingBuilderContract)}
                               >
                                 <Send className="w-4 h-4 mr-2" />
-                                {editingBuilderContract?.status === "aguardando"
+                                {editingBuilderContract?.status === "enviado" || editingBuilderContract?.status === "visualizado"
                                   ? "Atualizar leitura do cliente"
                                   : "Enviar leitura ao cliente"}
                               </Button>
@@ -3455,7 +3750,17 @@ export default function Contratos() {
 
               <div className="hidden xl:block">
                 <div className="sticky top-24">
-                  <BuilderLiveSummary summary={builderSummary} selectedCount={selectedItemsCount} />
+                  <BuilderLiveSummary
+                    summary={builderSummary}
+                    selectedCount={selectedItemsCount}
+                    syncState={builderRemoteAutosaveState}
+                    contractStatus={editingBuilderContract?.status}
+                    contractDates={{
+                      dataEnvio: editingBuilderContract?.data_envio,
+                      dataVisualizacao: editingBuilderContract?.data_visualizacao,
+                      dataAssinatura: editingBuilderContract?.data_assinatura,
+                    }}
+                  />
                 </div>
               </div>
             </div>

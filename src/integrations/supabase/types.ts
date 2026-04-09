@@ -235,6 +235,7 @@ export type Database = {
           created_at: string
           data_assinatura: string | null
           data_envio: string
+          data_visualizacao: string | null
           descricao: string | null
           id: string
           modelo: string | null
@@ -253,6 +254,7 @@ export type Database = {
           created_at?: string
           data_assinatura?: string | null
           data_envio?: string
+          data_visualizacao?: string | null
           descricao?: string | null
           id?: string
           modelo?: string | null
@@ -271,6 +273,7 @@ export type Database = {
           created_at?: string
           data_assinatura?: string | null
           data_envio?: string
+          data_visualizacao?: string | null
           descricao?: string | null
           id?: string
           modelo?: string | null
@@ -1660,6 +1663,10 @@ export type Database = {
     Functions: {
       get_cliente_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      mark_contract_viewed: {
+        Args: { p_contract_id: string }
+        Returns: Database["public"]["Tables"]["contratos"]["Row"]
+      }
     }
     Enums: {
       [_ in never]: never

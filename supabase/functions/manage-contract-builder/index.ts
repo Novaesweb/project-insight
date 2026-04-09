@@ -302,7 +302,12 @@ function sanitizeContractRecord(record: Record<string, unknown>) {
     titulo: sanitizePlainText(record.titulo, { maxLength: 240 }),
     descricao: sanitizePlainText(record.descricao, { maxLength: 400, preserveLineBreaks: true }),
     valor: sanitizeMoney(record.valor),
-    status: normalizedStatus === "aguardando" ? "aguardando" : "rascunho",
+    status:
+      normalizedStatus === "enviado" ||
+      normalizedStatus === "visualizado" ||
+      normalizedStatus === "assinado"
+        ? normalizedStatus
+        : "rascunho",
     corpo: sanitizePlainText(record.corpo, { maxLength: 50000, preserveLineBreaks: true }),
     modelo: BUILDER_TEMPLATE_ID,
     builder_payload: validateBuilderPayload(
@@ -480,8 +485,9 @@ serve(async (req: Request) => {
       const { data, error } = await supabaseAdmin
         .from("contratos")
         .update({
-          status: "aguardando",
+          status: "enviado",
           data_envio: new Date().toISOString().slice(0, 10),
+          data_visualizacao: null,
           archived_at: null,
         } as any)
         .eq("id", contractId)
