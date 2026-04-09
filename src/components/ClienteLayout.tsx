@@ -22,6 +22,7 @@ import {
 const menuItems = [
   { label: "Painel de Ativos", icon: LayoutDashboard, path: "/cliente/dashboard" },
   { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
+  { label: "Contratos", icon: FileText, path: "/cliente/contratos" },
   { label: "Meus Extras", icon: Zap, path: "/cliente/extras" },
   { label: "Financeiro", icon: Receipt, path: "/cliente/faturas" },
 ];
