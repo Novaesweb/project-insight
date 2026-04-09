@@ -58,8 +58,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { invokeAdminFunction } from "@/lib/admin-function-client";
-import { ADMIN_SESSION_RESTORED_EVENT } from "@/lib/admin-function-client";
+import { invokeAdminFunction, refreshAdminSessionSilently } from "@/lib/admin-function-client";
 import {
   buildContractClauseExplanations,
   buildProposalSummary,
@@ -1113,8 +1112,6 @@ export default function Contratos() {
   const shouldReduceMotion = useReducedMotion();
   const contractRecoveryRestoredRef = useRef(false);
   const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
-  const contractPendingRetryActionRef = useRef<ContractRecoveryOriginAction | null>(null);
-
   const masterTemplate = contractTemplates[0];
 
   const syncBuilderSavedState = useCallback(
@@ -1280,11 +1277,6 @@ export default function Contratos() {
     setBuilderRecoveredLocally(true);
     contractRecoveryAutosaveSignatureRef.current = recoverySnapshot.payloadSignature;
 
-    // Se a ação original era salvar no cofre, sinalizar para retentar automaticamente após render
-    if (pendingRecoverySnapshot && recoverySnapshot.originAction === "save-cofre") {
-      contractPendingRetryActionRef.current = "save-cofre";
-    }
-
     toast({
       title: pendingRecoverySnapshot
         ? "Montador restaurado após novo login"
@@ -1317,6 +1309,80 @@ export default function Contratos() {
         onInvalidSession: options?.onInvalidSession,
       }),
     [],
+  );
+
+  const saveBuilderContractDirectly = useCallback(
+    async ({
+      contractId,
+      payloadToPersist,
+    }: {
+      contractId: string | null;
+      payloadToPersist: Record<string, unknown>;
+    }) => {
+      await refreshAdminSessionSilently({ force: false });
+
+      if (contractId) {
+        const { data: latestVersion, error: latestVersionError } = await supabase
+          .from("contrato_versions")
+          .select("version_number")
+          .eq("contrato_id", contractId)
+          .order("version_number", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestVersionError) {
+          throw latestVersionError;
+        }
+
+        const existingRecord = contratos.find((item) => item.id === contractId);
+        if (!existingRecord) {
+          throw new Error("Contrato não encontrado para atualização.");
+        }
+
+        const nextVersionNumber = Number(latestVersion?.version_number || 0) + 1;
+        const { error: snapshotError } = await supabase.from("contrato_versions").insert({
+          contrato_id: existingRecord.id,
+          version_number: nextVersionNumber,
+          titulo: existingRecord.titulo,
+          descricao: existingRecord.descricao,
+          valor: existingRecord.valor,
+          status: existingRecord.status,
+          corpo: (existingRecord as any).corpo || "",
+          builder_payload: existingRecord.builder_payload,
+        } as any);
+
+        if (snapshotError) {
+          throw snapshotError;
+        }
+
+        const { data, error } = await supabase
+          .from("contratos")
+          .update(payloadToPersist as any)
+          .eq("id", contractId)
+          .eq("modelo", BUILDER_TEMPLATE_ID)
+          .select("*, clientes(nome)")
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        return data as Contrato;
+      }
+
+      const { data, error } = await supabase
+        .from("contratos")
+        .insert(payloadToPersist as any)
+        .select("*, clientes(nome)")
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data as Contrato;
+    },
+    [contratos],
   );
 
   const handleOpenVersions = useCallback(
@@ -2007,27 +2073,10 @@ export default function Contratos() {
     };
 
     try {
-      const response = await invokeContractMutation<{ contrato: Contrato }>({
-        action: "save-draft",
+      const savedContrato = await saveBuilderContractDirectly({
         contractId: editingBuilderContract?.id ?? null,
-        contrato: payloadToPersist,
-      }, {
-        onInvalidSession: () => {
-          if (recoveryOrigin === "save-cofre") {
-            contractPendingRetryActionRef.current = "save-cofre";
-          }
-          // Preservamos o originAction real para que, ao relogar, o sistema possa
-          // retentar automaticamente a ação que o usuário estava tentando fazer.
-          saveBuilderRecoveryLocally(
-            prepared.normalizedPayload,
-            prepared.normalizedPayload.lastStep,
-            recoveryOrigin,
-            { markPendingRestore: true },
-          );
-        },
+        payloadToPersist,
       });
-
-      const savedContrato = response.contrato;
       const savedPayload = normalizeBuilderPayload(
         savedContrato.builder_payload,
         extrasCatalogo,
@@ -2090,52 +2139,6 @@ export default function Contratos() {
   const handleSaveBuilderAndExit = async () => {
     await persistBuilderDraft({ exitAfterSave: true });
   };
-
-  // Após restauração de sessão, retentar salvar no cofre automaticamente se era essa a ação original
-  useEffect(() => {
-    if (contractPendingRetryActionRef.current !== "save-cofre") return;
-    if (!builderPayload) return;
-    contractPendingRetryActionRef.current = null;
-
-    // Aguarda um tick para garantir que o estado foi totalmente restaurado
-    const timer = setTimeout(() => {
-      void persistBuilderDraft({ requireCompleteValidation: false, silent: false })
-        .then((success) => {
-          if (success) {
-            toast({
-              title: "Contrato salvo no cofre!",
-              description: "O contrato foi salvo automaticamente após o novo login.",
-            });
-          }
-        });
-    }, 800);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [builderPayload]);
-
-  useEffect(() => {
-    const handleSessionRestored = () => {
-      if (contractPendingRetryActionRef.current !== "save-cofre") return;
-      if (!builderPayload) return;
-      contractPendingRetryActionRef.current = null;
-
-      window.setTimeout(() => {
-        void persistBuilderDraft({ requireCompleteValidation: false, silent: false }).then((success) => {
-          if (success) {
-            toast({
-              title: "Contrato salvo no cofre!",
-              description: "A proposta foi salva automaticamente depois da renovação da sessão.",
-            });
-          }
-        });
-      }, 300);
-    };
-
-    window.addEventListener(ADMIN_SESSION_RESTORED_EVENT, handleSessionRestored);
-    return () => window.removeEventListener(ADMIN_SESSION_RESTORED_EVENT, handleSessionRestored);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [builderPayload]);
 
   const handleBuilderPdfDownload = () => {
     const currentPayload = syncMoneyDraftsToState();
