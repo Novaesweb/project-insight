@@ -5,6 +5,8 @@ import {
   Eye,
   FilePenLine,
   FolderOpen,
+  RefreshCw,
+  Rocket,
   Send,
 } from "lucide-react";
 
@@ -19,6 +21,10 @@ function getEventIcon(type: string) {
       return Eye;
     case "assinado":
       return CheckCircle2;
+    case "reassinatura_pendente":
+      return RefreshCw;
+    case "onboarding_iniciado":
+      return Rocket;
     case "arquivado":
       return Archive;
     case "desarquivado":

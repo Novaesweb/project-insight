@@ -13,6 +13,8 @@ export const CONTRACT_EVENT_LABELS: Record<string, string> = {
   visualizado: "Contrato visualizado",
   assinado: "Contrato aprovado",
   ajuste_solicitado: "Ajuste solicitado",
+  reassinatura_pendente: "Nova assinatura solicitada",
+  onboarding_iniciado: "Onboarding iniciado",
   arquivado: "Contrato arquivado",
   desarquivado: "Contrato desarquivado",
   duplicado: "Proposta duplicada",

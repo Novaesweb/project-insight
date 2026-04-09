@@ -117,6 +117,9 @@ export function clearClientProfile() {
 
   localStorage.removeItem("clienteLogado");
   localStorage.removeItem("onboarding_done");
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith("onboarding_done:"))
+    .forEach((key) => localStorage.removeItem(key));
 }
 
 export async function loadClientProfileFromSession(session: Session | null) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Eye, FileText, Lock, PenSquare, ShieldCheck, Vault } from "lucide-react";
+import { AlertTriangle, ClipboardList, Download, Eye, FileText, Lock, PenSquare, ShieldCheck, Vault } from "lucide-react";
 import jsPDF from "jspdf";
 
 import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
@@ -16,8 +16,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
+  buildContractSignatureSummary,
+  stripLegacySignaturePlaceholders,
+  type ContractSignatureSummary,
+} from "@/lib/contract-builder";
+import {
   CONTRACT_STATUS_ORDER,
   getContractStatusBadgeClass,
+  getContractStatusInsight,
   getContractStatusLabel,
 } from "@/lib/contract-status";
 import type { ContractEventRow } from "@/lib/contract-activity";
@@ -29,23 +35,41 @@ const fadeUp = {
 
 type ContratoCliente = Tables<"contratos">;
 
-function generatePDF(titulo: string, corpo: string) {
+function generatePDF(contrato: ContratoCliente) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
   const maxWidth = pageWidth - margin * 2;
+  const cleanedBody = stripLegacySignaturePlaceholders(contrato.corpo || contrato.descricao || "");
+  const signatureSummary = buildContractSignatureSummary((contrato.builder_payload as any) || null, {
+    contractanteSignedName: contrato.assinatura_cliente_nome,
+    signedAt: contrato.data_assinatura,
+  });
+
+  doc.setFillColor(123, 31, 162);
+  doc.rect(0, 0, pageWidth / 3, 12, "F");
+  doc.setFillColor(232, 51, 74);
+  doc.rect(pageWidth / 3, 0, pageWidth / 3, 12, "F");
+  doc.setFillColor(194, 24, 91);
+  doc.rect((pageWidth / 3) * 2, 0, pageWidth / 3, 12, "F");
 
   doc.setFont("helvetica", "bold");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8.5);
+  doc.text("NovaesWeb • Contrato liberado no portal", margin, 8);
+
+  doc.setTextColor(22, 18, 29);
   doc.setFontSize(14);
-  doc.text(titulo, margin, 25);
+  doc.text(contrato.titulo, margin, 24);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  const lines = doc.splitTextToSize(corpo, maxWidth);
-  let y = 40;
+  const lines = doc.splitTextToSize(cleanedBody, maxWidth);
+  let y = 36;
 
   for (const line of lines) {
-    if (y > 270) {
+    if (y > pageHeight - 24) {
       doc.addPage();
       y = 20;
     }
@@ -53,7 +77,79 @@ function generatePDF(titulo: string, corpo: string) {
     y += 5;
   }
 
-  doc.save(`${titulo.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
+  if (signatureSummary) {
+    if (y > pageHeight - 70) {
+      doc.addPage();
+      y = 20;
+    }
+
+    y += 8;
+    const sectionHeight = 56;
+    const gap = 8;
+    const cardWidth = (maxWidth - gap) / 2;
+
+    doc.setDrawColor(236, 223, 244);
+    doc.setFillColor(250, 244, 251);
+    doc.roundedRect(margin, y, maxWidth, sectionHeight, 6, 6, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(141, 60, 176);
+    doc.text("ACEITE E ASSINATURA", pageWidth / 2, y + 8, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.8);
+    doc.setTextColor(109, 95, 119);
+    doc.text(signatureSummary.locationAndDate, pageWidth / 2, y + 14, { align: "center" });
+
+    const drawSignatureCard = (x: number, top: number, name: string, caption: string) => {
+      doc.setDrawColor(236, 223, 244);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x, top, cardWidth, 24, 4, 4, "FD");
+      doc.setDrawColor(194, 24, 91);
+      doc.line(x + 8, top + 10, x + cardWidth - 8, top + 10);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.2);
+      doc.setTextColor(31, 23, 40);
+      doc.text(name, x + cardWidth / 2, top + 16, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.8);
+      doc.setTextColor(109, 95, 119);
+      doc.text(caption, x + cardWidth / 2, top + 20.5, { align: "center" });
+    };
+
+    drawSignatureCard(margin, y + 18, signatureSummary.contractanteName, signatureSummary.contractanteCaption);
+    drawSignatureCard(
+      margin + cardWidth + gap,
+      y + 18,
+      signatureSummary.contratadaName,
+      signatureSummary.contratadaCaption,
+    );
+  }
+
+  doc.save(`${contrato.titulo.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
+}
+
+function ContractPortalSignatureBlock({ summary }: { summary: ContractSignatureSummary | null }) {
+  if (!summary) return null;
+
+  return (
+    <div className="rounded-[28px] border border-rose-200 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.12))] p-6 text-center">
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a52f88]">Aceite e assinatura</p>
+      <p className="mt-2 text-sm text-slate-500">{summary.locationAndDate}</p>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        {[
+          { name: summary.contractanteName, caption: summary.contractanteCaption },
+          { name: summary.contratadaName, caption: summary.contratadaCaption },
+        ].map((signer) => (
+          <div key={`${signer.name}-${signer.caption}`} className="rounded-[22px] border border-rose-100 bg-white/90 px-5 py-6">
+            <div className="h-px w-full bg-[linear-gradient(90deg,rgba(123,31,162,0.45),rgba(232,51,74,0.75),rgba(194,24,91,0.5))]" />
+            <p className="mt-5 text-lg font-semibold text-slate-900">{signer.name}</p>
+            <p className="mt-2 text-xs text-slate-500">{signer.caption}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-xs text-slate-500">{summary.note}</p>
+    </div>
+  );
 }
 
 function formatContractDate(date?: string | null) {
@@ -206,7 +302,7 @@ export default function ClienteContratos() {
   });
 
   const handleDownload = (contrato: ContratoCliente) => {
-    generatePDF(contrato.titulo, contrato.corpo || contrato.descricao || "");
+    generatePDF(contrato);
   };
 
   const markViewed = useCallback(async (contrato: ContratoCliente) => {
@@ -238,6 +334,7 @@ export default function ClienteContratos() {
 
   const handleApprove = async () => {
     if (!viewContrato) return;
+    const isResignFlow = Boolean((viewContrato as any).requer_reassinatura);
     if (!signerName.trim()) {
       toast({
         title: "Nome obrigatório",
@@ -268,8 +365,10 @@ export default function ClienteContratos() {
     setViewContrato(updated);
     void loadContractEvents(updated.id);
     toast({
-      title: "Contrato aprovado",
-      description: "A assinatura foi registrada no portal com sucesso.",
+      title: isResignFlow ? "Versão atualizada assinada" : "Contrato aprovado",
+      description: isResignFlow
+        ? "A nova assinatura da versão atualizada foi registrada com sucesso."
+        : "A assinatura foi registrada no portal com sucesso.",
     });
   };
 
@@ -311,6 +410,26 @@ export default function ClienteContratos() {
     });
   };
 
+  const viewStatusInsight = viewContrato
+    ? getContractStatusInsight({
+        status: viewContrato.status,
+        dataEnvio: viewContrato.data_envio,
+        dataVisualizacao: viewContrato.data_visualizacao,
+        dataAssinatura: viewContrato.data_assinatura,
+        onboardingStartedAt: (viewContrato as any).onboarding_started_at,
+        pedidoId: (viewContrato as any).pedido_id,
+        requiresResign: (viewContrato as any).requer_reassinatura,
+        resignReason: (viewContrato as any).reassinatura_motivo,
+      })
+    : null;
+
+  const viewSignatureSummary = viewContrato
+    ? buildContractSignatureSummary((viewContrato.builder_payload as any) || null, {
+        contractanteSignedName: viewContrato.assinatura_cliente_nome,
+        signedAt: viewContrato.data_assinatura,
+      })
+    : null;
+
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.12),rgba(194,24,91,0.16))]">
@@ -331,6 +450,19 @@ export default function ClienteContratos() {
 
       <div className="space-y-4">
         {contratos.map((contrato) => (
+          (() => {
+            const statusInsight = getContractStatusInsight({
+              status: contrato.status,
+              dataEnvio: contrato.data_envio,
+              dataVisualizacao: contrato.data_visualizacao,
+              dataAssinatura: contrato.data_assinatura,
+              onboardingStartedAt: (contrato as any).onboarding_started_at,
+              pedidoId: (contrato as any).pedido_id,
+              requiresResign: (contrato as any).requer_reassinatura,
+              resignReason: (contrato as any).reassinatura_motivo,
+            });
+
+            return (
           <Card
             key={contrato.id}
             className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.12),rgba(232,51,74,0.08),rgba(255,255,255,0.03))] shadow-[0_18px_40px_rgba(26,8,40,0.28)]"
@@ -358,8 +490,17 @@ export default function ClienteContratos() {
                       <Badge variant="outline" className={getContractStatusBadgeClass(contrato.status)}>
                         {getContractStatusLabel(contrato.status)}
                       </Badge>
+                      {(contrato as any).requer_reassinatura && (
+                        <Badge variant="outline" className="border-amber-300/20 bg-amber-300/10 text-amber-100">
+                          Assinatura pendente
+                        </Badge>
+                      )}
                     </div>
                     <p className="mt-2 text-xs text-white/45">{contrato.descricao}</p>
+                    <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+                      <p className="text-xs font-medium text-white">{statusInsight.title}</p>
+                      <p className="mt-1 text-[11px] text-white/45">{statusInsight.subtitle}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -400,6 +541,8 @@ export default function ClienteContratos() {
               </div>
             </CardContent>
           </Card>
+            );
+          })()
         ))}
 
         {contratos.length === 0 && (
@@ -440,12 +583,44 @@ export default function ClienteContratos() {
               />
 
               <div className="bg-white p-4 rounded-lg space-y-4">
+                {viewStatusInsight && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Status do contrato</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">{viewStatusInsight.title}</p>
+                    <p className="mt-1 text-sm text-slate-600">{viewStatusInsight.subtitle}</p>
+                  </div>
+                )}
+
+                {(viewContrato as any).requer_reassinatura && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 rounded-full bg-amber-100 p-2 text-amber-600">
+                        <AlertTriangle className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
+                          Assinatura pendente
+                        </p>
+                        <p className="text-sm font-semibold text-amber-900">
+                          O contrato foi atualizado com extras ou melhorias.
+                        </p>
+                        <p className="text-sm text-amber-800">
+                          {(viewContrato as any).reassinatura_motivo ||
+                            "Assinatura pendente por atualização de extra e melhoria do sistema."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {viewContrato.status !== "assinado" && viewContrato.status !== "cancelado" && (
                   <div className="rounded-2xl border border-rose-200/40 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.08))] p-4 space-y-4">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">Ações do cliente</p>
                       <p className="mt-1 text-sm text-gray-600">
-                        Aprove o contrato com seu nome completo ou solicite um ajuste antes de assinar.
+                        {(viewContrato as any).requer_reassinatura
+                          ? "Revise os extras e melhorias adicionados, assine novamente esta versão ou solicite um ajuste."
+                          : "Aprove o contrato com seu nome completo ou solicite um ajuste antes de assinar."}
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -462,7 +637,11 @@ export default function ClienteContratos() {
                         disabled={portalActionLoading !== null}
                       >
                         <ShieldCheck className="w-4 h-4 mr-2" />
-                        {portalActionLoading === "approve" ? "Aprovando..." : "Aprovar e assinar contrato"}
+                        {portalActionLoading === "approve"
+                          ? "Aprovando..."
+                          : (viewContrato as any).requer_reassinatura
+                            ? "Assinar versão atualizada"
+                            : "Aprovar e assinar contrato"}
                       </Button>
                     </div>
                     <div className="space-y-2">
@@ -487,32 +666,41 @@ export default function ClienteContratos() {
                 )}
 
                 {viewContrato.status === "assinado" && (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Assinatura registrada</p>
-                    <p className="mt-1 text-sm text-emerald-800">
-                      {viewContrato.assinatura_cliente_nome || signerName || "Cliente"} aprovou este contrato no portal.
+                    <p className="mt-2 text-base font-semibold text-emerald-900">
+                      {viewContrato.assinatura_cliente_nome || signerName || "Cliente"}
                     </p>
-                    {viewContrato.assinatura_cliente_email && (
-                      <p className="mt-1 text-xs text-emerald-700">{viewContrato.assinatura_cliente_email}</p>
-                    )}
+                    <p className="mt-1 text-sm text-emerald-800">Aceite confirmado no portal do cliente.</p>
                   </div>
                 )}
 
                 <div className="bg-white text-black p-8 rounded-lg font-serif text-sm leading-relaxed whitespace-pre-wrap">
-                  {viewContrato.corpo || viewContrato.descricao || ""}
+                  {stripLegacySignaturePlaceholders(viewContrato.corpo || viewContrato.descricao || "")}
                 </div>
 
-                {viewContrato.assinatura_admin && (
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 mb-1">Assinatura CONTRATADA:</p>
-                    <img src={viewContrato.assinatura_admin} alt="Assinatura da contratada" className="h-16" />
-                  </div>
-                )}
+                <ContractPortalSignatureBlock summary={viewSignatureSummary} />
 
-                {viewContrato.assinatura_cliente && (
-                  <div>
-                    <p className="text-xs font-bold text-gray-600 mb-1">Assinatura CONTRATANTE:</p>
-                    <img src={viewContrato.assinatura_cliente} alt="Assinatura do contratante" className="h-16" />
+                {((viewContrato as any).onboarding_started_at || (viewContrato as any).pedido_id) && (
+                  <div className="rounded-2xl border border-fuchsia-200 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.08))] p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-fuchsia-700">
+                          Checklist e dados do projeto
+                        </p>
+                        <p className="text-sm text-slate-700">
+                          O checklist do cliente já está liberado para enviar materiais, acessos e referências.
+                        </p>
+                      </div>
+                      <Button
+                        className="border-0 text-white"
+                        style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
+                        onClick={() => window.location.assign("/cliente/dados")}
+                      >
+                        <ClipboardList className="mr-2 h-4 w-4" />
+                        Abrir checklist
+                      </Button>
+                    </div>
                   </div>
                 )}
 

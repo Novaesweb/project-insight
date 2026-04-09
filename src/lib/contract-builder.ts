@@ -98,6 +98,20 @@ export interface ContractClauseExplanation {
   explanation: string;
 }
 
+export interface ContractSignatureSummary {
+  locationAndDate: string;
+  contractanteName: string;
+  contractanteCaption: string;
+  contratadaName: string;
+  contratadaCaption: string;
+  note: string;
+}
+
+export interface ContractSignatureOptions {
+  contractanteSignedName?: string | null;
+  signedAt?: string | null;
+}
+
 function normalizeBuilderGroup(value: string | null | undefined): BuilderItemGroup {
   if (value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal") {
     return value;
@@ -121,6 +135,9 @@ const grupoLabels: Record<BuilderItemGroup, string> = {
   intermediario: "EXTRAS PRO",
   mensal: "EXTRAS MENSAIS",
 };
+
+const LEGACY_SIGNATURE_LINES_REGEX =
+  /\n{0,2}(CONTRATANTE|CONTRATADA):\s*_+\s*(?=\n|$)/gi;
 
 export const DEFAULT_CONTRACTOR_DATA: ContractBuilderContractor = {
   nome: "NovaesWeb",
@@ -185,6 +202,13 @@ export function formatCurrencyBRL(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+export function stripLegacySignaturePlaceholders(body: string) {
+  return String(body || "")
+    .replace(LEGACY_SIGNATURE_LINES_REGEX, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export function parseMoneyInput(value: string | number | null | undefined) {
@@ -521,6 +545,33 @@ export function buildProposalSummary(payload: ContractBuilderPayload): ContractP
   };
 }
 
+export function buildContractSignatureSummary(
+  payload?: ContractBuilderPayload | null,
+  options?: ContractSignatureOptions,
+): ContractSignatureSummary | null {
+  if (!payload) return null;
+
+  const signatureDate = options?.signedAt ? new Date(options.signedAt) : new Date();
+  const locationAndDate = `Canoas/RS, ${signatureDate.toLocaleDateString("pt-BR")}`;
+  const contractanteName =
+    options?.contractanteSignedName?.trim() || payload.contractante.nome.trim() || "Contratante";
+
+  return {
+    locationAndDate,
+    contractanteName,
+    contractanteCaption: options?.signedAt
+      ? "Aceite eletrônico registrado no portal"
+      : "Nome do responsável pelo contratante",
+    contratadaName: payload.contratada.nome.trim() || "NovaesWeb",
+    contratadaCaption: payload.contratada.representante?.trim()
+      ? `Representada por ${payload.contratada.representante.trim()}`
+      : "Parte contratada",
+    note: options?.signedAt
+      ? "Assinatura eletrônica simples confirmada com nome do responsável no portal do cliente."
+      : "Espaço visual preparado para aceite final e impressão da proposta.",
+  };
+}
+
 export function buildContractClauseExplanations(
   payload: ContractBuilderPayload,
 ): ContractClauseExplanation[] {
@@ -638,11 +689,13 @@ export function buildContractWordHtml(
   title: string,
   body: string,
   proposal?: ContractBuilderPayload | null,
+  signatureOptions?: ContractSignatureOptions,
 ) {
   const safeTitle = escapeHtml(title);
-  const safeBody = escapeHtml(body).replace(/\n/g, "<br />");
+  const safeBody = escapeHtml(stripLegacySignaturePlaceholders(body)).replace(/\n/g, "<br />");
   const summary = proposal ? buildProposalSummary(proposal) : null;
   const explanations = proposal ? buildContractClauseExplanations(proposal) : [];
+  const signatureSummary = buildContractSignatureSummary(proposal, signatureOptions);
 
   const renderInfoCard = (section: ContractProposalSummarySection) => `
     <td class="info-card">
@@ -837,6 +890,61 @@ export function buildContractWordHtml(
           line-height: 1.7;
           font-size: 12px;
         }
+        .signature-section {
+          margin-top: 24px;
+          padding: 22px;
+          border-radius: 24px;
+          background: linear-gradient(135deg, rgba(123,31,162,0.12), rgba(232,51,74,0.08), rgba(194,24,91,0.14));
+          border: 1px solid #ecdff4;
+          text-align: center;
+        }
+        .signature-kicker {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          color: #8d3cb0;
+          font-weight: 800;
+        }
+        .signature-date {
+          margin-top: 8px;
+          font-size: 12px;
+          color: #6f5b7d;
+        }
+        .signature-grid {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 14px 0;
+          margin-top: 18px;
+        }
+        .signature-card {
+          width: 50%;
+          background: rgba(255,255,255,0.82);
+          border: 1px solid #ecdff4;
+          border-radius: 18px;
+          padding: 18px 16px 16px;
+          vertical-align: top;
+        }
+        .signature-line {
+          width: 100%;
+          height: 1px;
+          background: linear-gradient(90deg, #7b1fa2, #e8334a, #c2185b);
+          margin: 24px 0 10px;
+        }
+        .signature-name {
+          font-size: 16px;
+          font-weight: 800;
+          color: #1b1323;
+        }
+        .signature-caption {
+          margin-top: 6px;
+          font-size: 11px;
+          color: #6d5f77;
+        }
+        .signature-note {
+          margin-top: 14px;
+          font-size: 11px;
+          color: #6d5f77;
+        }
         .footer {
           margin-top: 40px;
           padding-top: 18px;
@@ -880,6 +988,31 @@ export function buildContractWordHtml(
             : ""
         }
         <div class="copy">${safeBody}</div>
+        ${
+          signatureSummary
+            ? `
+        <div class="signature-section">
+          <div class="signature-kicker">Aceite e assinatura</div>
+          <div class="signature-date">${escapeHtml(signatureSummary.locationAndDate)}</div>
+          <table class="signature-grid">
+            <tr>
+              <td class="signature-card">
+                <div class="signature-line"></div>
+                <div class="signature-name">${escapeHtml(signatureSummary.contractanteName)}</div>
+                <div class="signature-caption">${escapeHtml(signatureSummary.contractanteCaption)}</div>
+              </td>
+              <td class="signature-card">
+                <div class="signature-line"></div>
+                <div class="signature-name">${escapeHtml(signatureSummary.contratadaName)}</div>
+                <div class="signature-caption">${escapeHtml(signatureSummary.contratadaCaption)}</div>
+              </td>
+            </tr>
+          </table>
+          <div class="signature-note">${escapeHtml(signatureSummary.note)}</div>
+        </div>
+        `
+            : ""
+        }
         <div class="footer">NovaesWeb • Estrutura digital premium • Documento gerado no painel administrativo</div>
       </div>
     </body>

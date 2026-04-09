@@ -62,6 +62,9 @@ interface Counts {
   tickets: number;
 }
 
+const DEFAULT_ONBOARDING_STORAGE_KEY = "onboarding_done";
+const ONBOARDING_CONTRACT_STORAGE_PREFIX = "onboarding_done:";
+
 export default function ClienteDashboard() {
   const cliente: PerfilCliente = (getStoredClientProfile() as PerfilCliente | null) || { id: "", nome: "", email: "" };
   const cId = cliente.id;
@@ -74,7 +77,8 @@ export default function ClienteDashboard() {
   const [referencias, setReferencias] = useState("");
   const [saving, setSaving] = useState(false);
   const [showDadosDialog, setShowDadosDialog] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("onboarding_done"));
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(DEFAULT_ONBOARDING_STORAGE_KEY));
+  const [onboardingStorageKey, setOnboardingStorageKey] = useState(DEFAULT_ONBOARDING_STORAGE_KEY);
 
   const load = useCallback(() => {
     if (!cId) return;
@@ -108,6 +112,32 @@ export default function ClienteDashboard() {
 
     supabase.from("clientes").select("*").eq("id", cId).single()
       .then(({ data }) => { if (data) setPerfil(data as PerfilCliente); });
+
+    supabase
+      .from("contratos")
+      .select("id, titulo, status, onboarding_started_at, data_assinatura")
+      .eq("cliente_id", cId)
+      .eq("modelo", "novaesweb-contrato-mestre")
+      .eq("status", "assinado")
+      .not("onboarding_started_at", "is", null)
+      .order("data_assinatura", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        const contractId = data?.id || null;
+        const nextStorageKey = contractId
+          ? `${ONBOARDING_CONTRACT_STORAGE_PREFIX}${contractId}`
+          : DEFAULT_ONBOARDING_STORAGE_KEY;
+
+        setOnboardingStorageKey(nextStorageKey);
+
+        if (contractId) {
+          setShowOnboarding(!localStorage.getItem(nextStorageKey));
+          return;
+        }
+
+        setShowOnboarding(!localStorage.getItem(DEFAULT_ONBOARDING_STORAGE_KEY));
+      });
   }, [cId]);
 
   const { toast } = useToast();
@@ -214,6 +244,7 @@ export default function ClienteDashboard() {
       {showOnboarding && (
         <OnboardingWizard 
           clienteName={perfil.nome?.split(" ")[0] || "Cliente"} 
+          storageKey={onboardingStorageKey}
           onComplete={() => setShowOnboarding(false)} 
         />
       )}

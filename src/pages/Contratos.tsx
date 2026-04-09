@@ -69,6 +69,7 @@ import {
 } from "@/lib/contract-activity";
 import {
   buildContractClauseExplanations,
+  buildContractSignatureSummary,
   buildProposalSummary,
   buildBuilderTemplateValues,
   buildContractWordHtml,
@@ -78,6 +79,7 @@ import {
   formatCurrencyBRL,
   parseMoneyInput,
   selectPrimaryPlan,
+  stripLegacySignaturePlaceholders,
   toggleBuilderItem,
   updateBuilderItemPrice,
   type BuilderPrimaryPlanId,
@@ -85,6 +87,7 @@ import {
   type ContractBuilderPayload,
   type ContractBuilderPricing,
   type ContractProposalSummary,
+  type ContractSignatureSummary,
   type ContractBuilderStepIndex,
 } from "@/lib/contract-builder";
 import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
@@ -99,6 +102,7 @@ import {
   CONTRACT_STATUS_ORDER,
   getContractStatusBadgeClass,
   getContractStatusColor,
+  getContractStatusInsight,
   getContractStatusLabel,
 } from "@/lib/contract-status";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
@@ -124,6 +128,7 @@ interface PreviewState {
 }
 
 const BUILDER_TEMPLATE_ID = "novaesweb-contrato-mestre";
+const RESIGN_REASON_DEFAULT = "Assinatura pendente por atualização de extra e melhoria do sistema.";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -198,6 +203,8 @@ type ContractPdfOptions = {
   assinaturaAdmin?: string | null;
   assinaturaCliente?: string | null;
   proposal?: ContractBuilderPayload | null;
+  contractanteSignedName?: string | null;
+  signedAt?: string | null;
 };
 
 function generateContractPDF(
@@ -212,8 +219,11 @@ function generateContractPDF(
   const maxWidth = pageWidth - margin * 2;
   const summary = options?.proposal ? buildProposalSummary(options.proposal) : null;
   const explanations = options?.proposal ? buildContractClauseExplanations(options.proposal) : [];
-  const assinaturaAdmin = options?.assinaturaAdmin;
-  const assinaturaCliente = options?.assinaturaCliente;
+  const cleanedBody = stripLegacySignaturePlaceholders(corpo);
+  const signatureSummary = buildContractSignatureSummary(options?.proposal, {
+    contractanteSignedName: options?.contractanteSignedName,
+    signedAt: options?.signedAt,
+  });
 
   doc.setFillColor(123, 31, 162);
   doc.rect(0, 0, pageWidth / 3, 14, "F");
@@ -373,7 +383,7 @@ function generateContractPDF(
   doc.text("Corpo contratual", margin, y);
   y += 7;
 
-  const paragraphs = corpo.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+  const paragraphs = cleanedBody.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10.2);
   doc.setTextColor(31, 23, 40);
@@ -404,28 +414,69 @@ function generateContractPDF(
     y += 2.5;
   }
 
-  if (assinaturaAdmin) {
-    if (y > pageHeight - 60) {
-      doc.addPage();
-      y = 18;
-    }
-    y += 8;
-    doc.setFont("helvetica", "bold");
-    doc.text("Assinatura CONTRATADA:", margin, y);
-    y += 4;
-    doc.addImage(assinaturaAdmin, "PNG", margin, y, 60, 24);
-    y += 28;
-  }
+  if (signatureSummary) {
+    const sectionHeight = 66;
+    const cardGap = 8;
+    const cardWidth = (maxWidth - cardGap) / 2;
+    const cardHeight = 28;
 
-  if (assinaturaCliente) {
-    if (y > pageHeight - 60) {
+    if (y > pageHeight - 90) {
       doc.addPage();
       y = 18;
     }
+
+    y += 6;
+    doc.setDrawColor(236, 223, 244);
+    doc.setFillColor(250, 244, 251);
+    doc.roundedRect(margin, y, maxWidth, sectionHeight, 6, 6, "FD");
+
     doc.setFont("helvetica", "bold");
-    doc.text("Assinatura CONTRATANTE:", margin, y);
-    y += 4;
-    doc.addImage(assinaturaCliente, "PNG", margin, y, 60, 24);
+    doc.setFontSize(9);
+    doc.setTextColor(141, 60, 176);
+    doc.text("ACEITE E ASSINATURA", pageWidth / 2, y + 8, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.2);
+    doc.setTextColor(97, 84, 109);
+    doc.text(signatureSummary.locationAndDate, pageWidth / 2, y + 14, { align: "center" });
+
+    const drawSignatureCard = (
+      x: number,
+      startY: number,
+      name: string,
+      caption: string,
+    ) => {
+      doc.setDrawColor(236, 223, 244);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x, startY, cardWidth, cardHeight, 5, 5, "FD");
+      doc.setDrawColor(194, 24, 91);
+      doc.line(x + 8, startY + 12, x + cardWidth - 8, startY + 12);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(31, 23, 40);
+      doc.text(name, x + cardWidth / 2, startY + 19, { align: "center" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(109, 95, 119);
+      doc.text(caption, x + cardWidth / 2, startY + 24, { align: "center" });
+    };
+
+    const cardsY = y + 20;
+    drawSignatureCard(margin, cardsY, signatureSummary.contractanteName, signatureSummary.contractanteCaption);
+    drawSignatureCard(
+      margin + cardWidth + cardGap,
+      cardsY,
+      signatureSummary.contratadaName,
+      signatureSummary.contratadaCaption,
+    );
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.4);
+    doc.setTextColor(109, 95, 119);
+    doc.text(signatureSummary.note, pageWidth / 2, y + sectionHeight - 6, { align: "center" });
+    y += sectionHeight + 4;
   }
 
   const pageCount = doc.getNumberOfPages();
@@ -450,8 +501,12 @@ function downloadWordDocument(
   title: string,
   body: string,
   proposal?: ContractBuilderPayload | null,
+  signatureOptions?: {
+    contractanteSignedName?: string | null;
+    signedAt?: string | null;
+  },
 ) {
-  const blob = new Blob([buildContractWordHtml(title, body, proposal)], {
+  const blob = new Blob([buildContractWordHtml(title, body, proposal, signatureOptions)], {
     type: "application/msword;charset=utf-8",
   });
   const url = window.URL.createObjectURL(blob);
@@ -570,6 +625,37 @@ function buildBuilderSavePayload(
   };
 }
 
+function hasSignedContractMaterialChanges(
+  existingContract: Contrato,
+  prepared: NonNullable<ReturnType<typeof buildBuilderSavePayload>>,
+  extras: ExtraCatalogo[],
+) {
+  const existingPayload = normalizeBuilderPayload(
+    existingContract.builder_payload,
+    extras,
+    existingContract.cliente_id || "",
+    4,
+  );
+
+  const existingSignature = buildContractMaterialSignature({
+    title: existingContract.titulo || "",
+    description: existingContract.descricao || "",
+    value: Number(existingContract.valor || 0),
+    body: (existingContract.corpo as string) || existingContract.descricao || "",
+    payload: existingPayload,
+  });
+
+  const nextSignature = buildContractMaterialSignature({
+    title: prepared.title,
+    description: prepared.description,
+    value: Number(prepared.value || 0),
+    body: prepared.body,
+    payload: prepared.normalizedPayload,
+  });
+
+  return existingSignature !== nextSignature;
+}
+
 function normalizeBuilderStep(
   value: unknown,
   fallback: ContractBuilderStepIndex,
@@ -630,6 +716,31 @@ function buildBuilderDirtySignature(
     ...payload,
     lastStep: currentStep,
     updatedAt: "",
+  });
+}
+
+function buildComparableContractPayload(payload: ContractBuilderPayload) {
+  return validateAndSanitizeBuilderPayload({
+    ...payload,
+    createdAt: "",
+    updatedAt: "",
+    lastStep: 4,
+  });
+}
+
+function buildContractMaterialSignature(input: {
+  title: string;
+  description: string;
+  value: number;
+  body: string;
+  payload: ContractBuilderPayload;
+}) {
+  return JSON.stringify({
+    title: input.title.trim(),
+    description: input.description.trim(),
+    value: Number(input.value || 0),
+    body: stripLegacySignaturePlaceholders(input.body).replace(/\s+/g, " ").trim(),
+    payload: buildComparableContractPayload(input.payload),
   });
 }
 
@@ -823,16 +934,57 @@ function VersionComparisonCard({
   );
 }
 
+function ContractSignaturePreviewBlock({ signatureSummary }: { signatureSummary: ContractSignatureSummary | null }) {
+  if (!signatureSummary) return null;
+
+  return (
+    <Card className="border-primary/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.1),rgba(194,24,91,0.16))] shadow-[0_22px_50px_rgba(26,8,40,0.24)]">
+      <CardContent className="p-6 md:p-8 text-center space-y-5">
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">Aceite e assinatura</p>
+          <p className="text-sm text-white/60">{signatureSummary.locationAndDate}</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            {
+              name: signatureSummary.contractanteName,
+              caption: signatureSummary.contractanteCaption,
+            },
+            {
+              name: signatureSummary.contratadaName,
+              caption: signatureSummary.contratadaCaption,
+            },
+          ].map((signer) => (
+            <div
+              key={`${signer.name}-${signer.caption}`}
+              className="rounded-[24px] border border-white/10 bg-white/[0.06] px-5 py-6 text-center backdrop-blur"
+            >
+              <div className="h-px w-full bg-[linear-gradient(90deg,rgba(123,31,162,0.4),rgba(232,51,74,0.7),rgba(194,24,91,0.5))]" />
+              <p className="mt-5 text-lg font-semibold text-white">{signer.name}</p>
+              <p className="mt-2 text-xs text-white/55">{signer.caption}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-white/50 max-w-2xl mx-auto leading-relaxed">{signatureSummary.note}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function BuilderPreviewDocument({
   title,
   body,
   summary,
   explanations,
+  signatureSummary,
 }: {
   title: string;
   body: string;
   summary: ContractProposalSummary | null;
   explanations: ContractClauseExplanation[];
+  signatureSummary: ContractSignatureSummary | null;
 }) {
   return (
     <div className="space-y-6">
@@ -961,13 +1113,15 @@ function BuilderPreviewDocument({
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
                 <div className="rounded-2xl bg-white text-black p-6 font-serif text-sm leading-relaxed whitespace-pre-wrap">
-                  {body}
+                  {stripLegacySignaturePlaceholders(body)}
                 </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         </CardContent>
       </Card>
+
+      <ContractSignaturePreviewBlock signatureSummary={signatureSummary} />
     </div>
   );
 }
@@ -1045,6 +1199,10 @@ function BuilderLiveSummary({
     dataEnvio?: string | null;
     dataVisualizacao?: string | null;
     dataAssinatura?: string | null;
+    onboardingStartedAt?: string | null;
+    pedidoId?: string | null;
+    requiresResign?: boolean | null;
+    resignReason?: string | null;
   };
 }) {
   if (!summary) {
@@ -1067,6 +1225,18 @@ function BuilderLiveSummary({
     if (normalized.includes("mensalidade contratada")) acc.monthly = numericValue;
     return acc;
   }, {});
+  const statusInsight = contractStatus
+    ? getContractStatusInsight({
+        status: contractStatus,
+        dataEnvio: contractDates?.dataEnvio,
+        dataVisualizacao: contractDates?.dataVisualizacao,
+        dataAssinatura: contractDates?.dataAssinatura,
+        onboardingStartedAt: contractDates?.onboardingStartedAt,
+        pedidoId: contractDates?.pedidoId,
+        requiresResign: contractDates?.requiresResign,
+        resignReason: contractDates?.resignReason,
+      })
+    : null;
 
   return (
     <Card className="glass-card overflow-hidden border-[0.5px] border-fuchsia-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.98),rgba(17,15,24,0.85))] shadow-[0_20px_50px_rgba(35,8,52,0.5)]">
@@ -1142,12 +1312,20 @@ function BuilderLiveSummary({
         </div>
 
         {contractStatus && (
-          <ContractLifecycleTimeline
-            status={contractStatus}
-            dataEnvio={contractDates?.dataEnvio}
-            dataVisualizacao={contractDates?.dataVisualizacao}
-            dataAssinatura={contractDates?.dataAssinatura}
-          />
+          <div className="space-y-3">
+            {statusInsight ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-sm font-medium text-white">{statusInsight.title}</p>
+                <p className="mt-1 text-xs text-white/50">{statusInsight.subtitle}</p>
+              </div>
+            ) : null}
+            <ContractLifecycleTimeline
+              status={contractStatus}
+              dataEnvio={contractDates?.dataEnvio}
+              dataVisualizacao={contractDates?.dataVisualizacao}
+              dataAssinatura={contractDates?.dataAssinatura}
+            />
+          </div>
         )}
 
         {summary.selectedServices.length > 0 && (
@@ -1656,7 +1834,8 @@ export default function Contratos() {
       await refreshAdminSessionSilently({ force: false });
 
       const sentAt = new Date().toISOString();
-      const nextStatus = contract.status === "assinado" ? "assinado" : "enviado";
+      const isResignFlow = Boolean((contract as any).requer_reassinatura);
+      const nextStatus = contract.status === "assinado" && !isResignFlow ? "assinado" : "enviado";
       const { data, error } = await supabase
         .from("contratos")
         .update({
@@ -1682,17 +1861,22 @@ export default function Contratos() {
         contract: contratoEnviado,
         event: {
           tipo: "enviado",
-          titulo: "Contrato enviado ao cliente",
-          descricao: `${clienteNome} recebeu o contrato no portal do cliente.`,
+          titulo: isResignFlow ? "Versão atualizada enviada ao cliente" : "Contrato enviado ao cliente",
+          descricao: isResignFlow
+            ? `${clienteNome} recebeu a versão atualizada e precisa assinar novamente no portal.`
+            : `${clienteNome} recebeu o contrato no portal do cliente.`,
           actorType: "admin",
           meta: {
             status: contratoEnviado.status,
             sentAt,
+            requires_resign: isResignFlow,
           },
         },
         clientNotification: {
-          title: "📄 Novo contrato disponível",
-          body: `A proposta "${contratoEnviado.titulo}" já está liberada no seu portal.`,
+          title: isResignFlow ? "✍️ Versão atualizada do contrato" : "📄 Novo contrato disponível",
+          body: isResignFlow
+            ? (contratoEnviado as any).reassinatura_motivo || RESIGN_REASON_DEFAULT
+            : `A proposta "${contratoEnviado.titulo}" já está liberada no seu portal.`,
           url: "/cliente/contratos",
         },
       });
@@ -2515,6 +2699,16 @@ export default function Contratos() {
       : exitAfterSave
         ? "save-and-exit"
         : "save-draft";
+    const isResignAlreadyPending = Boolean((editingBuilderContract as any)?.requer_reassinatura);
+
+    const shouldRequireResignature = Boolean(
+      editingBuilderContract &&
+        requireCompleteValidation &&
+        !autosaveRemote &&
+        (editingBuilderContract.status === "assinado" ||
+          (editingBuilderContract as any).requer_reassinatura) &&
+        hasSignedContractMaterialChanges(editingBuilderContract, prepared, extrasCatalogo),
+    );
 
     saveBuilderRecoveryLocally(
       prepared.normalizedPayload,
@@ -2524,8 +2718,10 @@ export default function Contratos() {
 
     const nowIso = new Date().toISOString();
     const persistedStatus =
-      editingBuilderContract?.status && editingBuilderContract.status !== "cancelado"
-        ? editingBuilderContract.status
+      shouldRequireResignature
+        ? "enviado"
+        : editingBuilderContract?.status && editingBuilderContract.status !== "cancelado"
+          ? editingBuilderContract.status
         : "rascunho";
     const payloadToPersist = {
       cliente_id: prepared.normalizedPayload.clienteId || null,
@@ -2537,6 +2733,18 @@ export default function Contratos() {
       modelo: BUILDER_TEMPLATE_ID,
       builder_payload: prepared.normalizedPayload as any,
       assinatura_admin: null,
+      assinatura_cliente: shouldRequireResignature ? null : editingBuilderContract?.assinatura_cliente ?? null,
+      assinatura_cliente_nome: shouldRequireResignature ? null : editingBuilderContract?.assinatura_cliente_nome ?? null,
+      assinatura_cliente_email: shouldRequireResignature ? null : editingBuilderContract?.assinatura_cliente_email ?? null,
+      data_envio: shouldRequireResignature ? nowIso.slice(0, 10) : editingBuilderContract?.data_envio ?? nowIso.slice(0, 10),
+      data_visualizacao: shouldRequireResignature ? null : editingBuilderContract?.data_visualizacao ?? null,
+      data_assinatura: shouldRequireResignature ? null : editingBuilderContract?.data_assinatura ?? null,
+      requer_reassinatura: shouldRequireResignature ? true : isResignAlreadyPending,
+      reassinatura_motivo: shouldRequireResignature
+        ? RESIGN_REASON_DEFAULT
+        : isResignAlreadyPending
+          ? (editingBuilderContract as any)?.reassinatura_motivo || RESIGN_REASON_DEFAULT
+          : null,
       updated_at: nowIso,
     };
 
@@ -2569,23 +2777,39 @@ export default function Contratos() {
         await runContractRealtimeSideEffects({
           contract: savedContrato,
           event: {
-            tipo: requireCompleteValidation ? "cofre_salvo" : "rascunho_salvo",
-            titulo: requireCompleteValidation
+            tipo: shouldRequireResignature
+              ? "reassinatura_pendente"
+              : requireCompleteValidation
+                ? "cofre_salvo"
+                : "rascunho_salvo",
+            titulo: shouldRequireResignature
+              ? "Nova assinatura solicitada"
+              : requireCompleteValidation
               ? editingBuilderContract
                 ? "Contrato atualizado no cofre"
                 : "Contrato salvo no cofre"
               : editingBuilderContract
                 ? "Rascunho atualizado"
                 : "Rascunho salvo",
-            descricao: requireCompleteValidation
+            descricao: shouldRequireResignature
+              ? RESIGN_REASON_DEFAULT
+              : requireCompleteValidation
               ? "A proposta comercial foi consolidada no cofre do Contrato Mestre."
               : "O montador foi salvo como rascunho para continuar depois.",
             actorType: "admin",
             meta: {
               status: savedContrato.status,
               autosave: false,
+              requires_resign: shouldRequireResignature,
             },
           },
+          clientNotification: shouldRequireResignature
+            ? {
+                title: "✍️ Assinatura pendente",
+                body: RESIGN_REASON_DEFAULT,
+                url: "/cliente/contratos",
+              }
+            : undefined,
         });
       }
       if (!autosaveRemote) {
@@ -2597,6 +2821,8 @@ export default function Contratos() {
             ? editingBuilderContract
               ? "Rascunho atualizado. Você pode continuar depois."
               : "Rascunho salvo. Você pode continuar depois."
+            : shouldRequireResignature
+              ? "Contrato atualizado. Nova assinatura solicitada."
             : editingBuilderContract
               ? "Contrato mestre atualizado!"
             : "Contrato mestre salvo no cofre!",
@@ -3022,6 +3248,19 @@ export default function Contratos() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {filteredContratos.map((contrato) => (
+                  (() => {
+                    const statusInsight = getContractStatusInsight({
+                      status: contrato.status,
+                      dataEnvio: contrato.data_envio,
+                      dataVisualizacao: contrato.data_visualizacao,
+                      dataAssinatura: contrato.data_assinatura,
+                      onboardingStartedAt: (contrato as any).onboarding_started_at,
+                      pedidoId: (contrato as any).pedido_id,
+                      requiresResign: (contrato as any).requer_reassinatura,
+                      resignReason: (contrato as any).reassinatura_motivo,
+                    });
+
+                    return (
                   <div
                     key={contrato.id}
                     className="rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.12),rgba(232,51,74,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_18px_40px_rgba(26,8,40,0.28)]"
@@ -3038,6 +3277,14 @@ export default function Contratos() {
                               <Badge variant="outline" className={getContractStatusBadgeClass(contrato.status)}>
                                 {getContractStatusLabel(contrato.status)}
                               </Badge>
+                              {(contrato as any).requer_reassinatura && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-amber-300/20 bg-amber-300/10 text-amber-100"
+                                >
+                                  Assinatura pendente
+                                </Badge>
+                              )}
                               {contrato.archived_at && (
                                 <Badge variant="outline" className="border-amber-300/10 px-2 bg-amber-300/10 text-amber-200">
                                   Arquivado
@@ -3050,6 +3297,10 @@ export default function Contratos() {
                               <span>Valor: R$ {formatContratoValue(contrato.valor)}</span>
                               <span>•</span>
                               <span>{formatContractDateTime(contrato.updated_at || contrato.created_at)}</span>
+                            </div>
+                            <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+                              <p className="text-xs font-medium text-white">{statusInsight.title}</p>
+                              <p className="mt-1 text-[11px] text-white/45">{statusInsight.subtitle}</p>
                             </div>
                           </div>
                         </div>
@@ -3087,7 +3338,9 @@ export default function Contratos() {
                             onClick={() => void handleSendContractToClient(contrato)}
                           >
                             <Send className="w-3.5 h-3.5 mr-1.5" />
-                            {contrato.status === "assinado"
+                            {(contrato as any).requer_reassinatura
+                              ? "Solicitar nova assinatura"
+                              : contrato.status === "assinado"
                               ? "Reenviar cópia"
                               : contrato.status === "enviado" || contrato.status === "visualizado"
                                 ? "Atualizar envio"
@@ -3106,6 +3359,8 @@ export default function Contratos() {
                               {
                                 assinaturaAdmin: (contrato as any).assinatura_admin,
                                 assinaturaCliente: (contrato as any).assinatura_cliente,
+                                contractanteSignedName: contrato.assinatura_cliente_nome,
+                                signedAt: contrato.data_assinatura,
                                 proposal: normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
                               },
                             )
@@ -3137,6 +3392,10 @@ export default function Contratos() {
                                   contrato.titulo,
                                   (contrato as any).corpo || contrato.descricao || "",
                                   normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
+                                  {
+                                    contractanteSignedName: contrato.assinatura_cliente_nome,
+                                    signedAt: contrato.data_assinatura,
+                                  },
                                 )
                               }
                             >
@@ -3164,6 +3423,8 @@ export default function Contratos() {
                       </div>
                     </div>
                   </div>
+                    );
+                  })()
                 ))}
                 {filteredContratos.length === 0 && (
                   <div className="py-10 text-center space-y-4">
@@ -3393,6 +3654,8 @@ export default function Contratos() {
                           dataEnvio: editingBuilderContract?.data_envio,
                           dataVisualizacao: editingBuilderContract?.data_visualizacao,
                           dataAssinatura: editingBuilderContract?.data_assinatura,
+                          requiresResign: (editingBuilderContract as any)?.requer_reassinatura,
+                          resignReason: (editingBuilderContract as any)?.reassinatura_motivo,
                         }}
                       />
                     </motion.div>
@@ -4000,6 +4263,7 @@ export default function Contratos() {
                                   title={builderPrepared.title}
                                   body={builderPrepared.body}
                                   summary={builderSummary}
+                                  signatureSummary={buildContractSignatureSummary(builderPrepared.normalizedPayload)}
                                   explanations={buildContractClauseExplanations(builderPrepared.normalizedPayload)}
                                 />
                               </>
@@ -4118,6 +4382,10 @@ export default function Contratos() {
                       dataEnvio: editingBuilderContract?.data_envio,
                       dataVisualizacao: editingBuilderContract?.data_visualizacao,
                       dataAssinatura: editingBuilderContract?.data_assinatura,
+                      onboardingStartedAt: (editingBuilderContract as any)?.onboarding_started_at,
+                      pedidoId: (editingBuilderContract as any)?.pedido_id,
+                      requiresResign: (editingBuilderContract as any)?.requer_reassinatura,
+                      resignReason: (editingBuilderContract as any)?.reassinatura_motivo,
                     }}
                   />
                 </div>
@@ -4141,6 +4409,10 @@ export default function Contratos() {
                 title={previewState.title}
                 body={previewState.body}
                 summary={previewState.proposal ? buildProposalSummary(previewState.proposal) : null}
+                signatureSummary={buildContractSignatureSummary(previewState.proposal, {
+                  contractanteSignedName: previewState.contract?.assinatura_cliente_nome,
+                  signedAt: previewState.contract?.data_assinatura,
+                })}
                 explanations={previewState.proposal ? buildContractClauseExplanations(previewState.proposal) : []}
               />
               {previewState.contract?.id ? (
@@ -4150,16 +4422,14 @@ export default function Contratos() {
                     <p className="text-sm text-white/55">Tudo o que aconteceu com este contrato no painel e no portal.</p>
                   </div>
                   {previewState.contract.assinatura_cliente_nome ? (
-                    <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+                    <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-5 text-center">
                       <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-200/70">Assinatura registrada</p>
-                      <p className="mt-2 text-sm font-medium text-emerald-100">
+                      <p className="mt-3 text-base font-semibold text-emerald-100">
                         {previewState.contract.assinatura_cliente_nome}
                       </p>
-                      {previewState.contract.assinatura_cliente_email ? (
-                        <p className="mt-1 text-xs text-emerald-200/80">
-                          {previewState.contract.assinatura_cliente_email}
-                        </p>
-                      ) : null}
+                      <p className="mt-2 text-xs text-emerald-200/80">
+                        Aceite eletrônico confirmado no portal do cliente.
+                      </p>
                     </div>
                   ) : null}
                   <ContractActivityFeed

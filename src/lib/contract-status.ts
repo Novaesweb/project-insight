@@ -1,3 +1,6 @@
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 export const CONTRACT_STATUS_ORDER = [
   "rascunho",
   "enviado",
@@ -42,4 +45,91 @@ export function getContractStatusColor(status: string) {
 
 export function getContractStatusBadgeClass(status: string) {
   return CONTRACT_STATUS_BADGE_CLASSES[status] || "border-white/10 bg-white/5 text-white/70";
+}
+
+type ContractStatusInsightInput = {
+  status: string;
+  dataEnvio?: string | null;
+  dataVisualizacao?: string | null;
+  dataAssinatura?: string | null;
+  onboardingStartedAt?: string | null;
+  pedidoId?: string | null;
+  requiresResign?: boolean | null;
+  resignReason?: string | null;
+};
+
+function formatRelative(date?: string | null) {
+  if (!date) return null;
+  return formatDistanceToNow(new Date(date), { addSuffix: true, locale: ptBR });
+}
+
+export function getContractStatusInsight({
+  status,
+  dataEnvio,
+  dataVisualizacao,
+  dataAssinatura,
+  onboardingStartedAt,
+  pedidoId,
+  requiresResign,
+  resignReason,
+}: ContractStatusInsightInput) {
+  if (requiresResign) {
+    return {
+      title: "Assinatura pendente por atualização",
+      subtitle:
+        resignReason || "Assinatura pendente por atualização de extra e melhoria do sistema.",
+    };
+  }
+
+  if (status === "enviado") {
+    const relative = formatRelative(dataEnvio);
+    return {
+      title: relative ? `Enviado ${relative}` : "Enviado aguardando leitura",
+      subtitle: "O cliente já recebeu o contrato no portal, mas ainda não abriu.",
+    };
+  }
+
+  if (status === "visualizado") {
+    const relative = formatRelative(dataVisualizacao);
+    return {
+      title: relative ? `Visualizado ${relative}` : "Visualizado aguardando assinatura",
+      subtitle: "Bom momento para follow-up comercial e fechamento.",
+    };
+  }
+
+  if (status === "assinado") {
+    const relative = formatRelative(dataAssinatura);
+    if (onboardingStartedAt || pedidoId) {
+      return {
+        title: relative ? `Assinado ${relative}` : "Assinado",
+        subtitle: pedidoId
+          ? "Onboarding iniciado e pedido operacional criado automaticamente."
+          : "Onboarding já foi iniciado para este contrato.",
+      };
+    }
+
+    return {
+      title: relative ? `Assinado ${relative}` : "Assinado",
+      subtitle: "Contrato fechado. Falta iniciar o onboarding operacional.",
+    };
+  }
+
+  if (status === "rascunho") {
+    return {
+      title: "Rascunho em preparação",
+      subtitle: "A proposta ainda não foi enviada para o cliente.",
+    };
+  }
+
+  if (status === "cancelado") {
+    return {
+      title: "Contrato cancelado",
+      subtitle: "Este fluxo não está mais ativo no pipeline comercial.",
+    };
+  }
+
+  return {
+    title: getContractStatusLabel(status),
+    subtitle: "Acompanhe a timeline para ver os próximos movimentos do contrato.",
+  };
 }

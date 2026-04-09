@@ -241,6 +241,10 @@ export type Database = {
           descricao: string | null
           id: string
           modelo: string | null
+          onboarding_started_at: string | null
+          pedido_id: string | null
+          reassinatura_motivo: string | null
+          requer_reassinatura: boolean
           status: string
           titulo: string
           updated_at: string
@@ -262,6 +266,10 @@ export type Database = {
           descricao?: string | null
           id?: string
           modelo?: string | null
+          onboarding_started_at?: string | null
+          pedido_id?: string | null
+          reassinatura_motivo?: string | null
+          requer_reassinatura?: boolean
           status?: string
           titulo: string
           updated_at?: string
@@ -283,6 +291,10 @@ export type Database = {
           descricao?: string | null
           id?: string
           modelo?: string | null
+          onboarding_started_at?: string | null
+          pedido_id?: string | null
+          reassinatura_motivo?: string | null
+          requer_reassinatura?: boolean
           status?: string
           titulo?: string
           updated_at?: string
@@ -294,6 +306,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
             referencedColumns: ["id"]
           },
         ]

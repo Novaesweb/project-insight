@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, FolderKanban, Plus, FileText, Receipt,
-  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart, ShieldCheck, Zap
+  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart, ShieldCheck, Zap, ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ const menuItems = [
   { label: "Painel de Ativos", icon: LayoutDashboard, path: "/cliente/dashboard" },
   { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
   { label: "Contratos", icon: FileText, path: "/cliente/contratos" },
+  { label: "Checklist e Dados", icon: ClipboardList, path: "/cliente/dados" },
   { label: "Meus Extras", icon: Zap, path: "/cliente/extras" },
   { label: "Financeiro", icon: Receipt, path: "/cliente/faturas" },
 ];

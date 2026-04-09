@@ -6,6 +6,7 @@ import { Sparkles, FolderKanban, Receipt, Headphones, ArrowRight, Check } from "
 interface OnboardingWizardProps {
   clienteName: string;
   onComplete: () => void;
+  storageKey?: string;
 }
 
 const steps = [
@@ -35,15 +36,19 @@ const steps = [
   },
 ];
 
-export function OnboardingWizard({ clienteName, onComplete }: OnboardingWizardProps) {
+export function OnboardingWizard({ clienteName, onComplete, storageKey = "onboarding_done" }: OnboardingWizardProps) {
   const [step, setStep] = useState(0);
+
+  const finishOnboarding = () => {
+    localStorage.setItem(storageKey, "true");
+    onComplete();
+  };
 
   const handleNext = () => {
     if (step < steps.length - 1) {
       setStep(step + 1);
     } else {
-      localStorage.setItem("onboarding_done", "true");
-      onComplete();
+      finishOnboarding();
     }
   };
 
@@ -132,7 +137,7 @@ export function OnboardingWizard({ clienteName, onComplete }: OnboardingWizardPr
         </div>
 
         <button
-          onClick={() => { localStorage.setItem("onboarding_done", "true"); onComplete(); }}
+          onClick={finishOnboarding}
           className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
         >
           Pular introdução

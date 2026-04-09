@@ -112,10 +112,6 @@ CLÁUSULA 13 — DAS OBSERVAÇÕES COMERCIAIS
 CLÁUSULA 14 — DO FORO  
 14.1. Fica eleito o foro da Comarca de {cidade_foro}/{estado_foro}, com renúncia expressa a qualquer outro, por mais privilegiado que seja, para dirimir dúvidas ou controvérsias oriundas deste contrato.
 
-E, por estarem justas e contratadas, as partes firmam o presente instrumento.
+E, por estarem justas e contratadas, as partes confirmam sua concordância com o presente instrumento, inclusive por meios eletrônicos quando aplicável.
 
 {cidade_foro}/{estado_foro}, {data}.
-
-CONTRATANTE: ___________________________
-
-CONTRATADA: ___________________________
