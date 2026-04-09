@@ -16,14 +16,14 @@ const fadeUp = {
 };
 
 const statusColors: Record<string, string> = {
-  aguardando: "#facc15",
+  aguardando: "#4ade80",
   assinado: "#4ade80",
   cancelado: "#ef4444",
   rascunho: "#94a3b8",
 };
 
 const statusLabels: Record<string, string> = {
-  aguardando: "Disponível para leitura",
+  aguardando: "Enviado",
   assinado: "Formalizado",
   cancelado: "Cancelado",
   rascunho: "Rascunho interno",
@@ -109,7 +109,7 @@ export default function ClienteContratos() {
           <Card
             key={contrato.id}
             className={`border-[0.5px] ${
-              contrato.status === "aguardando" ? "border-yellow-500/30" : "border-white/[0.08]"
+              contrato.status === "aguardando" ? "border-emerald-500/30" : "border-white/[0.08]"
             }`}
             style={{ background: "rgba(255,255,255,0.04)" }}
           >
@@ -119,7 +119,7 @@ export default function ClienteContratos() {
                   className="flex items-center gap-2 cursor-pointer group min-w-0"
                   onClick={() => handleView(contrato)}
                 >
-                  {contrato.status === "assinado" ? (
+                  {contrato.status === "assinado" || contrato.status === "aguardando" ? (
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                   ) : (
                     <Lock className="w-4 h-4 text-amber-400 shrink-0" />

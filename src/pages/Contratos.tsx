@@ -115,14 +115,14 @@ const fadeUp = {
 };
 
 const statusColors: Record<string, string> = {
-  aguardando: "#facc15",
+  aguardando: "#4ade80",
   assinado: "#4ade80",
   cancelado: "#ef4444",
   rascunho: "#94a3b8",
 };
 
 const statusLabels: Record<string, string> = {
-  aguardando: "Leitura do cliente",
+  aguardando: "Enviado",
   assinado: "Assinado",
   cancelado: "Cancelado",
   rascunho: "Rascunho",
@@ -1385,6 +1385,33 @@ export default function Contratos() {
     [contratos],
   );
 
+  const sendBuilderContractToClientDirectly = useCallback(
+    async (contractId: string) => {
+      await refreshAdminSessionSilently({ force: false });
+
+      const sentAt = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("contratos")
+        .update({
+          status: "aguardando",
+          data_envio: sentAt.slice(0, 10),
+          archived_at: null,
+          updated_at: sentAt,
+        } as any)
+        .eq("id", contractId)
+        .eq("modelo", BUILDER_TEMPLATE_ID)
+        .select("*, clientes(nome)")
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data as Contrato;
+    },
+    [],
+  );
+
   const handleOpenVersions = useCallback(
     async (contrato: Contrato) => {
       setVersionsOpen(true);
@@ -1530,12 +1557,7 @@ export default function Contratos() {
       }
 
       try {
-        const response = await invokeContractMutation<{ contrato: Contrato }>({
-          action: "send-to-client",
-          contractId: target.id,
-        });
-
-        const updatedContrato = response.contrato;
+        const updatedContrato = await sendBuilderContractToClientDirectly(target.id);
 
         setEditingBuilderContract((current) =>
           current?.id === updatedContrato.id ? updatedContrato : current,
@@ -1548,9 +1570,9 @@ export default function Contratos() {
         toast({
           title:
             target.status === "aguardando"
-              ? "Leitura do cliente atualizada"
-              : "Contrato liberado para leitura",
-          description: "O cliente já pode abrir esse contrato no portal em modo somente leitura.",
+              ? "Contrato enviado atualizado"
+              : "Contrato enviado ao cliente",
+          description: "O contrato já está disponível no portal do cliente para visualização e download.",
         });
 
         return true;
@@ -1563,7 +1585,7 @@ export default function Contratos() {
         return false;
       }
     },
-    [editingBuilderContract, invokeContractMutation, loadContratos, toast],
+    [editingBuilderContract, loadContratos, sendBuilderContractToClientDirectly, toast],
   );
 
   const handleRestoreVersion = useCallback(
