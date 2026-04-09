@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PUBLIC_SUPABASE_CONFIG } from "@/integrations/supabase/public-config";
 
 export const ADMIN_SESSION_RECOVERY_EVENT = "novaesweb:admin-session-recovery";
+export const ADMIN_SESSION_RESTORED_EVENT = "novaesweb:admin-session-restored";
 export const ADMIN_RETURN_TO_STORAGE_KEY = "novaesweb:admin:return-to";
 const ADMIN_SESSION_REFRESH_THROTTLE_MS = 45_000;
 

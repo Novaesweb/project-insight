@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +16,14 @@ import TopProgressBar from "@/components/TopProgressBar";
 import { SupabaseHeartbeat } from "./SupabaseHeartbeat";
 import { ReloadPrompt } from "./ReloadPrompt";
 import { useBranding } from "@/hooks/useBranding";
+import { useToast } from "@/hooks/use-toast";
 import { useUI } from "@/store";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { AdminAccessProvider, useAdminAccess } from "@/hooks/useAdminAccess";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ADMIN_SESSION_RECOVERY_EVENT,
+  ADMIN_SESSION_RESTORED_EVENT,
   storeAdminReturnTo,
 } from "@/lib/admin-function-client";
 import { cn } from "@/lib/utils";
@@ -216,10 +220,13 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     "Sua sessão expirou. Entre novamente no painel para continuar.",
   );
   const [sessionRecoveryLoading, setSessionRecoveryLoading] = useState(false);
+  const [sessionRecoveryEmail, setSessionRecoveryEmail] = useState("");
+  const [sessionRecoveryPassword, setSessionRecoveryPassword] = useState("");
   const { pathname, search, hash } = useLocation();
   const { sidebarCollapsed, setSidebarCollapsed } = useUI();
   const branding = useBranding();
-  const { canAccessPath, loading } = useAdminAccess();
+  const { canAccessPath, loading, sessionEmail } = useAdminAccess();
+  const { toast } = useToast();
 
   const availableDockItems = mobileDockItems.filter((item) => canAccessPath(item.href));
 
@@ -243,14 +250,67 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(ADMIN_SESSION_RECOVERY_EVENT, handler as EventListener);
   }, []);
 
+  useEffect(() => {
+    if (sessionRecoveryOpen && sessionEmail && !sessionRecoveryEmail) {
+      setSessionRecoveryEmail(sessionEmail);
+    }
+  }, [sessionEmail, sessionRecoveryEmail, sessionRecoveryOpen]);
+
   const handleSessionRecovery = async () => {
+    const normalizedEmail = sessionRecoveryEmail.trim().toLowerCase();
+    if (!normalizedEmail || !sessionRecoveryPassword.trim()) {
+      toast({
+        title: "Preencha o login novamente",
+        description: "Informe e-mail e senha para renovar a sessão sem sair do painel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSessionRecoveryLoading(true);
     storeAdminReturnTo(`${pathname}${search}${hash}`);
 
     try {
-      await supabase.auth.signOut({ scope: "local" });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: sessionRecoveryPassword,
+      });
+
+      if (error) {
+        toast({
+          title: "Falha ao renovar a sessão",
+          description: "Confira seu e-mail e senha para continuar no painel.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: adminUser } = await supabase
+        .from("usuarios")
+        .select("email, bloqueado, status")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+
+      if (!adminUser || adminUser.bloqueado || adminUser.status === "inativo") {
+        await supabase.auth.signOut({ scope: "local" });
+        toast({
+          title: "Acesso administrativo indisponível",
+          description: "Esse usuário não está liberado para operar o painel.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSessionRecoveryOpen(false);
+      setSessionRecoveryPassword("");
+      window.dispatchEvent(new Event("admin-access-refresh"));
+      window.dispatchEvent(new Event(ADMIN_SESSION_RESTORED_EVENT));
+      toast({
+        title: "Sessão renovada",
+        description: "O painel voltou a operar sem sair da tela atual.",
+      });
     } finally {
-      window.location.assign("/admin/login");
+      setSessionRecoveryLoading(false);
     }
   };
 
@@ -386,6 +446,29 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             O sistema vai preservar o que você estava fazendo e retomar depois do novo login.
           </div>
           <DialogFooter>
+            <div className="w-full space-y-3">
+              <div className="space-y-2 text-left">
+                <Label htmlFor="session-recovery-email">E-mail</Label>
+                <Input
+                  id="session-recovery-email"
+                  value={sessionRecoveryEmail}
+                  onChange={(event) => setSessionRecoveryEmail(event.target.value)}
+                  autoComplete="email"
+                  disabled={sessionRecoveryLoading}
+                />
+              </div>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="session-recovery-password">Senha</Label>
+                <Input
+                  id="session-recovery-password"
+                  type="password"
+                  value={sessionRecoveryPassword}
+                  onChange={(event) => setSessionRecoveryPassword(event.target.value)}
+                  autoComplete="current-password"
+                  disabled={sessionRecoveryLoading}
+                />
+              </div>
+            </div>
             <Button
               className="w-full rounded-xl border-0 text-white"
               style={{ background: "var(--gradient-primary)" }}

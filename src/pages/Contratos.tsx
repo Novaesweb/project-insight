@@ -59,6 +59,7 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { invokeAdminFunction } from "@/lib/admin-function-client";
+import { ADMIN_SESSION_RESTORED_EVENT } from "@/lib/admin-function-client";
 import {
   buildContractClauseExplanations,
   buildProposalSummary,
@@ -2012,6 +2013,9 @@ export default function Contratos() {
         contrato: payloadToPersist,
       }, {
         onInvalidSession: () => {
+          if (recoveryOrigin === "save-cofre") {
+            contractPendingRetryActionRef.current = "save-cofre";
+          }
           // Preservamos o originAction real para que, ao relogar, o sistema possa
           // retentar automaticamente a ação que o usuário estava tentando fazer.
           saveBuilderRecoveryLocally(
@@ -2100,6 +2104,29 @@ export default function Contratos() {
     }, 800);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [builderPayload]);
+
+  useEffect(() => {
+    const handleSessionRestored = () => {
+      if (contractPendingRetryActionRef.current !== "save-cofre") return;
+      if (!builderPayload) return;
+      contractPendingRetryActionRef.current = null;
+
+      window.setTimeout(() => {
+        void persistBuilderDraft({ requireCompleteValidation: false, silent: false }).then((success) => {
+          if (success) {
+            toast({
+              title: "Contrato salvo no cofre!",
+              description: "A proposta foi salva automaticamente depois da renovação da sessão.",
+            });
+          }
+        });
+      }, 300);
+    };
+
+    window.addEventListener(ADMIN_SESSION_RESTORED_EVENT, handleSessionRestored);
+    return () => window.removeEventListener(ADMIN_SESSION_RESTORED_EVENT, handleSessionRestored);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [builderPayload]);
 
