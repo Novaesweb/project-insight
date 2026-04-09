@@ -5,6 +5,9 @@ import { PUBLIC_SUPABASE_CONFIG } from "@/integrations/supabase/public-config";
 
 export const ADMIN_SESSION_RECOVERY_EVENT = "novaesweb:admin-session-recovery";
 export const ADMIN_RETURN_TO_STORAGE_KEY = "novaesweb:admin:return-to";
+const ADMIN_SESSION_REFRESH_THROTTLE_MS = 45_000;
+
+let lastAdminSessionRefreshAt = 0;
 
 type AdminSessionRecoveryDetail = {
   code: string;
@@ -195,14 +198,20 @@ export async function getCompatibleAdminSession({
     const refreshed = await supabase.auth.refreshSession();
     const refreshedSession = refreshed.data.session;
 
-    if (refreshed.error || !refreshedSession?.access_token || !isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
-      if (clearInvalidLocalSession) {
-        await signOutLocalSession();
-      }
-      return null;
+    if (!refreshed.error && refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
+      lastAdminSessionRefreshAt = Date.now();
+      return refreshedSession;
     }
 
-    return refreshedSession;
+    const currentTokenStillUsable = !session.expires_at || session.expires_at > nowInSeconds;
+    if (currentTokenStillUsable) {
+      return session;
+    }
+
+    if (clearInvalidLocalSession) {
+      await signOutLocalSession();
+    }
+    return null;
   }
 
   return session;
@@ -257,21 +266,6 @@ async function readFunctionErrorPayload(error: unknown, fallbackMessage: string)
 }
 
 async function ensureSessionForAdminCall(forceRefresh = false) {
-  if (forceRefresh) {
-    const refreshed = await supabase.auth.refreshSession();
-    const refreshedSession = refreshed.data.session;
-
-    if (refreshed.error || !refreshedSession?.access_token || !isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
-      throw new AdminFunctionError(
-        "Sua sessão expirou. Entre novamente no painel para continuar.",
-        "INVALID_SESSION",
-        401,
-      );
-    }
-
-    return refreshedSession;
-  }
-
   const session = await getCompatibleAdminSession({
     allowRefresh: true,
     clearInvalidLocalSession: false,
@@ -285,7 +279,31 @@ async function ensureSessionForAdminCall(forceRefresh = false) {
     );
   }
 
-  return session;
+  const shouldForceRefresh = forceRefresh;
+  const shouldRefreshSilently =
+    forceRefresh || Date.now() - lastAdminSessionRefreshAt > ADMIN_SESSION_REFRESH_THROTTLE_MS;
+
+  if (!shouldRefreshSilently) {
+    return session;
+  }
+
+  const refreshed = await supabase.auth.refreshSession();
+  const refreshedSession = refreshed.data.session;
+
+  if (!refreshed.error && refreshedSession?.access_token && isSupabaseAccessTokenCompatible(refreshedSession.access_token)) {
+    lastAdminSessionRefreshAt = Date.now();
+    return refreshedSession;
+  }
+
+  if (!shouldForceRefresh) {
+    return session;
+  }
+
+  throw new AdminFunctionError(
+    "Sua sessão expirou. Entre novamente no painel para continuar.",
+    "INVALID_SESSION",
+    401,
+  );
 }
 
 export async function invokeAdminFunction<T>(
