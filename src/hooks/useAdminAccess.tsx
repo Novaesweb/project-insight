@@ -90,12 +90,13 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
     }
 
     const usuario = userResponse?.data || null;
-    setCurrentUser(usuario);
+    const activeInternalUser =
+      usuario && usuario.status === "ativo" && !usuario.bloqueado ? usuario : null;
 
-    if (usuario?.acesso) {
-      setRole(normalizeAdminRole(usuario.acesso));
-    } else if (session.user.user_metadata?.tipo === "admin") {
-      setRole("admin");
+    setCurrentUser(activeInternalUser);
+
+    if (activeInternalUser?.acesso) {
+      setRole(normalizeAdminRole(activeInternalUser.acesso));
     } else {
       setRole("visualizador");
     }

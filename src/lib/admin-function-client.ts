@@ -90,10 +90,32 @@ function isSessionErrorMessage(message: string) {
     normalized.includes("invalid jwt") ||
     normalized.includes("jwt expired") ||
     normalized.includes("sessão inválida") ||
-    normalized.includes("session expired") ||
-    normalized.includes("não autorizado") ||
-    normalized.includes("nao autorizado")
+    normalized.includes("session expired")
   );
+}
+
+function isSessionErrorPayload(payload: AdminFunctionErrorPayload) {
+  if (isSessionErrorCode(payload.code)) {
+    return true;
+  }
+
+  if (payload.status && payload.status !== 401) {
+    return false;
+  }
+
+  return isSessionErrorMessage(payload.message);
+}
+
+function normalizeAdminErrorMessage(payload: AdminFunctionErrorPayload, fallbackMessage: string) {
+  if (payload.code === "INTERNAL_USER_FORBIDDEN") {
+    return "Seu usuário não está liberado no painel administrativo.";
+  }
+
+  if (payload.code === "INTERNAL_USER_VALIDATION_FAILED") {
+    return "Falha ao validar seu acesso interno. Tente novamente em instantes.";
+  }
+
+  return payload.message || fallbackMessage;
 }
 
 async function signOutLocalSession() {
@@ -295,16 +317,30 @@ export async function invokeAdminFunction<T>(
     return await run(false);
   } catch (error) {
     const parsed = await readFunctionErrorPayload(error, fallbackMessage);
-    const needsRecovery = isSessionErrorCode(parsed.code) || isSessionErrorMessage(parsed.message);
+    const needsRecovery = isSessionErrorPayload(parsed);
 
     if (!needsRecovery) {
-      throw new AdminFunctionError(parsed.message, parsed.code, parsed.status);
+      throw new AdminFunctionError(
+        normalizeAdminErrorMessage(parsed, fallbackMessage),
+        parsed.code,
+        parsed.status,
+      );
     }
 
     try {
       return await run(true);
     } catch (retryError) {
       const retryParsed = await readFunctionErrorPayload(retryError, fallbackMessage);
+      const retryNeedsRecovery = isSessionErrorPayload(retryParsed);
+
+      if (!retryNeedsRecovery) {
+        throw new AdminFunctionError(
+          normalizeAdminErrorMessage(retryParsed, fallbackMessage),
+          retryParsed.code,
+          retryParsed.status,
+        );
+      }
+
       if (options.onInvalidSession) {
         await options.onInvalidSession();
       }

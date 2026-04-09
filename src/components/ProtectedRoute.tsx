@@ -30,7 +30,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         .maybeSingle();
 
       const isBlocked = !!adminUser?.bloqueado || adminUser?.status === "inativo";
-      const isAdmin = !!adminUser || sessionType === "admin";
+      const isAdmin = !!adminUser;
 
       if (isBlocked) {
         await supabase.auth.signOut();

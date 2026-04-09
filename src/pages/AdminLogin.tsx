@@ -57,9 +57,13 @@ export default function AdminLogin() {
         .eq("email", normalizedEmail)
         .maybeSingle();
 
-      if (!adminUser && data.user?.user_metadata?.tipo !== "admin") {
+      if (!adminUser) {
         await supabase.auth.signOut();
-        toast({ title: "Acesso negado", description: "Esse login não pertence à equipe administrativa.", variant: "destructive" });
+        toast({
+          title: "Acesso negado",
+          description: "Esse login não está cadastrado como usuário ativo do painel administrativo.",
+          variant: "destructive",
+        });
         setLoading(false);
         return;
       }
