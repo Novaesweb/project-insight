@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 import { cn } from "@/lib/utils";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import InternalNotes from "@/components/InternalNotes";
@@ -167,17 +168,20 @@ export default function Leads() {
       let authUserId: string | null = null;
 
       if (criarAcesso) {
-        const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
+        const accountData = await invokeAdminFunction<{ user?: { id?: string } }>("create-account", {
           body: {
             email: normalizedEmail,
             password: convertForm.senha,
             nome: convertForm.nome,
             tipo: "cliente",
           },
+          returnTo: "/admin/leads",
+          source: "leads-convert",
+          fallbackMessage: "Não foi possível provisionar o acesso seguro do cliente.",
         });
 
-        if (accountError || !accountData?.user?.id) {
-          throw new Error(accountError?.message || accountData?.error || "Não foi possível provisionar o acesso seguro do cliente.");
+        if (!accountData?.user?.id) {
+          throw new Error("Não foi possível provisionar o acesso seguro do cliente.");
         }
 
         authUserId = accountData.user.id;

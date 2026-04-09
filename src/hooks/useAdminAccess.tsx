@@ -10,6 +10,7 @@ import {
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { getCompatibleAdminSession } from "@/lib/admin-function-client";
 import { adminRoutes } from "@/lib/admin-navigation";
 import {
   DEFAULT_ADMIN_PERMISSIONS,
@@ -53,9 +54,7 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const session = await getCompatibleAdminSession();
 
     if (!session) {
       setCurrentUser(null);

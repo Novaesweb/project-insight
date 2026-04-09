@@ -1,16 +1,13 @@
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getCorsHeaders } from "../_shared/internal-security.ts";
+import {
+  createAdminClient,
+  getCorsHeaders,
+  jsonResponse,
+  requireInternalAdmin,
+} from "../_shared/internal-security.ts";
 
 declare const Deno: any;
-
-function jsonResponse(body: Record<string, unknown>, status = 200, origin: string | null = null) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
-  });
-}
 
 function extractStoragePathFromUrl(url: string | null | undefined) {
   if (!url) return null;
@@ -72,39 +69,10 @@ serve(async (req: Request) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return jsonResponse({ error: "Não autorizado" }, 401, origin);
-    }
-
-    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    const {
-      data: { user: actor },
-      error: actorError,
-    } = await supabaseAdmin.auth.getUser(token);
-
-    if (actorError || !actor?.email) {
-      return jsonResponse({ error: "Sessão inválida" }, 401, origin);
-    }
-
-    const actorEmail = actor.email.trim().toLowerCase();
-    const { data: actorProfile, error: actorProfileError } = await supabaseAdmin
-      .from("usuarios")
-      .select("email, acesso, status, bloqueado")
-      .ilike("email", actorEmail)
-      .maybeSingle();
-
-    if (actorProfileError) {
-      return jsonResponse({ error: actorProfileError.message }, 500, origin);
-    }
-
-    if (!actorProfile || actorProfile.status !== "ativo" || actorProfile.bloqueado) {
-      return jsonResponse({ error: "Somente usuários internos ativos podem excluir clientes." }, 403, origin);
+    const supabaseAdmin = createAdminClient();
+    const auth = await requireInternalAdmin(req, supabaseAdmin, origin);
+    if (auth.response) {
+      return auth.response;
     }
 
     const { clientId } = await req.json();

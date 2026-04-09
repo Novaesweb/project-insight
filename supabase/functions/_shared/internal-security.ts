@@ -55,6 +55,25 @@ export function createAdminClient() {
   );
 }
 
+export function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  origin: string | null,
+  extraBody?: Record<string, unknown>,
+) {
+  return jsonResponse(
+    {
+      code,
+      message,
+      error: message,
+      ...extraBody,
+    },
+    status,
+    origin,
+  );
+}
+
 export async function requireInternalAdmin(
   req: Request,
   supabaseAdmin: ReturnType<typeof createClient>,
@@ -63,7 +82,7 @@ export async function requireInternalAdmin(
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return {
-      response: jsonResponse({ error: "Não autorizado." }, 401, origin),
+      response: errorResponse("MISSING_AUTH", "Não autorizado.", 401, origin),
       actorEmail: null,
       actorProfile: null,
     };
@@ -77,7 +96,7 @@ export async function requireInternalAdmin(
 
   if (actorError || !actor?.email) {
     return {
-      response: jsonResponse({ error: "Sessão inválida." }, 401, origin),
+      response: errorResponse("INVALID_SESSION", "Sessão inválida.", 401, origin),
       actorEmail: null,
       actorProfile: null,
     };
@@ -92,7 +111,12 @@ export async function requireInternalAdmin(
 
   if (profileError) {
     return {
-      response: jsonResponse({ error: "Falha ao validar o usuário interno." }, 500, origin),
+      response: errorResponse(
+        "INTERNAL_USER_VALIDATION_FAILED",
+        "Falha ao validar o usuário interno.",
+        500,
+        origin,
+      ),
       actorEmail,
       actorProfile: null,
     };
@@ -100,7 +124,7 @@ export async function requireInternalAdmin(
 
   if (!actorProfile || actorProfile.status !== "ativo" || actorProfile.bloqueado) {
     return {
-      response: jsonResponse({ error: "Acesso interno não autorizado." }, 403, origin),
+      response: errorResponse("INTERNAL_USER_FORBIDDEN", "Acesso interno não autorizado.", 403, origin),
       actorEmail,
       actorProfile: null,
     };

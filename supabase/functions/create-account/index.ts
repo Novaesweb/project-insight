@@ -1,16 +1,14 @@
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getCorsHeaders } from "../_shared/internal-security.ts";
+import {
+  createAdminClient,
+  errorResponse,
+  getCorsHeaders,
+  jsonResponse,
+  requireInternalAdmin,
+} from "../_shared/internal-security.ts";
 
 declare const Deno: any;
-
-function jsonResponse(body: Record<string, unknown>, status = 200, origin: string | null = null) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
-  });
-}
 
 async function findAuthUserByEmail(supabaseAdmin: any, email: string) {
   const { data, error } = await supabaseAdmin.auth.admin.listUsers({
@@ -34,40 +32,13 @@ serve(async (req: Request) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return jsonResponse({ error: "Não autorizado" }, 401, origin);
+    const supabaseAdmin = createAdminClient();
+    const auth = await requireInternalAdmin(req, supabaseAdmin, origin);
+    if (auth.response) {
+      return auth.response;
     }
-
-    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    const {
-      data: { user: actor },
-      error: actorError,
-    } = await supabaseAdmin.auth.getUser(token);
-
-    if (actorError || !actor?.email) {
-      return jsonResponse({ error: "Sessão inválida" }, 401, origin);
-    }
-
-    const actorEmail = actor.email.trim().toLowerCase();
-    const { data: actorProfile, error: actorProfileError } = await supabaseAdmin
-      .from("usuarios")
-      .select("email, acesso, status, bloqueado")
-      .ilike("email", actorEmail)
-      .maybeSingle();
-
-    if (actorProfileError) {
-      return jsonResponse({ error: actorProfileError.message }, 500, origin);
-    }
-
-    if (!actorProfile || actorProfile.status !== "ativo" || actorProfile.bloqueado) {
-      return jsonResponse({ error: "Somente usuários internos ativos podem provisionar contas." }, 403, origin);
-    }
+    const actorEmail = auth.actorEmail!;
+    const actorProfile = auth.actorProfile!;
 
     const { email, password, nome, tipo } = await req.json();
     const accountType = typeof tipo === "string" ? tipo.trim().toLowerCase() : "cliente";
@@ -83,7 +54,7 @@ serve(async (req: Request) => {
     }
 
     if (accountType === "admin" && String(actorProfile.acesso || "").trim().toLowerCase() !== "admin") {
-      return jsonResponse({ error: "Somente administradores podem criar novos admins." }, 403, origin);
+      return errorResponse("INTERNAL_USER_FORBIDDEN", "Somente administradores podem criar novos admins.", 403, origin);
     }
 
     let { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({

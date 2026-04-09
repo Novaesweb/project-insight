@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getCompatibleAdminSession } from "@/lib/admin-function-client";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -10,9 +11,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     const checkAccess = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const session = await getCompatibleAdminSession();
 
       if (!session) {
         setAuthenticated(false);

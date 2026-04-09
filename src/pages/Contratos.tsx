@@ -58,6 +58,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 import {
   buildContractClauseExplanations,
   buildProposalSummary,
@@ -79,6 +80,11 @@ import {
   type ContractBuilderStepIndex,
 } from "@/lib/contract-builder";
 import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
+import {
+  clearContractRecoverySnapshot,
+  consumePendingContractRecoverySnapshot,
+  saveContractRecoverySnapshot,
+} from "@/lib/contract-recovery";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 
@@ -157,55 +163,6 @@ function getContractErrorMessage(error: unknown, fallback: string) {
   }
 
   return fallback;
-}
-
-function isJwtSessionErrorMessage(message: string) {
-  const normalized = message.trim().toLowerCase();
-  return (
-    normalized.includes("invalid jwt") ||
-    normalized.includes("jwt expired") ||
-    normalized.includes("sessão inválida") ||
-    normalized.includes("session expired")
-  );
-}
-
-async function extractFunctionErrorMessage(
-  error: unknown,
-  fallback = "Falha ao comunicar com o backend de contratos.",
-) {
-  if (
-    error &&
-    typeof error === "object" &&
-    "context" in error &&
-    error.context instanceof Response
-  ) {
-    try {
-      const response = error.context.clone();
-      const contentType = response.headers.get("content-type") || "";
-
-      if (contentType.includes("application/json")) {
-        const payload = await response.json();
-        if (payload && typeof payload === "object") {
-          if ("error" in payload && typeof payload.error === "string" && payload.error.trim()) {
-            return payload.error;
-          }
-
-          if ("message" in payload && typeof payload.message === "string" && payload.message.trim()) {
-            return payload.message;
-          }
-        }
-      }
-
-      const text = await response.text();
-      if (text.trim()) {
-        return text.trim();
-      }
-    } catch {
-      return getContractErrorMessage(error, fallback);
-    }
-  }
-
-  return getContractErrorMessage(error, fallback);
 }
 
 function drawWrappedText(
@@ -1112,6 +1069,7 @@ function BuilderLiveSummary({
 export default function Contratos() {
   const { toast } = useToast();
   const [contratos, setContratos] = useState<Contrato[]>([]);
+  const [contratosLoaded, setContratosLoaded] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [extrasCatalogo, setExtrasCatalogo] = useState<ExtraCatalogo[]>([]);
   const [extrasLoaded, setExtrasLoaded] = useState(false);
@@ -1133,7 +1091,9 @@ export default function Contratos() {
   const [compareVersion, setCompareVersion] = useState<ContratoVersion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
   const [moneyDrafts, setMoneyDrafts] = useState<Record<string, string>>({});
+  const [builderRecoveredLocally, setBuilderRecoveredLocally] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const contractRecoveryRestoredRef = useRef(false);
 
   const masterTemplate = contractTemplates[0];
 
@@ -1145,6 +1105,7 @@ export default function Contratos() {
     ) => {
       setBuilderLastSavedSignature(buildBuilderDirtySignature(payload, step));
       setBuilderLastSavedAt(savedAt || null);
+      setBuilderRecoveredLocally(false);
     },
     [],
   );
@@ -1155,7 +1116,10 @@ export default function Contratos() {
       .select("*, clientes(nome)")
       .eq("modelo", BUILDER_TEMPLATE_ID)
       .order("updated_at", { ascending: false })
-      .then(({ data }) => setContratos((data as Contrato[]) || []));
+      .then(({ data }) => {
+        setContratos((data as Contrato[]) || []);
+        setContratosLoaded(true);
+      });
   }, []);
 
   const loadClientes = useCallback(() => {
@@ -1198,78 +1162,78 @@ export default function Contratos() {
     }
   }, [builderPayload, extrasCatalogo, extrasLoaded, syncBuilderSavedState]);
 
+  useEffect(() => {
+    if (!contratosLoaded || !extrasLoaded || !builderPayload || contractRecoveryRestoredRef.current) {
+      return;
+    }
+
+    const recoverySnapshot = consumePendingContractRecoverySnapshot();
+    contractRecoveryRestoredRef.current = true;
+
+    if (!recoverySnapshot) {
+      return;
+    }
+
+    const restoredPayload = normalizeBuilderPayload(
+      recoverySnapshot.builderPayload,
+      extrasCatalogo,
+      recoverySnapshot.builderPayload.clienteId,
+      recoverySnapshot.lastStep,
+    );
+    const restoredStep = normalizeBuilderStep(recoverySnapshot.lastStep, 4);
+    const restoredContrato = recoverySnapshot.contractId
+      ? contratos.find((item) => item.id === recoverySnapshot.contractId) || null
+      : null;
+
+    if (restoredContrato?.builder_payload) {
+      const persistedPayload = normalizeBuilderPayload(
+        restoredContrato.builder_payload,
+        extrasCatalogo,
+        restoredContrato.cliente_id,
+        restoredStep,
+      );
+      syncBuilderSavedState(
+        persistedPayload,
+        normalizeBuilderStep(persistedPayload.lastStep, 4),
+        restoredContrato.updated_at || restoredContrato.created_at,
+      );
+    } else {
+      setBuilderLastSavedSignature(null);
+      setBuilderLastSavedAt(null);
+    }
+
+    setBuilderPayload(restoredPayload);
+    setEditingBuilderContract(restoredContrato);
+    setBuilderStep(restoredStep);
+    setTab("montador");
+    setMobileSummaryOpen(false);
+    setMoneyDrafts({});
+    setBuilderRecoveredLocally(true);
+    toast({
+      title: "Montador restaurado após novo login",
+      description: "Seu rascunho local foi recuperado no mesmo passo em que você parou.",
+    });
+  }, [builderPayload, contratos, contratosLoaded, extrasCatalogo, extrasLoaded, syncBuilderSavedState, toast]);
+
   const openPreview = (nextState: PreviewState) => {
     setPreviewState(nextState);
     setPreviewOpen(true);
   };
 
   const invokeContractMutation = useCallback(
-    async <T,>(payload: Record<string, unknown>) => {
-      const runMutation = async (forceRefresh = false) => {
-        const nowInSeconds = Math.floor(Date.now() / 1000);
-        const sessionResponse = forceRefresh
-          ? await supabase.auth.refreshSession()
-          : await supabase.auth.getSession();
-
-        if (sessionResponse.error) {
-          throw new Error("Não foi possível validar sua sessão. Entre novamente no painel.");
-        }
-
-        let activeSession = sessionResponse.data.session;
-
-        if (
-          !forceRefresh &&
-          activeSession &&
-          activeSession.expires_at &&
-          activeSession.expires_at <= nowInSeconds + 30
-        ) {
-          const refreshedSession = await supabase.auth.refreshSession();
-
-          if (refreshedSession.error || !refreshedSession.data.session?.access_token) {
-            throw new Error("Sua sessão expirou. Entre novamente no painel para continuar.");
-          }
-
-          activeSession = refreshedSession.data.session;
-        }
-
-        if (!activeSession?.access_token) {
-          throw new Error("Sua sessão expirou. Entre novamente no painel para continuar.");
-        }
-
-        const { data, error } = await supabase.functions.invoke("manage-contract-builder", {
-          body: payload,
-          headers: {
-            Authorization: `Bearer ${activeSession.access_token}`,
-          },
-        });
-
-        if (error) {
-          const message = await extractFunctionErrorMessage(
-            error,
-            "Falha ao comunicar com o backend de contratos.",
-          );
-          throw new Error(message);
-        }
-
-        if (data?.error) {
-          throw new Error(String(data.error));
-        }
-
-        return data as T;
-      };
-
-      try {
-        return await runMutation(false);
-      } catch (error) {
-        const message = getContractErrorMessage(error, "");
-
-        if (message && isJwtSessionErrorMessage(message)) {
-          return await runMutation(true);
-        }
-
-        throw error;
-      }
-    },
+    async <T,>(
+      payload: Record<string, unknown>,
+      options?: {
+        onInvalidSession?: () => Promise<void> | void;
+      },
+    ) =>
+      invokeAdminFunction<T>("manage-contract-builder", {
+        body: payload,
+        returnTo: "/admin/contratos",
+        source: "contract-builder",
+        fallbackMessage: "Falha ao comunicar com o backend de contratos.",
+        onInvalidSession: options?.onInvalidSession,
+      }),
     [],
   );
 
@@ -1375,6 +1339,7 @@ export default function Contratos() {
           setMobileSummaryOpen(false);
           setMoneyDrafts({});
           syncBuilderSavedState(emptyPayload, 0, null);
+          clearContractRecoverySnapshot();
           setTab("montador");
         }
       }
@@ -1628,6 +1593,7 @@ export default function Contratos() {
     setMobileSummaryOpen(false);
     setMoneyDrafts({});
     syncBuilderSavedState(emptyPayload, 0, null);
+    clearContractRecoverySnapshot();
     setTab("montador");
   }, [extrasCatalogo, extrasLoaded, syncBuilderSavedState]);
 
@@ -1925,6 +1891,15 @@ export default function Contratos() {
         action: "save-draft",
         contractId: editingBuilderContract?.id ?? null,
         contrato: payloadToPersist,
+      }, {
+        onInvalidSession: () => {
+          saveContractRecoverySnapshot({
+            contractId: editingBuilderContract?.id ?? null,
+            builderPayload: prepared.normalizedPayload,
+            lastStep: prepared.normalizedPayload.lastStep,
+            savedAt: new Date().toISOString(),
+          });
+        },
       });
 
       const savedContrato = response.contrato;
@@ -1943,6 +1918,7 @@ export default function Contratos() {
         savedPayload.lastStep,
         savedContrato.updated_at || nowIso,
       );
+      clearContractRecoverySnapshot();
       toast({
         title: exitAfterSave
           ? editingBuilderContract
@@ -2039,9 +2015,10 @@ export default function Contratos() {
   );
 
   const builderHasUnsavedChanges = useMemo(() => {
+    if (builderRecoveredLocally) return true;
     if (!builderDirtySignature || !builderLastSavedSignature) return false;
     return builderDirtySignature !== builderLastSavedSignature;
-  }, [builderDirtySignature, builderLastSavedSignature]);
+  }, [builderDirtySignature, builderLastSavedSignature, builderRecoveredLocally]);
 
   const builderStatusLabel = useMemo(() => {
     if (builderHasUnsavedChanges) {

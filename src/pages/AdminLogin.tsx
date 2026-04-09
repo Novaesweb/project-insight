@@ -8,6 +8,7 @@ import { Lock, Mail, Eye, EyeOff, ShieldAlert, Timer, Sparkles } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-admin.png";
+import { consumeAdminReturnTo } from "@/lib/admin-function-client";
 import { logAdminAudit, updateAdminUserMetadata } from "@/lib/admin-audit";
 
 export default function AdminLogin() {
@@ -90,8 +91,9 @@ export default function AdminLogin() {
         void 0;
       }
 
+      const returnTo = consumeAdminReturnTo();
       toast({ title: "Sessão Iniciada!", description: "Bem-vindo à Cabine de Comando, Arquiteto." });
-      navigate("/admin");
+      navigate(returnTo && returnTo.startsWith("/admin") ? returnTo : "/admin");
     }
     setLoading(false);
   };

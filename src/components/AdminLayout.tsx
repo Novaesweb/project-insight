@@ -2,6 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import TopProgressBar from "@/components/TopProgressBar";
 import { SupabaseHeartbeat } from "./SupabaseHeartbeat";
 import { ReloadPrompt } from "./ReloadPrompt";
@@ -10,6 +18,10 @@ import { useUI } from "@/store";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { AdminAccessProvider, useAdminAccess } from "@/hooks/useAdminAccess";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  ADMIN_SESSION_RECOVERY_EVENT,
+  storeAdminReturnTo,
+} from "@/lib/admin-function-client";
 import { cn } from "@/lib/utils";
 import { getFavoriteAdminRoutes, getRecentAdminRoutes, trackAdminRoute } from "@/lib/admin-navigation";
 import {
@@ -199,7 +211,12 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { pathname } = useLocation();
+  const [sessionRecoveryOpen, setSessionRecoveryOpen] = useState(false);
+  const [sessionRecoveryMessage, setSessionRecoveryMessage] = useState(
+    "Sua sessão expirou. Entre novamente no painel para continuar.",
+  );
+  const [sessionRecoveryLoading, setSessionRecoveryLoading] = useState(false);
+  const { pathname, search, hash } = useLocation();
   const { sidebarCollapsed, setSidebarCollapsed } = useUI();
   const branding = useBranding();
   const { canAccessPath, loading } = useAdminAccess();
@@ -209,6 +226,33 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     trackAdminRoute(pathname);
   }, [pathname]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const customEvent = event as CustomEvent<{ message?: string; returnTo?: string }>;
+      setSessionRecoveryMessage(
+        customEvent.detail?.message || "Sua sessão expirou. Entre novamente no painel para continuar.",
+      );
+      if (customEvent.detail?.returnTo) {
+        storeAdminReturnTo(customEvent.detail.returnTo);
+      }
+      setSessionRecoveryOpen(true);
+    };
+
+    window.addEventListener(ADMIN_SESSION_RECOVERY_EVENT, handler as EventListener);
+    return () => window.removeEventListener(ADMIN_SESSION_RECOVERY_EVENT, handler as EventListener);
+  }, []);
+
+  const handleSessionRecovery = async () => {
+    setSessionRecoveryLoading(true);
+    storeAdminReturnTo(`${pathname}${search}${hash}`);
+
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } finally {
+      window.location.assign("/admin/login");
+    }
+  };
 
   const renderMainContent = () => {
     if (loading) {
@@ -325,6 +369,34 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <ReloadPrompt />
+
+      <Dialog open={sessionRecoveryOpen} onOpenChange={() => undefined}>
+        <DialogContent
+          className="max-w-md border-white/10 bg-[hsl(var(--background))] text-white"
+          onEscapeKeyDown={(event) => event.preventDefault()}
+          onPointerDownOutside={(event) => event.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Sessão do painel indisponível</DialogTitle>
+            <DialogDescription className="text-[hsl(var(--muted-foreground))]">
+              {sessionRecoveryMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-[hsl(var(--muted-foreground))]">
+            O sistema vai preservar o que você estava fazendo e retomar depois do novo login.
+          </div>
+          <DialogFooter>
+            <Button
+              className="w-full rounded-xl border-0 text-white"
+              style={{ background: "var(--gradient-primary)" }}
+              onClick={handleSessionRecovery}
+              disabled={sessionRecoveryLoading}
+            >
+              {sessionRecoveryLoading ? "Redirecionando..." : "Entrar novamente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

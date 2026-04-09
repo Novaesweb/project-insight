@@ -37,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useToast } from "@/hooks/use-toast";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
@@ -1011,37 +1012,33 @@ export default function Clientes() {
     let authUserId: string | null = null;
 
       if (criarConta) {
-        const { data: accountData, error: accountError } = await supabase.functions.invoke("create-account", {
-          body: {
-            email: normalizedEmail,
-            password: senhaCliente,
-          nome: form.nome,
-          tipo: "cliente",
-          },
-        });
+        try {
+          const accountData = await invokeAdminFunction<{ user?: { id?: string } }>("create-account", {
+            body: {
+              email: normalizedEmail,
+              password: senhaCliente,
+              nome: form.nome,
+              tipo: "cliente",
+            },
+            returnTo: "/admin/clientes",
+            source: "clientes-create-account",
+            fallbackMessage: "Não foi possível criar a conta segura do cliente.",
+          });
 
-        if (accountError || !accountData?.user?.id) {
-          let functionMessage = accountData?.error || null;
-
-          if (!functionMessage && accountError && "context" in accountError && accountError.context) {
-            try {
-              const errorPayload = await accountError.context.json();
-              functionMessage = errorPayload?.error || errorPayload?.message || null;
-            } catch {
-              functionMessage = null;
-            }
+          if (!accountData?.user?.id) {
+            throw new Error("Não foi possível criar a conta segura do cliente.");
           }
 
+          authUserId = accountData.user.id;
+        } catch (error) {
           toast({
             title: "Erro ao provisionar acesso",
-            description: functionMessage || accountError?.message || "Não foi possível criar a conta segura do cliente.",
+            description: error instanceof Error ? error.message : "Não foi possível criar a conta segura do cliente.",
             variant: "destructive"
           });
           setSaving(false);
           return;
         }
-
-      authUserId = accountData.user.id;
     }
     
     // 1. Inserir Cliente
@@ -1153,35 +1150,26 @@ export default function Clientes() {
 
   const handleDeleteCliente = (id: string) => {
     requestDelete(async () => {
-      const { data, error } = await supabase.functions.invoke("delete-client-account", {
-        body: { clientId: id },
-      });
-
-      if (error || data?.error) {
-        let functionMessage = data?.error || null;
-
-        if (!functionMessage && error && "context" in error && error.context) {
-          try {
-            const errorPayload = await error.context.json();
-            functionMessage = errorPayload?.error || errorPayload?.message || null;
-          } catch {
-            functionMessage = null;
-          }
-        }
+      try {
+        const data = await invokeAdminFunction<{ message?: string }>("delete-client-account", {
+          body: { clientId: id },
+          returnTo: "/admin/clientes",
+          source: "clientes-delete",
+          fallbackMessage: "Não foi possível remover o cliente e o acesso do portal.",
+        });
 
         toast({
+          title: "Cliente excluído com sucesso!",
+          description: data?.message || "Projeto, pedidos e acesso do portal foram removidos. Dívidas em aberto permanecem no financeiro.",
+        });
+        fetchClientes();
+      } catch (error) {
+        toast({
           title: "Erro ao excluir",
-          description: functionMessage || error?.message || "Não foi possível remover o cliente e o acesso do portal.",
+          description: error instanceof Error ? error.message : "Não foi possível remover o cliente e o acesso do portal.",
           variant: "destructive"
         });
-        return;
       }
-
-      toast({
-        title: "Cliente excluído com sucesso!",
-        description: data?.message || "Projeto, pedidos e acesso do portal foram removidos. Dívidas em aberto permanecem no financeiro.",
-      });
-      fetchClientes();
     }, "Excluir Cliente", "Projeto, pedidos, painel, checklist e dados operacionais serão removidos. Só permanecem lançamentos em aberto no financeiro, caso existam.");
   };
 

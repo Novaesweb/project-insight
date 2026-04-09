@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 
 export interface AsaasPaymentPayload {
   customer: string;
@@ -41,28 +42,16 @@ export class AsaasService {
    * Faz uma requisição para a API do Asaas via Supabase Edge Function (Ponte Segura)
    */
   private static async request(path: string, method: string = "GET", body?: any) {
-    const { data, error } = await supabase.functions.invoke('asaas-api', {
-      body: { 
-        path: path.startsWith('/') ? path.substring(1) : path, 
-        method, 
-        body 
-      }
+    const data = await invokeAdminFunction<any>("asaas-api", {
+      body: {
+        path: path.startsWith('/') ? path.substring(1) : path,
+        method,
+        body,
+      },
+      returnTo: "/admin/financeiro",
+      source: "asaas-service",
+      fallbackMessage: "Falha na ponte de comunicação com o Asaas.",
     });
-
-    if (error) {
-      if (import.meta.env.DEV) {
-        console.error("Erro na Edge Function do Asaas:", error.message);
-      }
-      // Tenta extrair a mensagem de erro detalhada
-      let errorMessage = "Falha na ponte de comunicação com o Asaas.";
-      try {
-        const errorJson = await error.context?.json();
-        errorMessage = errorJson?.error || errorJson?.errors?.[0]?.description || error.message;
-      } catch (e) {
-        errorMessage = error.message;
-      }
-      throw new Error(errorMessage);
-    }
 
     if (data?.errors) {
       throw new Error(data.errors[0]?.description || "Erro na API do Asaas.");

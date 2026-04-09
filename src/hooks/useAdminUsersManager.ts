@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 import {
   logAdminAudit,
   loadAdminUserMetadata,
@@ -106,12 +107,19 @@ export function useAdminUsersManager() {
 
     setSavingKey("create-admin");
     const avatar = form.nome.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
-    const { error: accountError } = await supabase.functions.invoke("create-account", {
-      body: { email, password: form.senha, nome: form.nome, tipo: "admin" },
-    });
-
-    if (accountError) {
-      toast({ title: "Erro ao criar conta", description: accountError.message, variant: "destructive" });
+    try {
+      await invokeAdminFunction("create-account", {
+        body: { email, password: form.senha, nome: form.nome, tipo: "admin" },
+        returnTo: "/admin/usuarios",
+        source: "admin-users-create",
+        fallbackMessage: "Não foi possível provisionar o acesso administrativo.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao criar conta",
+        description: error instanceof Error ? error.message : "Não foi possível criar a conta administrativa.",
+        variant: "destructive",
+      });
       setSavingKey(null);
       return false;
     }
