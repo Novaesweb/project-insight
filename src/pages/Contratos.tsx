@@ -1112,6 +1112,8 @@ export default function Contratos() {
   const shouldReduceMotion = useReducedMotion();
   const contractRecoveryRestoredRef = useRef(false);
   const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
+  const contractPendingRetryActionRef = useRef<ContractRecoveryOriginAction | null>(null);
+  const contractAutoSaveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const masterTemplate = contractTemplates[0];
 
@@ -1277,12 +1279,20 @@ export default function Contratos() {
     setMoneyDrafts({});
     setBuilderRecoveredLocally(true);
     contractRecoveryAutosaveSignatureRef.current = recoverySnapshot.payloadSignature;
+
+    // Se a ação original era salvar no cofre, sinalizar para retentar automaticamente após render
+    if (pendingRecoverySnapshot && recoverySnapshot.originAction === "save-cofre") {
+      contractPendingRetryActionRef.current = "save-cofre";
+    }
+
     toast({
       title: pendingRecoverySnapshot
         ? "Montador restaurado após novo login"
         : "Rascunho local restaurado",
       description: pendingRecoverySnapshot
-        ? "Seu rascunho local foi recuperado no mesmo passo em que você parou."
+        ? recoverySnapshot.originAction === "save-cofre"
+          ? "Seu rascunho foi recuperado. Salvando no cofre automaticamente…"
+          : "Seu rascunho local foi recuperado no mesmo passo em que você parou."
         : "As alterações salvas localmente voltaram para o montador.",
     });
   }, [builderPayload, contratos, contratosLoaded, extrasCatalogo, extrasLoaded, syncBuilderSavedState, toast]);
@@ -1938,9 +1948,11 @@ export default function Contratos() {
   const persistBuilderDraft = async ({
     exitAfterSave = false,
     requireCompleteValidation = false,
+    silent = false,
   }: {
     exitAfterSave?: boolean;
     requireCompleteValidation?: boolean;
+    silent?: boolean;
   } = {}) => {
     const currentPayload = syncMoneyDraftsToState();
     if (!currentPayload) return false;
@@ -1951,16 +1963,20 @@ export default function Contratos() {
     try {
       prepared = buildBuilderSavePayload(currentPayload, builderStep);
     } catch (error) {
-      toast({
-        title: "Erro ao validar a proposta",
-        description: getContractErrorMessage(error, "Revise os dados da proposta antes de salvar."),
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Erro ao validar a proposta",
+          description: getContractErrorMessage(error, "Revise os dados da proposta antes de salvar."),
+          variant: "destructive",
+        });
+      }
       return false;
     }
 
     if (!prepared) {
-      toast({ title: "Modelo mestre não encontrado", variant: "destructive" });
+      if (!silent) {
+        toast({ title: "Modelo mestre não encontrado", variant: "destructive" });
+      }
       return false;
     }
 
@@ -1997,10 +2013,12 @@ export default function Contratos() {
         contrato: payloadToPersist,
       }, {
         onInvalidSession: () => {
+          // Preservamos o originAction real para que, ao relogar, o sistema possa
+          // retentar automaticamente a ação que o usuário estava tentando fazer.
           saveBuilderRecoveryLocally(
             prepared.normalizedPayload,
             prepared.normalizedPayload.lastStep,
-            "session-recovery",
+            recoveryOrigin,
             { markPendingRestore: true },
           );
         },
@@ -2023,21 +2041,25 @@ export default function Contratos() {
         savedContrato.updated_at || nowIso,
       );
       clearContractRecoverySnapshot();
-      toast({
-        title: exitAfterSave
-          ? editingBuilderContract
-            ? "Rascunho atualizado. Você pode continuar depois."
-            : "Rascunho salvo. Você pode continuar depois."
-          : editingBuilderContract
-            ? "Contrato mestre atualizado!"
-            : "Contrato mestre salvo no cofre!",
-      });
+      if (!silent) {
+        toast({
+          title: exitAfterSave
+            ? editingBuilderContract
+              ? "Rascunho atualizado. Você pode continuar depois."
+              : "Rascunho salvo. Você pode continuar depois."
+            : editingBuilderContract
+              ? "Contrato mestre atualizado!"
+              : "Contrato mestre salvo no cofre!",
+        });
+      }
     } catch (error) {
-      toast({
-        title: editingBuilderContract ? "Erro ao atualizar contrato" : "Erro ao salvar contrato",
-        description: getContractErrorMessage(error, "Não foi possível salvar a proposta."),
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: editingBuilderContract ? "Erro ao atualizar contrato" : "Erro ao salvar contrato",
+          description: getContractErrorMessage(error, "Não foi possível salvar a proposta."),
+          variant: "destructive",
+        });
+      }
       return false;
     }
 
@@ -2058,6 +2080,57 @@ export default function Contratos() {
   const handleSaveBuilderAndExit = async () => {
     await persistBuilderDraft({ exitAfterSave: true });
   };
+
+  // Auto-save silencioso a cada 3 minutos quando há alterações não salvas no montador
+  // Usamos refs para acessar os valores mais recentes sem depender deles no array de deps,
+  // evitando que um intervalo novo seja criado a cada mudança de estado.
+  const workingBuilderPayloadRef = useRef(workingBuilderPayload);
+  const builderStepRef = useRef(builderStep);
+  useEffect(() => {
+    workingBuilderPayloadRef.current = workingBuilderPayload;
+  }, [workingBuilderPayload]);
+  useEffect(() => {
+    builderStepRef.current = builderStep;
+  }, [builderStep]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const payload = workingBuilderPayloadRef.current;
+      const step = builderStepRef.current;
+      if (!payload) return;
+      const freshSignature = buildBuilderDirtySignature(payload, step);
+      if (freshSignature === contractRecoveryAutosaveSignatureRef.current) return; // Sem mudanças
+      void persistBuilderDraft({ silent: true });
+    }, 3 * 60 * 1000); // 3 minutos
+
+    contractAutoSaveIntervalRef.current = interval;
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Após restauração de sessão, retentar salvar no cofre automaticamente se era essa a ação original
+  useEffect(() => {
+    if (contractPendingRetryActionRef.current !== "save-cofre") return;
+    if (!builderPayload) return;
+    contractPendingRetryActionRef.current = null;
+
+    // Aguarda um tick para garantir que o estado foi totalmente restaurado
+    const timer = setTimeout(() => {
+      void persistBuilderDraft({ requireCompleteValidation: false, silent: false })
+        .then((success) => {
+          if (success) {
+            toast({
+              title: "Contrato salvo no cofre!",
+              description: "O contrato foi salvo automaticamente após o novo login.",
+            });
+          }
+        });
+    }, 800);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [builderPayload]);
 
   const handleBuilderPdfDownload = () => {
     const currentPayload = syncMoneyDraftsToState();
