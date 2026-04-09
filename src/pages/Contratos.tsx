@@ -83,7 +83,9 @@ import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema
 import {
   clearContractRecoverySnapshot,
   consumePendingContractRecoverySnapshot,
+  loadContractRecoverySnapshot,
   saveContractRecoverySnapshot,
+  type ContractRecoveryOriginAction,
 } from "@/lib/contract-recovery";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
@@ -573,6 +575,21 @@ function normalizeBuilderStep(
   return value === 0 || value === 1 || value === 2 || value === 3 || value === 4
     ? value
     : fallback;
+}
+
+function hasMeaningfulBuilderState(payload: ContractBuilderPayload) {
+  return Boolean(
+    payload.clienteId ||
+      payload.primaryPlanId !== "none" ||
+      payload.items.some(
+        (item) => item.selected || Number(item.setupPrice || 0) > 0 || Number(item.monthlyPrice || 0) > 0,
+      ) ||
+      payload.customScope.trim() ||
+      payload.observacoesComerciais.trim() ||
+      payload.escopoExclusoes.trim() ||
+      Number(payload.pricing.negotiatedSetup || 0) > 0 ||
+      Number(payload.pricing.negotiatedMonthly || 0) > 0
+  );
 }
 
 function formatContratoValue(value: number | null) {
@@ -1094,6 +1111,7 @@ export default function Contratos() {
   const [builderRecoveredLocally, setBuilderRecoveredLocally] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const contractRecoveryRestoredRef = useRef(false);
+  const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
 
   const masterTemplate = contractTemplates[0];
 
@@ -1106,8 +1124,35 @@ export default function Contratos() {
       setBuilderLastSavedSignature(buildBuilderDirtySignature(payload, step));
       setBuilderLastSavedAt(savedAt || null);
       setBuilderRecoveredLocally(false);
+      contractRecoveryAutosaveSignatureRef.current = buildBuilderDirtySignature(payload, step);
     },
     [],
+  );
+
+  const saveBuilderRecoveryLocally = useCallback(
+    (
+      payload: ContractBuilderPayload,
+      step: ContractBuilderStepIndex,
+      originAction: ContractRecoveryOriginAction,
+      options?: { markPendingRestore?: boolean },
+    ) => {
+      if (!hasMeaningfulBuilderState(payload) && !editingBuilderContract?.id) {
+        return;
+      }
+
+      saveContractRecoverySnapshot(
+        {
+          contractId: editingBuilderContract?.id ?? null,
+          builderPayload: payload,
+          lastStep: step,
+          savedAt: new Date().toISOString(),
+          originAction,
+          payloadSignature: buildBuilderDirtySignature(payload, step),
+        },
+        options,
+      );
+    },
+    [editingBuilderContract?.id],
   );
 
   const loadContratos = useCallback(() => {
@@ -1167,10 +1212,16 @@ export default function Contratos() {
       return;
     }
 
-    const recoverySnapshot = consumePendingContractRecoverySnapshot();
+    const pendingRecoverySnapshot = consumePendingContractRecoverySnapshot();
+    const recoverySnapshot = pendingRecoverySnapshot || loadContractRecoverySnapshot();
     contractRecoveryRestoredRef.current = true;
 
     if (!recoverySnapshot) {
+      return;
+    }
+
+    if (!hasMeaningfulBuilderState(recoverySnapshot.builderPayload) && !recoverySnapshot.contractId) {
+      clearContractRecoverySnapshot();
       return;
     }
 
@@ -1184,14 +1235,30 @@ export default function Contratos() {
     const restoredContrato = recoverySnapshot.contractId
       ? contratos.find((item) => item.id === recoverySnapshot.contractId) || null
       : null;
+    const persistedPayload = restoredContrato?.builder_payload
+      ? normalizeBuilderPayload(
+          restoredContrato.builder_payload,
+          extrasCatalogo,
+          restoredContrato.cliente_id,
+          restoredStep,
+        )
+      : null;
+    const persistedSignature = persistedPayload
+      ? buildBuilderDirtySignature(
+          persistedPayload,
+          normalizeBuilderStep(persistedPayload.lastStep, restoredStep),
+        )
+      : null;
+    const shouldRestoreLocally =
+      Boolean(pendingRecoverySnapshot) || recoverySnapshot.payloadSignature !== persistedSignature;
 
-    if (restoredContrato?.builder_payload) {
-      const persistedPayload = normalizeBuilderPayload(
-        restoredContrato.builder_payload,
-        extrasCatalogo,
-        restoredContrato.cliente_id,
-        restoredStep,
-      );
+    if (!shouldRestoreLocally) {
+      contractRecoveryAutosaveSignatureRef.current = persistedSignature;
+      clearContractRecoverySnapshot();
+      return;
+    }
+
+    if (persistedPayload) {
       syncBuilderSavedState(
         persistedPayload,
         normalizeBuilderStep(persistedPayload.lastStep, 4),
@@ -1209,9 +1276,14 @@ export default function Contratos() {
     setMobileSummaryOpen(false);
     setMoneyDrafts({});
     setBuilderRecoveredLocally(true);
+    contractRecoveryAutosaveSignatureRef.current = recoverySnapshot.payloadSignature;
     toast({
-      title: "Montador restaurado após novo login",
-      description: "Seu rascunho local foi recuperado no mesmo passo em que você parou.",
+      title: pendingRecoverySnapshot
+        ? "Montador restaurado após novo login"
+        : "Rascunho local restaurado",
+      description: pendingRecoverySnapshot
+        ? "Seu rascunho local foi recuperado no mesmo passo em que você parou."
+        : "As alterações salvas localmente voltaram para o montador.",
     });
   }, [builderPayload, contratos, contratosLoaded, extrasCatalogo, extrasLoaded, syncBuilderSavedState, toast]);
 
@@ -1602,6 +1674,26 @@ export default function Contratos() {
     [applyMoneyDraftsToPayload, builderPayload],
   );
 
+  useEffect(() => {
+    if (!workingBuilderPayload) return;
+    if (!hasMeaningfulBuilderState(workingBuilderPayload) && !editingBuilderContract?.id) return;
+
+    const payloadSignature = buildBuilderDirtySignature(workingBuilderPayload, builderStep);
+    if (contractRecoveryAutosaveSignatureRef.current === payloadSignature) return;
+
+    const timer = window.setTimeout(() => {
+      saveBuilderRecoveryLocally(workingBuilderPayload, builderStep, "autosave");
+      contractRecoveryAutosaveSignatureRef.current = payloadSignature;
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    builderStep,
+    editingBuilderContract?.id,
+    saveBuilderRecoveryLocally,
+    workingBuilderPayload,
+  ]);
+
   const openBuilderContract = (contrato: Contrato) => {
     if (!extrasLoaded) {
       toast({
@@ -1872,6 +1964,18 @@ export default function Contratos() {
       return false;
     }
 
+    const recoveryOrigin: ContractRecoveryOriginAction = requireCompleteValidation
+      ? "save-cofre"
+      : exitAfterSave
+        ? "save-and-exit"
+        : "save-draft";
+
+    saveBuilderRecoveryLocally(
+      prepared.normalizedPayload,
+      prepared.normalizedPayload.lastStep,
+      recoveryOrigin,
+    );
+
     const nowIso = new Date().toISOString();
     const payloadToPersist = {
       cliente_id: prepared.normalizedPayload.clienteId || null,
@@ -1893,12 +1997,12 @@ export default function Contratos() {
         contrato: payloadToPersist,
       }, {
         onInvalidSession: () => {
-          saveContractRecoverySnapshot({
-            contractId: editingBuilderContract?.id ?? null,
-            builderPayload: prepared.normalizedPayload,
-            lastStep: prepared.normalizedPayload.lastStep,
-            savedAt: new Date().toISOString(),
-          });
+          saveBuilderRecoveryLocally(
+            prepared.normalizedPayload,
+            prepared.normalizedPayload.lastStep,
+            "session-recovery",
+            { markPendingRestore: true },
+          );
         },
       });
 
