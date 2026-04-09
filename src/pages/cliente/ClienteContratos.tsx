@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Eye, FileText, Lock, ShieldCheck, Vault } from "lucide-react";
+import { Download, Eye, FileText, Lock, PenSquare, ShieldCheck, Vault } from "lucide-react";
 import jsPDF from "jspdf";
 
+import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useContractEventsRealtime } from "@/hooks/useContractEventsRealtime";
 import { useContractsRealtime } from "@/hooks/useContractsRealtime";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -15,6 +20,7 @@ import {
   getContractStatusBadgeClass,
   getContractStatusLabel,
 } from "@/lib/contract-status";
+import type { ContractEventRow } from "@/lib/contract-activity";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -106,10 +112,24 @@ function ContractPortalTimeline({
 }
 
 export default function ClienteContratos() {
+  const { toast } = useToast();
   const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
   const [contratos, setContratos] = useState<ContratoCliente[]>([]);
   const [viewOpen, setViewOpen] = useState(false);
   const [viewContrato, setViewContrato] = useState<ContratoCliente | null>(null);
+  const [contractEvents, setContractEvents] = useState<ContractEventRow[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [signerName, setSignerName] = useState("");
+  const [revisionMessage, setRevisionMessage] = useState("");
+  const [portalActionLoading, setPortalActionLoading] = useState<"approve" | "revision" | null>(null);
+
+  const sortEvents = useCallback((items: ContractEventRow[]) => {
+    return [...items].sort((left, right) => {
+      const leftDate = new Date(left.created_at).getTime();
+      const rightDate = new Date(right.created_at).getTime();
+      return rightDate - leftDate;
+    });
+  }, []);
 
   const sortContracts = useCallback((items: ContratoCliente[]) => {
     return [...items].sort((left, right) => {
@@ -150,6 +170,24 @@ export default function ClienteContratos() {
     load();
   }, [load]);
 
+  const loadContractEvents = useCallback(async (contractId: string) => {
+    setEventsLoading(true);
+    const { data, error } = await supabase
+      .from("contrato_eventos")
+      .select("*")
+      .eq("contrato_id", contractId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setContractEvents([]);
+      setEventsLoading(false);
+      throw error;
+    }
+
+    setContractEvents(sortEvents((data as ContractEventRow[]) || []));
+    setEventsLoading(false);
+  }, [sortEvents]);
+
   useContractsRealtime({
     channelName: `contracts-client-${cliente.id}`,
     filter: cliente.id ? `cliente_id=eq.${cliente.id}` : undefined,
@@ -159,6 +197,12 @@ export default function ClienteContratos() {
       setContratos((current) => current.filter((item) => item.id !== contractId));
       setViewContrato((current) => (current?.id === contractId ? null : current));
     },
+  });
+
+  useContractEventsRealtime({
+    contractId: viewContrato?.id,
+    enabled: viewOpen && Boolean(viewContrato?.id),
+    onInsert: (event) => setContractEvents((current) => sortEvents([event, ...current])),
   });
 
   const handleDownload = (contrato: ContratoCliente) => {
@@ -180,7 +224,91 @@ export default function ClienteContratos() {
   const handleView = (contrato: ContratoCliente) => {
     setViewContrato(contrato);
     setViewOpen(true);
+    setSignerName(cliente.nome || "");
+    setRevisionMessage("");
+    void loadContractEvents(contrato.id).catch(() => {
+      toast({
+        title: "Erro ao carregar atividade",
+        description: "A timeline do contrato não pôde ser carregada.",
+        variant: "destructive",
+      });
+    });
     void markViewed(contrato);
+  };
+
+  const handleApprove = async () => {
+    if (!viewContrato) return;
+    if (!signerName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Informe o nome de quem está aprovando o contrato.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPortalActionLoading("approve");
+    const { data, error } = await supabase.rpc("sign_contract_from_portal", {
+      p_contract_id: viewContrato.id,
+      p_full_name: signerName.trim(),
+    });
+    setPortalActionLoading(null);
+
+    if (error) {
+      toast({
+        title: "Erro ao aprovar contrato",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updated = data as ContratoCliente;
+    upsertContrato(updated);
+    setViewContrato(updated);
+    void loadContractEvents(updated.id);
+    toast({
+      title: "Contrato aprovado",
+      description: "A assinatura foi registrada no portal com sucesso.",
+    });
+  };
+
+  const handleRequestRevision = async () => {
+    if (!viewContrato) return;
+    if (!revisionMessage.trim()) {
+      toast({
+        title: "Mensagem obrigatória",
+        description: "Descreva o ajuste desejado antes de enviar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPortalActionLoading("revision");
+    const { data, error } = await supabase.rpc("request_contract_revision", {
+      p_contract_id: viewContrato.id,
+      p_message: revisionMessage.trim(),
+    });
+    setPortalActionLoading(null);
+
+    if (error) {
+      toast({
+        title: "Erro ao solicitar ajuste",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updated = data as ContratoCliente;
+    upsertContrato(updated);
+    setViewContrato(updated);
+    setRevisionMessage("");
+    void loadContractEvents(updated.id);
+    toast({
+      title: "Ajuste enviado",
+      description: "O pedido já está disponível para o admin revisar.",
+    });
   };
 
   return (
@@ -312,6 +440,64 @@ export default function ClienteContratos() {
               />
 
               <div className="bg-white p-4 rounded-lg space-y-4">
+                {viewContrato.status !== "assinado" && viewContrato.status !== "cancelado" && (
+                  <div className="rounded-2xl border border-rose-200/40 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.08))] p-4 space-y-4">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">Ações do cliente</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Aprove o contrato com seu nome completo ou solicite um ajuste antes de assinar.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Input
+                        value={signerName}
+                        onChange={(event) => setSignerName(event.target.value)}
+                        placeholder="Nome completo para aprovação"
+                        className="border-gray-200 bg-white"
+                      />
+                      <Button
+                        className="w-full text-white border-0"
+                        style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
+                        onClick={() => void handleApprove()}
+                        disabled={portalActionLoading !== null}
+                      >
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        {portalActionLoading === "approve" ? "Aprovando..." : "Aprovar e assinar contrato"}
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Textarea
+                        rows={3}
+                        value={revisionMessage}
+                        onChange={(event) => setRevisionMessage(event.target.value)}
+                        placeholder="Descreva o ajuste que você quer solicitar no contrato"
+                        className="border-gray-200 bg-white resize-none"
+                      />
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => void handleRequestRevision()}
+                        disabled={portalActionLoading !== null}
+                      >
+                        <PenSquare className="w-4 h-4 mr-2" />
+                        {portalActionLoading === "revision" ? "Enviando ajuste..." : "Solicitar ajuste"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {viewContrato.status === "assinado" && (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Assinatura registrada</p>
+                    <p className="mt-1 text-sm text-emerald-800">
+                      {viewContrato.assinatura_cliente_nome || signerName || "Cliente"} aprovou este contrato no portal.
+                    </p>
+                    {viewContrato.assinatura_cliente_email && (
+                      <p className="mt-1 text-xs text-emerald-700">{viewContrato.assinatura_cliente_email}</p>
+                    )}
+                  </div>
+                )}
+
                 <div className="bg-white text-black p-8 rounded-lg font-serif text-sm leading-relaxed whitespace-pre-wrap">
                   {viewContrato.corpo || viewContrato.descricao || ""}
                 </div>
@@ -329,6 +515,18 @@ export default function ClienteContratos() {
                     <img src={viewContrato.assinatura_cliente} alt="Assinatura do contratante" className="h-16" />
                   </div>
                 )}
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">Timeline do contrato</p>
+                    <p className="mt-1 text-sm text-gray-500">Acompanhe o que já aconteceu com este contrato no portal.</p>
+                  </div>
+                  <ContractActivityFeed
+                    events={contractEvents}
+                    loading={eventsLoading}
+                    emptyLabel="Ainda não existe atividade operacional registrada para este contrato."
+                  />
+                </div>
               </div>
             </div>
           )}

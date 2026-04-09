@@ -28,6 +28,7 @@ import {
 import jsPDF from "jspdf";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,10 +56,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useContractsRealtime } from "@/hooks/useContractsRealtime";
+import { useContractEventsRealtime } from "@/hooks/useContractEventsRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { refreshAdminSessionSilently } from "@/lib/admin-function-client";
+import {
+  createAdminNotification,
+  createClientNotification,
+  createContractEvent,
+  type ContractEventRow,
+} from "@/lib/contract-activity";
 import {
   buildContractClauseExplanations,
   buildProposalSummary,
@@ -95,6 +103,7 @@ import {
 } from "@/lib/contract-status";
 import { contractTemplates, fillTemplate, getContractTypeLabel } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
+import { sendPushToClient } from "@/lib/push-notifications";
 
 type Cliente = Tables<"clientes">;
 type ExtraCatalogo = Tables<"extras_catalogo">;
@@ -111,6 +120,7 @@ interface PreviewState {
   assinaturaAdmin?: string | null;
   assinaturaCliente?: string | null;
   proposal?: ContractBuilderPayload | null;
+  contract?: Contrato | null;
 }
 
 const BUILDER_TEMPLATE_ID = "novaesweb-contrato-mestre";
@@ -1176,6 +1186,8 @@ export default function Contratos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState | null>(null);
+  const [previewContractEvents, setPreviewContractEvents] = useState<ContractEventRow[]>([]);
+  const [previewContractEventsLoading, setPreviewContractEventsLoading] = useState(false);
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
   const [builderStep, setBuilderStep] = useState<ContractBuilderStepIndex>(0);
@@ -1198,6 +1210,14 @@ export default function Contratos() {
   const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
   const contractRemoteAutosaveSignatureRef = useRef<string | null>(null);
   const masterTemplate = contractTemplates[0];
+
+  const sortContractEvents = useCallback((items: ContractEventRow[]) => {
+    return [...items].sort((left, right) => {
+      const leftDate = new Date(left.created_at).getTime();
+      const rightDate = new Date(right.created_at).getTime();
+      return rightDate - leftDate;
+    });
+  }, []);
 
   const decorateContrato = useCallback(
     (contrato: Tables<"contratos"> | Contrato): Contrato => {
@@ -1321,6 +1341,24 @@ export default function Contratos() {
     return extras;
   }, []);
 
+  const loadPreviewContractEvents = useCallback(async (contractId: string) => {
+    setPreviewContractEventsLoading(true);
+    const { data, error } = await supabase
+      .from("contrato_eventos")
+      .select("*")
+      .eq("contrato_id", contractId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setPreviewContractEvents([]);
+      setPreviewContractEventsLoading(false);
+      throw error;
+    }
+
+    setPreviewContractEvents(sortContractEvents((data as ContractEventRow[]) || []));
+    setPreviewContractEventsLoading(false);
+  }, [sortContractEvents]);
+
   useEffect(() => {
     loadContratos();
     loadClientes();
@@ -1336,6 +1374,14 @@ export default function Contratos() {
     },
     onDelete: (contractId) => {
       removeContratoState(contractId);
+    },
+  });
+
+  useContractEventsRealtime({
+    contractId: previewState?.contract?.id,
+    enabled: previewOpen && Boolean(previewState?.contract?.id),
+    onInsert: (event) => {
+      setPreviewContractEvents((current) => sortContractEvents([event, ...current]));
     },
   });
 
@@ -1432,6 +1478,18 @@ export default function Contratos() {
 
   const openPreview = (nextState: PreviewState) => {
     setPreviewState(nextState);
+    if (nextState.contract?.id) {
+      void loadPreviewContractEvents(nextState.contract.id).catch(() => {
+        toast({
+          title: "Erro ao carregar atividade do contrato",
+          description: "O histórico operacional não pôde ser carregado.",
+          variant: "destructive",
+        });
+      });
+    } else {
+      setPreviewContractEvents([]);
+      setPreviewContractEventsLoading(false);
+    }
     setPreviewOpen(true);
   };
 
@@ -1527,21 +1585,88 @@ export default function Contratos() {
     [contratos],
   );
 
+  const runContractRealtimeSideEffects = useCallback(
+    async ({
+      contract,
+      event,
+      adminNotification,
+      clientNotification,
+    }: {
+      contract: Contrato;
+      event?: {
+        tipo: string;
+        titulo: string;
+        descricao?: string | null;
+        actorType?: string;
+        actorId?: string | null;
+        meta?: Record<string, unknown>;
+      };
+      adminNotification?: {
+        title: string;
+        body: string;
+        url?: string;
+      };
+      clientNotification?: {
+        title: string;
+        body: string;
+        url?: string;
+      };
+    }) => {
+      const jobs: Promise<unknown>[] = [];
+
+      if (event) {
+        jobs.push(
+          createContractEvent({
+            contratoId: contract.id,
+            tipo: event.tipo,
+            titulo: event.titulo,
+            descricao: event.descricao,
+            actorType: event.actorType,
+            actorId: event.actorId,
+            meta: event.meta,
+          }),
+        );
+      }
+
+      if (adminNotification) {
+        jobs.push(createAdminNotification(adminNotification.title, adminNotification.body, adminNotification.url));
+      }
+
+      if (clientNotification && contract.cliente_id) {
+        jobs.push(
+          createClientNotification(
+            contract.cliente_id,
+            clientNotification.title,
+            clientNotification.body,
+            clientNotification.url,
+          ),
+        );
+        jobs.push(sendPushToClient(contract.cliente_id, clientNotification.title, clientNotification.body, clientNotification.url));
+      }
+
+      if (jobs.length > 0) {
+        await Promise.allSettled(jobs);
+      }
+    },
+    [],
+  );
+
   const sendBuilderContractToClientDirectly = useCallback(
-    async (contractId: string) => {
+    async (contract: Contrato) => {
       await refreshAdminSessionSilently({ force: false });
 
       const sentAt = new Date().toISOString();
+      const nextStatus = contract.status === "assinado" ? "assinado" : "enviado";
       const { data, error } = await supabase
         .from("contratos")
         .update({
-          status: "enviado",
+          status: nextStatus,
           data_envio: sentAt.slice(0, 10),
-          data_visualizacao: null,
+          data_visualizacao: contract.status === "assinado" ? contract.data_visualizacao : null,
           archived_at: null,
           updated_at: sentAt,
         } as any)
-        .eq("id", contractId)
+        .eq("id", contract.id)
         .eq("modelo", BUILDER_TEMPLATE_ID)
         .select("*, clientes(nome)")
         .single();
@@ -1550,9 +1675,31 @@ export default function Contratos() {
         throw error;
       }
 
-      return data as Contrato;
+      const contratoEnviado = data as Contrato;
+      const clienteNome = (contratoEnviado.clientes as any)?.nome || "Cliente";
+
+      await runContractRealtimeSideEffects({
+        contract: contratoEnviado,
+        event: {
+          tipo: "enviado",
+          titulo: "Contrato enviado ao cliente",
+          descricao: `${clienteNome} recebeu o contrato no portal do cliente.`,
+          actorType: "admin",
+          meta: {
+            status: contratoEnviado.status,
+            sentAt,
+          },
+        },
+        clientNotification: {
+          title: "📄 Novo contrato disponível",
+          body: `A proposta "${contratoEnviado.titulo}" já está liberada no seu portal.`,
+          url: "/cliente/contratos",
+        },
+      });
+
+      return contratoEnviado;
     },
-    [],
+    [runContractRealtimeSideEffects],
   );
 
   const handleOpenVersions = useCallback(
@@ -1601,6 +1748,15 @@ export default function Contratos() {
         if (error) throw error;
 
         const updatedContrato = upsertContratoState(data as Contrato);
+        await runContractRealtimeSideEffects({
+          contract: updatedContrato,
+          event: {
+            tipo: "arquivado",
+            titulo: "Contrato arquivado",
+            descricao: "A proposta foi movida para a área de arquivados do cofre.",
+            actorType: "admin",
+          },
+        });
 
         if (editingBuilderContract?.id === contrato.id) {
           setEditingBuilderContract(updatedContrato);
@@ -1616,7 +1772,7 @@ export default function Contratos() {
         });
       }
     },
-    [editingBuilderContract?.id, toast, upsertContratoState],
+    [editingBuilderContract?.id, runContractRealtimeSideEffects, toast, upsertContratoState],
   );
 
   const handleUnarchiveContract = useCallback(
@@ -1636,6 +1792,15 @@ export default function Contratos() {
         if (error) throw error;
 
         const updatedContrato = upsertContratoState(data as Contrato);
+        await runContractRealtimeSideEffects({
+          contract: updatedContrato,
+          event: {
+            tipo: "desarquivado",
+            titulo: "Contrato desarquivado",
+            descricao: "A proposta voltou para a lista principal do cofre.",
+            actorType: "admin",
+          },
+        });
 
         if (editingBuilderContract?.id === contrato.id) {
           setEditingBuilderContract(updatedContrato);
@@ -1651,7 +1816,117 @@ export default function Contratos() {
         });
       }
     },
-    [editingBuilderContract?.id, toast, upsertContratoState],
+    [editingBuilderContract?.id, runContractRealtimeSideEffects, toast, upsertContratoState],
+  );
+
+  const handleDuplicateContract = useCallback(
+    async (contrato: Contrato) => {
+      try {
+        if (!extrasLoaded) {
+          toast({
+            title: "Catálogo ainda carregando",
+            description: "Os extras ainda estão sendo sincronizados. Tente novamente em instantes.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const duplicatedPayloadBase = normalizeBuilderPayload(
+          contrato.builder_payload,
+          extrasCatalogo,
+          contrato.cliente_id,
+          4,
+        );
+        const duplicatedPayload = {
+          ...duplicatedPayloadBase,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastStep: duplicatedPayloadBase.lastStep,
+        };
+        const prepared = buildBuilderSavePayload(duplicatedPayload, duplicatedPayload.lastStep);
+
+        if (!prepared) {
+          throw new Error("Não foi possível preparar a duplicação da proposta.");
+        }
+
+        const duplicatedTitle = prepared.title.includes("Cópia")
+          ? prepared.title
+          : `${prepared.title} • Cópia`;
+        const duplicatedContrato = await saveBuilderContractDirectly({
+          contractId: null,
+          createVersionSnapshot: false,
+          payloadToPersist: {
+            cliente_id: prepared.normalizedPayload.clienteId || null,
+            titulo: duplicatedTitle,
+            descricao: prepared.description,
+            valor: prepared.value,
+            status: "rascunho",
+            corpo: prepared.body,
+            modelo: BUILDER_TEMPLATE_ID,
+            builder_payload: prepared.normalizedPayload as any,
+            assinatura_admin: null,
+            assinatura_cliente: null,
+            assinatura_cliente_nome: null,
+            assinatura_cliente_email: null,
+            data_visualizacao: null,
+            data_assinatura: null,
+            archived_at: null,
+            updated_at: new Date().toISOString(),
+          },
+        });
+
+        const normalizedDuplicatedPayload = normalizeBuilderPayload(
+          duplicatedContrato.builder_payload,
+          extrasCatalogo,
+          duplicatedContrato.cliente_id,
+          prepared.normalizedPayload.lastStep,
+        );
+
+        upsertContratoState(duplicatedContrato);
+        setBuilderPayload(normalizedDuplicatedPayload);
+        setEditingBuilderContract(duplicatedContrato);
+        setBuilderStep(normalizedDuplicatedPayload.lastStep);
+        setTab("montador");
+        setMobileSummaryOpen(false);
+        setMoneyDrafts({});
+        syncBuilderSavedState(
+          normalizedDuplicatedPayload,
+          normalizedDuplicatedPayload.lastStep,
+          duplicatedContrato.updated_at || duplicatedContrato.created_at,
+        );
+
+        await runContractRealtimeSideEffects({
+          contract: duplicatedContrato,
+          event: {
+            tipo: "duplicado",
+            titulo: "Proposta duplicada",
+            descricao: `A nova proposta foi criada a partir de "${contrato.titulo}".`,
+            actorType: "admin",
+            meta: { original_contract_id: contrato.id },
+          },
+        });
+
+        toast({
+          title: "Proposta duplicada",
+          description: "A cópia já foi aberta no montador para edição.",
+        });
+      } catch (error) {
+        toast({
+          title: "Erro ao duplicar proposta",
+          description: getContractErrorMessage(error, "Não foi possível duplicar o contrato."),
+          variant: "destructive",
+        });
+      }
+    },
+    [
+      extrasCatalogo,
+      extrasLoaded,
+      runContractRealtimeSideEffects,
+      saveBuilderContractDirectly,
+      syncBuilderSavedState,
+      toast,
+      upsertContratoState,
+    ],
   );
 
   const handleDeleteDraft = useCallback(async () => {
@@ -1721,7 +1996,7 @@ export default function Contratos() {
       }
 
       try {
-        const updatedContrato = await sendBuilderContractToClientDirectly(target.id);
+        const updatedContrato = await sendBuilderContractToClientDirectly(target);
 
         setEditingBuilderContract((current) =>
           current?.id === updatedContrato.id ? updatedContrato : current,
@@ -1988,6 +2263,7 @@ export default function Contratos() {
       assinaturaAdmin: (contrato as any).assinatura_admin,
       assinaturaCliente: (contrato as any).assinatura_cliente,
       proposal,
+      contract: contrato,
     });
   };
 
@@ -2290,6 +2566,29 @@ export default function Contratos() {
       );
       upsertContratoState(savedContrato);
       if (!autosaveRemote) {
+        await runContractRealtimeSideEffects({
+          contract: savedContrato,
+          event: {
+            tipo: requireCompleteValidation ? "cofre_salvo" : "rascunho_salvo",
+            titulo: requireCompleteValidation
+              ? editingBuilderContract
+                ? "Contrato atualizado no cofre"
+                : "Contrato salvo no cofre"
+              : editingBuilderContract
+                ? "Rascunho atualizado"
+                : "Rascunho salvo",
+            descricao: requireCompleteValidation
+              ? "A proposta comercial foi consolidada no cofre do Contrato Mestre."
+              : "O montador foi salvo como rascunho para continuar depois.",
+            actorType: "admin",
+            meta: {
+              status: savedContrato.status,
+              autosave: false,
+            },
+          },
+        });
+      }
+      if (!autosaveRemote) {
         clearContractRecoverySnapshot();
       }
       if (!silent) {
@@ -2342,6 +2641,7 @@ export default function Contratos() {
     syncBuilderSavedState,
     syncMoneyDraftsToState,
     toast,
+    runContractRealtimeSideEffects,
     upsertContratoState,
     validateBuilderAll,
   ]);
@@ -2523,6 +2823,46 @@ export default function Contratos() {
     [contratos],
   );
 
+  const cofreDashboardCards = useMemo(() => {
+    const activeContracts = contratos.filter((contrato) => !contrato.archived_at);
+    const sentContracts = activeContracts.filter((contrato) => contrato.status === "enviado");
+    const viewedContracts = activeContracts.filter((contrato) => contrato.status === "visualizado");
+    const signedContracts = activeContracts.filter((contrato) => contrato.status === "assinado");
+    const pipelineValue = activeContracts.reduce((sum, contrato) => sum + Number(contrato.valor || 0), 0);
+    const signedValue = signedContracts.reduce((sum, contrato) => sum + Number(contrato.valor || 0), 0);
+
+    return [
+      {
+        key: "pipeline",
+        label: "Pipeline ativo",
+        value: activeContracts.length,
+        helper: `R$ ${formatContratoValue(pipelineValue)}`,
+        gradient: "from-[#7b1fa2]/35 via-[#c2185b]/20 to-[#e8334a]/25",
+      },
+      {
+        key: "sent",
+        label: "Enviados aguardando leitura",
+        value: sentContracts.length,
+        helper: "Prontos no portal do cliente",
+        gradient: "from-emerald-500/25 via-emerald-400/10 to-[#c2185b]/15",
+      },
+      {
+        key: "viewed",
+        label: "Visualizados aguardando assinatura",
+        value: viewedContracts.length,
+        helper: "Momento ideal para follow-up",
+        gradient: "from-[#c2185b]/30 via-[#e8334a]/15 to-[#7b1fa2]/15",
+      },
+      {
+        key: "signed",
+        label: "Assinados",
+        value: signedContracts.length,
+        helper: `R$ ${formatContratoValue(signedValue)}`,
+        gradient: "from-emerald-500/25 via-[#7b1fa2]/12 to-[#c2185b]/18",
+      },
+    ];
+  }, [contratos]);
+
   const groupedExtras = useMemo(
     () =>
       builderPayload?.items
@@ -2609,6 +2949,18 @@ export default function Contratos() {
                       className="pl-9 glass-input border-[rgba(255,255,255,0.1)] text-[hsl(var(--foreground))] text-xs h-9"
                     />
                   </div>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 pt-2">
+                  {cofreDashboardCards.map((card) => (
+                    <div
+                      key={card.key}
+                      className={`rounded-[24px] border border-white/10 bg-gradient-to-br ${card.gradient} p-4 shadow-[0_18px_36px_rgba(18,10,28,0.24)] backdrop-blur-xl`}
+                    >
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-white/45">{card.label}</p>
+                      <p className="mt-3 text-2xl font-semibold text-white">{card.value}</p>
+                      <p className="mt-2 text-xs text-white/55">{card.helper}</p>
+                    </div>
+                  ))}
                 </div>
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -2735,9 +3087,11 @@ export default function Contratos() {
                             onClick={() => void handleSendContractToClient(contrato)}
                           >
                             <Send className="w-3.5 h-3.5 mr-1.5" />
-                            {contrato.status === "enviado" || contrato.status === "visualizado"
-                              ? "Atualizar envio"
-                              : "Enviar"}
+                            {contrato.status === "assinado"
+                              ? "Reenviar cópia"
+                              : contrato.status === "enviado" || contrato.status === "visualizado"
+                                ? "Atualizar envio"
+                                : "Enviar"}
                           </Button>
                         )}
                         <Button
@@ -2771,6 +3125,9 @@ export default function Contratos() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuItem onClick={() => void handleDuplicateContract(contrato)}>
+                              <Boxes className="w-4 h-4 mr-2" /> Duplicar proposta
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenVersions(contrato)}>
                               <History className="w-4 h-4 mr-2" /> Histórico de versões
                             </DropdownMenuItem>
@@ -3725,9 +4082,11 @@ export default function Contratos() {
                                 onClick={() => void handleSendContractToClient(editingBuilderContract)}
                               >
                                 <Send className="w-4 h-4 mr-2" />
-                                {editingBuilderContract?.status === "enviado" || editingBuilderContract?.status === "visualizado"
-                                  ? "Atualizar leitura do cliente"
-                                  : "Enviar leitura ao cliente"}
+                                {editingBuilderContract?.status === "assinado"
+                                  ? "Reenviar cópia ao cliente"
+                                  : editingBuilderContract?.status === "enviado" || editingBuilderContract?.status === "visualizado"
+                                    ? "Atualizar leitura do cliente"
+                                    : "Enviar leitura ao cliente"}
                               </Button>
                               <Button
                                 variant="outline"
@@ -3777,12 +4136,40 @@ export default function Contratos() {
           </DialogHeader>
 
           {previewState && (
-            <BuilderPreviewDocument
-              title={previewState.title}
-              body={previewState.body}
-              summary={previewState.proposal ? buildProposalSummary(previewState.proposal) : null}
-              explanations={previewState.proposal ? buildContractClauseExplanations(previewState.proposal) : []}
-            />
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <BuilderPreviewDocument
+                title={previewState.title}
+                body={previewState.body}
+                summary={previewState.proposal ? buildProposalSummary(previewState.proposal) : null}
+                explanations={previewState.proposal ? buildContractClauseExplanations(previewState.proposal) : []}
+              />
+              {previewState.contract?.id ? (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Timeline operacional</p>
+                    <p className="text-sm text-white/55">Tudo o que aconteceu com este contrato no painel e no portal.</p>
+                  </div>
+                  {previewState.contract.assinatura_cliente_nome ? (
+                    <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-200/70">Assinatura registrada</p>
+                      <p className="mt-2 text-sm font-medium text-emerald-100">
+                        {previewState.contract.assinatura_cliente_nome}
+                      </p>
+                      {previewState.contract.assinatura_cliente_email ? (
+                        <p className="mt-1 text-xs text-emerald-200/80">
+                          {previewState.contract.assinatura_cliente_email}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <ContractActivityFeed
+                    events={previewContractEvents}
+                    loading={previewContractEventsLoading}
+                    emptyLabel="Ainda não existe atividade operacional registrada para este contrato."
+                  />
+                </div>
+              ) : null}
+            </div>
           )}
         </DialogContent>
       </Dialog>

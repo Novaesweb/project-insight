@@ -229,6 +229,8 @@ export type Database = {
           archived_at: string | null
           assinatura_admin: string | null
           assinatura_cliente: string | null
+          assinatura_cliente_email: string | null
+          assinatura_cliente_nome: string | null
           builder_payload: Json | null
           cliente_id: string | null
           corpo: string | null
@@ -248,6 +250,8 @@ export type Database = {
           archived_at?: string | null
           assinatura_admin?: string | null
           assinatura_cliente?: string | null
+          assinatura_cliente_email?: string | null
+          assinatura_cliente_nome?: string | null
           builder_payload?: Json | null
           cliente_id?: string | null
           corpo?: string | null
@@ -267,6 +271,8 @@ export type Database = {
           archived_at?: string | null
           assinatura_admin?: string | null
           assinatura_cliente?: string | null
+          assinatura_cliente_email?: string | null
+          assinatura_cliente_nome?: string | null
           builder_payload?: Json | null
           cliente_id?: string | null
           corpo?: string | null
@@ -960,6 +966,50 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contrato_eventos: {
+        Row: {
+          actor_id: string | null
+          actor_type: string
+          contrato_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          meta: Json
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_type?: string
+          contrato_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          meta?: Json
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_type?: string
+          contrato_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          meta?: Json
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_eventos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
             referencedColumns: ["id"]
           },
         ]
@@ -1665,6 +1715,14 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       mark_contract_viewed: {
         Args: { p_contract_id: string }
+        Returns: Database["public"]["Tables"]["contratos"]["Row"]
+      }
+      request_contract_revision: {
+        Args: { p_contract_id: string; p_message: string }
+        Returns: Database["public"]["Tables"]["contratos"]["Row"]
+      }
+      sign_contract_from_portal: {
+        Args: { p_contract_id: string; p_full_name: string }
         Returns: Database["public"]["Tables"]["contratos"]["Row"]
       }
     }
