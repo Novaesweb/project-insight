@@ -29,6 +29,7 @@ import jsPDF from "jspdf";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
+import { ContractSignaturePanel, ContractSignedStatusBadge } from "@/components/contracts/ContractSignaturePanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -415,10 +416,10 @@ function generateContractPDF(
   }
 
   if (signatureSummary) {
-    const sectionHeight = 66;
+    const sectionHeight = 70;
     const cardGap = 8;
     const cardWidth = (maxWidth - cardGap) / 2;
-    const cardHeight = 28;
+    const cardHeight = 30;
 
     if (y > pageHeight - 90) {
       doc.addPage();
@@ -443,31 +444,37 @@ function generateContractPDF(
     const drawSignatureCard = (
       x: number,
       startY: number,
+      role: string,
       name: string,
       caption: string,
     ) => {
       doc.setDrawColor(236, 223, 244);
       doc.setFillColor(255, 255, 255);
       doc.roundedRect(x, startY, cardWidth, cardHeight, 5, 5, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.8);
+      doc.setTextColor(139, 121, 152);
+      doc.text(role.toUpperCase(), x + cardWidth / 2, startY + 6.5, { align: "center" });
       doc.setDrawColor(194, 24, 91);
-      doc.line(x + 8, startY + 12, x + cardWidth - 8, startY + 12);
+      doc.line(x + 8, startY + 12.5, x + cardWidth - 8, startY + 12.5);
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(31, 23, 40);
-      doc.text(name, x + cardWidth / 2, startY + 19, { align: "center" });
+      doc.text(name, x + cardWidth / 2, startY + 20, { align: "center" });
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(109, 95, 119);
-      doc.text(caption, x + cardWidth / 2, startY + 24, { align: "center" });
+      doc.text(caption, x + cardWidth / 2, startY + 25.5, { align: "center" });
     };
 
     const cardsY = y + 20;
-    drawSignatureCard(margin, cardsY, signatureSummary.contractanteName, signatureSummary.contractanteCaption);
+    drawSignatureCard(margin, cardsY, "Contratante", signatureSummary.contractanteName, signatureSummary.contractanteCaption);
     drawSignatureCard(
       margin + cardWidth + cardGap,
       cardsY,
+      "Contratada",
       signatureSummary.contratadaName,
       signatureSummary.contratadaCaption,
     );
@@ -934,45 +941,6 @@ function VersionComparisonCard({
   );
 }
 
-function ContractSignaturePreviewBlock({ signatureSummary }: { signatureSummary: ContractSignatureSummary | null }) {
-  if (!signatureSummary) return null;
-
-  return (
-    <Card className="border-primary/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.1),rgba(194,24,91,0.16))] shadow-[0_22px_50px_rgba(26,8,40,0.24)]">
-      <CardContent className="p-6 md:p-8 text-center space-y-5">
-        <div className="space-y-2">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">Aceite e assinatura</p>
-          <p className="text-sm text-white/60">{signatureSummary.locationAndDate}</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            {
-              name: signatureSummary.contractanteName,
-              caption: signatureSummary.contractanteCaption,
-            },
-            {
-              name: signatureSummary.contratadaName,
-              caption: signatureSummary.contratadaCaption,
-            },
-          ].map((signer) => (
-            <div
-              key={`${signer.name}-${signer.caption}`}
-              className="rounded-[24px] border border-white/10 bg-white/[0.06] px-5 py-6 text-center backdrop-blur"
-            >
-              <div className="h-px w-full bg-[linear-gradient(90deg,rgba(123,31,162,0.4),rgba(232,51,74,0.7),rgba(194,24,91,0.5))]" />
-              <p className="mt-5 text-lg font-semibold text-white">{signer.name}</p>
-              <p className="mt-2 text-xs text-white/55">{signer.caption}</p>
-            </div>
-          ))}
-        </div>
-
-        <p className="text-xs text-white/50 max-w-2xl mx-auto leading-relaxed">{signatureSummary.note}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
 function BuilderPreviewDocument({
   title,
   body,
@@ -988,22 +956,49 @@ function BuilderPreviewDocument({
 }) {
   return (
     <div className="space-y-6">
-      <Card className="border-primary/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.16),rgba(194,24,91,0.2))]">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
+      <Card className="overflow-hidden border-primary/20 bg-[radial-gradient(circle_at_top_left,rgba(194,24,91,0.34),transparent_32%),radial-gradient(circle_at_top_right,rgba(123,31,162,0.32),transparent_38%),linear-gradient(135deg,rgba(15,12,22,0.96),rgba(30,11,33,0.94),rgba(45,12,34,0.9))] shadow-[0_30px_70px_rgba(17,6,26,0.38)]">
+        <CardContent className="relative overflow-hidden p-6 md:p-8">
+          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent)]" />
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-white/15 bg-white/10 text-white/80">
               NovaesWeb
             </Badge>
-            <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
+            <Badge variant="outline" className="border-fuchsia-300/20 bg-fuchsia-300/10 text-fuchsia-100">
               Proposta premium
             </Badge>
+            <Badge variant="outline" className="border-white/10 bg-white/[0.06] text-white/55">
+              Experiência de assinatura centralizada
+            </Badge>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-2xl font-semibold text-white leading-tight">{title}</h3>
-            <p className="text-sm text-white/65 max-w-3xl">
-              Estrutura comercial gerada no montador do contrato mestre, com escopo, condições financeiras e cláusulas
-              consolidadas para fechamento.
-            </p>
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-end">
+              <div className="space-y-3">
+                <h3 className="text-2xl font-semibold text-white leading-tight md:text-[2rem]">{title}</h3>
+                <p className="max-w-3xl text-sm leading-relaxed text-white/65">
+                  Estrutura comercial gerada no montador do contrato mestre, com escopo, condições financeiras,
+                  cláusulas consolidadas e assinatura final preparada para leitura, aceite e impressão.
+                </p>
+              </div>
+              {summary ? (
+                <div className="rounded-[26px] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/40">Painel executivo</p>
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <p className="text-xs text-white/45">Cliente</p>
+                      <p className="text-sm font-medium text-white">{summary.contractante.title}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-white/45">Comercial</p>
+                      <p className="text-sm font-medium text-white">{summary.comercial.lines[0] || "Sem valor definido"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-white/45">Assinaturas</p>
+                      <p className="text-sm font-medium text-white">Somente CONTRATANTE e CONTRATADA</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1121,7 +1116,7 @@ function BuilderPreviewDocument({
         </CardContent>
       </Card>
 
-      <ContractSignaturePreviewBlock signatureSummary={signatureSummary} />
+      <ContractSignaturePanel summary={signatureSummary} variant="dark" />
     </div>
   );
 }
@@ -3124,11 +3119,12 @@ export default function Contratos() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="relative space-y-6"
       initial="hidden"
       animate="show"
       variants={{ show: { transition: { staggerChildren: 0.08 } } }}
     >
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.18),transparent_36%),radial-gradient(circle_at_center,rgba(194,24,91,0.14),transparent_48%)] blur-3xl" />
       <motion.div variants={fadeUp}>
         <Tabs value={tab} onValueChange={setTab} className="space-y-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -3261,9 +3257,11 @@ export default function Contratos() {
                     });
 
                     return (
-                  <div
+                  <motion.div
                     key={contrato.id}
-                    className="rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.12),rgba(232,51,74,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_18px_40px_rgba(26,8,40,0.28)]"
+                    whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.003 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="rounded-[28px] border border-white/10 bg-[linear-gradient(145deg,rgba(123,31,162,0.18),rgba(232,51,74,0.1),rgba(255,255,255,0.04))] p-4 shadow-[0_22px_48px_rgba(26,8,40,0.3)] backdrop-blur-xl"
                   >
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="min-w-0 space-y-4">
@@ -3422,8 +3420,8 @@ export default function Contratos() {
                         </DropdownMenu>
                       </div>
                     </div>
-                  </div>
-                    );
+                      </motion.div>
+                      );
                   })()
                 ))}
                 {filteredContratos.length === 0 && (
@@ -4396,7 +4394,7 @@ export default function Contratos() {
       </motion.div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-[rgba(17,15,24,0.96)] border-white/10">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.24),transparent_24%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.18),transparent_28%),rgba(17,15,24,0.97)] shadow-[0_30px_90px_rgba(9,4,16,0.56)]">
           <DialogHeader>
             <DialogTitle className="text-white text-base">
               {previewState?.title || "Preview do contrato mestre"}
@@ -4416,22 +4414,33 @@ export default function Contratos() {
                 explanations={previewState.proposal ? buildContractClauseExplanations(previewState.proposal) : []}
               />
               {previewState.contract?.id ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Timeline operacional</p>
-                    <p className="text-sm text-white/55">Tudo o que aconteceu com este contrato no painel e no portal.</p>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Painel operacional</p>
+                    <p className="text-sm text-white/55">Status ao vivo, assinatura e histórico deste contrato.</p>
                   </div>
-                  {previewState.contract.assinatura_cliente_nome ? (
-                    <div className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-5 text-center">
-                      <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-200/70">Assinatura registrada</p>
-                      <p className="mt-3 text-base font-semibold text-emerald-100">
-                        {previewState.contract.assinatura_cliente_nome}
+                  <Card className="overflow-hidden border-white/10 bg-[linear-gradient(145deg,rgba(123,31,162,0.22),rgba(232,51,74,0.14),rgba(255,255,255,0.04))] shadow-[0_20px_44px_rgba(16,8,24,0.34)]">
+                    <CardContent className="space-y-4 p-5">
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Situação da versão</p>
+                        <p className="text-sm font-medium text-white">
+                          {previewState.contract.status === "assinado"
+                            ? "Contrato assinado e registrado"
+                            : (previewState.contract as any).requer_reassinatura
+                              ? "Nova assinatura solicitada"
+                              : "Contrato em acompanhamento"}
+                        </p>
+                      </div>
+                      <ContractSignedStatusBadge
+                        signedName={previewState.contract.assinatura_cliente_nome}
+                        signedAt={previewState.contract.data_assinatura}
+                        variant="dark"
+                      />
+                      <p className="text-xs leading-relaxed text-white/50">
+                        A assinatura aparece apenas no bloco final do contrato. Aqui ficam somente metadados operacionais.
                       </p>
-                      <p className="mt-2 text-xs text-emerald-200/80">
-                        Aceite eletrônico confirmado no portal do cliente.
-                      </p>
-                    </div>
-                  ) : null}
+                    </CardContent>
+                  </Card>
                   <ContractActivityFeed
                     events={previewContractEvents}
                     loading={previewContractEventsLoading}

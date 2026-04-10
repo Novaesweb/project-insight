@@ -4,6 +4,7 @@ import { AlertTriangle, ClipboardList, Download, Eye, FileText, Lock, PenSquare,
 import jsPDF from "jspdf";
 
 import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
+import { ContractSignaturePanel, ContractSignedStatusBadge } from "@/components/contracts/ContractSignaturePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +19,6 @@ import type { Tables } from "@/integrations/supabase/types";
 import {
   buildContractSignatureSummary,
   stripLegacySignaturePlaceholders,
-  type ContractSignatureSummary,
 } from "@/lib/contract-builder";
 import {
   CONTRACT_STATUS_ORDER,
@@ -84,7 +84,7 @@ function generatePDF(contrato: ContratoCliente) {
     }
 
     y += 8;
-    const sectionHeight = 56;
+    const sectionHeight = 60;
     const gap = 8;
     const cardWidth = (maxWidth - gap) / 2;
 
@@ -100,56 +100,37 @@ function generatePDF(contrato: ContratoCliente) {
     doc.setTextColor(109, 95, 119);
     doc.text(signatureSummary.locationAndDate, pageWidth / 2, y + 14, { align: "center" });
 
-    const drawSignatureCard = (x: number, top: number, name: string, caption: string) => {
+    const drawSignatureCard = (x: number, top: number, role: string, name: string, caption: string) => {
       doc.setDrawColor(236, 223, 244);
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(x, top, cardWidth, 24, 4, 4, "FD");
+      doc.roundedRect(x, top, cardWidth, 28, 4, 4, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.8);
+      doc.setTextColor(139, 121, 152);
+      doc.text(role.toUpperCase(), x + cardWidth / 2, top + 6.5, { align: "center" });
       doc.setDrawColor(194, 24, 91);
-      doc.line(x + 8, top + 10, x + cardWidth - 8, top + 10);
+      doc.line(x + 8, top + 12, x + cardWidth - 8, top + 12);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.2);
       doc.setTextColor(31, 23, 40);
-      doc.text(name, x + cardWidth / 2, top + 16, { align: "center" });
+      doc.text(name, x + cardWidth / 2, top + 18.2, { align: "center" });
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.8);
       doc.setTextColor(109, 95, 119);
-      doc.text(caption, x + cardWidth / 2, top + 20.5, { align: "center" });
+      doc.text(caption, x + cardWidth / 2, top + 23, { align: "center" });
     };
 
-    drawSignatureCard(margin, y + 18, signatureSummary.contractanteName, signatureSummary.contractanteCaption);
+    drawSignatureCard(margin, y + 18, "Contratante", signatureSummary.contractanteName, signatureSummary.contractanteCaption);
     drawSignatureCard(
       margin + cardWidth + gap,
       y + 18,
+      "Contratada",
       signatureSummary.contratadaName,
       signatureSummary.contratadaCaption,
     );
   }
 
   doc.save(`${contrato.titulo.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
-}
-
-function ContractPortalSignatureBlock({ summary }: { summary: ContractSignatureSummary | null }) {
-  if (!summary) return null;
-
-  return (
-    <div className="rounded-[28px] border border-rose-200 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.12))] p-6 text-center">
-      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a52f88]">Aceite e assinatura</p>
-      <p className="mt-2 text-sm text-slate-500">{summary.locationAndDate}</p>
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        {[
-          { name: summary.contractanteName, caption: summary.contractanteCaption },
-          { name: summary.contratadaName, caption: summary.contratadaCaption },
-        ].map((signer) => (
-          <div key={`${signer.name}-${signer.caption}`} className="rounded-[22px] border border-rose-100 bg-white/90 px-5 py-6">
-            <div className="h-px w-full bg-[linear-gradient(90deg,rgba(123,31,162,0.45),rgba(232,51,74,0.75),rgba(194,24,91,0.5))]" />
-            <p className="mt-5 text-lg font-semibold text-slate-900">{signer.name}</p>
-            <p className="mt-2 text-xs text-slate-500">{signer.caption}</p>
-          </div>
-        ))}
-      </div>
-      <p className="mt-4 text-xs text-slate-500">{summary.note}</p>
-    </div>
-  );
 }
 
 function formatContractDate(date?: string | null) {
@@ -431,18 +412,44 @@ export default function ClienteContratos() {
     : null;
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
-      <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.12),rgba(194,24,91,0.16))]">
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="relative space-y-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.18),transparent_34%),radial-gradient(circle_at_center,rgba(194,24,91,0.16),transparent_46%)] blur-3xl" />
+      <Card className="overflow-hidden border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.28),transparent_30%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.2),transparent_34%),linear-gradient(135deg,rgba(18,14,25,0.96),rgba(34,11,31,0.92),rgba(44,12,34,0.9))] shadow-[0_24px_60px_rgba(21,8,30,0.34)]">
         <CardContent className="p-6 md:p-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
               <Vault className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">Cofre de Contratos</h1>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/45">
+                  Leitura, assinatura e download dos contratos liberados para o cliente
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">Cofre de Contratos</h1>
-              <p className="text-xs text-white/45 uppercase tracking-[0.22em]">
-                Leitura e download dos contratos liberados para o cliente
-              </p>
+            <div className="rounded-[24px] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Resumo do fluxo</p>
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[11px] text-white/45">Enviados</p>
+                  <p className="mt-1 text-lg font-semibold text-white">
+                    {contratos.filter((item) => item.status === "enviado").length}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-white/45">Visualizados</p>
+                  <p className="mt-1 text-lg font-semibold text-white">
+                    {contratos.filter((item) => item.status === "visualizado").length}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-white/45">Assinados</p>
+                  <p className="mt-1 text-lg font-semibold text-white">
+                    {contratos.filter((item) => item.status === "assinado").length}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -465,7 +472,7 @@ export default function ClienteContratos() {
             return (
           <Card
             key={contrato.id}
-            className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.12),rgba(232,51,74,0.08),rgba(255,255,255,0.03))] shadow-[0_18px_40px_rgba(26,8,40,0.28)]"
+            className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(145deg,rgba(123,31,162,0.16),rgba(232,51,74,0.1),rgba(255,255,255,0.03))] shadow-[0_22px_48px_rgba(26,8,40,0.3)] transition-transform duration-200 hover:-translate-y-1"
           >
             <CardContent className="space-y-4 p-5">
               <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -556,8 +563,7 @@ export default function ClienteContratos() {
 
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent
-          className="max-w-4xl max-h-[85vh] overflow-y-auto"
-          style={{ background: "rgba(20,20,30,0.96)", border: "1px solid rgba(255,255,255,0.1)" }}
+          className="max-w-5xl max-h-[88vh] overflow-y-auto border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.24),transparent_24%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.18),transparent_28%),rgba(17,15,24,0.97)] shadow-[0_30px_90px_rgba(9,4,16,0.56)]"
         >
           <DialogHeader>
             <DialogTitle className="text-white text-sm flex items-center justify-between gap-3">
@@ -582,113 +588,128 @@ export default function ClienteContratos() {
                 dataAssinatura={viewContrato.data_assinatura}
               />
 
-              <div className="bg-white p-4 rounded-lg space-y-4">
-                {viewStatusInsight && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Status do contrato</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-900">{viewStatusInsight.title}</p>
-                    <p className="mt-1 text-sm text-slate-600">{viewStatusInsight.subtitle}</p>
-                  </div>
-                )}
-
-                {(viewContrato as any).requer_reassinatura && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-full bg-amber-100 p-2 text-amber-600">
-                        <AlertTriangle className="h-4 w-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
-                          Assinatura pendente
+              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="space-y-4">
+                  <div className="rounded-[28px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                          Leitura do contrato
                         </p>
-                        <p className="text-sm font-semibold text-amber-900">
-                          O contrato foi atualizado com extras ou melhorias.
+                        <p className="text-lg font-semibold text-white">
+                          {viewStatusInsight?.title || getContractStatusLabel(viewContrato.status)}
                         </p>
-                        <p className="text-sm text-amber-800">
-                          {(viewContrato as any).reassinatura_motivo ||
-                            "Assinatura pendente por atualização de extra e melhoria do sistema."}
+                        <p className="max-w-2xl text-sm leading-relaxed text-white/60">
+                          {viewStatusInsight?.subtitle ||
+                            "Revise a proposta atual, acompanhe a timeline e assine somente a versão correta."}
                         </p>
                       </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className={getContractStatusBadgeClass(viewContrato.status)}>
+                          {getContractStatusLabel(viewContrato.status)}
+                        </Badge>
+                        <ContractSignedStatusBadge
+                          signedName={viewContrato.assinatura_cliente_nome}
+                          signedAt={viewContrato.data_assinatura}
+                          variant="dark"
+                        />
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {viewContrato.status !== "assinado" && viewContrato.status !== "cancelado" && (
-                  <div className="rounded-2xl border border-rose-200/40 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.08))] p-4 space-y-4">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">Ações do cliente</p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {(viewContrato as any).requer_reassinatura
-                          ? "Revise os extras e melhorias adicionados, assine novamente esta versão ou solicite um ajuste."
-                          : "Aprove o contrato com seu nome completo ou solicite um ajuste antes de assinar."}
-                      </p>
+                  {(viewContrato as any).requer_reassinatura && (
+                    <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-amber-300/15 p-2 text-amber-200">
+                          <AlertTriangle className="h-4 w-4" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-100">
+                            Assinatura pendente
+                          </p>
+                          <p className="text-sm font-semibold text-white">
+                            O contrato foi atualizado com extras ou melhorias.
+                          </p>
+                          <p className="text-sm text-amber-100/80">
+                            {(viewContrato as any).reassinatura_motivo ||
+                              "Assinatura pendente por atualização de extra e melhoria do sistema."}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Input
-                        value={signerName}
-                        onChange={(event) => setSignerName(event.target.value)}
-                        placeholder="Nome completo para aprovação"
-                        className="border-gray-200 bg-white"
-                      />
-                      <Button
-                        className="w-full text-white border-0"
-                        style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
-                        onClick={() => void handleApprove()}
-                        disabled={portalActionLoading !== null}
-                      >
-                        <ShieldCheck className="w-4 h-4 mr-2" />
-                        {portalActionLoading === "approve"
-                          ? "Aprovando..."
-                          : (viewContrato as any).requer_reassinatura
-                            ? "Assinar versão atualizada"
-                            : "Aprovar e assinar contrato"}
-                      </Button>
+                  )}
+
+                  {viewContrato.status !== "assinado" && viewContrato.status !== "cancelado" && (
+                    <div className="rounded-[28px] border border-rose-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] p-5 space-y-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">Ações do cliente</p>
+                        <p className="mt-1 text-sm text-white/65">
+                          {(viewContrato as any).requer_reassinatura
+                            ? "Revise os extras e melhorias adicionados, assine novamente esta versão ou solicite um ajuste."
+                            : "Aprove o contrato com seu nome completo ou solicite um ajuste antes de assinar."}
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Input
+                          value={signerName}
+                          onChange={(event) => setSignerName(event.target.value)}
+                          placeholder="Nome completo para aprovação"
+                          className="border-white/10 bg-white/95"
+                        />
+                        <Button
+                          className="w-full border-0 text-white shadow-lg shadow-fuchsia-950/20"
+                          style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
+                          onClick={() => void handleApprove()}
+                          disabled={portalActionLoading !== null}
+                        >
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          {portalActionLoading === "approve"
+                            ? "Aprovando..."
+                            : (viewContrato as any).requer_reassinatura
+                              ? "Assinar versão atualizada"
+                              : "Aprovar e assinar contrato"}
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        <Textarea
+                          rows={3}
+                          value={revisionMessage}
+                          onChange={(event) => setRevisionMessage(event.target.value)}
+                          placeholder="Descreva o ajuste que você quer solicitar no contrato"
+                          className="resize-none border-white/10 bg-white/95"
+                        />
+                        <Button
+                          variant="outline"
+                          className="w-full border-white/10 bg-white/10 text-white hover:bg-white/15"
+                          onClick={() => void handleRequestRevision()}
+                          disabled={portalActionLoading !== null}
+                        >
+                          <PenSquare className="mr-2 h-4 w-4" />
+                          {portalActionLoading === "revision" ? "Enviando ajuste..." : "Solicitar ajuste"}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Textarea
-                        rows={3}
-                        value={revisionMessage}
-                        onChange={(event) => setRevisionMessage(event.target.value)}
-                        placeholder="Descreva o ajuste que você quer solicitar no contrato"
-                        className="border-gray-200 bg-white resize-none"
-                      />
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => void handleRequestRevision()}
-                        disabled={portalActionLoading !== null}
-                      >
-                        <PenSquare className="w-4 h-4 mr-2" />
-                        {portalActionLoading === "revision" ? "Enviando ajuste..." : "Solicitar ajuste"}
-                      </Button>
+                  )}
+
+                  <div className="overflow-hidden rounded-[30px] border border-[#eadff6] bg-white shadow-[0_24px_54px_rgba(13,7,20,0.12)]">
+                    <div className="h-1.5 bg-[linear-gradient(90deg,#7b1fa2,#e8334a,#c2185b)]" />
+                    <div className="p-8 text-sm leading-relaxed whitespace-pre-wrap text-black font-serif">
+                      {stripLegacySignaturePlaceholders(viewContrato.corpo || viewContrato.descricao || "")}
                     </div>
                   </div>
-                )}
 
-                {viewContrato.status === "assinado" && (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Assinatura registrada</p>
-                    <p className="mt-2 text-base font-semibold text-emerald-900">
-                      {viewContrato.assinatura_cliente_nome || signerName || "Cliente"}
-                    </p>
-                    <p className="mt-1 text-sm text-emerald-800">Aceite confirmado no portal do cliente.</p>
-                  </div>
-                )}
-
-                <div className="bg-white text-black p-8 rounded-lg font-serif text-sm leading-relaxed whitespace-pre-wrap">
-                  {stripLegacySignaturePlaceholders(viewContrato.corpo || viewContrato.descricao || "")}
+                  <ContractSignaturePanel summary={viewSignatureSummary} variant="light" />
                 </div>
 
-                <ContractPortalSignatureBlock summary={viewSignatureSummary} />
-
-                {((viewContrato as any).onboarding_started_at || (viewContrato as any).pedido_id) && (
-                  <div className="rounded-2xl border border-fuchsia-200 bg-[linear-gradient(135deg,rgba(123,31,162,0.08),rgba(232,51,74,0.08),rgba(194,24,91,0.08))] p-4">
+                <div className="space-y-4">
+                  {((viewContrato as any).onboarding_started_at || (viewContrato as any).pedido_id) && (
+                    <div className="rounded-[26px] border border-fuchsia-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="space-y-1">
-                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-fuchsia-700">
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-fuchsia-100">
                           Checklist e dados do projeto
                         </p>
-                        <p className="text-sm text-slate-700">
+                        <p className="text-sm text-white/70">
                           O checklist do cliente já está liberado para enviar materiais, acessos e referências.
                         </p>
                       </div>
@@ -701,19 +722,20 @@ export default function ClienteContratos() {
                         Abrir checklist
                       </Button>
                     </div>
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">Timeline do contrato</p>
-                    <p className="mt-1 text-sm text-gray-500">Acompanhe o que já aconteceu com este contrato no portal.</p>
+                  <div className="rounded-[26px] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                    <div className="mb-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">Timeline do contrato</p>
+                      <p className="mt-1 text-sm text-white/60">Acompanhe o que já aconteceu com este contrato no portal.</p>
+                    </div>
+                    <ContractActivityFeed
+                      events={contractEvents}
+                      loading={eventsLoading}
+                      emptyLabel="Ainda não existe atividade operacional registrada para este contrato."
+                    />
                   </div>
-                  <ContractActivityFeed
-                    events={contractEvents}
-                    loading={eventsLoading}
-                    emptyLabel="Ainda não existe atividade operacional registrada para este contrato."
-                  />
                 </div>
               </div>
             </div>

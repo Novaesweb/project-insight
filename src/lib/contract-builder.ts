@@ -892,9 +892,12 @@ export function buildContractWordHtml(
         }
         .signature-section {
           margin-top: 24px;
-          padding: 22px;
-          border-radius: 24px;
-          background: linear-gradient(135deg, rgba(123,31,162,0.12), rgba(232,51,74,0.08), rgba(194,24,91,0.14));
+          padding: 26px 24px;
+          border-radius: 28px;
+          background:
+            radial-gradient(circle at top left, rgba(123,31,162,0.14), transparent 34%),
+            radial-gradient(circle at top right, rgba(232,51,74,0.12), transparent 36%),
+            linear-gradient(135deg, rgba(123,31,162,0.12), rgba(232,51,74,0.08), rgba(194,24,91,0.14));
           border: 1px solid #ecdff4;
           text-align: center;
         }
@@ -918,17 +921,25 @@ export function buildContractWordHtml(
         }
         .signature-card {
           width: 50%;
-          background: rgba(255,255,255,0.82);
+          background: rgba(255,255,255,0.9);
           border: 1px solid #ecdff4;
-          border-radius: 18px;
-          padding: 18px 16px 16px;
+          border-radius: 22px;
+          padding: 16px 16px 18px;
           vertical-align: top;
+          box-shadow: 0 18px 36px rgba(33, 18, 49, 0.08);
+        }
+        .signature-role {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: #8b7998;
+          font-weight: 800;
         }
         .signature-line {
           width: 100%;
           height: 1px;
           background: linear-gradient(90deg, #7b1fa2, #e8334a, #c2185b);
-          margin: 24px 0 10px;
+          margin: 14px 0 12px;
         }
         .signature-name {
           font-size: 16px;
@@ -997,11 +1008,13 @@ export function buildContractWordHtml(
           <table class="signature-grid">
             <tr>
               <td class="signature-card">
+                <div class="signature-role">Contratante</div>
                 <div class="signature-line"></div>
                 <div class="signature-name">${escapeHtml(signatureSummary.contractanteName)}</div>
                 <div class="signature-caption">${escapeHtml(signatureSummary.contractanteCaption)}</div>
               </td>
               <td class="signature-card">
+                <div class="signature-role">Contratada</div>
                 <div class="signature-line"></div>
                 <div class="signature-name">${escapeHtml(signatureSummary.contratadaName)}</div>
                 <div class="signature-caption">${escapeHtml(signatureSummary.contratadaCaption)}</div>
