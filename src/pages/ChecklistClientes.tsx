@@ -40,6 +40,7 @@ import {
   getChecklistStatusMeta,
   normalizeChecklistText,
 } from "@/lib/client-checklist";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -130,6 +131,15 @@ export default function ChecklistClientes() {
   useEffect(() => {
     void loadClientes();
   }, [loadClientes]);
+
+  useRealtimeRefresh(
+    [
+      { table: "clientes" },
+      { table: "cliente_checklist_items" },
+    ],
+    loadClientes,
+    { channelPrefix: "admin-checklist-clientes" },
+  );
 
   const clienteSelecionado = useMemo(
     () => clientes.find((cliente) => cliente.id === selectedClientId) || null,

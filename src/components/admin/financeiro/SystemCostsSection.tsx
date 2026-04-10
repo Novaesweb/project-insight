@@ -42,6 +42,7 @@ import {
   type SystemCost,
   updateSystemCost,
 } from "@/lib/system-costs";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 const moneyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -99,6 +100,12 @@ export default function SystemCostsSection() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useRealtimeRefresh(
+    [{ table: "custos_sistema" }],
+    load,
+    { channelPrefix: "admin-system-costs" },
+  );
 
   const activeCosts = useMemo(() => costs.filter((cost) => cost.status === "ativo"), [costs]);
   const monthlyBase = useMemo(() => activeCosts.reduce((sum, cost) => sum + getMonthlyEquivalent(cost), 0), [activeCosts]);

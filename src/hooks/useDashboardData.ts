@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 export function useDashboardData() {
   const { toast } = useToast();
@@ -136,6 +137,23 @@ export function useDashboardData() {
     const interval = setInterval(load, 120000); // Atualiza a cada 2 minutos
     return () => clearInterval(interval);
   }, [load]);
+
+  useRealtimeRefresh(
+    [
+      { table: "clientes" },
+      { table: "projetos" },
+      { table: "pedidos" },
+      { table: "tickets" },
+      { table: "financeiro" },
+      { table: "extras_clientes" },
+      { table: "extras_catalogo" },
+      { table: "leads" },
+      { table: "push_subscriptions" },
+      { table: "notifications" },
+    ],
+    load,
+    { channelPrefix: "admin-dashboard", debounceMs: 500 },
+  );
 
   return {
     stats, pedidos, tickets, dbStatus, subCount, activity, 

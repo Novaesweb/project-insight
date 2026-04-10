@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 // ── Types ──
 interface ClienteRecorrente {
@@ -163,6 +164,16 @@ export default function AdminRecurrentExtras() {
 
   useEffect(() => { loadClientes(); }, [loadClientes]);
 
+  useRealtimeRefresh(
+    [
+      { table: "extras_clientes" },
+      { table: "clientes" },
+      { table: "recurrent_billing_history" },
+    ],
+    loadClientes,
+    { channelPrefix: "admin-recurrent-extras", debounceMs: 400 },
+  );
+
   // ── Gerar faturas (rascunho — NÃO vai pro financeiro) ──
   const handleGerarFaturas = async () => {
     if (selectedClientes.size === 0) {
@@ -247,25 +258,46 @@ export default function AdminRecurrentExtras() {
   };
 
   // ── Load faturas de um cliente ──
-  const openClienteHistorico = async (cliente: ClienteRecorrente) => {
+  const loadClienteHistorico = useCallback(async (clienteId: string) => {
     try {
       const { data, error } = await (supabase as any)
         .from("recurrent_billing_history")
         .select("*")
-        .eq("cliente_id", cliente.cliente_id)
+        .eq("cliente_id", clienteId)
         .order("ano", { ascending: true })
         .order("mes_numero", { ascending: true });
       
       if (error) throw error;
       
       setFaturasMes(data || []);
-      setSelectedCliente(cliente);
-      setShowClienteDialog(true);
     } catch (err) {
       console.error("Erro ao carregar histórico de faturamento");
       toast({ title: "Erro ao carregar histórico", variant: "destructive" });
     }
+  }, [toast]);
+
+  const openClienteHistorico = async (cliente: ClienteRecorrente) => {
+    await loadClienteHistorico(cliente.cliente_id);
+    setSelectedCliente(cliente);
+    setShowClienteDialog(true);
   };
+
+  useRealtimeRefresh(
+    [
+      { table: "recurrent_billing_history", filter: selectedCliente ? `cliente_id=eq.${selectedCliente.cliente_id}` : undefined },
+      { table: "financeiro", filter: selectedCliente ? `cliente_id=eq.${selectedCliente.cliente_id}` : undefined },
+    ],
+    async () => {
+      if (selectedCliente) {
+        await loadClienteHistorico(selectedCliente.cliente_id);
+      }
+    },
+    {
+      enabled: showClienteDialog && Boolean(selectedCliente),
+      channelPrefix: "admin-recurrent-history",
+      debounceMs: 400,
+    },
+  );
 
   // ── Enviar para financeiro + Asaas ──
   const handleEnviarFinanceiro = async (fatura: FaturaMes) => {

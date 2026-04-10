@@ -56,6 +56,7 @@ import {
   getChecklistPendingCount,
   getChecklistProgress,
 } from "@/lib/client-checklist";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -219,6 +220,19 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   }, [clienteId, toast]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useRealtimeRefresh(
+    [
+      { table: "clientes", filter: `id=eq.${clienteId}` },
+      { table: "extras_clientes", filter: `cliente_id=eq.${clienteId}` },
+      { table: "projetos", filter: `cliente_id=eq.${clienteId}` },
+      { table: "pedidos", filter: `cliente_id=eq.${clienteId}` },
+      { table: "cliente_checklist_items", filter: `cliente_id=eq.${clienteId}` },
+      { table: "extras_catalogo" },
+    ],
+    loadData,
+    { channelPrefix: `admin-cliente-detalhe-${clienteId}`, debounceMs: 350 },
+  );
 
   const handleClientCepLookup = async (value: string) => {
     const normalizedCep = formatCep(value);
@@ -984,6 +998,12 @@ export default function Clientes() {
   }, []);
 
   useEffect(() => { fetchClientes(); }, [fetchClientes]);
+
+  useRealtimeRefresh(
+    [{ table: "clientes" }],
+    fetchClientes,
+    { channelPrefix: "admin-clientes-lista" },
+  );
 
   if (selectedCliente) {
     return <ClienteDetalhes clienteId={selectedCliente} onBack={() => setSelectedCliente(null)} />;

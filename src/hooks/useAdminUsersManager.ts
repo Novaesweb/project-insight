@@ -10,6 +10,7 @@ import {
   type AdminUserMetadataMap,
 } from "@/lib/admin-audit";
 import { normalizeAdminRole, type AdminRole } from "@/lib/admin-permissions";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 export type AdminUser = Tables<"usuarios">;
 
@@ -69,6 +70,15 @@ export function useAdminUsersManager() {
   useEffect(() => {
     void fetchUsuarios();
   }, [fetchUsuarios]);
+
+  useRealtimeRefresh(
+    [
+      { table: "usuarios" },
+      { table: "app_config" },
+    ],
+    () => fetchUsuarios(true),
+    { channelPrefix: "admin-usuarios" },
+  );
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();

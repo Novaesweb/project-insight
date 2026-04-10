@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,6 +19,7 @@ import { AsaasService } from "@/lib/asaas-service";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useSearchParams } from "react-router-dom";
 import UpcomingBillingPanel from "@/components/admin/financeiro/UpcomingBillingPanel";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const emptyForm = { descricao: "", tipo: "entrada", valor: "", vencimento: "", cliente_id: "", status: "pendente" };
@@ -37,16 +38,25 @@ export default function Financeiro() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const [f, c] = await Promise.all([
       supabase.from("financeiro").select("*, clientes(nome)").order("vencimento", { ascending: false }),
       supabase.from("clientes").select("id, nome").eq("status", "ativo"),
     ]);
     setFinanceiro(f.data || []);
     setClientes(c.data || []);
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  useRealtimeRefresh(
+    [
+      { table: "financeiro" },
+      { table: "clientes" },
+    ],
+    load,
+    { channelPrefix: "admin-financeiro" },
+  );
 
   useEffect(() => {
     const nextStatus = searchParams.get("status") || "todos";

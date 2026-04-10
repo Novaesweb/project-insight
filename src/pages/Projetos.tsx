@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendPushToClient } from "@/lib/push-notifications";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -61,6 +62,17 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
   }, [projetoId]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useRealtimeRefresh(
+    [
+      { table: "projetos", filter: `id=eq.${projetoId}` },
+      { table: "pedidos", filter: `projeto_id=eq.${projetoId}` },
+      { table: "projeto_atualizacoes", filter: `projeto_id=eq.${projetoId}` },
+      { table: "projeto_arquivos", filter: `projeto_id=eq.${projetoId}` },
+    ],
+    loadData,
+    { channelPrefix: `admin-projeto-detalhe-${projetoId}`, debounceMs: 350 },
+  );
 
   const updateStatus = async (newStatus: string) => {
     const progressMap: Record<string, number> = { briefing: 20, design: 40, desenvolvimento: 60, homologacao: 85, concluido: 100 };
@@ -544,6 +556,15 @@ export default function Projetos() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useRealtimeRefresh(
+    [
+      { table: "projetos" },
+      { table: "clientes" },
+    ],
+    load,
+    { channelPrefix: "admin-projetos-lista" },
+  );
 
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;

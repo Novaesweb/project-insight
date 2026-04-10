@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -50,7 +51,7 @@ export default function Pedidos() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const [pedidosResponse, clientesResponse] = await Promise.all([
       supabase.from("pedidos").select("*, clientes(id, nome)").order("created_at", { ascending: false }),
       supabase.from("clientes").select("id, nome").eq("status", "ativo"),
@@ -58,11 +59,21 @@ export default function Pedidos() {
 
     setPedidos(pedidosResponse.data || []);
     setClientes(clientesResponse.data || []);
-  };
+  }, []);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
+
+  useRealtimeRefresh(
+    [
+      { table: "pedidos" },
+      { table: "clientes" },
+      { table: "projetos" },
+    ],
+    load,
+    { channelPrefix: "admin-pedidos" },
+  );
 
   const resetForm = () => {
     setForm(INITIAL_FORM);

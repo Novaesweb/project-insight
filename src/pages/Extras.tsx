@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 type CategoriaExtra = "fixo" | "intermediario" | "mensal";
 
@@ -60,7 +61,7 @@ export default function Extras() {
   const [form, setForm] = useState(emptyForm);
   const [editForm, setEditForm] = useState({ ...emptyForm, id: "" });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const [extrasRes, pacotesRes, piRes, clientesRes, ecRes] = await Promise.all([
       supabase.from("extras_catalogo").select("*").order("nome"),
       (supabase.from as any)("pacotes").select("*").order("nome"),
@@ -73,9 +74,21 @@ export default function Extras() {
     setPacoteItens(piRes.data || []);
     setClientes(clientesRes.data || []);
     setExtrasClientes(ecRes.data || []);
-  };
+  }, []);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { void fetchData(); }, [fetchData]);
+
+  useRealtimeRefresh(
+    [
+      { table: "extras_catalogo" },
+      { table: "pacotes" },
+      { table: "pacote_itens" },
+      { table: "clientes" },
+      { table: "extras_clientes" },
+    ],
+    fetchData,
+    { channelPrefix: "admin-extras" },
+  );
 
   const countByExtra = useMemo(() => {
     const map: Record<string, number> = {};

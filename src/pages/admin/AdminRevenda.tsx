@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   Users, DollarSign, Wallet, ArrowUpRight, 
   Search, Plus, Filter, MoreHorizontal, 
@@ -26,6 +26,7 @@ import {
   Select, SelectContent, SelectItem, 
   SelectTrigger, SelectValue 
 } from "@/components/ui/select";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 export default function AdminRevenda() {
   const { toast } = useToast();
@@ -42,11 +43,7 @@ export default function AdminRevenda() {
     senha: ""
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     // Buscar revendedores
     const { data: revs } = await supabase.from("revendedores" as any).select("*") as any;
@@ -57,7 +54,20 @@ export default function AdminRevenda() {
     if (saques) setPayouts(saques);
 
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  useRealtimeRefresh(
+    [
+      { table: "revendedores" },
+      { table: "saques_revenda" },
+    ],
+    loadData,
+    { channelPrefix: "admin-revenda" },
+  );
 
   const approvePayout = async (id: string) => {
     const { error } = await supabase.from("saques_revenda" as any).update({ status: "pago", data_pagamento: new Date().toISOString() }).eq("id", id);

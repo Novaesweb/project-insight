@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -44,7 +45,7 @@ export default function Relatorios() {
     statusData: [] as any[]
   });
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     setLoading(true);
     try {
       // 1. Financeiro
@@ -106,9 +107,20 @@ export default function Relatorios() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { loadStats(); }, []);
+  useEffect(() => { void loadStats(); }, [loadStats]);
+
+  useRealtimeRefresh(
+    [
+      { table: "financeiro" },
+      { table: "clientes" },
+      { table: "leads" },
+      { table: "projetos" },
+    ],
+    loadStats,
+    { channelPrefix: "admin-relatorios", debounceMs: 500 },
+  );
 
   const kpis = [
     { label: "Receita Confirmada", value: `R$ ${stats.receitaTotal.toLocaleString()}`, icon: TrendingUp, color: "text-emerald-400", trend: "+12%" },
