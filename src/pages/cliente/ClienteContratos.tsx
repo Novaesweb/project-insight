@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, ClipboardList, Download, Eye, FileText, Lock, PenSquare, ShieldCheck, Vault } from "lucide-react";
+import { AlertTriangle, Download, Eye, FileText, Lock, PenSquare, ShieldCheck, Vault } from "lucide-react";
 import jsPDF from "jspdf";
 
 import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
@@ -703,29 +703,6 @@ export default function ClienteContratos() {
                 </div>
 
                 <div className="space-y-4">
-                  {((viewContrato as any).onboarding_started_at || (viewContrato as any).pedido_id) && (
-                    <div className="rounded-[26px] border border-fuchsia-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div className="space-y-1">
-                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-fuchsia-100">
-                          Checklist e dados do projeto
-                        </p>
-                        <p className="text-sm text-white/70">
-                          O checklist do cliente já está liberado para enviar materiais, acessos e referências.
-                        </p>
-                      </div>
-                      <Button
-                        className="border-0 text-white"
-                        style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
-                        onClick={() => window.location.assign("/cliente/dados")}
-                      >
-                        <ClipboardList className="mr-2 h-4 w-4" />
-                        Abrir checklist
-                      </Button>
-                    </div>
-                    </div>
-                  )}
-
                   <div className="rounded-[26px] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
                     <div className="mb-3">
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">Timeline do contrato</p>

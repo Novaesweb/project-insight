@@ -4,7 +4,7 @@ export type AdminRole = (typeof ADMIN_PERMISSION_ROLES)[number];
 
 export const ADMIN_PERMISSION_MODULES = [
   { key: "dashboard", label: "Dashboard", description: "Visão geral do painel e indicadores principais.", hrefs: ["/admin"] },
-  { key: "clientes", label: "Clientes", description: "Gestão dos clientes e ecossistemas ativos.", hrefs: ["/admin/clientes", "/admin/checklist-clientes"] },
+  { key: "clientes", label: "Clientes", description: "Gestão dos clientes e ecossistemas ativos.", hrefs: ["/admin/clientes"] },
   { key: "leads", label: "Leads", description: "Pipeline comercial e novas oportunidades.", hrefs: ["/admin/leads"] },
   { key: "projetos", label: "Projetos", description: "Execução, prazos e entregas em andamento.", hrefs: ["/admin/projetos"] },
   { key: "pedidos", label: "Pedidos", description: "Pedidos, vendas e solicitações do time.", hrefs: ["/admin/pedidos"] },

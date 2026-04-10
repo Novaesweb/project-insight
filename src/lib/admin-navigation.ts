@@ -10,7 +10,6 @@ const RECENT_ADMIN_ROUTES_KEY = "novaesweb-admin-recent-routes";
 export const adminRoutes: AdminRouteMeta[] = [
   { href: "/admin", label: "Dashboard", shortLabel: "Início", keywords: ["dashboard", "home", "inicio", "painel"] },
   { href: "/admin/clientes", label: "Clientes", shortLabel: "Clientes", keywords: ["clientes", "ecossistemas"] },
-  { href: "/admin/checklist-clientes", label: "Checklist Clientes", shortLabel: "Checklist", keywords: ["checklist", "cadastro", "onboarding", "clientes"] },
   { href: "/admin/leads", label: "Leads", shortLabel: "Leads", keywords: ["leads", "pipeline", "oportunidades"] },
   { href: "/admin/projetos", label: "Projetos", shortLabel: "Projetos", keywords: ["projetos", "entregas", "execucao"] },
   { href: "/admin/pedidos", label: "Pedidos", shortLabel: "Pedidos", keywords: ["pedidos", "vendas", "faturas"] },

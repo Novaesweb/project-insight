@@ -134,7 +134,6 @@ export const ROUTES = {
     reunioes: "/cliente/reunioes",
     suporte: "/cliente/suporte",
     indique: "/cliente/indique",
-    dados: "/cliente/dados",
     arquivos: "/cliente/arquivos",
   },
   admin: {

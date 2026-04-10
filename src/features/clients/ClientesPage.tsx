@@ -5,7 +5,7 @@ import {
   Trash2, Pencil, ExternalLink, ArrowLeft,
   DollarSign, Package, Sparkles, FileText,
   AlertCircle, CheckCircle2, Clock, Zap,
-  ArrowRight, UserPlus, Copy, RefreshCw, Pause, StickyNote, ClipboardList
+  ArrowRight, UserPlus, Copy, RefreshCw, Pause, StickyNote
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -51,11 +51,6 @@ import {
   getPhoneProgressText,
   normalizeEmailSuggestion,
 } from "@/lib/client-registration";
-import {
-  type ClientChecklistItem,
-  getChecklistPendingCount,
-  getChecklistProgress,
-} from "@/lib/client-checklist";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
 const fadeUp = {
@@ -171,7 +166,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
   const [projetos, setProjetos] = useState<any[]>([]);
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [catalogo, setCatalogo] = useState<any[]>([]);
-  const [checklistItems, setChecklistItems] = useState<ClientChecklistItem[]>([]);
   const [showAddExtra, setShowAddExtra] = useState(false);
   const [extraSelecionado, setExtraSelecionado] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -201,14 +195,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
       const { data: cat, error: errorCatalogo } = await supabase.from("extras_catalogo").select("*");
       if (errorCatalogo) console.error("Erro ao carregar catálogo de extras");
       if (cat) setCatalogo(cat);
-
-      const { data: checklistData, error: checklistError } = await supabase
-        .from("cliente_checklist_items")
-        .select("*")
-        .eq("cliente_id", clienteId)
-        .order("ordem", { ascending: true });
-      if (checklistError) console.error("Erro ao carregar checklist do cliente");
-      if (checklistData) setChecklistItems(checklistData as ClientChecklistItem[]);
     } catch (error) {
       console.error("Erro ao carregar dados do cliente");
       toast({ 
@@ -227,7 +213,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
       { table: "extras_clientes", filter: `cliente_id=eq.${clienteId}` },
       { table: "projetos", filter: `cliente_id=eq.${clienteId}` },
       { table: "pedidos", filter: `cliente_id=eq.${clienteId}` },
-      { table: "cliente_checklist_items", filter: `cliente_id=eq.${clienteId}` },
       { table: "extras_catalogo" },
     ],
     loadData,
@@ -527,34 +512,6 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                       />
                     </div>
                   ))}
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/35">Checklist inicial</p>
-                      <p className="text-sm text-white/50 mt-1">
-                        Acompanhe o que o cliente já enviou e abra a visão completa do onboarding.
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="border-white/10 text-white hover:bg-white/5"
-                      onClick={() => navigate(`/admin/checklist-clientes?cliente=${clienteId}`)}
-                    >
-                      Abrir checklist completo
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-                      <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/35">Progresso</p>
-                      <p className="text-xl font-black text-white mt-2">{getChecklistProgress(checklistItems)}%</p>
-                    </div>
-                    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-                      <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/35">Itens pendentes</p>
-                      <p className="text-xl font-black text-amber-400 mt-2">{getChecklistPendingCount(checklistItems)}</p>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex justify-end">
@@ -1190,7 +1147,7 @@ export default function Clientes() {
           variant: "destructive"
         });
       }
-    }, "Excluir Cliente", "Projeto, pedidos, painel, checklist e dados operacionais serão removidos. Só permanecem lançamentos em aberto no financeiro, caso existam.");
+    }, "Excluir Cliente", "Projeto, pedidos, painel e dados operacionais serão removidos. Só permanecem lançamentos em aberto no financeiro, caso existam.");
   };
 
   return (
@@ -1198,13 +1155,6 @@ export default function Clientes() {
       <motion.div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" variants={fadeUp}>
         <div />
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            className="border-white/10 text-white hover:bg-white/5 rounded-lg"
-            onClick={() => navigate("/admin/checklist-clientes")}
-          >
-            <ClipboardList className="w-4 h-4 mr-2" /> Checklist Clientes
-          </Button>
           <Dialog open={showNew} onOpenChange={setShowNew}>
             <DialogTrigger asChild>
               <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>

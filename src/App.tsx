@@ -34,7 +34,6 @@ import CriacaoConteudo from "./pages/CriacaoConteudo";
 const Site = React.lazy(() => import("./pages/Site"));
 const Index = React.lazy(() => import("./pages/Index"));
 const Clientes = React.lazy(() => import("./pages/Clientes"));
-const ChecklistClientes = React.lazy(() => import("./pages/ChecklistClientes"));
 const Projetos = React.lazy(() => import("./pages/Projetos"));
 const Pedidos = React.lazy(() => import("./pages/Pedidos"));
 const Extras = React.lazy(() => import("./pages/Extras"));
@@ -57,7 +56,6 @@ const ClienteExtras = React.lazy(() => import("./pages/cliente/ClienteExtras"));
 const ClienteContratos = React.lazy(() => import("./pages/cliente/ClienteContratos"));
 const ClienteFaturas = React.lazy(() => import("./pages/cliente/ClienteFaturas"));
 const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte"));
-const ClienteDados = React.lazy(() => import("./pages/cliente/ClienteDados"));
 const ClienteArquivos = React.lazy(() => import("./pages/cliente/ClienteArquivos"));
 const ClienteReferral = React.lazy(() => import("./pages/cliente/ClienteReferral"));
 const ClienteResetPassword = React.lazy(() => import("./pages/cliente/ClienteResetPassword"));
@@ -109,7 +107,6 @@ function AdminWithSplash() {
           <Routes>
             <Route index element={<Index />} />
             <Route path="clientes" element={<Clientes />} />
-            <Route path="checklist-clientes" element={<ChecklistClientes />} />
             <Route path="leads" element={<Leads />} />
             <Route path="projetos" element={<Projetos />} />
             <Route path="pedidos" element={<Pedidos />} />
@@ -191,7 +188,6 @@ const App = () => (
                     <Route path="faturas" element={<ClienteFaturas />} />
                     <Route path="suporte" element={<ClienteSuporte />} />
                     <Route path="indique" element={<ClienteReferral />} />
-                    <Route path="dados" element={<ClienteDados />} />
                     <Route path="arquivos" element={<ClienteArquivos />} />
                   </Routes>
                 </ClienteLayout>
