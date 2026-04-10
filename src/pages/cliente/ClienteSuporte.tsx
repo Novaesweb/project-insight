@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import { sendPushToAdmins } from "@/lib/push-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -20,7 +21,7 @@ const statusLabels: Record<string, string> = { aberto: "Análise Inicial", em_at
 interface Msg { id: string; ticket_id: string; remetente: string; nome: string; texto: string; created_at: string; }
 
 export default function ClienteSuporte() {
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente = getStoredClientProfile();
   const { toast } = useToast();
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [showNovoTicket, setShowNovoTicket] = useState(false);
@@ -32,10 +33,10 @@ export default function ClienteSuporte() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   const loadTickets = useCallback(() => {
-    if (!cliente.id) return;
+    if (!cliente?.id) return;
     supabase.from("tickets").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setTickets(data || []));
-  }, [cliente.id]);
+  }, [cliente?.id]);
 
   const loadMsgs = useCallback(() => {
     if (!selectedTicket) return;
@@ -60,7 +61,7 @@ export default function ClienteSuporte() {
 
   const enviarMensagem = async () => {
     if (!mensagem.trim() || !selectedTicket) return;
-    const nova = { ticket_id: selectedTicket, remetente: "cliente", nome: cliente.nome, texto: mensagem };
+    const nova = { ticket_id: selectedTicket, remetente: "cliente", nome: cliente?.nome || "Cliente", texto: mensagem };
     const { data } = await supabase.from("ticket_mensagens").insert(nova).select().single();
     if (data) {
       setMsgs(prev => [...prev, data]);
@@ -73,8 +74,8 @@ export default function ClienteSuporte() {
           evento: "nova_mensagem",
           ticket_id: selectedTicket,
           mensagem: mensagem,
-          cliente_nome: cliente.nome,
-          cliente_email: cliente.email
+          cliente_nome: cliente?.nome || "Cliente",
+          cliente_email: cliente?.email || ""
         })
       }).catch(err => console.error("Erro no webhook n8n:", err));
     }
@@ -82,17 +83,17 @@ export default function ClienteSuporte() {
   };
 
   const criarTicket = async () => {
-    if (!novoTitulo.trim()) return;
+    if (!novoTitulo.trim() || !cliente?.id) return;
     const codigo = `TK-${Date.now().toString().slice(-6)}`;
     const { error } = await supabase.from("tickets").insert({
       titulo: novoTitulo,
       descricao: novoDescricao || null,
-      cliente_id: cliente.id,
+      cliente_id: cliente?.id,
       codigo,
     });
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
-      sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente.nome}`, "/admin/suporte");
+      sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente?.nome || "Cliente"}`, "/admin/suporte");
       
       // Enviar dados completos para o n8n Webhook
       fetch("https://lucasalencar.app.n8n.cloud/webhook-test/7315698c-b037-4e83-82c2-1f3c193fea88", {
@@ -103,9 +104,9 @@ export default function ClienteSuporte() {
           codigo: codigo,
           titulo: novoTitulo,
           descricao: novoDescricao,
-          cliente_nome: cliente.nome,
-          cliente_email: cliente.email,
-          cliente_telefone: cliente.telefone || "Não informado"
+          cliente_nome: cliente?.nome || "Cliente",
+          cliente_email: cliente?.email || "",
+          cliente_telefone: cliente?.telefone || "Não informado"
         })
       }).catch(err => console.error("Erro no webhook n8n:", err));
 

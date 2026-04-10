@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import { Zap, Star, CalendarDays, Rocket, ShieldCheck, Sparkles } from "lucide-react";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
@@ -15,14 +16,14 @@ const catConfig: Record<string, { label: string; color: string; bg: string; bord
 };
 
 export default function ClienteExtras() {
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente = getStoredClientProfile();
   const [meusExtras, setMeusExtras] = useState<any[]>([]);
 
   const load = useCallback(() => {
-    if (!cliente.id) return;
+    if (!cliente?.id) return;
     supabase.from("extras_clientes").select("*, extras_catalogo(nome)").eq("cliente_id", cliente.id)
       .then(({ data }) => setMeusExtras(data || []));
-  }, [cliente.id]);
+  }, [cliente?.id]);
 
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("extras_clientes", load);

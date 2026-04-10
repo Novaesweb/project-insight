@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
 import { useToast } from "@/hooks/use-toast";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import { cn } from "@/lib/utils";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
@@ -22,13 +23,13 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 };
 
 export default function ClienteFaturas() {
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente = getStoredClientProfile();
   const { toast } = useToast();
   const [faturas, setFaturas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    if (!cliente.id) return;
+    if (!cliente?.id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("financeiro")
@@ -43,7 +44,7 @@ export default function ClienteFaturas() {
       setFaturas(data || []);
     }
     setLoading(false);
-  }, [cliente.id]);
+  }, [cliente?.id]);
 
   useEffect(() => { load(); }, [load]);
   useRealtimeSubscription("financeiro", load);
@@ -59,7 +60,7 @@ export default function ClienteFaturas() {
       vencimento: f.vencimento, 
       data_emissao: f.created_at, 
       status: f.status, 
-      clienteNome: cliente.nome 
+      clienteNome: cliente?.nome || "Cliente"
     };
     try {
       if (type === "pdf") exportFaturaPDF(data);

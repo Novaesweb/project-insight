@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { FileText, Image as ImageIcon, CheckCircle2, Circle, Upload, Info, Download, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -19,22 +20,21 @@ const assetsRequired = [
 
 export default function ClienteArquivos() {
   const { toast } = useToast();
+  const cliente = getStoredClientProfile();
   const [projeto, setProjeto] = useState<any>(null);
   const [arquivos, setArquivos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
-      const userStr = localStorage.getItem("clienteLogado");
-      if (!userStr) return;
-      const user = JSON.parse(userStr);
+      if (!cliente?.id) return;
 
       // 1. Pegar o projeto ativo do cliente
       const { data: proj, error: projError } = await supabase
         .from("projetos")
         .select("*")
-        .eq("cliente_id", user.id)
+        .eq("cliente_id", cliente.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
@@ -57,11 +57,11 @@ export default function ClienteArquivos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cliente?.id]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    void loadData();
+  }, [loadData]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
     const file = e.target.files?.[0];

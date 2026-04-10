@@ -1730,6 +1730,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_client_portal_profile: { Args: never; Returns: Json }
       get_cliente_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       mark_contract_viewed: {

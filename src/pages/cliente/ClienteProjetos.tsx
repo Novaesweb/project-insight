@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const stagger = { show: { transition: { staggerChildren: 0.08 } } };
@@ -43,17 +44,17 @@ function getEtapaDate(status: string, etapaIndex: number, createdAt: string, pra
 }
 
 export default function ClienteProjetos() {
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente = getStoredClientProfile();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [projetos, setProjetos] = useState<any[]>([]);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
   const [extrasAtivos, setExtrasAtivos] = useState<any[]>([]);
 
   const loadProjetos = useCallback(() => {
-    if (!cliente.id) return;
+    if (!cliente?.id) return;
     supabase.from("projetos").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setProjetos(data || []));
-  }, [cliente.id]);
+  }, [cliente?.id]);
 
   const loadAtualizacoes = useCallback(() => {
     if (!selectedId) return;
@@ -62,10 +63,10 @@ export default function ClienteProjetos() {
   }, [selectedId]);
 
   const loadExtras = useCallback(() => {
-    if (!cliente.id) return;
+    if (!cliente?.id) return;
     supabase.from("extras_clientes").select("*, extras_catalogo(nome, descricao)").eq("cliente_id", cliente.id).eq("status", "ativo")
       .then(({ data }) => setExtrasAtivos(data || []));
-  }, [cliente.id]);
+  }, [cliente?.id]);
 
   useEffect(() => { loadProjetos(); }, [loadProjetos]);
   useEffect(() => { loadAtualizacoes(); }, [loadAtualizacoes]);

@@ -25,11 +25,6 @@ export interface ClientPortalProfile {
   bloqueado: boolean | null;
 }
 
-type StoredClientPortalProfile = Pick<
-  ClientPortalProfile,
-  "id" | "nome" | "email" | "trial_ends_at" | "status" | "bloqueado"
->;
-
 const CLIENT_PORTAL_SELECT = [
   "id",
   "nome",
@@ -100,14 +95,11 @@ export function persistClientProfile(profile: ClientPortalProfile | null) {
     return;
   }
 
-  const storedProfile: StoredClientPortalProfile = {
-    id: profile.id,
-    nome: profile.nome,
-    email: profile.email.trim().toLowerCase(),
-    trial_ends_at: profile.trial_ends_at ?? null,
-    status: profile.status ?? "ativo",
-    bloqueado: profile.bloqueado ?? null,
-  };
+  const storedProfile = sanitizeClientProfile(profile);
+  if (!storedProfile) {
+    localStorage.removeItem("clienteLogado");
+    return;
+  }
 
   localStorage.setItem("clienteLogado", JSON.stringify(storedProfile));
 }
@@ -134,7 +126,13 @@ export async function loadClientProfileFromSession(session: Session | null) {
 
   if (authIdError) throw authIdError;
   if (byAuthId) return sanitizeClientProfile(byAuthId as Partial<ClientPortalProfile>);
-  return null;
+
+  const { data: bootstrappedProfile, error: bootstrapError } = await supabase.rpc(
+    "bootstrap_client_portal_profile",
+  );
+
+  if (bootstrapError) throw bootstrapError;
+  return sanitizeClientProfile(bootstrappedProfile as Partial<ClientPortalProfile> | null);
 }
 
 export async function loadClientProfileById(clientId: string) {

@@ -11,6 +11,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import { ReloadPrompt } from "./ReloadPrompt";
 import nwLogo from "@/assets/novaesweb-logo-premium.png";
 import { useBranding } from "@/hooks/useBranding";
+import { Button } from "@/components/ui/button";
 import {
   clearClientProfile,
   getStoredClientProfile,
@@ -121,6 +122,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
   const [cliente, setCliente] = useState<ClientPortalProfile | null>(() => getStoredClientProfile());
   const [ready, setReady] = useState(false);
   const [adminMirrorMode, setAdminMirrorMode] = useState(false);
+  const [portalIssue, setPortalIssue] = useState<{ title: string; description: string } | null>(null);
   const branding = useBranding();
 
   useEffect(() => {
@@ -136,6 +138,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         if (active) {
           setCliente(null);
           setAdminMirrorMode(false);
+          setPortalIssue(null);
           setReady(true);
           navigate("/cliente/login", { replace: true });
         }
@@ -171,6 +174,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         if (active) {
           setCliente(mirroredClient);
           setAdminMirrorMode(true);
+          setPortalIssue(null);
           setReady(true);
         }
         return;
@@ -181,12 +185,14 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
         if (!profile || profile.bloqueado) {
           clearClientProfile();
-          await supabase.auth.signOut();
           if (active) {
             setCliente(null);
             setAdminMirrorMode(false);
+            setPortalIssue({
+              title: "Acesso ao portal não habilitado",
+              description: "Sua conta autenticou, mas ainda não existe um cadastro ativo liberado para este portal. Solicite a ativação com a equipe NovaesWeb.",
+            });
             setReady(true);
-            navigate("/cliente/login", { replace: true });
           }
           return;
         }
@@ -195,17 +201,20 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         if (active) {
           setCliente(profile);
           setAdminMirrorMode(false);
+          setPortalIssue(null);
           setReady(true);
         }
       } catch (error) {
         console.error("Client portal session sync error");
         clearClientProfile();
-        await supabase.auth.signOut();
         if (active) {
           setCliente(null);
           setAdminMirrorMode(false);
+          setPortalIssue({
+            title: "Não foi possível validar seu acesso",
+            description: "O portal não conseguiu sincronizar seu cadastro agora. Tente novamente em instantes ou entre em contato com a equipe.",
+          });
           setReady(true);
-          navigate("/cliente/login", { replace: true });
         }
       }
     };
@@ -214,11 +223,12 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+      } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         clearClientProfile();
         setCliente(null);
         setAdminMirrorMode(false);
+        setPortalIssue(null);
         setReady(true);
         navigate("/cliente/login", { replace: true });
       }
@@ -264,7 +274,48 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
     };
   }, [adminMirrorMode, cliente?.id, navigate]);
 
-  if (!ready || !cliente) return null;
+  const handlePortalIssueExit = () => {
+    clearClientProfile();
+    void supabase.auth.signOut();
+    navigate("/cliente/login", { replace: true });
+  };
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "linear-gradient(135deg, #07060a 0%, #1a0a2e 30%, #2d0a1f 60%, #0f0a05 100%)" }}>
+        <div className="w-full max-w-md rounded-3xl border border-white/10 p-8 backdrop-blur-2xl text-center space-y-4" style={{ background: "linear-gradient(160deg, rgba(123,31,162,0.12), rgba(13,11,18,0.92) 45%, rgba(232,51,74,0.08))" }}>
+          <div className="mx-auto h-12 w-12 rounded-2xl border border-white/10 animate-pulse" style={{ background: "linear-gradient(135deg, rgba(123,31,162,0.4), rgba(232,51,74,0.3))" }} />
+          <div className="space-y-2">
+            <h1 className="text-xl font-black text-white">Sincronizando portal</h1>
+            <p className="text-sm text-white/55">Validando sua sessão e preparando seu acesso.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (portalIssue && !cliente) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "linear-gradient(135deg, #07060a 0%, #1a0a2e 30%, #2d0a1f 60%, #0f0a05 100%)" }}>
+        <div className="w-full max-w-lg rounded-3xl border border-white/10 p-8 backdrop-blur-2xl text-center space-y-5" style={{ background: "linear-gradient(160deg, rgba(123,31,162,0.12), rgba(13,11,18,0.92) 45%, rgba(232,51,74,0.08))" }}>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/10">
+            <ShieldCheck className="w-7 h-7 text-amber-300" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-white">{portalIssue.title}</h1>
+            <p className="text-sm text-white/60 leading-relaxed">{portalIssue.description}</p>
+          </div>
+          <div className="flex justify-center">
+            <Button className="rounded-xl px-6 text-white" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a)" }} onClick={handlePortalIssueExit}>
+              Voltar para o login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cliente) return null;
 
   const handleLogout = () => {
     clearClientProfile();

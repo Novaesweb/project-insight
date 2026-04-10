@@ -20,6 +20,7 @@ import {
   buildContractSignatureSummary,
   stripLegacySignaturePlaceholders,
 } from "@/lib/contract-builder";
+import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import {
   CONTRACT_STATUS_ORDER,
   getContractStatusBadgeClass,
@@ -190,7 +191,7 @@ function ContractPortalTimeline({
 
 export default function ClienteContratos() {
   const { toast } = useToast();
-  const cliente = JSON.parse(localStorage.getItem("clienteLogado") || "{}");
+  const cliente = getStoredClientProfile();
   const [contratos, setContratos] = useState<ContratoCliente[]>([]);
   const [viewOpen, setViewOpen] = useState(false);
   const [viewContrato, setViewContrato] = useState<ContratoCliente | null>(null);
@@ -231,7 +232,7 @@ export default function ClienteContratos() {
   );
 
   const load = useCallback(() => {
-    if (!cliente.id) return;
+    if (!cliente?.id) return;
 
     supabase
       .from("contratos")
@@ -241,7 +242,7 @@ export default function ClienteContratos() {
       .not("status", "eq", "rascunho")
       .order("updated_at", { ascending: false })
       .then(({ data }) => setContratos(sortContracts((data as ContratoCliente[]) || [])));
-  }, [cliente.id, sortContracts]);
+  }, [cliente?.id, sortContracts]);
 
   useEffect(() => {
     load();
@@ -266,9 +267,9 @@ export default function ClienteContratos() {
   }, [sortEvents]);
 
   useContractsRealtime({
-    channelName: `contracts-client-${cliente.id}`,
-    filter: cliente.id ? `cliente_id=eq.${cliente.id}` : undefined,
-    enabled: Boolean(cliente.id),
+    channelName: `contracts-client-${cliente?.id ?? "anonymous"}`,
+    filter: cliente?.id ? `cliente_id=eq.${cliente.id}` : undefined,
+    enabled: Boolean(cliente?.id),
     onUpsert: (contrato) => upsertContrato(contrato),
     onDelete: (contractId) => {
       setContratos((current) => current.filter((item) => item.id !== contractId));
@@ -301,7 +302,7 @@ export default function ClienteContratos() {
   const handleView = (contrato: ContratoCliente) => {
     setViewContrato(contrato);
     setViewOpen(true);
-    setSignerName(cliente.nome || "");
+    setSignerName(cliente?.nome || "");
     setRevisionMessage("");
     void loadContractEvents(contrato.id).catch(() => {
       toast({
