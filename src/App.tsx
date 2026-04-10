@@ -56,6 +56,7 @@ const ClienteExtras = React.lazy(() => import("./pages/cliente/ClienteExtras"));
 const ClienteContratos = React.lazy(() => import("./pages/cliente/ClienteContratos"));
 const ClienteFaturas = React.lazy(() => import("./pages/cliente/ClienteFaturas"));
 const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte"));
+const ClienteConfiguracoes = React.lazy(() => import("./pages/cliente/ClienteConfiguracoes"));
 const ClienteArquivos = React.lazy(() => import("./pages/cliente/ClienteArquivos"));
 const ClienteReferral = React.lazy(() => import("./pages/cliente/ClienteReferral"));
 const ClienteResetPassword = React.lazy(() => import("./pages/cliente/ClienteResetPassword"));
@@ -187,6 +188,7 @@ const App = () => (
                     <Route path="contratos" element={<ClienteContratos />} />
                     <Route path="faturas" element={<ClienteFaturas />} />
                     <Route path="suporte" element={<ClienteSuporte />} />
+                    <Route path="configuracoes" element={<ClienteConfiguracoes />} />
                     <Route path="indique" element={<ClienteReferral />} />
                     <Route path="arquivos" element={<ClienteArquivos />} />
                   </Routes>

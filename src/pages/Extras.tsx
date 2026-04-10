@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { notifyAdminPanel, notifyClientPanel } from "@/lib/user-notifications";
 
 type CategoriaExtra = "fixo" | "intermediario" | "mensal";
 
@@ -278,6 +279,21 @@ export default function Extras() {
         });
       }
 
+      await notifyAdminPanel({
+        title: "✨ Extra atribuído",
+        body: `${extraSel.nome} foi liberado para ${clienteData.nome}.`,
+        url: "/admin/extras",
+      });
+
+      await notifyClientPanel(clienteSel, {
+        title: "Novo extra liberado",
+        body:
+          valorTotal > 0
+            ? `${extraSel.nome} já está disponível no seu portal. Uma cobrança foi lançada no financeiro.`
+            : `${extraSel.nome} já está disponível no seu portal.`,
+        url: valorTotal > 0 ? "/cliente/faturas" : "/cliente/extras",
+      });
+
       setSaving(false);
       fetchData();
       setShowAtribuir(false);
@@ -340,6 +356,18 @@ export default function Extras() {
       toast({ 
         title: "✅ Fatura Consolidada Criada!", 
         description: `${extrasDoCliente.length} extras - Valor: R$ ${valorTotal.toFixed(2)} - Fatura criada no Financeiro. Gere cobrança Asaas manualmente.` 
+      });
+
+      await notifyAdminPanel({
+        title: "💳 Fatura consolidada criada",
+        body: `${clienteData.nome} recebeu uma cobrança consolidada de R$ ${valorTotal.toFixed(2)}.`,
+        url: "/admin/extras",
+      });
+
+      await notifyClientPanel(clienteSel, {
+        title: "Nova cobrança de extras",
+        body: `Uma cobrança consolidada com ${extrasDoCliente.length} extra(s) foi adicionada ao seu financeiro: ${nomes}.`,
+        url: "/cliente/faturas",
       });
 
       setSaving(false);

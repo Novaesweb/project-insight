@@ -39,8 +39,8 @@ import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfir
 import { useToast } from "@/hooks/use-toast";
 import { invokeAdminFunction } from "@/lib/admin-function-client";
 import { useLocation, useNavigate } from "react-router-dom";
-import { sendPushToAdmins } from "@/lib/push-notifications";
 import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
+import { notifyAdminPanel, notifyClientPanel } from "@/lib/user-notifications";
 import InternalNotes from "@/components/InternalNotes";
 import {
   fetchAddressByCep,
@@ -268,6 +268,16 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
     if (error) {
       toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" });
     } else {
+      await notifyAdminPanel({
+        title: "✨ Extra adicionado ao cliente",
+        body: `${sel?.nome || "Extra"} foi vinculado para ${cliente.nome}.`,
+        url: "/admin/clientes",
+      });
+      await notifyClientPanel(clienteId, {
+        title: "Novo extra disponível",
+        body: `${sel?.nome || "Um novo extra"} foi liberado no seu portal.`,
+        url: "/cliente/extras",
+      });
       toast({ title: "Extra adicionado!", description: "Recurso vinculado ao cliente." });
       loadData();
       setShowAddExtra(false);
@@ -584,7 +594,19 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
                        status: "briefing",
                        progresso: 10
                      });
-                     if (!error) toast({ title: "Projeto Criado!" });
+                     if (!error) {
+                       await notifyAdminPanel({
+                         title: "🚀 Projeto iniciado",
+                         body: `${cliente.projeto_titulo || "Novo projeto"} foi aberto para ${cliente.nome}.`,
+                         url: "/admin/projetos",
+                       });
+                       await notifyClientPanel(clienteId, {
+                         title: "Novo projeto iniciado",
+                         body: `${cliente.projeto_titulo || "Seu projeto"} já está em andamento no portal.`,
+                         url: "/cliente/projetos",
+                       });
+                       toast({ title: "Projeto Criado!" });
+                     }
                   }}>Iniciar Projeto Oficial</Button>
                 </div>
               </CardContent>
@@ -1106,11 +1128,21 @@ export default function Clientes() {
         : "Cadastro realizado sem pedido inicial.",
     });
 
-    if (deveCriarOnboarding) {
-      sendPushToAdmins("🚀 Novo Pedido Inicial", `${form.nome} - ${pedidoInicialTitulo}`, "/admin/pedidos");
-    } else {
-      sendPushToAdmins("👤 Novo Cliente", form.nome, "/admin/clientes");
-    }
+    await notifyAdminPanel({
+      title: deveCriarOnboarding ? "🚀 Novo onboarding criado" : "👤 Novo cliente cadastrado",
+      body: deveCriarOnboarding ? `${form.nome} entrou com pedido inicial ${pedidoInicialTitulo}.` : `${form.nome} foi adicionado ao painel.`,
+      url: deveCriarOnboarding ? "/admin/pedidos" : "/admin/clientes",
+      push: true,
+    });
+    await notifyClientPanel(novoCliente.id, {
+      title: "Seu portal NovaesWeb foi liberado",
+      body: deveCriarOnboarding
+        ? form.gerar_fatura && valor > 0
+          ? "Seu acesso está ativo com pedido inicial e cobrança disponível no portal."
+          : "Seu acesso está ativo com pedido inicial configurado no portal."
+        : "Seu acesso está ativo. Você já pode acompanhar contratos, projetos e financeiro.",
+      url: form.gerar_fatura && valor > 0 ? "/cliente/faturas" : "/cliente/dashboard",
+    });
     setShowNew(false);
     setForm({ ...INITIAL_CLIENT_FORM });
     setSenhaCliente("");

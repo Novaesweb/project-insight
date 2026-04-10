@@ -133,6 +133,7 @@ export const ROUTES = {
     faturas: "/cliente/faturas",
     reunioes: "/cliente/reunioes",
     suporte: "/cliente/suporte",
+    configuracoes: "/cliente/configuracoes",
     indique: "/cliente/indique",
     arquivos: "/cliente/arquivos",
   },

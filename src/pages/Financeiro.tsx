@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { exportFaturaPDF, exportFaturaWord, exportFaturaCSV } from "@/lib/fatura-export";
-import { sendPushToAdmins } from "@/lib/push-notifications";
+import { notifyAdminPanel, notifyClientPanel } from "@/lib/user-notifications";
 import { AsaasService } from "@/lib/asaas-service";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useSearchParams } from "react-router-dom";
@@ -112,7 +112,19 @@ export default function Financeiro() {
       setSaving(false);
       if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Lançamento criado!" });
-      sendPushToAdmins("💰 Novo Lançamento", `${form.descricao} — R$ ${form.valor}`, "/admin/financeiro");
+      await notifyAdminPanel({
+        title: "💰 Novo lançamento financeiro",
+        body: `${form.descricao} — R$ ${form.valor}`,
+        url: "/admin/financeiro",
+        push: true,
+      });
+      if (payload.cliente_id && payload.tipo === "entrada") {
+        await notifyClientPanel(payload.cliente_id, {
+          title: "Nova cobrança disponível",
+          body: `${form.descricao} foi adicionada ao seu financeiro.`,
+          url: "/cliente/faturas",
+        });
+      }
     }
     setShowForm(false);
     setForm(emptyForm);

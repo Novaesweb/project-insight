@@ -142,7 +142,11 @@ export type PushTestResult = {
   errors?: string[];
 };
 
-export async function sendTestNotification(): Promise<PushTestResult> {
+export async function sendPushTestNotification(
+  userType: "admin" | "cliente",
+  userId: string,
+  url = userType === "admin" ? "/admin/configuracoes" : "/cliente/configuracoes",
+): Promise<PushTestResult> {
   try {
     const reg = await getPushRegistration();
     if (!reg) {
@@ -179,22 +183,19 @@ export async function sendTestNotification(): Promise<PushTestResult> {
       };
     }
 
-    const session = await supabase.auth.getSession();
-    const userId = session.data.session?.user?.id || "admin";
-
     const { data, error } = await supabase.functions.invoke("send-push-notification", {
       body: {
-        target: "admin",
+        target: userType,
         targetId: userId,
         title: "🔔 Teste de Notificação",
         body: "Se você está vendo isso, as notificações push estão funcionando!",
-        url: "/admin/configuracoes",
+        url,
         directSubscription: {
           endpoint,
           p256dh,
           auth,
           user_id: userId,
-          user_type: "admin",
+          user_type: userType,
         },
       },
     });
@@ -218,6 +219,12 @@ export async function sendTestNotification(): Promise<PushTestResult> {
     const message = e instanceof Error ? e.message : "Falha inesperada ao enviar teste";
     return { ok: false, sent: 0, total: 0, message };
   }
+}
+
+export async function sendTestNotification(): Promise<PushTestResult> {
+  const session = await supabase.auth.getSession();
+  const userId = session.data.session?.user?.id || "admin";
+  return sendPushTestNotification("admin", userId, "/admin/configuracoes");
 }
 
 export async function sendPushToAdmins(title: string, body: string, url?: string): Promise<void> {

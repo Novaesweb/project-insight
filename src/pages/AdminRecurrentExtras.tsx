@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { notifyClientPanel } from "@/lib/user-notifications";
 
 // ── Types ──
 interface ClienteRecorrente {
@@ -338,6 +339,12 @@ export default function AdminRecurrentExtras() {
       toast({
         title: "Enviado para o Financeiro!",
         description: "Fatura criada. O Asaas será acionado automaticamente 3 dias antes do vencimento.",
+      });
+
+      await notifyClientPanel(fatura.cliente_id, {
+        title: "Nova cobrança recorrente disponível",
+        body: `${fatura.descricao || `Cobrança recorrente de ${formatMes(fatura.mes)}`} foi adicionada ao seu financeiro.`,
+        url: "/cliente/faturas",
       });
     } catch (err: any) {
       console.error("Erro ao enviar fatura para o financeiro");

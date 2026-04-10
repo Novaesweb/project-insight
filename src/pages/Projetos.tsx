@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { sendPushToClient } from "@/lib/push-notifications";
+import { notifyClientPanel } from "@/lib/user-notifications";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
@@ -81,6 +81,11 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
     if (error) { toast({ title: "Inconsistência Técnica", description: error.message, variant: "destructive" }); return; }
     else {
       setProjeto((prev: any) => ({ ...prev, status: newStatus, progresso: newProgress }));
+      await notifyClientPanel(projeto.cliente_id, {
+        title: "Projeto avançou de etapa",
+        body: `${projeto.titulo} agora está em ${newStatus}.`,
+        url: "/cliente/projetos",
+      });
       toast({ title: "Parâmetro de Evolução Sincronizado!" });
     }
   };
@@ -141,6 +146,12 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
         data_entrega: dataEntrega.trim(), 
         hora_entrega: horaEntrega.trim() 
       }));
+
+      await notifyClientPanel(projeto.cliente_id, {
+        title: "Entrega agendada",
+        body: `${projeto.titulo} está previsto para ${dataEntrega.trim()} às ${horaEntrega.trim()}.`,
+        url: "/cliente/projetos",
+      });
       
       toast({ title: "Data de entrega salva!", description: "Projeto será entregue em " + dataEntrega + " às " + horaEntrega });
     } catch (error: any) {
@@ -159,6 +170,11 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
       if (error) throw error;
       
       setProjeto((prev: any) => ({ ...prev, url_site: urlSite.trim() }));
+      await notifyClientPanel(projeto.cliente_id, {
+        title: "Link do projeto disponível",
+        body: `O link de ${projeto.titulo} já está liberado no seu painel.`,
+        url: "/cliente/projetos",
+      });
       toast({ title: "URL do site atualizada!", description: "O cliente já pode acessar o link do projeto" });
     } catch (error: any) {
       toast({ title: "Erro ao salvar URL", description: error.message, variant: "destructive" });
@@ -194,6 +210,11 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
       });
 
       if (dbError) throw dbError;
+      await notifyClientPanel(projeto.cliente_id, {
+        title: "Novo arquivo disponível",
+        body: `${file.name} foi adicionado ao projeto ${projeto.titulo}.`,
+        url: "/cliente/projetos",
+      });
       toast({ title: "Ativo Digital Processado!" });
       loadData();
     } catch (error: any) { toast({ title: "Falha na Engenharia do Ativo", description: error.message, variant: "destructive" }); }
@@ -244,7 +265,11 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
     if (!error) {
       toast({ title: "Evolução Registrada com Sucesso!" });
       if (visivelCliente && projeto?.cliente_id) {
-        sendPushToClient(projeto.cliente_id, "🚀 Nova atualização em seu projeto", novaAtualizacao.trim().substring(0, 100) + "...", "/cliente/projetos");
+        await notifyClientPanel(projeto.cliente_id, {
+          title: "Nova atualização no projeto",
+          body: novaAtualizacao.trim().substring(0, 120),
+          url: "/cliente/projetos",
+        });
       }
       setNovaAtualizacao("");
       loadData();
@@ -590,6 +615,13 @@ export default function Projetos() {
     if (error) {
        toast({ title: "Falha de Sincronia", description: "O servidor rejeitou a atualização.", variant: "destructive" });
        load(); // rollback to real DB state
+    } else {
+      const projetoAtualizado = projetos.find((p) => p.id === draggableId);
+      await notifyClientPanel(projetoAtualizado?.cliente_id, {
+        title: "Projeto avançou de etapa",
+        body: `${projetoAtualizado?.titulo || "Seu projeto"} foi movido para ${newStatus}.`,
+        url: "/cliente/projetos",
+      });
     }
   };
 

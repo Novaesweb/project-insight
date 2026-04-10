@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
-import { sendPushToAdmins } from "@/lib/push-notifications";
+import { notifyAdminPanel } from "@/lib/user-notifications";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 const statusColors: Record<string, string> = { aberto: "#60a5fa", em_atendimento: "#facc15", resolvido: "#4ade80" };
@@ -65,6 +65,12 @@ export default function ClienteSuporte() {
     const { data } = await supabase.from("ticket_mensagens").insert(nova).select().single();
     if (data) {
       setMsgs(prev => [...prev, data]);
+      await notifyAdminPanel({
+        title: "💬 Nova mensagem no suporte",
+        body: `${cliente?.nome || "Cliente"} respondeu o ticket ${ticketAtivo?.codigo || ""}.`,
+        url: "/admin/suporte",
+        push: true,
+      });
       
       // Notificar automação do n8n
       fetch("https://lucasalencar.app.n8n.cloud/webhook-test/7315698c-b037-4e83-82c2-1f3c193fea88", {
@@ -93,7 +99,12 @@ export default function ClienteSuporte() {
     });
     if (!error) {
       toast({ title: "Ticket criado!", description: "Sua solicitação foi aberta com sucesso." });
-      sendPushToAdmins("🎫 Novo Ticket de Suporte", `${novoTitulo} — aberto por ${cliente?.nome || "Cliente"}`, "/admin/suporte");
+      await notifyAdminPanel({
+        title: "🎫 Novo ticket de suporte",
+        body: `${novoTitulo} — aberto por ${cliente?.nome || "Cliente"}`,
+        url: "/admin/suporte",
+        push: true,
+      });
       
       // Enviar dados completos para o n8n Webhook
       fetch("https://lucasalencar.app.n8n.cloud/webhook-test/7315698c-b037-4e83-82c2-1f3c193fea88", {

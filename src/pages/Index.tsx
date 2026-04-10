@@ -16,6 +16,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { notifyAdminPanel, notifyClientPanel } from "@/lib/user-notifications";
 
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { DashboardKPIs, InsightAction, PricingDialog } from "@/components/admin/dashboard/DashboardComponents";
@@ -80,6 +81,7 @@ export default function Dashboard() {
   const handleAddExtra = async () => {
     if (!clienteSel || !extraSel) return;
     const extra = catalogo.find(c => c.id === extraSel);
+    const cliente = clientes.find((c) => c.id === clienteSel);
     if (!extra) return;
     setSaving(true);
     const { error } = await supabase.from("extras_clientes").insert({
@@ -92,6 +94,16 @@ export default function Dashboard() {
     });
     setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    await notifyAdminPanel({
+      title: "✨ Extra adicionado rápido",
+      body: `${extra.nome} foi vinculado para ${cliente?.nome || "cliente"}.`,
+      url: "/admin/extras",
+    });
+    await notifyClientPanel(clienteSel, {
+      title: "Novo extra disponível",
+      body: `${extra.nome} foi liberado no seu portal.`,
+      url: "/cliente/extras",
+    });
     toast({ title: "Módulo Adicionado!" });
     setShowAddExtra(false);
     setClienteSel("");
