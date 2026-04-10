@@ -26,11 +26,6 @@ import {
   Vault,
 } from "lucide-react";
 import jsPDF from "jspdf";
-import {
-  loadProposalFromSupabase,
-  saveDraftToSupabase,
-  saveProposalToSupabase,
-} from "@novaesflow/supabase-adapter";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
@@ -61,12 +56,19 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useContractsCatalog } from "@/features/contracts/hooks/useContractsCatalog";
+import {
+  deleteBuilderDraftContract,
+  fetchContractVersions,
+  saveBuilderContractRecord,
+  sendBuilderContractToClientRecord,
+  setContractArchived,
+} from "@/features/contracts/services";
 import { useContractsRealtime } from "@/hooks/useContractsRealtime";
 import { useContractEventsRealtime } from "@/hooks/useContractEventsRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { refreshAdminSessionSilently } from "@/lib/admin-function-client";
 import {
   createAdminNotification,
   createClientNotification,
@@ -1483,70 +1485,22 @@ export default function Contratos() {
     [editingBuilderContract?.id],
   );
 
-  const loadContratos = useCallback(async () => {
-    try {
-      const data = await loadProposalFromSupabase<Contrato[]>({
-        client: supabase,
-        table: "contratos",
-        select: "*, clientes(nome)",
-        orderBy: {
-          column: "updated_at",
-          ascending: false,
-        },
-        applyFilters: (query) => query.eq("modelo", BUILDER_TEMPLATE_ID),
-      });
-
-      setContratos(sortContratosByUpdatedAt(((data as Contrato[]) || []).map((item) => decorateContrato(item))));
-    } finally {
-      setContratosLoaded(true);
-    }
-  }, [decorateContrato, sortContratosByUpdatedAt]);
-
-  const loadClientes = useCallback(() => {
-    supabase
-      .from("clientes")
-      .select(
-        "id, nome, nome_empresa, email, documento, whatsapp, telefone, endereco, numero_endereco, complemento, bairro, cidade, estado, cep, instagram, site_url, status",
-      )
-      .eq("status", "ativo")
-      .order("nome", { ascending: true })
-      .then(({ data }) => setClientes((data as Cliente[]) || []));
-  }, []);
-
-  const loadExtrasCatalogo = useCallback(async () => {
-    const { data } = await supabase
-      .from("extras_catalogo")
-      .select("id, nome, descricao, categoria, preco_ativacao, preco_mensal, status, subcategoria")
-      .eq("status", "ativo")
-      .order("categoria", { ascending: true })
-      .order("nome", { ascending: true });
-    const extras = (data as ExtraCatalogo[]) || [];
-    setExtrasCatalogo(extras);
-    setExtrasLoaded(true);
-    return extras;
-  }, []);
-
-  const loadPreviewContractEvents = useCallback(async (contractId: string) => {
-    setPreviewContractEventsLoading(true);
-    const { data, error } = await supabase
-      .from("contrato_eventos")
-      .select("*")
-      .eq("contrato_id", contractId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setPreviewContractEvents([]);
-      setPreviewContractEventsLoading(false);
-      throw error;
-    }
-
-    setPreviewContractEvents(sortContractEvents((data as ContractEventRow[]) || []));
-    setPreviewContractEventsLoading(false);
-  }, [sortContractEvents]);
+  const { loadContratos, loadClientes, loadExtrasCatalogo, loadPreviewContractEvents } = useContractsCatalog({
+    decorateContrato: decorateContrato as (contrato: Contrato) => Contrato,
+    sortContratosByUpdatedAt,
+    sortContractEvents,
+    setContratos,
+    setContratosLoaded,
+    setClientes,
+    setExtrasCatalogo,
+    setExtrasLoaded,
+    setPreviewContractEvents,
+    setPreviewContractEventsLoading,
+  });
 
   useEffect(() => {
-    loadContratos();
-    loadClientes();
+    void loadContratos();
+    void loadClientes();
     void loadExtrasCatalogo();
   }, [loadContratos, loadClientes, loadExtrasCatalogo]);
 
@@ -1688,44 +1642,12 @@ export default function Contratos() {
       payloadToPersist: Record<string, unknown>;
       createVersionSnapshot?: boolean;
     }) => {
-      await refreshAdminSessionSilently({ force: false });
-
-      const existingRecord = contractId ? contratos.find((item) => item.id === contractId) ?? null : null;
-
-      if (contractId && createVersionSnapshot && !existingRecord) {
-        throw new Error("Contrato não encontrado para atualização.");
-      }
-
-      const saveOptions = {
-        client: supabase,
-        table: "contratos",
-        id: contractId,
-        record: payloadToPersist,
-        select: "*, clientes(nome)",
-        applyFilters: contractId ? (query: any) => query.eq("modelo", BUILDER_TEMPLATE_ID) : undefined,
-      };
-
-      if (contractId && createVersionSnapshot && existingRecord) {
-        return saveProposalToSupabase<Contrato>({
-          ...saveOptions,
-          versioning: {
-            table: "contrato_versions",
-            currentRecord: existingRecord,
-            buildSnapshot: (currentRecord, nextVersionNumber) => ({
-              contrato_id: currentRecord.id,
-              version_number: nextVersionNumber,
-              titulo: currentRecord.titulo,
-              descricao: currentRecord.descricao,
-              valor: currentRecord.valor,
-              status: currentRecord.status,
-              corpo: (currentRecord as any).corpo || "",
-              builder_payload: currentRecord.builder_payload,
-            }),
-          },
-        });
-      }
-
-      return saveDraftToSupabase<Contrato>(saveOptions);
+      return saveBuilderContractRecord({
+        contractId,
+        payloadToPersist,
+        currentContracts: contratos,
+        createVersionSnapshot,
+      });
     },
     [contratos],
   );
@@ -1798,30 +1720,7 @@ export default function Contratos() {
 
   const sendBuilderContractToClientDirectly = useCallback(
     async (contract: Contrato) => {
-      await refreshAdminSessionSilently({ force: false });
-
-      const sentAt = new Date().toISOString();
-      const isResignFlow = Boolean((contract as any).requer_reassinatura);
-      const nextStatus = contract.status === "assinado" && !isResignFlow ? "assinado" : "enviado";
-      const { data, error } = await supabase
-        .from("contratos")
-        .update({
-          status: nextStatus,
-          data_envio: sentAt.slice(0, 10),
-          data_visualizacao: contract.status === "assinado" ? contract.data_visualizacao : null,
-          archived_at: null,
-          updated_at: sentAt,
-        } as any)
-        .eq("id", contract.id)
-        .eq("modelo", BUILDER_TEMPLATE_ID)
-        .select("*, clientes(nome)")
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      const contratoEnviado = data as Contrato;
+      const { contract: contratoEnviado, isResignFlow, sentAt } = await sendBuilderContractToClientRecord(contract);
       const clienteNome = (contratoEnviado.clientes as any)?.nome || "Cliente";
 
       await runContractRealtimeSideEffects({
@@ -1860,21 +1759,16 @@ export default function Contratos() {
       setCompareVersion(null);
       setVersionsLoading(true);
 
-      const { data, error } = await supabase
-        .from("contrato_versions")
-        .select("*")
-        .eq("contrato_id", contrato.id)
-        .order("version_number", { ascending: false });
-
-      if (error) {
+      try {
+        const data = await fetchContractVersions(contrato.id);
+        setContractVersions(data);
+      } catch (error) {
         toast({
           title: "Erro ao carregar versões",
-          description: error.message,
+          description: getContractErrorMessage(error, "Não foi possível carregar o histórico."),
           variant: "destructive",
         });
         setContractVersions([]);
-      } else {
-        setContractVersions((data as ContratoVersion[]) || []);
       }
 
       setVersionsLoading(false);
@@ -1885,20 +1779,7 @@ export default function Contratos() {
   const handleArchiveContract = useCallback(
     async (contrato: Contrato) => {
       try {
-        await refreshAdminSessionSilently({ force: false });
-        const { data, error } = await supabase
-          .from("contratos")
-          .update({
-            archived_at: new Date().toISOString(),
-          } as any)
-          .eq("id", contrato.id)
-          .eq("modelo", BUILDER_TEMPLATE_ID)
-          .select("*, clientes(nome)")
-          .single();
-
-        if (error) throw error;
-
-        const updatedContrato = upsertContratoState(data as Contrato);
+        const updatedContrato = upsertContratoState(await setContractArchived(contrato.id, true));
         await runContractRealtimeSideEffects({
           contract: updatedContrato,
           event: {
@@ -1929,20 +1810,7 @@ export default function Contratos() {
   const handleUnarchiveContract = useCallback(
     async (contrato: Contrato) => {
       try {
-        await refreshAdminSessionSilently({ force: false });
-        const { data, error } = await supabase
-          .from("contratos")
-          .update({
-            archived_at: null,
-          } as any)
-          .eq("id", contrato.id)
-          .eq("modelo", BUILDER_TEMPLATE_ID)
-          .select("*, clientes(nome)")
-          .single();
-
-        if (error) throw error;
-
-        const updatedContrato = upsertContratoState(data as Contrato);
+        const updatedContrato = upsertContratoState(await setContractArchived(contrato.id, false));
         await runContractRealtimeSideEffects({
           contract: updatedContrato,
           event: {
@@ -2085,15 +1953,7 @@ export default function Contratos() {
 
     const target = deleteTarget;
     try {
-      await refreshAdminSessionSilently({ force: false });
-      const { error } = await supabase
-        .from("contratos")
-        .delete()
-        .eq("id", target.id)
-        .eq("modelo", BUILDER_TEMPLATE_ID)
-        .eq("status", "rascunho");
-
-      if (error) throw error;
+      await deleteBuilderDraftContract(target.id);
 
       if (editingBuilderContract?.id === target.id) {
         if (extrasLoaded) {
