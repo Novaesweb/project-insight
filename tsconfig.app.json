@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "baseUrl": ".",
     "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": [
@@ -17,6 +18,12 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
+      "@novaesflow/ui": [
+        "./packages/novaesflow-ui/src/index.ts"
+      ],
+      "@novaesflow/supabase-adapter": [
+        "./packages/novaesflow-supabase-adapter/src/index.ts"
+      ],
       "@/*": [
         "./src/*"
       ]
@@ -31,6 +38,7 @@
     "useDefineForClassFields": false
   },
   "include": [
-    "src"
+    "src",
+    "packages"
   ]
 }

@@ -95,6 +95,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@novaesflow/ui": path.resolve(__dirname, "./packages/novaesflow-ui/src/index.ts"),
+      "@novaesflow/supabase-adapter": path.resolve(
+        __dirname,
+        "./packages/novaesflow-supabase-adapter/src/index.ts",
+      ),
       "@": path.resolve(__dirname, "./src"),
     },
   },

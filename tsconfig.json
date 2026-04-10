@@ -1,10 +1,17 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "baseUrl": ".",
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
+      "@novaesflow/ui": [
+        "./packages/novaesflow-ui/src/index.ts"
+      ],
+      "@novaesflow/supabase-adapter": [
+        "./packages/novaesflow-supabase-adapter/src/index.ts"
+      ],
       "@/*": [
         "./src/*"
       ]

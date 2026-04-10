@@ -26,6 +26,11 @@ import {
   Vault,
 } from "lucide-react";
 import jsPDF from "jspdf";
+import {
+  loadProposalFromSupabase,
+  saveDraftToSupabase,
+  saveProposalToSupabase,
+} from "@novaesflow/supabase-adapter";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ContractActivityFeed } from "@/components/contracts/ContractActivityFeed";
@@ -1478,16 +1483,23 @@ export default function Contratos() {
     [editingBuilderContract?.id],
   );
 
-  const loadContratos = useCallback(() => {
-    supabase
-      .from("contratos")
-      .select("*, clientes(nome)")
-      .eq("modelo", BUILDER_TEMPLATE_ID)
-      .order("updated_at", { ascending: false })
-      .then(({ data }) => {
-        setContratos(sortContratosByUpdatedAt(((data as Contrato[]) || []).map((item) => decorateContrato(item))));
-        setContratosLoaded(true);
+  const loadContratos = useCallback(async () => {
+    try {
+      const data = await loadProposalFromSupabase<Contrato[]>({
+        client: supabase,
+        table: "contratos",
+        select: "*, clientes(nome)",
+        orderBy: {
+          column: "updated_at",
+          ascending: false,
+        },
+        applyFilters: (query) => query.eq("modelo", BUILDER_TEMPLATE_ID),
       });
+
+      setContratos(sortContratosByUpdatedAt(((data as Contrato[]) || []).map((item) => decorateContrato(item))));
+    } finally {
+      setContratosLoaded(true);
+    }
   }, [decorateContrato, sortContratosByUpdatedAt]);
 
   const loadClientes = useCallback(() => {
@@ -1678,82 +1690,42 @@ export default function Contratos() {
     }) => {
       await refreshAdminSessionSilently({ force: false });
 
-      if (contractId && createVersionSnapshot) {
-        const { data: latestVersion, error: latestVersionError } = await supabase
-          .from("contrato_versions")
-          .select("version_number")
-          .eq("contrato_id", contractId)
-          .order("version_number", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+      const existingRecord = contractId ? contratos.find((item) => item.id === contractId) ?? null : null;
 
-        if (latestVersionError) {
-          throw latestVersionError;
-        }
-
-        const existingRecord = contratos.find((item) => item.id === contractId);
-        if (!existingRecord) {
-          throw new Error("Contrato não encontrado para atualização.");
-        }
-
-        const nextVersionNumber = Number(latestVersion?.version_number || 0) + 1;
-        const { error: snapshotError } = await supabase.from("contrato_versions").insert({
-          contrato_id: existingRecord.id,
-          version_number: nextVersionNumber,
-          titulo: existingRecord.titulo,
-          descricao: existingRecord.descricao,
-          valor: existingRecord.valor,
-          status: existingRecord.status,
-          corpo: (existingRecord as any).corpo || "",
-          builder_payload: existingRecord.builder_payload,
-        } as any);
-
-        if (snapshotError) {
-          throw snapshotError;
-        }
-
-        const { data, error } = await supabase
-          .from("contratos")
-          .update(payloadToPersist as any)
-          .eq("id", contractId)
-          .eq("modelo", BUILDER_TEMPLATE_ID)
-          .select("*, clientes(nome)")
-          .single();
-
-        if (error) {
-          throw error;
-        }
-
-        return data as Contrato;
+      if (contractId && createVersionSnapshot && !existingRecord) {
+        throw new Error("Contrato não encontrado para atualização.");
       }
 
-      if (contractId) {
-        const { data, error } = await supabase
-          .from("contratos")
-          .update(payloadToPersist as any)
-          .eq("id", contractId)
-          .eq("modelo", BUILDER_TEMPLATE_ID)
-          .select("*, clientes(nome)")
-          .single();
+      const saveOptions = {
+        client: supabase,
+        table: "contratos",
+        id: contractId,
+        record: payloadToPersist,
+        select: "*, clientes(nome)",
+        applyFilters: contractId ? (query: any) => query.eq("modelo", BUILDER_TEMPLATE_ID) : undefined,
+      };
 
-        if (error) {
-          throw error;
-        }
-
-        return data as Contrato;
+      if (contractId && createVersionSnapshot && existingRecord) {
+        return saveProposalToSupabase<Contrato>({
+          ...saveOptions,
+          versioning: {
+            table: "contrato_versions",
+            currentRecord: existingRecord,
+            buildSnapshot: (currentRecord, nextVersionNumber) => ({
+              contrato_id: currentRecord.id,
+              version_number: nextVersionNumber,
+              titulo: currentRecord.titulo,
+              descricao: currentRecord.descricao,
+              valor: currentRecord.valor,
+              status: currentRecord.status,
+              corpo: (currentRecord as any).corpo || "",
+              builder_payload: currentRecord.builder_payload,
+            }),
+          },
+        });
       }
 
-      const { data, error } = await supabase
-        .from("contratos")
-        .insert(payloadToPersist as any)
-        .select("*, clientes(nome)")
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data as Contrato;
+      return saveDraftToSupabase<Contrato>(saveOptions);
     },
     [contratos],
   );

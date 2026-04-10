@@ -1,0 +1,417 @@
+:root {
+  --nf-color-1: #8A2BE2;
+  --nf-color-2: #FF0000;
+  --nf-color-3: #FF007F;
+  --nf-surface-glow: rgba(138, 43, 226, 0.28);
+}
+
+.nf-root {
+  color: #f8eefb;
+  background:
+    radial-gradient(circle at top left, rgba(138, 43, 226, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(255, 0, 127, 0.16), transparent 24%),
+    linear-gradient(180deg, #080808 0%, #0b0610 42%, #09070e 100%);
+  min-height: 100%;
+  font-family: Inter, Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.nf-shell {
+  width: min(1320px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.nf-hero,
+.nf-panel,
+.nf-summary__panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 24px 80px rgba(0,0,0,0.36),
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 0 40px var(--nf-surface-glow);
+}
+
+.nf-hero {
+  border-radius: 32px;
+  padding: 28px;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.nf-kicker,
+.nf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.68);
+}
+
+.nf-hero h1,
+.nf-section-heading h2,
+.nf-summary__header h2 {
+  margin: 10px 0 0;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.05;
+}
+
+.nf-hero p,
+.nf-section-heading p,
+.nf-summary__footer,
+.nf-extra-card p,
+.nf-plan-description {
+  color: rgba(255,255,255,0.72);
+  line-height: 1.6;
+}
+
+.nf-hero__copy {
+  max-width: 760px;
+}
+
+.nf-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.nf-chip,
+.nf-plan-badge,
+.nf-plan-highlight,
+.nf-summary-pill {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+}
+
+.nf-chip,
+.nf-plan-badge,
+.nf-plan-highlight {
+  padding: 10px 14px;
+  font-size: 12px;
+}
+
+.nf-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+  gap: 24px;
+}
+
+.nf-main {
+  display: grid;
+  gap: 20px;
+}
+
+.nf-panel,
+.nf-summary__panel {
+  border-radius: 28px;
+  padding: 22px;
+}
+
+.nf-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.nf-section-heading h2,
+.nf-summary__header h2 {
+  font-size: clamp(22px, 3vw, 32px);
+}
+
+.nf-section-heading p {
+  max-width: 420px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.nf-plan-grid,
+.nf-extra-grid,
+.nf-form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.nf-plan-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.nf-plan-card,
+.nf-extra-card {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 24px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  color: inherit;
+  text-align: left;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+  cursor: pointer;
+}
+
+.nf-plan-card:hover,
+.nf-plan-card:focus-visible,
+.nf-extra-card:hover,
+.nf-extra-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.24), 0 0 24px rgba(255,0,127,0.16);
+}
+
+.nf-plan-card.is-selected,
+.nf-extra-card.is-active {
+  border-color: rgba(255,255,255,0.34);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 18px 42px rgba(0,0,0,0.34),
+    0 0 28px rgba(255,0,127,0.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06)),
+    linear-gradient(135deg, rgba(138,43,226,0.18), rgba(255,0,0,0.12), rgba(255,0,127,0.18));
+}
+
+.nf-root--exclusive .nf-plan-card.is-selected,
+.nf-root--exclusive .nf-extra-card.is-active,
+.nf-root--exclusive .nf-summary__panel {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 18px 42px rgba(0,0,0,0.34),
+    0 0 38px rgba(255,0,127,0.3);
+}
+
+.nf-plan-card__top,
+.nf-extra-card__header,
+.nf-summary-line,
+.nf-price-stack,
+.nf-extra-prices {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nf-plan-card__top strong,
+.nf-summary-line strong,
+.nf-extra-card__header span:first-child {
+  font-size: 18px;
+}
+
+.nf-plan-description {
+  min-height: 72px;
+  margin: 14px 0;
+}
+
+.nf-price-stack {
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.nf-price {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.nf-price-caption,
+.nf-plan-recurring,
+.nf-extra-prices span,
+.nf-summary__total small,
+.nf-summary__empty {
+  font-size: 13px;
+  color: rgba(255,255,255,0.62);
+}
+
+.nf-plan-recurring {
+  margin-bottom: 14px;
+}
+
+.nf-plan-recurring--muted {
+  color: rgba(255,255,255,0.45);
+}
+
+.nf-feature-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: rgba(255,255,255,0.76);
+}
+
+.nf-extra-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.nf-extra-card p {
+  margin: 10px 0 14px;
+  min-height: 48px;
+}
+
+.nf-extra-check {
+  min-width: 24px;
+  text-align: right;
+}
+
+.nf-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nf-field {
+  display: grid;
+  gap: 8px;
+}
+
+.nf-field--full {
+  grid-column: 1 / -1;
+}
+
+.nf-field span {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.84);
+}
+
+.nf-field input,
+.nf-field textarea {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  background: rgba(0,0,0,0.24);
+  color: #fff;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.nf-field input:focus,
+.nf-field textarea:focus {
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 0 0 4px rgba(255,0,127,0.14);
+}
+
+.nf-summary {
+  position: relative;
+}
+
+.nf-summary__panel {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.nf-summary__total {
+  padding: 20px;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(138,43,226,0.22), rgba(255,0,0,0.14), rgba(255,0,127,0.18));
+  border: 1px solid rgba(255,255,255,0.1);
+  display: grid;
+  gap: 6px;
+}
+
+.nf-summary__total strong {
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1;
+}
+
+.nf-summary__selection,
+.nf-summary__stack {
+  display: grid;
+  gap: 12px;
+}
+
+.nf-summary-pill {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nf-submit {
+  width: 100%;
+  border: 0;
+  border-radius: 18px;
+  padding: 16px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--nf-color-1), var(--nf-color-2), var(--nf-color-3));
+  box-shadow: 0 18px 36px rgba(255,0,127,0.26);
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.nf-submit:hover,
+.nf-submit:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 42px rgba(255,0,127,0.34);
+}
+
+.nf-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.nf-summary__footer {
+  margin: 0;
+  font-size: 12px;
+}
+
+.nf-summary__footer code {
+  font-family: "SFMono-Regular", ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  color: #fff;
+}
+
+@media (max-width: 1024px) {
+  .nf-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .nf-summary__panel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .nf-shell {
+    width: min(100vw - 20px, 100%);
+    padding-top: 20px;
+  }
+
+  .nf-hero,
+  .nf-section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nf-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nf-panel,
+  .nf-summary__panel {
+    border-radius: 24px;
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-plan-card,
+  .nf-extra-card,
+  .nf-submit,
+  .nf-field input,
+  .nf-field textarea {
+    transition: none;
+  }
+}

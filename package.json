@@ -8,7 +8,12 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
+    "build:novaesflow-ui": "vite build --config packages/novaesflow-ui/vite.config.ts",
+    "build:novaesflow-adapter": "vite build --config packages/novaesflow-supabase-adapter/vite.config.ts",
+    "build:novaesflow-demo": "vite build --config packages/novaesflow-ui/demo/vite.config.ts",
+    "build:packages": "npm run build:novaesflow-ui && npm run build:novaesflow-adapter && npm run build:novaesflow-demo",
     "build:dev": "vite build",
+    "dev:novaesflow-demo": "vite --config packages/novaesflow-ui/demo/vite.config.ts",
     "electron:dev": "concurrently \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:8080 && electron .\"",
     "electron:build": "vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

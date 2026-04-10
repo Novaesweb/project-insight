@@ -8,9 +8,16 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "packages/**/*.{test,spec}.{ts,tsx}"],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@novaesflow/ui": path.resolve(__dirname, "./packages/novaesflow-ui/src/index.ts"),
+      "@novaesflow/supabase-adapter": path.resolve(
+        __dirname,
+        "./packages/novaesflow-supabase-adapter/src/index.ts",
+      ),
+    },
   },
 });
