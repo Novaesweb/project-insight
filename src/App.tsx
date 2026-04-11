@@ -45,6 +45,7 @@ const Usuarios = React.lazy(() => import("./pages/Usuarios"));
 const Leads = React.lazy(() => import("./pages/Leads"));
 const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
 const Contratos = React.lazy(() => import("./pages/Contratos"));
+const Briefings = React.lazy(() => import("./pages/Briefings"));
 const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
 const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
@@ -54,6 +55,7 @@ const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboa
 const ClienteProjetos = React.lazy(() => import("./pages/cliente/ClienteProjetos"));
 const ClienteExtras = React.lazy(() => import("./pages/cliente/ClienteExtras"));
 const ClienteContratos = React.lazy(() => import("./pages/cliente/ClienteContratos"));
+const ClienteDados = React.lazy(() => import("./pages/cliente/ClienteDados"));
 const ClienteFaturas = React.lazy(() => import("./pages/cliente/ClienteFaturas"));
 const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte"));
 const ClienteConfiguracoes = React.lazy(() => import("./pages/cliente/ClienteConfiguracoes"));
@@ -121,6 +123,7 @@ function AdminWithSplash() {
             <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="revenda" element={<AdminRevenda />} />
             <Route path="contratos" element={<Contratos />} />
+            <Route path="briefings" element={<Briefings />} />
             <Route path="menu" element={<AdminMenu />} />
             <Route path="configuracoes-legado" element={<AdminConfig />} />
             <Route path="recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
@@ -186,6 +189,7 @@ const App = () => (
                     <Route path="projetos" element={<ClienteProjetos />} />
                     <Route path="extras" element={<ClienteExtras />} />
                     <Route path="contratos" element={<ClienteContratos />} />
+                    <Route path="dados" element={<ClienteDados />} />
                     <Route path="faturas" element={<ClienteFaturas />} />
                     <Route path="suporte" element={<ClienteSuporte />} />
                     <Route path="configuracoes" element={<ClienteConfiguracoes />} />

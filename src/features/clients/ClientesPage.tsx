@@ -450,7 +450,7 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               <Package className="w-3.5 h-3.5" /> Extras ({extras.length})
             </TabsTrigger>
             <TabsTrigger value="briefing" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Briefing
+              <Sparkles className="w-3.5 h-3.5" /> Dados do site
             </TabsTrigger>
             <TabsTrigger value="financeiro" className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5">
               <DollarSign className="w-3.5 h-3.5" /> Financeiro
@@ -566,48 +566,34 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
           <TabsContent value="briefing" className="space-y-6">
             <Card className="glass-card border-[0.5px]">
               <CardHeader>
-                <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">Configuração do Projeto</CardTitle>
+                <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">Briefing operacional do site</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] text-white/30 uppercase font-black">Título</Label>
-                    <Input className="glass-input h-10" value={cliente.projeto_titulo || ""} onChange={e => setCliente({ ...cliente, projeto_titulo: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] text-white/30 uppercase font-black">Escopo/Briefing</Label>
-                    <Textarea className="glass-input min-h-[120px]" value={cliente.projeto_briefing || ""} onChange={e => setCliente({ ...cliente, projeto_briefing: e.target.value })} />
-                  </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-sm font-semibold text-white">Esse cliente agora usa o módulo central de briefing.</p>
+                  <p className="mt-2 text-xs leading-relaxed text-white/50">
+                    Crie ou reabra o briefing oficial do projeto em uma única tela, com perguntas customizadas, autosave no portal e anexos ligados ao projeto.
+                  </p>
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" className="h-10 text-xs border-white/10" onClick={async () => {
-                    const { error } = await supabase.from("clientes").update({
-                      projeto_titulo: cliente.projeto_titulo,
-                      projeto_briefing: cliente.projeto_briefing
-                    } as any).eq("id", clienteId);
-                    if (!error) toast({ title: "Briefing salvo!" });
-                  }}>Salvar Rascunho</Button>
-                  <Button className="gradient-primary h-10 text-xs" onClick={async () => {
-                     const { error } = await supabase.from("projetos").insert({
-                       titulo: cliente.projeto_titulo,
-                       cliente_id: clienteId,
-                       status: "briefing",
-                       progresso: 10
-                     });
-                     if (!error) {
-                       await notifyAdminPanel({
-                         title: "🚀 Projeto iniciado",
-                         body: `${cliente.projeto_titulo || "Novo projeto"} foi aberto para ${cliente.nome}.`,
-                         url: "/admin/projetos",
-                       });
-                       await notifyClientPanel(clienteId, {
-                         title: "Novo projeto iniciado",
-                         body: `${cliente.projeto_titulo || "Seu projeto"} já está em andamento no portal.`,
-                         url: "/cliente/projetos",
-                       });
-                       toast({ title: "Projeto Criado!" });
-                     }
-                  }}>Iniciar Projeto Oficial</Button>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    className="gradient-primary h-10 text-xs"
+                    onClick={() => {
+                      window.location.href = `/admin/briefings?cliente=${clienteId}`;
+                    }}
+                  >
+                    Abrir módulo de briefing
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-10 text-xs border-white/10"
+                    onClick={() => {
+                      window.location.href = "/admin/projetos";
+                    }}
+                  >
+                    Ver projetos do cliente
+                  </Button>
                 </div>
               </CardContent>
             </Card>

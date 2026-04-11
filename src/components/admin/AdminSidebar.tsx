@@ -19,6 +19,7 @@ import {
   Sparkles,
   CalendarDays,
   ServerCog,
+  ClipboardList,
 } from "lucide-react";
 import { useLeadCount } from "@/hooks/useLeadCount";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -56,6 +57,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/custos-sistema", label: "Custos do Sistema", icon: ServerCog },
       { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
       { href: "/admin/contratos", label: "Contratos", icon: ShieldCheck },
+      { href: "/admin/briefings", label: "Briefings", icon: ClipboardList },
       { href: "/admin/suporte", label: "Suporte", icon: Headphones },
     ],
   },

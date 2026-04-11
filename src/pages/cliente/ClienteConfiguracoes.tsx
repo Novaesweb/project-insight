@@ -43,6 +43,7 @@ const fadeUp = {
 
 const notificationScopes = [
   "Contrato enviado, visualizado e reassinatura pendente",
+  "Briefing do site liberado, reaberto e concluído",
   "Novo extra liberado e mudança relevante no escopo",
   "Projeto criado, atualização publicada e link do site disponível",
   "Nova cobrança ou movimentação importante no financeiro",

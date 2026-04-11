@@ -75,8 +75,6 @@ export default function ClienteDashboard() {
   const [projetoAtivo, setProjetoAtivo] = useState<ProjetoAtivo | null>(null);
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [showDadosDialog, setShowDadosDialog] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(DEFAULT_ONBOARDING_STORAGE_KEY));
   const [onboardingStorageKey, setOnboardingStorageKey] = useState(DEFAULT_ONBOARDING_STORAGE_KEY);
 
@@ -142,22 +140,6 @@ export default function ClienteDashboard() {
 
   const { toast } = useToast();
   const branding = useBranding();
-
-  const salvarBriefing = async () => {
-    if (!projetoAtivo) return;
-    setSaving(true);
-    const { error } = await supabase.from("projetos").update({ 
-      briefing, 
-      referencias 
-    }).eq("id", projetoAtivo.id);
-    
-    setSaving(false);
-    if (error) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Briefing salvo!", description: "Suas referências foram atualizadas com sucesso." });
-    }
-  };
 
   const exportarPDF = () => {
     if (!projetoAtivo) return;
@@ -340,31 +322,24 @@ export default function ClienteDashboard() {
               {projetoAtivo ? (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">O que não pode faltar no seu site?</p>
-                    <textarea 
-                      className="w-full min-h-[100px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-purple-500/50 transition-colors outline-none placeholder:text-white/10"
-                      placeholder="Ex: Botão de WhatsApp flutuante, Galeria de fotos na Home, Seção de depoimentos..."
-                      value={briefing}
-                      onChange={(e) => setBriefing(e.target.value)}
-                    />
+                    <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Resumo atual do briefing</p>
+                    <div className="min-h-[100px] rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-relaxed text-white/75">
+                      {briefing || "Nenhuma resposta consolidada ainda. Use a página Dados do Site para preencher o briefing."}
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Referências (Links de sites que você gosta)</p>
-                    <textarea 
-                      className="w-full min-h-[60px] p-4 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:border-purple-500/50 transition-colors outline-none placeholder:text-white/10"
-                      placeholder="Ex: https://referencia.com, https://meuconcorrente.com..."
-                      value={referencias}
-                      onChange={(e) => setReferencias(e.target.value)}
-                    />
-                  </div>
+                  {referencias && (
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Referências registradas</p>
+                      <div className="min-h-[60px] rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-relaxed text-white/70 whitespace-pre-wrap">
+                        {referencias}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex gap-3">
-                    <Button 
-                      className="flex-1 text-white border-0 h-10 rounded-xl shadow-lg"
-                      onClick={salvarBriefing}
-                      disabled={saving}
-                      style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a)" }}
-                    >
-                      {saving ? "Salvando..." : "Salvar Briefing"}
+                    <Button asChild className="flex-1 text-white border-0 h-10 rounded-xl shadow-lg" style={{ background: "linear-gradient(135deg, #7b1fa2, #c2185b, #e8334a)" }}>
+                      <Link to="/cliente/dados">
+                        Abrir Dados do Site
+                      </Link>
                     </Button>
                     <Button 
                       variant="outline"
@@ -511,7 +486,7 @@ export default function ClienteDashboard() {
                   <p className="text-[10px] text-white/30 truncate font-medium">{perfil?.email}</p>
                 </div>
               </div>
-              {/* Link removido - ClienteDados não existe mais */}
+              {/* Dados do site agora ficam na rota dedicada /cliente/dados */}
             </CardContent>
           </Card>
 

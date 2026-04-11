@@ -384,7 +384,21 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
             </Card>
 
             <Card className="glass-card border-[0.5px]">
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold text-white flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Briefing do Cliente</CardTitle></CardHeader>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="text-sm font-semibold text-white flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Briefing do Cliente</CardTitle>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-white/10 bg-white/[0.03] text-[10px] text-white"
+                    onClick={() => {
+                      window.location.href = `/admin/briefings?projeto=${projetoId}`;
+                    }}
+                  >
+                    Abrir briefing
+                  </Button>
+                </div>
+              </CardHeader>
               <CardContent>
                 <p className="text-xs text-white/60 leading-relaxed whitespace-pre-wrap">{(projeto as any).briefing || "O cliente ainda não preencheu o briefing."}</p>
               </CardContent>

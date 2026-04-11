@@ -130,6 +130,7 @@ export const ROUTES = {
     projetos: "/cliente/projetos",
     extras: "/cliente/extras",
     contratos: "/cliente/contratos",
+    dados: "/cliente/dados",
     faturas: "/cliente/faturas",
     reunioes: "/cliente/reunioes",
     suporte: "/cliente/suporte",
@@ -154,6 +155,7 @@ export const ROUTES = {
     configuracoes: "/admin/configuracoes",
     revenda: "/admin/revenda",
     contratos: "/admin/contratos",
+    briefings: "/admin/briefings",
     menu: "/admin/menu",
     depoimentos: "/admin/depoimentos",
   },
@@ -242,6 +244,7 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/agenda": { titulo: "Agenda Estratégica", subtitulo: "Gestão de reuniões e alinhamentos de valor" },
   "/admin/leads": { titulo: "Máquina de Leads", subtitulo: "Acompanhe e qualifique novas oportunidades" },
   "/admin/contratos": { titulo: "Blindagem de Ativos", subtitulo: "Gestão de ativos jurídicos e blindagem contratual" },
+  "/admin/briefings": { titulo: "Dados do Site", subtitulo: "Coleta operacional do briefing e materiais por projeto" },
 };
 
 

@@ -1191,40 +1191,221 @@ export type Database = {
       }
       projeto_arquivos: {
         Row: {
+          briefing_field_id: string | null
           created_at: string | null
           enviado_por: string
           id: string
           nome: string
           projeto_id: string
+          source: string
           tamanho: number | null
           tipo: string | null
           url: string
         }
         Insert: {
+          briefing_field_id?: string | null
           created_at?: string | null
           enviado_por?: string
           id?: string
           nome: string
           projeto_id: string
+          source?: string
           tamanho?: number | null
           tipo?: string | null
           url: string
         }
         Update: {
+          briefing_field_id?: string | null
           created_at?: string | null
           enviado_por?: string
           id?: string
           nome?: string
           projeto_id?: string
+          source?: string
           tamanho?: number | null
           tipo?: string | null
           url?: string
         }
         Relationships: [
           {
+            foreignKeyName: "projeto_arquivos_briefing_field_id_fkey"
+            columns: ["briefing_field_id"]
+            isOneToOne: false
+            referencedRelation: "project_briefing_fields"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projeto_arquivos_projeto_id_fkey"
             columns: ["projeto_id"]
             isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_briefing_answers: {
+        Row: {
+          answer_json: Json
+          answer_text: string | null
+          briefing_id: string
+          cliente_id: string
+          created_at: string
+          field_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          answer_json?: Json
+          answer_text?: string | null
+          briefing_id: string
+          cliente_id: string
+          created_at?: string
+          field_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          answer_json?: Json
+          answer_text?: string | null
+          briefing_id?: string
+          cliente_id?: string
+          created_at?: string
+          field_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_briefing_answers_briefing_id_fkey"
+            columns: ["briefing_id"]
+            isOneToOne: false
+            referencedRelation: "project_briefings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefing_answers_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefing_answers_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "project_briefing_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_briefing_fields: {
+        Row: {
+          briefing_id: string
+          created_at: string
+          field_type: string
+          help_text: string | null
+          id: string
+          label: string
+          options: Json
+          placeholder: string | null
+          required: boolean
+          section_name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          briefing_id: string
+          created_at?: string
+          field_type?: string
+          help_text?: string | null
+          id?: string
+          label: string
+          options?: Json
+          placeholder?: string | null
+          required?: boolean
+          section_name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          briefing_id?: string
+          created_at?: string
+          field_type?: string
+          help_text?: string | null
+          id?: string
+          label?: string
+          options?: Json
+          placeholder?: string | null
+          required?: boolean
+          section_name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_briefing_fields_briefing_id_fkey"
+            columns: ["briefing_id"]
+            isOneToOne: false
+            referencedRelation: "project_briefings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_briefings: {
+        Row: {
+          cliente_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          instrucoes: string | null
+          projeto_id: string
+          sent_at: string | null
+          started_at: string | null
+          status: string
+          submitted_at: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          instrucoes?: string | null
+          projeto_id: string
+          sent_at?: string | null
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          instrucoes?: string | null
+          projeto_id?: string
+          sent_at?: string | null
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_briefings_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefings_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: true
             referencedRelation: "projetos"
             referencedColumns: ["id"]
           },
