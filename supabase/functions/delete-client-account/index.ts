@@ -166,6 +166,20 @@ serve(async (req: Request) => {
         .filter(Boolean) as string[]),
     );
 
+    const { data: brandProfileData, error: brandProfileError } = await (supabaseAdmin
+      .from("client_brand_profiles" as any) as any)
+      .select("logo_storage_path")
+      .eq("cliente_id", normalizedClientId)
+      .maybeSingle();
+
+    if (brandProfileError) {
+      return jsonResponse({ error: brandProfileError.message }, 500, origin);
+    }
+
+    if (brandProfileData?.logo_storage_path) {
+      storagePaths.push(brandProfileData.logo_storage_path);
+    }
+
     const { data: financeRows, error: financeError } = await supabaseAdmin
       .from("financeiro")
       .select("id, descricao, status")
@@ -206,6 +220,7 @@ serve(async (req: Request) => {
     await deleteWhereEq(supabaseAdmin, "cliente_checklist_items", "cliente_id", normalizedClientId);
     await deleteWhereEq(supabaseAdmin, "briefing_attachments", "cliente_id", normalizedClientId);
     await deleteWhereEq(supabaseAdmin, "client_briefings", "cliente_id", normalizedClientId);
+    await deleteWhereEq(supabaseAdmin, "client_brand_profiles", "cliente_id", normalizedClientId);
 
     const { error: pushSubscriptionError } = await supabaseAdmin
       .from("push_subscriptions")

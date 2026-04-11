@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FolderKanban, Receipt, Headphones, CalendarDays, Clock, Sparkles, ShieldCheck, Target, LayoutDashboard, Vault, Eye, Phone, Mail, IdCard, MapPin, User, Rocket } from "lucide-react";
@@ -15,6 +15,8 @@ import StatusBadge from "@/components/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useBranding } from "@/hooks/useBranding";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
+import { evaluateContentReadiness } from "@/lib/content-validation";
+import { createEmptyBrandProfile, parseBrandStyleTags, type ClientBrandProfileDraft } from "@/lib/client-brand-profile";
 import jsPDF from "jspdf";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
@@ -61,7 +63,54 @@ interface PerfilCliente {
   id: string;
   nome: string;
   email: string;
+  nome_empresa?: string | null;
+  whatsapp?: string | null;
+  telefone?: string | null;
+  endereco?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  instagram?: string | null;
+  site_url?: string | null;
   trial_ends_at?: string;
+}
+
+interface BrandProfileRow {
+  id: string;
+  cliente_id: string;
+  primary_color: string | null;
+  secondary_color: string | null;
+  accent_color: string | null;
+  font_heading: string | null;
+  font_body: string | null;
+  style_tags: unknown;
+  references_text: string | null;
+  inspiration_links: string | null;
+  notes: string | null;
+  logo_url: string | null;
+  logo_storage_bucket: string | null;
+  logo_storage_path: string | null;
+}
+
+function toBrandProfileDraft(row?: BrandProfileRow | null, clienteId = ""): ClientBrandProfileDraft {
+  const base = createEmptyBrandProfile(clienteId);
+  if (!row) return base;
+
+  return {
+    id: row.id,
+    cliente_id: row.cliente_id,
+    primary_color: row.primary_color || base.primary_color,
+    secondary_color: row.secondary_color || base.secondary_color,
+    accent_color: row.accent_color || base.accent_color,
+    font_heading: row.font_heading || base.font_heading,
+    font_body: row.font_body || base.font_body,
+    style_tags: parseBrandStyleTags(row.style_tags),
+    references: row.references_text || "",
+    inspiration_links: row.inspiration_links || "",
+    notes: row.notes || "",
+    logo_url: row.logo_url || "",
+    logo_storage_bucket: row.logo_storage_bucket || base.logo_storage_bucket,
+    logo_storage_path: row.logo_storage_path || "",
+  };
 }
 
 interface Counts {
@@ -82,6 +131,7 @@ export default function ClienteDashboard() {
   const [perfil, setPerfil] = useState<PerfilCliente>(cliente);
   const [projetoAtivo, setProjetoAtivo] = useState<ProjetoAtivo | null>(null);
   const [briefingAtual, setBriefingAtual] = useState<BriefingResumo | null>(null);
+  const [brandProfile, setBrandProfile] = useState<ClientBrandProfileDraft>(createEmptyBrandProfile(cliente.id || ""));
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(DEFAULT_ONBOARDING_STORAGE_KEY));
@@ -145,6 +195,15 @@ export default function ClienteDashboard() {
 
     supabase.from("clientes").select("*").eq("id", cId).single()
       .then(({ data }) => { if (data) setPerfil(data as PerfilCliente); });
+
+    (supabase
+      .from("client_brand_profiles" as never)
+      .select("*")
+      .eq("cliente_id", cId)
+      .maybeSingle() as Promise<{ data: BrandProfileRow | null }>)
+      .then(({ data }) => {
+        setBrandProfile(toBrandProfileDraft(data, cId));
+      });
 
     supabase
       .from("contratos")
@@ -243,6 +302,7 @@ export default function ClienteDashboard() {
   }, [cId, load]);
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("client_briefings", load);
+  useRealtimeSubscription("client_brand_profiles", load);
   useRealtimeSubscription("financeiro", load);
   useRealtimeSubscription("tickets", load);
   useRealtimeSubscription("reunioes", load);
@@ -257,6 +317,43 @@ export default function ClienteDashboard() {
   const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
   const hasBriefingContext = Boolean(projetoAtivo || briefingAtual || briefing.trim() || referencias.trim());
   const briefingContextLabel = projetoAtivo?.titulo || briefingAtual?.titulo || "Briefing em andamento";
+  const contentValidation = useMemo(
+    () =>
+      evaluateContentReadiness({
+        client: perfil,
+        summaryText: briefing,
+        referenceText: referencias,
+        brandProfile,
+      }),
+    [briefing, brandProfile, perfil, referencias],
+  );
+  const onboardingSteps = useMemo(() => {
+    const briefingStatus = briefingAtual?.status;
+    const projectStatus = projetoAtivo?.status;
+
+    return [
+      {
+        title: "Briefing enviado",
+        description: briefingStatus ? "O pacote estratégico já está no seu portal." : "A equipe ainda vai liberar o briefing no seu portal.",
+        state: briefingStatus ? "done" : "current",
+      },
+      {
+        title: "Seus dados e identidade visual",
+        description: contentValidation.missing.length === 0 ? "Base recebida. O time já consegue seguir sem depender de pendências críticas." : "Ainda existem dados importantes para você completar.",
+        state: contentValidation.missing.length === 0 ? "done" : briefingStatus ? "current" : "pending",
+      },
+      {
+        title: "Análise estratégica NovaesWeb",
+        description: briefingStatus === "respondido" || briefingStatus === "concluido" ? "A equipe já está convertendo as respostas em direção técnica." : "Esta etapa começa após o envio final do briefing.",
+        state: briefingStatus === "respondido" || briefingStatus === "concluido" ? (projectStatus ? "done" : "current") : "pending",
+      },
+      {
+        title: "Projeto em produção",
+        description: projectStatus ? `Status atual: ${projectStatus}.` : "O projeto será aberto depois da análise estratégica.",
+        state: projectStatus ? "current" : "pending",
+      },
+    ] as const;
+  }, [briefingAtual?.status, contentValidation.missing.length, projetoAtivo?.status]);
 
   return (
     <>
@@ -323,6 +420,65 @@ export default function ClienteDashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[220px_1fr_1fr]">
+        <Card className="overflow-hidden border-0" style={{ background: "linear-gradient(135deg, rgba(138,43,226,0.16), rgba(255,0,0,0.08), rgba(255,0,127,0.14))" }}>
+          <CardContent className="p-5 text-center">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Prontidão do conteúdo</p>
+            <div className="mt-4 text-5xl font-black text-white">{contentValidation.score}%</div>
+            <p className="mt-3 text-xs text-white/45">{contentValidation.completed} de {contentValidation.total} blocos críticos entregues</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 overflow-hidden" style={{ background: "rgba(13,11,18,0.82)" }}>
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-bold text-white">O que falta de você</h2>
+              <Badge variant="outline" className="border-white/10 text-white/40">{contentValidation.missing.length} pendências</Badge>
+            </div>
+            <div className="mt-4 space-y-2">
+              {contentValidation.missing.length === 0 && (
+                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                  Sua base está completa. A NovaesWeb já consegue seguir com briefing, design e estrutura do projeto.
+                </div>
+              )}
+              {contentValidation.missing.slice(0, 4).map((issue) => (
+                <div key={issue.id} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <p className="text-sm font-semibold text-white">{issue.label}</p>
+                  <p className="mt-1 text-xs text-white/50">{issue.description}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 overflow-hidden" style={{ background: "rgba(13,11,18,0.82)" }}>
+          <CardContent className="p-5">
+            <h2 className="text-sm font-bold text-white">O que a NovaesWeb está fazendo</h2>
+            <div className="mt-4 space-y-3">
+              {onboardingSteps.map((step, index) => (
+                <div key={step.title} className="flex gap-3">
+                  <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-black"
+                    style={
+                      step.state === "done"
+                        ? { borderColor: "rgba(16,185,129,0.4)", background: "rgba(16,185,129,0.14)", color: "#a7f3d0" }
+                        : step.state === "current"
+                          ? { borderColor: "rgba(194,24,91,0.4)", background: "rgba(194,24,91,0.16)", color: "#f9a8d4" }
+                          : { borderColor: "rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.55)" }
+                    }
+                  >
+                    {index + 1}
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 flex-1">
+                    <p className="text-sm font-semibold text-white">{step.title}</p>
+                    <p className="mt-1 text-xs text-white/50">{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick actions */}

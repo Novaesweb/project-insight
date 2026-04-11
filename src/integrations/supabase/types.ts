@@ -1491,6 +1491,71 @@ export type Database = {
           },
         ]
       }
+      client_brand_profiles: {
+        Row: {
+          accent_color: string | null
+          cliente_id: string
+          created_at: string
+          font_body: string | null
+          font_heading: string | null
+          id: string
+          inspiration_links: string | null
+          logo_storage_bucket: string
+          logo_storage_path: string | null
+          logo_url: string | null
+          notes: string | null
+          primary_color: string | null
+          references_text: string | null
+          secondary_color: string | null
+          style_tags: Json
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          cliente_id: string
+          created_at?: string
+          font_body?: string | null
+          font_heading?: string | null
+          id?: string
+          inspiration_links?: string | null
+          logo_storage_bucket?: string
+          logo_storage_path?: string | null
+          logo_url?: string | null
+          notes?: string | null
+          primary_color?: string | null
+          references_text?: string | null
+          secondary_color?: string | null
+          style_tags?: Json
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          cliente_id?: string
+          created_at?: string
+          font_body?: string | null
+          font_heading?: string | null
+          id?: string
+          inspiration_links?: string | null
+          logo_storage_bucket?: string
+          logo_storage_path?: string | null
+          logo_url?: string | null
+          notes?: string | null
+          primary_color?: string | null
+          references_text?: string | null
+          secondary_color?: string | null
+          style_tags?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_brand_profiles_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projeto_arquivos: {
         Row: {
           briefing_field_id: string | null
