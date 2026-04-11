@@ -392,7 +392,7 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
                     variant="outline"
                     className="h-8 border-white/10 bg-white/[0.03] text-[10px] text-white"
                     onClick={() => {
-                      window.location.href = `/admin/briefings?projeto=${projetoId}`;
+                            window.location.href = `/admin/briefings?cliente=${projeto.cliente_id}`;
                     }}
                   >
                     Abrir briefing

@@ -13,7 +13,7 @@ export const ADMIN_PERMISSION_MODULES = [
   { key: "financeiro", label: "Financeiro", description: "Receitas, cobranças, custos internos e saúde financeira.", hrefs: ["/admin/financeiro", "/admin/custos-sistema"] },
   { key: "relatorios", label: "Relatórios", description: "Relatórios estratégicos, ROI e métricas.", hrefs: ["/admin/relatorios"] },
   { key: "contratos", label: "Contratos", description: "Documentos e gestão contratual.", hrefs: ["/admin/contratos"] },
-  { key: "briefings", label: "Briefings", description: "Coleta operacional do site e respostas do cliente por projeto.", hrefs: ["/admin/briefings"] },
+  { key: "briefings", label: "Briefings", description: "Coleta operacional do site e respostas do cliente por briefing ativo.", hrefs: ["/admin/briefings"] },
   { key: "suporte", label: "Suporte", description: "Tickets e acompanhamento de atendimento.", hrefs: ["/admin/suporte"] },
   { key: "usuarios", label: "Usuários", description: "Equipe interna, acessos e segurança.", hrefs: ["/admin/usuarios"] },
   { key: "revenda", label: "Revenda", description: "Área de parceiros e revenda.", hrefs: ["/admin/revenda"] },

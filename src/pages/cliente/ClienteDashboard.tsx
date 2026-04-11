@@ -42,6 +42,14 @@ interface ProjetoAtivo {
   status: string;
 }
 
+interface BriefingResumo {
+  id: string;
+  titulo: string;
+  status: string;
+  snapshot_briefing?: string | null;
+  snapshot_references?: string | null;
+}
+
 interface Atualizacao {
   id: string;
   titulo: string;
@@ -73,6 +81,7 @@ export default function ClienteDashboard() {
   const [atualizacoes, setAtualizacoes] = useState<Atualizacao[]>([]);
   const [perfil, setPerfil] = useState<PerfilCliente>(cliente);
   const [projetoAtivo, setProjetoAtivo] = useState<ProjetoAtivo | null>(null);
+  const [briefingAtual, setBriefingAtual] = useState<BriefingResumo | null>(null);
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(DEFAULT_ONBOARDING_STORAGE_KEY));
@@ -91,15 +100,41 @@ export default function ClienteDashboard() {
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("cliente_id", cId).neq("status", "resolvido"),
     ]).then(([p, f, t]) => setCounts({ projetos: p.count || 0, faturas: f.count || 0, tickets: t.count || 0 }));
 
-    supabase.from("projetos").select("*").eq("cliente_id", cId).neq("status", "cancelado").order("created_at", { ascending: false }).limit(1)
-      .then(({ data }) => {
-        if (data?.[0]) {
-          const p = data[0] as ProjetoAtivo;
-          setProjetoAtivo(p);
-          setBriefing(p.briefing || "");
-          setReferencias(p.referencias || "");
-        }
-      });
+    Promise.all([
+      supabase
+        .from("projetos")
+        .select("*")
+        .eq("cliente_id", cId)
+        .neq("status", "cancelado")
+        .order("created_at", { ascending: false })
+        .limit(1),
+      (supabase.from("client_briefings" as never)
+        .select("id, titulo, status, snapshot_briefing, snapshot_references")
+        .eq("cliente_id", cId)
+        .order("updated_at", { ascending: false })
+        .limit(1) as Promise<{ data: BriefingResumo[] | null }>),
+    ]).then(([projectResponse, briefingResponse]) => {
+      const project = (projectResponse.data?.[0] as ProjetoAtivo | undefined) || null;
+      const latestBriefing = briefingResponse.data?.[0] || null;
+
+      setProjetoAtivo(project);
+      setBriefingAtual(latestBriefing);
+
+      if (project?.briefing?.trim()) {
+        setBriefing(project.briefing);
+        setReferencias(project.referencias || "");
+        return;
+      }
+
+      if (latestBriefing) {
+        setBriefing(latestBriefing.snapshot_briefing || "");
+        setReferencias(latestBriefing.snapshot_references || "");
+        return;
+      }
+
+      setBriefing("");
+      setReferencias("");
+    });
 
     supabase.from("reunioes").select("*").eq("cliente_id", cId).in("status", ["agendada", "confirmada"]).order("data", { ascending: true }).limit(1)
       .then(({ data }) => setProximaReuniao(data?.[0] || null));
@@ -142,11 +177,11 @@ export default function ClienteDashboard() {
   const branding = useBranding();
 
   const exportarPDF = () => {
-    if (!projetoAtivo) return;
+    if (!projetoAtivo && !briefingAtual && !briefing.trim() && !referencias.trim()) return;
     
     const doc = new jsPDF();
-    const title = branding.nome || "Briefing de Projeto";
-    const projName = projetoAtivo.titulo;
+    const title = branding.nome || "Briefing do Site";
+    const projName = projetoAtivo?.titulo || briefingAtual?.titulo || "briefing-cliente";
     
     doc.setFontSize(22);
     doc.setTextColor(123, 31, 162);
@@ -154,7 +189,7 @@ export default function ClienteDashboard() {
     
     doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Projeto: ${projName}`, 20, 35);
+    doc.text(`Contexto: ${projName}`, 20, 35);
     doc.text(`Cliente: ${cliente.nome}`, 20, 45);
     
     doc.setDrawColor(200, 200, 200);
@@ -207,6 +242,7 @@ export default function ClienteDashboard() {
     };
   }, [cId, load]);
   useRealtimeSubscription("projetos", load);
+  useRealtimeSubscription("client_briefings", load);
   useRealtimeSubscription("financeiro", load);
   useRealtimeSubscription("tickets", load);
   useRealtimeSubscription("reunioes", load);
@@ -219,6 +255,8 @@ export default function ClienteDashboard() {
   ];
 
   const isTrialExpired = perfil?.trial_ends_at && new Date() > new Date(perfil.trial_ends_at);
+  const hasBriefingContext = Boolean(projetoAtivo || briefingAtual || briefing.trim() || referencias.trim());
+  const briefingContextLabel = projetoAtivo?.titulo || briefingAtual?.titulo || "Briefing em andamento";
 
   return (
     <>
@@ -316,10 +354,10 @@ export default function ClienteDashboard() {
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
                   <Sparkles className="w-4 h-4" style={{ color: "#FFD700" }} /> Briefing & Referências
                 </h2>
-                {projetoAtivo && <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">{projetoAtivo.titulo}</Badge>}
+                {hasBriefingContext && <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">{briefingContextLabel}</Badge>}
               </div>
 
-              {projetoAtivo ? (
+              {hasBriefingContext ? (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">Resumo atual do briefing</p>
@@ -352,7 +390,7 @@ export default function ClienteDashboard() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-xs text-white/40">Seu projeto aparecerá aqui em breve.</p>
+                  <p className="text-xs text-white/40">Seu briefing aparecerá aqui assim que a NovaesWeb enviar os dados do site para preenchimento.</p>
                 </div>
               )}
             </CardContent>

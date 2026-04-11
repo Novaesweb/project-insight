@@ -570,9 +570,9 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className="text-sm font-semibold text-white">Esse cliente agora usa o módulo central de briefing.</p>
+                  <p className="text-sm font-semibold text-white">Esse cliente agora usa o módulo central de briefing por cliente.</p>
                   <p className="mt-2 text-xs leading-relaxed text-white/50">
-                    Crie ou reabra o briefing oficial do projeto em uma única tela, com perguntas customizadas, autosave no portal e anexos ligados ao projeto.
+                    Monte o briefing em construção aos poucos, escolha perguntas prontas, adicione perguntas customizadas e só envie tudo quando o pacote estiver fechado para o cliente.
                   </p>
                 </div>
 

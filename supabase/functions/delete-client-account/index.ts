@@ -151,6 +151,21 @@ serve(async (req: Request) => {
       .map((arquivo: any) => extractStoragePathFromUrl(arquivo.url))
       .filter(Boolean) as string[];
 
+    const { data: briefingAttachmentsData, error: briefingAttachmentsError } = await (supabaseAdmin
+      .from("briefing_attachments" as any) as any)
+      .select("storage_path")
+      .eq("cliente_id", normalizedClientId);
+
+    if (briefingAttachmentsError) {
+      return jsonResponse({ error: briefingAttachmentsError.message }, 500, origin);
+    }
+
+    storagePaths.push(
+      ...((briefingAttachmentsData || [])
+        .map((attachment: any) => attachment.storage_path)
+        .filter(Boolean) as string[]),
+    );
+
     const { data: financeRows, error: financeError } = await supabaseAdmin
       .from("financeiro")
       .select("id, descricao, status")
@@ -189,6 +204,8 @@ serve(async (req: Request) => {
     await deleteWhereEq(supabaseAdmin, "contratos", "cliente_id", normalizedClientId);
     await deleteWhereEq(supabaseAdmin, "extras_clientes", "cliente_id", normalizedClientId);
     await deleteWhereEq(supabaseAdmin, "cliente_checklist_items", "cliente_id", normalizedClientId);
+    await deleteWhereEq(supabaseAdmin, "briefing_attachments", "cliente_id", normalizedClientId);
+    await deleteWhereEq(supabaseAdmin, "client_briefings", "cliente_id", normalizedClientId);
 
     const { error: pushSubscriptionError } = await supabaseAdmin
       .from("push_subscriptions")

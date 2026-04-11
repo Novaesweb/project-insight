@@ -244,7 +244,7 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/agenda": { titulo: "Agenda Estratégica", subtitulo: "Gestão de reuniões e alinhamentos de valor" },
   "/admin/leads": { titulo: "Máquina de Leads", subtitulo: "Acompanhe e qualifique novas oportunidades" },
   "/admin/contratos": { titulo: "Blindagem de Ativos", subtitulo: "Gestão de ativos jurídicos e blindagem contratual" },
-  "/admin/briefings": { titulo: "Dados do Site", subtitulo: "Coleta operacional do briefing e materiais por projeto" },
+  "/admin/briefings": { titulo: "Dados do Site", subtitulo: "Biblioteca de perguntas, briefing por cliente e envio único" },
 };
 
 
