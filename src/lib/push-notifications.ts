@@ -5,6 +5,18 @@ const VAPID_PUBLIC_KEY = "BO9uhUEJOQdzq7bANXsX-6lKXuRqgd2PFAK43GXwB2NxPW_Wgb4yAN
 const PUSH_SW_PATH = "/sw.js";
 const IS_DEV = import.meta.env.DEV;
 
+export type PushSupportDetails = {
+  supported: boolean;
+  reason:
+    | "ok"
+    | "electron"
+    | "insecure_context"
+    | "missing_notification_api"
+    | "missing_service_worker"
+    | "missing_push_manager";
+  message: string;
+};
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -30,11 +42,71 @@ async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> 
 }
 
 export async function isPushSupported(): Promise<boolean> {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  const details = await getPushSupportDetails();
+  return details.supported;
 }
 
 export async function getPushPermission(): Promise<NotificationPermission> {
   return Notification.permission;
+}
+
+export async function getPushSupportDetails(): Promise<PushSupportDetails> {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return {
+      supported: false,
+      reason: "missing_notification_api",
+      message: "O navegador ainda não expôs a API de notificações neste contexto.",
+    };
+  }
+
+  const isElectron = window.navigator.userAgent.toLowerCase().includes("electron");
+  if (isElectron) {
+    return {
+      supported: false,
+      reason: "electron",
+      message: "O app desktop espelhado não usa push web. Ative notificações no navegador real do cliente.",
+    };
+  }
+
+  const isLocalhost =
+    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  if (!window.isSecureContext && !isLocalhost) {
+    return {
+      supported: false,
+      reason: "insecure_context",
+      message: "Notificações push exigem HTTPS. Abra o portal em uma URL segura.",
+    };
+  }
+
+  if (!("Notification" in window)) {
+    return {
+      supported: false,
+      reason: "missing_notification_api",
+      message: "A API de notificações não está disponível neste navegador.",
+    };
+  }
+
+  if (!("serviceWorker" in navigator)) {
+    return {
+      supported: false,
+      reason: "missing_service_worker",
+      message: "Este navegador não oferece suporte a Service Worker para push.",
+    };
+  }
+
+  if (!("PushManager" in window)) {
+    return {
+      supported: false,
+      reason: "missing_push_manager",
+      message: "A API Push não está disponível neste navegador.",
+    };
+  }
+
+  return {
+    supported: true,
+    reason: "ok",
+    message: "Este navegador suporta notificações push.",
+  };
 }
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -44,14 +116,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
 export async function subscribeToPush(userType: string, userId: string): Promise<boolean> {
   try {
-    // Evita duplicidade no Desktop! O App Desktop (Electron) já tem o NativeNotificationManager
-    const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
-    if (isElectron) {
-      return false; 
-    }
-
-    const supported = await isPushSupported();
-    if (!supported) return false;
+    const support = await getPushSupportDetails();
+    if (!support.supported) return false;
 
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return false;

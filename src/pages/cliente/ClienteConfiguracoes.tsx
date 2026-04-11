@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import {
+  getPushSupportDetails,
   isPushSupported,
   isSubscribed,
   sendPushTestNotification,
@@ -56,15 +57,17 @@ export default function ClienteConfiguracoes() {
   const [testLoading, setTestLoading] = useState(false);
   const [mirrorMode, setMirrorMode] = useState(false);
   const [notifications, setNotifications] = useState<ClientNotificationRow[]>([]);
+  const [supportMessage, setSupportMessage] = useState("Verificando suporte de push neste navegador.");
 
   const loadStatus = useCallback(async () => {
-    const [supported, subscribed, sessionResult] = await Promise.all([
-      isPushSupported(),
+    const [support, subscribed, sessionResult] = await Promise.all([
+      getPushSupportDetails(),
       isSubscribed(),
       supabase.auth.getSession(),
     ]);
 
-    setPushSupported(supported);
+    setPushSupported(support.supported);
+    setSupportMessage(support.message);
     setPushEnabled(subscribed);
 
     const session = sessionResult.data.session;
@@ -226,9 +229,7 @@ export default function ClienteConfiguracoes() {
                   <p className="text-xs text-white/50">
                     {mirrorMode
                       ? "Modo espelhado do admin detectado. O push deve ser ativado pela conta real do cliente."
-                      : pushSupported
-                        ? "Este navegador suporta notificações push."
-                        : "Este navegador não suporta notificações push."}
+                      : supportMessage}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
