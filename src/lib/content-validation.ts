@@ -1,5 +1,4 @@
 import type { BriefingAnswerMap, BriefingAttachmentLike, BriefingFieldDraft } from "@/lib/project-briefings";
-import type { ClientBrandProfileDraft } from "@/lib/client-brand-profile";
 
 type ValidationCategory = "contato" | "conteudo" | "visual" | "conversao";
 type ValidationSeverity = "alta" | "media";
@@ -38,7 +37,6 @@ type ValidationContext = {
   attachments?: BriefingAttachmentLike[];
   summaryText?: string | null;
   referenceText?: string | null;
-  brandProfile?: Partial<ClientBrandProfileDraft> | null;
 };
 
 const CATEGORY_LABELS: ValidationCategory[] = ["contato", "conteudo", "visual", "conversao"];
@@ -72,6 +70,33 @@ function summaryIncludes(text: string | null | undefined, patterns: RegExp[]) {
   return patterns.some((pattern) => pattern.test(normalized));
 }
 
+function findFieldIdsByPattern(fields: BriefingFieldDraft[], patterns: RegExp[]) {
+  return new Set(
+    fields
+      .filter((field) => {
+        const haystack = `${field.label} ${field.help_text}`.toLowerCase();
+        return patterns.some((pattern) => pattern.test(haystack));
+      })
+      .map((field) => field.id),
+  );
+}
+
+function hasAttachmentForPatterns(
+  fields: BriefingFieldDraft[],
+  attachments: BriefingAttachmentLike[],
+  patterns: RegExp[],
+) {
+  const matchingFieldIds = findFieldIdsByPattern(fields, patterns);
+
+  return attachments.some((attachment) => {
+    const fileName = normalizeText(attachment.nome);
+    return (
+      (attachment.field_id ? matchingFieldIds.has(attachment.field_id) : false) ||
+      patterns.some((pattern) => pattern.test(fileName))
+    );
+  });
+}
+
 export function evaluateContentReadiness({
   client,
   fields = [],
@@ -79,7 +104,6 @@ export function evaluateContentReadiness({
   attachments = [],
   summaryText,
   referenceText,
-  brandProfile,
 }: ValidationContext): ValidationResult {
   const checks = [
     {
@@ -173,8 +197,7 @@ export function evaluateContentReadiness({
       id: "references",
       ok:
         hasMeaningfulText(referenceText) ||
-        hasMeaningfulText(brandProfile?.references) ||
-        hasMeaningfulText(brandProfile?.inspiration_links) ||
+        findAnsweredField(fields, answers, [/refer[êe]ncia/, /site que você goste/, /inspira/]) ||
         hasMeaningfulText(client?.site_url),
       issue: {
         id: "references",
@@ -186,7 +209,7 @@ export function evaluateContentReadiness({
     },
     {
       id: "media",
-      ok: attachments.length > 0,
+      ok: attachments.length > 0 || hasAttachmentForPatterns(fields, attachments, [/foto/, /imagem/, /arquivo/, /material/]),
       issue: {
         id: "media",
         label: "Arquivos e materiais",
@@ -197,7 +220,7 @@ export function evaluateContentReadiness({
     },
     {
       id: "logo",
-      ok: hasMeaningfulText(brandProfile?.logo_url),
+      ok: hasAttachmentForPatterns(fields, attachments, [/logo/]),
       issue: {
         id: "logo",
         label: "Logo principal",
@@ -208,9 +231,7 @@ export function evaluateContentReadiness({
     },
     {
       id: "palette",
-      ok:
-        hasMeaningfulText(brandProfile?.primary_color) &&
-        hasMeaningfulText(brandProfile?.secondary_color),
+      ok: findAnsweredField(fields, answers, [/cores? que deseja/, /paleta/, /cores? da marca/]),
       issue: {
         id: "palette",
         label: "Paleta da marca",
@@ -221,10 +242,7 @@ export function evaluateContentReadiness({
     },
     {
       id: "style",
-      ok:
-        Array.isArray(brandProfile?.style_tags) && brandProfile.style_tags.length > 0 &&
-        hasMeaningfulText(brandProfile?.font_heading) &&
-        hasMeaningfulText(brandProfile?.font_body),
+      ok: findAnsweredField(fields, answers, [/estilo do.*site/, /estilo visual/, /fontes?/, /tipografia/]),
       issue: {
         id: "style",
         label: "Direção visual",
@@ -254,4 +272,3 @@ export function evaluateContentReadiness({
     grouped,
   };
 }
-

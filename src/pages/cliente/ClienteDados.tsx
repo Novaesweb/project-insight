@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Download,
   FileText,
   Paperclip,
   Save,
@@ -21,15 +20,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  BRAND_FONT_OPTIONS,
-  BRAND_STYLE_OPTIONS,
-  createEmptyBrandProfile,
-  parseBrandStyleTags,
-  sanitizeBrandProfile,
-  type ClientBrandProfileDraft,
-} from "@/lib/client-brand-profile";
-import { evaluateContentReadiness } from "@/lib/content-validation";
 import {
   briefingStatusMeta,
   buildBriefingSnapshot,
@@ -90,36 +80,6 @@ type AttachmentRow = {
   url: string;
   storage_path: string;
   created_at: string;
-};
-
-type ClientProfileLite = {
-  id: string;
-  nome: string;
-  nome_empresa: string | null;
-  whatsapp: string | null;
-  telefone: string | null;
-  endereco: string | null;
-  cidade: string | null;
-  estado: string | null;
-  instagram: string | null;
-  site_url: string | null;
-};
-
-type BrandProfileRow = {
-  id: string;
-  cliente_id: string;
-  primary_color: string | null;
-  secondary_color: string | null;
-  accent_color: string | null;
-  font_heading: string | null;
-  font_body: string | null;
-  style_tags: unknown;
-  references_text: string | null;
-  inspiration_links: string | null;
-  notes: string | null;
-  logo_url: string | null;
-  logo_storage_bucket: string | null;
-  logo_storage_path: string | null;
 };
 
 const fadeUp = {
@@ -193,45 +153,19 @@ function normalizeFieldValue(field: BriefingFieldDraft, value: string | string[]
   };
 }
 
-function toBrandProfileDraft(row?: BrandProfileRow | null, clienteId = ""): ClientBrandProfileDraft {
-  const base = createEmptyBrandProfile(clienteId);
-  if (!row) return base;
-
-  return {
-    id: row.id,
-    cliente_id: row.cliente_id,
-    primary_color: row.primary_color || base.primary_color,
-    secondary_color: row.secondary_color || base.secondary_color,
-    accent_color: row.accent_color || base.accent_color,
-    font_heading: row.font_heading || base.font_heading,
-    font_body: row.font_body || base.font_body,
-    style_tags: parseBrandStyleTags(row.style_tags),
-    references: row.references_text || "",
-    inspiration_links: row.inspiration_links || "",
-    notes: row.notes || "",
-    logo_url: row.logo_url || "",
-    logo_storage_bucket: row.logo_storage_bucket || base.logo_storage_bucket,
-    logo_storage_path: row.logo_storage_path || "",
-  };
-}
-
 export default function ClienteDados() {
   const cliente = getStoredClientProfile();
   const { toast } = useToast();
   const skipAutosaveRef = useRef(true);
 
   const [loading, setLoading] = useState(true);
-  const [clientInfo, setClientInfo] = useState<ClientProfileLite | null>(null);
   const [briefings, setBriefings] = useState<BriefingRow[]>([]);
   const [selectedBriefingId, setSelectedBriefingId] = useState<string | null>(null);
   const [fields, setFields] = useState<BriefingFieldDraft[]>([]);
   const [answerDrafts, setAnswerDrafts] = useState<BriefingAnswerMap>({});
   const [attachments, setAttachments] = useState<AttachmentRow[]>([]);
-  const [brandProfile, setBrandProfile] = useState<ClientBrandProfileDraft>(createEmptyBrandProfile(cliente?.id || ""));
   const [autosaving, setAutosaving] = useState(false);
-  const [savingBrand, setSavingBrand] = useState(false);
   const [uploadingFieldId, setUploadingFieldId] = useState<string | null>(null);
-  const [uploadingBrandLogo, setUploadingBrandLogo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const selectedBriefing = useMemo(
@@ -270,36 +204,6 @@ export default function ClienteDados() {
         : rows.find((item) => item.status !== "concluido")?.id || rows[0]?.id || null,
     );
     setLoading(false);
-  }, [cliente?.id]);
-
-  const loadClientInfo = useCallback(async () => {
-    if (!cliente?.id) {
-      setClientInfo(null);
-      return;
-    }
-
-    const { data } = await supabase
-      .from("clientes")
-      .select("id, nome, nome_empresa, whatsapp, telefone, endereco, cidade, estado, instagram, site_url")
-      .eq("id", cliente.id)
-      .maybeSingle();
-
-    setClientInfo((data as ClientProfileLite | null) || null);
-  }, [cliente?.id]);
-
-  const loadBrandProfile = useCallback(async () => {
-    if (!cliente?.id) {
-      setBrandProfile(createEmptyBrandProfile());
-      return;
-    }
-
-    const { data } = await (supabase
-      .from("client_brand_profiles" as never)
-      .select("*")
-      .eq("cliente_id", cliente.id)
-      .maybeSingle() as Promise<{ data: BrandProfileRow | null }>);
-
-    setBrandProfile(toBrandProfileDraft(data, cliente.id));
   }, [cliente?.id]);
 
   const loadDetail = useCallback(async () => {
@@ -343,11 +247,6 @@ export default function ClienteDados() {
   }, [loadBriefings]);
 
   useEffect(() => {
-    void loadClientInfo();
-    void loadBrandProfile();
-  }, [loadBrandProfile, loadClientInfo]);
-
-  useEffect(() => {
     if (selectedBriefingId) {
       void loadDetail();
     }
@@ -357,20 +256,6 @@ export default function ClienteDados() {
     cliente?.id ? [{ table: "client_briefings", filter: `cliente_id=eq.${cliente.id}` }] : [],
     loadBriefings,
     { enabled: Boolean(cliente?.id), channelPrefix: `cliente-briefings-${cliente?.id}`, debounceMs: 350 },
-  );
-
-  useRealtimeRefresh(
-    cliente?.id
-      ? [
-          { table: "clientes", filter: `id=eq.${cliente.id}` },
-          { table: "client_brand_profiles", filter: `cliente_id=eq.${cliente.id}` },
-        ]
-      : [],
-    async () => {
-      await loadClientInfo();
-      await loadBrandProfile();
-    },
-    { enabled: Boolean(cliente?.id), channelPrefix: `cliente-brand-${cliente?.id}`, debounceMs: 350 },
   );
 
   useRealtimeRefresh(
@@ -457,20 +342,6 @@ export default function ClienteDados() {
     return () => window.clearTimeout(timer);
   }, [answerDrafts, canEdit, cliente?.id, ensureBriefingStarted, fields, selectedBriefingId]);
 
-  const contentValidation = useMemo(
-    () =>
-      evaluateContentReadiness({
-        client: clientInfo,
-        fields,
-        answers: answerDrafts,
-        attachments,
-        summaryText: selectedBriefing?.snapshot_briefing,
-        referenceText: selectedBriefing?.snapshot_references,
-        brandProfile,
-      }),
-    [answerDrafts, attachments, brandProfile, clientInfo, fields, selectedBriefing?.snapshot_briefing, selectedBriefing?.snapshot_references],
-  );
-
   const handleValueChange = (fieldId: string, value: string | string[]) => {
     setAnswerDrafts((current) => ({ ...current, [fieldId]: value }));
   };
@@ -538,93 +409,6 @@ export default function ClienteDados() {
         description: error instanceof Error ? error.message : "Não foi possível remover o arquivo.",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleBrandProfileChange = <Key extends keyof ClientBrandProfileDraft>(
-    key: Key,
-    value: ClientBrandProfileDraft[Key],
-  ) => {
-    setBrandProfile((current) => ({ ...current, [key]: value }));
-  };
-
-  const toggleBrandStyle = (style: ClientBrandProfileDraft["style_tags"][number], checked: boolean) => {
-    setBrandProfile((current) => ({
-      ...current,
-      style_tags: checked
-        ? [...new Set([...current.style_tags, style])]
-        : current.style_tags.filter((item) => item !== style),
-    }));
-  };
-
-  const handleSaveBrandProfile = async () => {
-    if (!cliente?.id) return;
-    setSavingBrand(true);
-    try {
-      const payload = sanitizeBrandProfile(brandProfile, cliente.id);
-      const { error } = await (supabase.from("client_brand_profiles" as never).upsert({
-        id: payload.id,
-        cliente_id: payload.cliente_id,
-        primary_color: payload.primary_color,
-        secondary_color: payload.secondary_color,
-        accent_color: payload.accent_color,
-        font_heading: payload.font_heading,
-        font_body: payload.font_body,
-        style_tags: payload.style_tags,
-        references_text: payload.references || null,
-        inspiration_links: payload.inspiration_links || null,
-        notes: payload.notes || null,
-        logo_url: payload.logo_url || null,
-        logo_storage_bucket: payload.logo_storage_bucket,
-        logo_storage_path: payload.logo_storage_path || null,
-      }) as Promise<{ error: Error | null }>);
-
-      if (error) throw error;
-      toast({ title: "Identidade visual salva" });
-      await loadBrandProfile();
-    } catch (error) {
-      toast({
-        title: "Falha ao salvar identidade visual",
-        description: error instanceof Error ? error.message : "Não foi possível salvar os dados visuais.",
-        variant: "destructive",
-      });
-    } finally {
-      setSavingBrand(false);
-    }
-  };
-
-  const handleBrandLogoUpload = async (file: File) => {
-    if (!cliente?.id) return;
-
-    setUploadingBrandLogo(true);
-    try {
-      const bucket = brandProfile.logo_storage_bucket || "projeto-arquivos";
-      const nextPath = `brand-profiles/${cliente.id}/${Date.now()}-${file.name}`;
-
-      if (brandProfile.logo_storage_path) {
-        await (supabase.storage.from(bucket) as any).remove([brandProfile.logo_storage_path]);
-      }
-
-      const { error: storageError } = await (supabase.storage.from(bucket) as any).upload(nextPath, file);
-      if (storageError) throw storageError;
-
-      const { data } = (supabase.storage.from(bucket) as any).getPublicUrl(nextPath);
-      setBrandProfile((current) => ({
-        ...current,
-        cliente_id: cliente.id,
-        logo_storage_bucket: bucket,
-        logo_storage_path: nextPath,
-        logo_url: data.publicUrl,
-      }));
-      toast({ title: "Logo carregada", description: "Salve a identidade visual para concluir." });
-    } catch (error) {
-      toast({
-        title: "Falha no upload da logo",
-        description: error instanceof Error ? error.message : "Não foi possível carregar o arquivo.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingBrandLogo(false);
     }
   };
 
@@ -731,47 +515,11 @@ export default function ClienteDados() {
         </div>
         <h1 className="text-2xl font-black tracking-tight text-white">Briefing do seu projeto</h1>
         <p className="max-w-2xl text-sm text-white/60">
-          Responda com calma. A NovaesWeb usa esse briefing para entender sua estrutura, seu posicionamento e o tipo de site ideal para o seu negócio.
+          Aqui aparecem somente as perguntas que a equipe enviou para você responder.
         </p>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="grid gap-4 lg:grid-cols-[220px_1fr_1fr]">
-        <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(138,43,226,0.16),rgba(255,0,0,0.1),rgba(255,0,127,0.12))]">
-          <CardContent className="p-6 text-center">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Completude</p>
-            <div className="mt-4 text-5xl font-black text-white">{contentValidation.score}%</div>
-            <p className="mt-3 text-xs text-white/45">{contentValidation.completed} de {contentValidation.total} blocos concluídos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-white/10 bg-white/[0.03]">
-          <CardContent className="p-6">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">O que falta de você</p>
-            <div className="mt-4 space-y-2">
-              {contentValidation.missing.length === 0 && <p className="text-sm text-emerald-200">Sua base já está bem preenchida. A equipe consegue seguir sem depender de mais materiais críticos.</p>}
-              {contentValidation.missing.slice(0, 4).map((issue) => (
-                <div key={issue.id} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-sm font-semibold text-white">{issue.label}</p>
-                  <p className="mt-1 text-xs text-white/50">{issue.description}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-white/10 bg-white/[0.03]">
-          <CardContent className="p-6">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">O que a NovaesWeb está fazendo</p>
-            <div className="mt-4 space-y-3">
-              <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/10 px-4 py-3 text-sm text-white">1. Estruturando o briefing para entender objetivo, público e conversão.</div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/80">2. Organizando sua identidade visual para reduzir retrabalho no design.</div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/80">3. Preparando a base para abrir o projeto com mais clareza e menos ida e volta.</div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
         <motion.div variants={fadeUp} className="space-y-6">
           <Card className="border-white/10 bg-white/[0.03]">
             <CardHeader>
@@ -784,7 +532,7 @@ export default function ClienteDados() {
               <ScrollArea className="h-[520px] pr-3">
                 <div className="space-y-3">
                   {loading && <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/55">Carregando dados...</div>}
-                  {!loading && briefings.length === 0 && <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/45">Nenhum briefing foi enviado para você ainda.</div>}
+                  {!loading && briefings.length === 0 && <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/45">Nenhum briefing enviado no momento.</div>}
                   {briefings.map((briefing) => {
                     const active = briefing.id === selectedBriefingId;
                     const meta = briefingStatusMeta[briefing.status];
@@ -805,148 +553,6 @@ export default function ClienteDados() {
               </ScrollArea>
             </CardContent>
           </Card>
-
-          <Card className="border-white/10 bg-white/[0.03]">
-            <CardHeader>
-              <CardTitle className="text-white">Resumo consolidado</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Briefing</p>
-                <pre className="mt-3 whitespace-pre-wrap text-xs leading-relaxed text-white/70">
-                  {selectedBriefing?.snapshot_briefing || "Nenhum resumo consolidado ainda."}
-                </pre>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Links e referências</p>
-                <pre className="mt-3 whitespace-pre-wrap text-xs leading-relaxed text-white/70">
-                  {selectedBriefing?.snapshot_references || "Nenhum link consolidado ainda."}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(255,0,127,0.14),rgba(13,11,18,0.9),rgba(138,43,226,0.16))]">
-            <CardHeader>
-              <CardTitle className="text-white">Central de identidade visual</CardTitle>
-              <CardDescription className="text-white/50">Defina cores, fontes, estilo e referências para orientar o design do seu site.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-                <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03]">
-                    {brandProfile.logo_url ? (
-                      <img src={brandProfile.logo_url} alt="Logo da marca" className="max-h-[140px] max-w-full object-contain" />
-                    ) : (
-                      <div className="text-center text-xs text-white/40">Nenhuma logo enviada</div>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-3 w-full border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
-                    onClick={() => document.getElementById("cliente-brand-logo-upload")?.click()}
-                    disabled={uploadingBrandLogo}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {uploadingBrandLogo ? "Enviando..." : "Enviar logo"}
-                  </Button>
-                  <input
-                    id="cliente-brand-logo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) void handleBrandLogoUpload(file);
-                      event.currentTarget.value = "";
-                    }}
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {[
-                      { key: "primary_color", label: "Cor principal" },
-                      { key: "secondary_color", label: "Cor secundária" },
-                      { key: "accent_color", label: "Cor de destaque" },
-                    ].map((item) => (
-                      <div key={item.key} className="space-y-2">
-                        <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">{item.label}</p>
-                        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                          <input
-                            type="color"
-                            value={brandProfile[item.key as keyof ClientBrandProfileDraft] as string}
-                            onChange={(event) => handleBrandProfileChange(item.key as keyof ClientBrandProfileDraft, event.target.value as never)}
-                            className="h-9 w-12 cursor-pointer rounded border-0 bg-transparent"
-                          />
-                          <Input
-                            value={brandProfile[item.key as keyof ClientBrandProfileDraft] as string}
-                            onChange={(event) => handleBrandProfileChange(item.key as keyof ClientBrandProfileDraft, event.target.value as never)}
-                            className="border-0 bg-transparent p-0 text-white"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Fonte dos títulos</p>
-                      <Select value={brandProfile.font_heading} onValueChange={(value) => handleBrandProfileChange("font_heading", value)}>
-                        <SelectTrigger className="border-white/10 bg-white/[0.03] text-white"><SelectValue /></SelectTrigger>
-                        <SelectContent>{BRAND_FONT_OPTIONS.map((font) => <SelectItem key={font} value={font}>{font}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Fonte do corpo</p>
-                      <Select value={brandProfile.font_body} onValueChange={(value) => handleBrandProfileChange("font_body", value)}>
-                        <SelectTrigger className="border-white/10 bg-white/[0.03] text-white"><SelectValue /></SelectTrigger>
-                        <SelectContent>{BRAND_FONT_OPTIONS.map((font) => <SelectItem key={font} value={font}>{font}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Estilo visual</p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {BRAND_STYLE_OPTIONS.map((option) => {
-                        const checked = brandProfile.style_tags.includes(option.value);
-                        return (
-                          <label key={option.value} className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-all ${checked ? "border-fuchsia-400/30 bg-fuchsia-500/10 text-white" : "border-white/10 bg-white/[0.03] text-white/70"}`}>
-                            <Checkbox checked={checked} onCheckedChange={(next) => toggleBrandStyle(option.value, Boolean(next))} />
-                            <span>{option.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Referências visuais</p>
-                    <Textarea value={brandProfile.references} onChange={(event) => handleBrandProfileChange("references", event.target.value)} className="min-h-[80px] border-white/10 bg-white/[0.03] text-white" placeholder="Descreva o estilo ou diga que visual você quer passar." />
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Links de inspiração</p>
-                    <Textarea value={brandProfile.inspiration_links} onChange={(event) => handleBrandProfileChange("inspiration_links", event.target.value)} className="min-h-[80px] border-white/10 bg-white/[0.03] text-white" placeholder="Cole links de sites ou referências visuais." />
-                  </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Observações da marca</p>
-                    <Textarea value={brandProfile.notes} onChange={(event) => handleBrandProfileChange("notes", event.target.value)} className="min-h-[80px] border-white/10 bg-white/[0.03] text-white" placeholder="Ex.: evitar visual carregado, destacar premium, manter WhatsApp em evidência." />
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" className="border-0 text-white" style={{ background: "var(--gradient-primary)" }} onClick={handleSaveBrandProfile} disabled={savingBrand}>
-                      <Save className="mr-2 h-4 w-4" />
-                      {savingBrand ? "Salvando..." : "Salvar identidade visual"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </motion.div>
 
         <motion.div variants={fadeUp} className="space-y-6">
@@ -965,7 +571,7 @@ export default function ClienteDados() {
             <CardContent className="space-y-6 p-6">
               {!selectedBriefing && (
                 <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center text-sm text-white/45">
-                  Selecione um briefing para começar.
+                  Nenhum briefing enviado no momento.
                 </div>
               )}
 

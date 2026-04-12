@@ -55,14 +55,6 @@ import {
   type ClientBriefingStatus,
   validateBriefingFields,
 } from "@/lib/project-briefings";
-import {
-  BRAND_FONT_OPTIONS,
-  BRAND_STYLE_OPTIONS,
-  createEmptyBrandProfile,
-  parseBrandStyleTags,
-  sanitizeBrandProfile,
-  type ClientBrandProfileDraft,
-} from "@/lib/client-brand-profile";
 import { evaluateContentReadiness } from "@/lib/content-validation";
 import { notifyClientPanel } from "@/lib/user-notifications";
 import { cn } from "@/lib/utils";
@@ -155,23 +147,6 @@ type BriefingAttachmentRow = {
   created_at: string;
 };
 
-type BrandProfileRow = {
-  id: string;
-  cliente_id: string;
-  primary_color: string | null;
-  secondary_color: string | null;
-  accent_color: string | null;
-  font_heading: string | null;
-  font_body: string | null;
-  style_tags: unknown;
-  references_text: string | null;
-  inspiration_links: string | null;
-  notes: string | null;
-  logo_url: string | null;
-  logo_storage_bucket: string | null;
-  logo_storage_path: string | null;
-};
-
 type BriefingEditorState = {
   id: string | null;
   cliente_id: string;
@@ -222,28 +197,6 @@ function buildEditorFromClient(client?: ClientLite | null): BriefingEditorState 
     ...emptyEditorState,
     cliente_id: client?.id || "",
     titulo: buildBriefingTitle(getClientDisplayName(client || null)),
-  };
-}
-
-function toBrandProfileDraft(row?: BrandProfileRow | null, clienteId = ""): ClientBrandProfileDraft {
-  const base = createEmptyBrandProfile(clienteId);
-  if (!row) return base;
-
-  return {
-    id: row.id,
-    cliente_id: row.cliente_id,
-    primary_color: row.primary_color || base.primary_color,
-    secondary_color: row.secondary_color || base.secondary_color,
-    accent_color: row.accent_color || base.accent_color,
-    font_heading: row.font_heading || base.font_heading,
-    font_body: row.font_body || base.font_body,
-    style_tags: parseBrandStyleTags(row.style_tags),
-    references: row.references_text || "",
-    inspiration_links: row.inspiration_links || "",
-    notes: row.notes || "",
-    logo_url: row.logo_url || "",
-    logo_storage_bucket: row.logo_storage_bucket || base.logo_storage_bucket,
-    logo_storage_path: row.logo_storage_path || "",
   };
 }
 
@@ -315,10 +268,7 @@ export default function Briefings() {
   const [persistedFieldIds, setPersistedFieldIds] = useState<string[]>([]);
   const [answers, setAnswers] = useState<BriefingAnswerRow[]>([]);
   const [attachments, setAttachments] = useState<BriefingAttachmentRow[]>([]);
-  const [brandProfile, setBrandProfile] = useState<ClientBrandProfileDraft>(createEmptyBrandProfile());
   const [saving, setSaving] = useState(false);
-  const [savingBrand, setSavingBrand] = useState(false);
-  const [uploadingBrandLogo, setUploadingBrandLogo] = useState(false);
   const [queryApplied, setQueryApplied] = useState(false);
 
   const loadListData = useCallback(async () => {
@@ -379,22 +329,6 @@ export default function Briefings() {
     setAttachments(attachmentsResponse.data || []);
   }, [selectedBriefingId]);
 
-  const loadBrandProfile = useCallback(async () => {
-    const targetClientId = editor.cliente_id || selectedClientId;
-    if (!targetClientId) {
-      setBrandProfile(createEmptyBrandProfile());
-      return;
-    }
-
-    const { data } = await (supabase
-      .from("client_brand_profiles" as never)
-      .select("*")
-      .eq("cliente_id", targetClientId)
-      .maybeSingle() as Promise<{ data: BrandProfileRow | null }>);
-
-    setBrandProfile(toBrandProfileDraft(data, targetClientId));
-  }, [editor.cliente_id, selectedClientId]);
-
   useEffect(() => {
     void loadListData();
   }, [loadListData]);
@@ -438,16 +372,11 @@ export default function Briefings() {
     }
   }, [loadDetail, selectedBriefingId]);
 
-  useEffect(() => {
-    void loadBrandProfile();
-  }, [loadBrandProfile]);
-
   useRealtimeRefresh(
     [
       { table: "client_briefings" },
       { table: "briefing_templates" },
       { table: "clientes" },
-      { table: "client_brand_profiles" },
     ],
     loadListData,
     { channelPrefix: "admin-client-briefings-list", debounceMs: 350 },
@@ -460,15 +389,11 @@ export default function Briefings() {
           { table: "client_briefing_answers", filter: `briefing_id=eq.${selectedBriefingId}` },
           { table: "briefing_attachments", filter: `briefing_id=eq.${selectedBriefingId}` },
           { table: "client_briefings", filter: `id=eq.${selectedBriefingId}` },
-          ...(editor.cliente_id || selectedClientId
-            ? [{ table: "client_brand_profiles", filter: `cliente_id=eq.${editor.cliente_id || selectedClientId}` }]
-            : []),
         ]
       : [],
     async () => {
       await loadListData();
       await loadDetail();
-      await loadBrandProfile();
     },
     {
       enabled: Boolean(selectedBriefingId),
@@ -503,12 +428,10 @@ export default function Briefings() {
         attachments,
         summaryText: snapshot.briefing || editor.snapshot_briefing,
         referenceText: snapshot.references || editor.snapshot_references,
-        brandProfile,
       }),
     [
       answerMap,
       attachments,
-      brandProfile,
       editor.snapshot_briefing,
       editor.snapshot_references,
       fieldDrafts,
@@ -945,105 +868,6 @@ export default function Briefings() {
     }
   };
 
-  const handleBrandProfileChange = <Key extends keyof ClientBrandProfileDraft>(
-    key: Key,
-    value: ClientBrandProfileDraft[Key],
-  ) => {
-    setBrandProfile((current) => ({ ...current, [key]: value }));
-  };
-
-  const toggleBrandStyle = (style: (typeof BRAND_STYLE_OPTIONS)[number]["value"], checked: boolean) => {
-    setBrandProfile((current) => ({
-      ...current,
-      style_tags: checked
-        ? [...new Set([...current.style_tags, style])]
-        : current.style_tags.filter((item) => item !== style),
-    }));
-  };
-
-  const handleSaveBrandProfile = async () => {
-    const targetClientId = editor.cliente_id || selectedClientId;
-    if (!targetClientId) {
-      toast({
-        title: "Cliente não selecionado",
-        description: "Escolha um cliente antes de salvar a identidade visual.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSavingBrand(true);
-    try {
-      const payload = sanitizeBrandProfile(brandProfile, targetClientId);
-      const { error } = await (supabase.from("client_brand_profiles" as never).upsert({
-        id: payload.id,
-        cliente_id: payload.cliente_id,
-        primary_color: payload.primary_color,
-        secondary_color: payload.secondary_color,
-        accent_color: payload.accent_color,
-        font_heading: payload.font_heading,
-        font_body: payload.font_body,
-        style_tags: payload.style_tags,
-        references_text: payload.references || null,
-        inspiration_links: payload.inspiration_links || null,
-        notes: payload.notes || null,
-        logo_url: payload.logo_url || null,
-        logo_storage_bucket: payload.logo_storage_bucket,
-        logo_storage_path: payload.logo_storage_path || null,
-      }) as Promise<{ error: Error | null }>);
-
-      if (error) throw error;
-
-      toast({ title: "Identidade visual salva" });
-      await loadBrandProfile();
-    } catch (error) {
-      toast({
-        title: "Falha ao salvar identidade visual",
-        description: error instanceof Error ? error.message : "Não foi possível salvar o perfil visual.",
-        variant: "destructive",
-      });
-    } finally {
-      setSavingBrand(false);
-    }
-  };
-
-  const handleBrandLogoUpload = async (file: File) => {
-    const targetClientId = editor.cliente_id || selectedClientId;
-    if (!targetClientId) return;
-
-    setUploadingBrandLogo(true);
-    try {
-      const nextPath = `brand-profiles/${targetClientId}/${Date.now()}-${file.name}`;
-      const bucket = brandProfile.logo_storage_bucket || "projeto-arquivos";
-
-      if (brandProfile.logo_storage_path) {
-        await (supabase.storage.from(bucket) as any).remove([brandProfile.logo_storage_path]);
-      }
-
-      const { error: storageError } = await (supabase.storage.from(bucket) as any).upload(nextPath, file);
-      if (storageError) throw storageError;
-
-      const { data } = (supabase.storage.from(bucket) as any).getPublicUrl(nextPath);
-      setBrandProfile((current) => ({
-        ...current,
-        cliente_id: targetClientId,
-        logo_storage_bucket: bucket,
-        logo_storage_path: nextPath,
-        logo_url: data.publicUrl,
-      }));
-
-      toast({ title: "Logo carregada", description: "Salve a identidade visual para concluir." });
-    } catch (error) {
-      toast({
-        title: "Falha no upload da logo",
-        description: error instanceof Error ? error.message : "Não foi possível carregar o arquivo.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingBrandLogo(false);
-    }
-  };
-
   return (
     <motion.div
       className="space-y-6 pb-10"
@@ -1402,7 +1226,7 @@ export default function Briefings() {
                   <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Falta receber do cliente</p>
                   <div className="mt-3 space-y-2">
                     {contentValidation.missing.length === 0 && (
-                      <p className="text-sm text-emerald-200">Tudo que é crítico para conteúdo, contato e identidade visual já foi enviado.</p>
+                      <p className="text-sm text-emerald-200">Tudo que é crítico para conteúdo, contato e direção do site já foi enviado.</p>
                     )}
                     {contentValidation.missing.map((issue) => (
                       <div key={issue.id} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
@@ -1434,145 +1258,9 @@ export default function Briefings() {
                       <p className="mt-1 text-xs text-white/50">Esses dois blocos definem estrutura, copy e CTA do site.</p>
                     </div>
                     <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
-                      <p className="text-sm font-semibold text-white">Identidade visual</p>
-                      <p className="mt-1 text-xs text-white/50">Paleta, fontes, estilo e logo reduzem retrabalho na fase de design.</p>
+                      <p className="text-sm font-semibold text-white">Design e referências</p>
+                      <p className="mt-1 text-xs text-white/50">Cores, estilo, links e arquivos visuais precisam vir pelas perguntas do briefing.</p>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(255,0,127,0.16),rgba(13,11,18,0.88),rgba(138,43,226,0.18))]">
-            <CardHeader>
-              <CardTitle className="text-white">Central de identidade visual</CardTitle>
-              <CardDescription className="text-white/50">Defina a base visual do cliente para orientar design, branding e aprovação.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-                <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03]">
-                    {brandProfile.logo_url ? (
-                      <img src={brandProfile.logo_url} alt="Logo do cliente" className="max-h-[140px] max-w-full object-contain" />
-                    ) : (
-                      <div className="text-center text-xs text-white/40">Nenhuma logo enviada</div>
-                    )}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
-                      disabled={!selectedClientId || uploadingBrandLogo}
-                      onClick={() => document.getElementById("admin-brand-logo-upload")?.click()}
-                    >
-                      <Paperclip className="mr-2 h-4 w-4" />
-                      {uploadingBrandLogo ? "Enviando logo..." : "Enviar logo"}
-                    </Button>
-                    <input
-                      id="admin-brand-logo-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0];
-                        if (file) void handleBrandLogoUpload(file);
-                        event.currentTarget.value = "";
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {[
-                      { key: "primary_color", label: "Cor principal" },
-                      { key: "secondary_color", label: "Cor secundária" },
-                      { key: "accent_color", label: "Cor de destaque" },
-                    ].map((item) => (
-                      <div key={item.key} className="space-y-2">
-                        <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">{item.label}</Label>
-                        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                          <input
-                            type="color"
-                            value={brandProfile[item.key as keyof ClientBrandProfileDraft] as string}
-                            onChange={(event) => handleBrandProfileChange(item.key as keyof ClientBrandProfileDraft, event.target.value as never)}
-                            className="h-9 w-12 cursor-pointer rounded border-0 bg-transparent"
-                          />
-                          <Input
-                            value={brandProfile[item.key as keyof ClientBrandProfileDraft] as string}
-                            onChange={(event) => handleBrandProfileChange(item.key as keyof ClientBrandProfileDraft, event.target.value as never)}
-                            className="border-0 bg-transparent p-0 text-white"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Fonte dos títulos</Label>
-                      <Select value={brandProfile.font_heading} onValueChange={(value) => handleBrandProfileChange("font_heading", value)}>
-                        <SelectTrigger className="border-white/10 bg-white/[0.03] text-white"><SelectValue /></SelectTrigger>
-                        <SelectContent>{BRAND_FONT_OPTIONS.map((font) => <SelectItem key={font} value={font}>{font}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Fonte do corpo</Label>
-                      <Select value={brandProfile.font_body} onValueChange={(value) => handleBrandProfileChange("font_body", value)}>
-                        <SelectTrigger className="border-white/10 bg-white/[0.03] text-white"><SelectValue /></SelectTrigger>
-                        <SelectContent>{BRAND_FONT_OPTIONS.map((font) => <SelectItem key={font} value={font}>{font}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Estilo visual</Label>
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {BRAND_STYLE_OPTIONS.map((option) => {
-                        const checked = brandProfile.style_tags.includes(option.value);
-                        return (
-                          <label key={option.value} className={cn("flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-all", checked ? "border-fuchsia-400/30 bg-fuchsia-500/10 text-white" : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.05]")}>
-                            <Checkbox checked={checked} onCheckedChange={(next) => toggleBrandStyle(option.value, Boolean(next))} />
-                            <span>{option.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Referências visuais</Label>
-                    <Textarea value={brandProfile.references} onChange={(event) => handleBrandProfileChange("references", event.target.value)} className="min-h-[88px] border-white/10 bg-white/[0.03] text-white" placeholder="Descreva sites, layouts ou linhas visuais que combinam com a marca." />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Links de inspiração</Label>
-                    <Textarea value={brandProfile.inspiration_links} onChange={(event) => handleBrandProfileChange("inspiration_links", event.target.value)} className="min-h-[88px] border-white/10 bg-white/[0.03] text-white" placeholder="Cole URLs de referências, Behance, Dribbble, concorrentes ou sites admirados." />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Notas da marca</Label>
-                    <Textarea value={brandProfile.notes} onChange={(event) => handleBrandProfileChange("notes", event.target.value)} className="min-h-[88px] border-white/10 bg-white/[0.03] text-white" placeholder="Ex.: evitar amarelo, manter tom premium, usar visual mais limpo." />
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/20 px-4 py-4">
-                    <div>
-                      <p className="text-sm font-semibold text-white">Preview rápido da direção visual</p>
-                      <p className="text-xs text-white/45">Esse bloco ajuda o time a entender a paleta e o estilo antes de abrir o design.</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {[brandProfile.primary_color, brandProfile.secondary_color, brandProfile.accent_color].map((color) => (
-                        <span key={color} className="h-8 w-8 rounded-full border border-white/10 shadow-[0_0_18px_rgba(255,255,255,0.08)]" style={{ background: color }} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" className="border-0 text-white" style={{ background: "var(--gradient-primary)" }} onClick={handleSaveBrandProfile} disabled={savingBrand || !selectedClientId}>
-                      <Save className="mr-2 h-4 w-4" />
-                      {savingBrand ? "Salvando..." : "Salvar identidade visual"}
-                    </Button>
                   </div>
                 </div>
               </div>

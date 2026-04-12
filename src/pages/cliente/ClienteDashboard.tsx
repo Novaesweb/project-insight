@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useBranding } from "@/hooks/useBranding";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import { evaluateContentReadiness } from "@/lib/content-validation";
-import { createEmptyBrandProfile, parseBrandStyleTags, type ClientBrandProfileDraft } from "@/lib/client-brand-profile";
 import jsPDF from "jspdf";
 import logoImg from "@/assets/novaesweb-logo-premium.png";
 
@@ -74,45 +73,6 @@ interface PerfilCliente {
   trial_ends_at?: string;
 }
 
-interface BrandProfileRow {
-  id: string;
-  cliente_id: string;
-  primary_color: string | null;
-  secondary_color: string | null;
-  accent_color: string | null;
-  font_heading: string | null;
-  font_body: string | null;
-  style_tags: unknown;
-  references_text: string | null;
-  inspiration_links: string | null;
-  notes: string | null;
-  logo_url: string | null;
-  logo_storage_bucket: string | null;
-  logo_storage_path: string | null;
-}
-
-function toBrandProfileDraft(row?: BrandProfileRow | null, clienteId = ""): ClientBrandProfileDraft {
-  const base = createEmptyBrandProfile(clienteId);
-  if (!row) return base;
-
-  return {
-    id: row.id,
-    cliente_id: row.cliente_id,
-    primary_color: row.primary_color || base.primary_color,
-    secondary_color: row.secondary_color || base.secondary_color,
-    accent_color: row.accent_color || base.accent_color,
-    font_heading: row.font_heading || base.font_heading,
-    font_body: row.font_body || base.font_body,
-    style_tags: parseBrandStyleTags(row.style_tags),
-    references: row.references_text || "",
-    inspiration_links: row.inspiration_links || "",
-    notes: row.notes || "",
-    logo_url: row.logo_url || "",
-    logo_storage_bucket: row.logo_storage_bucket || base.logo_storage_bucket,
-    logo_storage_path: row.logo_storage_path || "",
-  };
-}
-
 interface Counts {
   projetos: number;
   faturas: number;
@@ -131,7 +91,6 @@ export default function ClienteDashboard() {
   const [perfil, setPerfil] = useState<PerfilCliente>(cliente);
   const [projetoAtivo, setProjetoAtivo] = useState<ProjetoAtivo | null>(null);
   const [briefingAtual, setBriefingAtual] = useState<BriefingResumo | null>(null);
-  const [brandProfile, setBrandProfile] = useState<ClientBrandProfileDraft>(createEmptyBrandProfile(cliente.id || ""));
   const [briefing, setBriefing] = useState("");
   const [referencias, setReferencias] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(DEFAULT_ONBOARDING_STORAGE_KEY));
@@ -195,15 +154,6 @@ export default function ClienteDashboard() {
 
     supabase.from("clientes").select("*").eq("id", cId).single()
       .then(({ data }) => { if (data) setPerfil(data as PerfilCliente); });
-
-    (supabase
-      .from("client_brand_profiles" as never)
-      .select("*")
-      .eq("cliente_id", cId)
-      .maybeSingle() as Promise<{ data: BrandProfileRow | null }>)
-      .then(({ data }) => {
-        setBrandProfile(toBrandProfileDraft(data, cId));
-      });
 
     supabase
       .from("contratos")
@@ -302,7 +252,6 @@ export default function ClienteDashboard() {
   }, [cId, load]);
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("client_briefings", load);
-  useRealtimeSubscription("client_brand_profiles", load);
   useRealtimeSubscription("financeiro", load);
   useRealtimeSubscription("tickets", load);
   useRealtimeSubscription("reunioes", load);
@@ -323,9 +272,8 @@ export default function ClienteDashboard() {
         client: perfil,
         summaryText: briefing,
         referenceText: referencias,
-        brandProfile,
       }),
-    [briefing, brandProfile, perfil, referencias],
+    [briefing, perfil, referencias],
   );
   const onboardingSteps = useMemo(() => {
     const briefingStatus = briefingAtual?.status;
@@ -338,7 +286,7 @@ export default function ClienteDashboard() {
         state: briefingStatus ? "done" : "current",
       },
       {
-        title: "Seus dados e identidade visual",
+        title: "Seus dados do briefing",
         description: contentValidation.missing.length === 0 ? "Base recebida. O time já consegue seguir sem depender de pendências críticas." : "Ainda existem dados importantes para você completar.",
         state: contentValidation.missing.length === 0 ? "done" : briefingStatus ? "current" : "pending",
       },
