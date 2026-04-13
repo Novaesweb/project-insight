@@ -639,103 +639,84 @@ export function buildContractClauseExplanations(
 
   return [
     {
-      number: "Partes",
-      title: "Quem está assinando",
-      explanation: `Este contrato é entre ${payload.contractante.nome || "o cliente"} e ${
-        payload.contratada.nome || "a NovaesWeb"
-      }. Ele identifica quem contrata, quem presta o serviço e quais dados básicos valem para esta proposta.`,
-    },
-    {
       number: "1",
-      title: "Objeto do contrato",
-      explanation: `A proposta cobre a estrutura digital contratada dentro do ecossistema NovaesWeb. Nesta venda, o plano principal é ${selectedPlan} e foram incluídos ${selectedExtrasLabel}.${customScopeText}`,
+      title: "O que está sendo contratado",
+      explanation: `Este contrato cobre a estrutura digital contratada dentro do ecossistema NovaesWeb, podendo abranger site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos, automação de atendimento via WhatsApp, marketing digital, manutenção recorrente, módulos adicionais, integrações e extras, conforme detalhado nas condições comerciais. Nesta venda, o plano principal é ${selectedPlan} e foram incluídos ${selectedExtrasLabel}.${customScopeText}`,
     },
     {
       number: "2",
       title: "Escopo e exclusões",
       explanation:
-        "Tudo o que está descrito no resumo comercial faz parte da entrega. O que estiver fora do escopo, nas exclusões ou não estiver aprovado na proposta pode ser tratado como adicional e cobrado à parte.",
+        "Tudo o que está descrito no resumo comercial faz parte da entrega. O que estiver fora do escopo, nas exclusões ou não estiver aprovado na proposta pode ser tratado como adicional e cobrado à parte. O cliente precisa enviar logo, textos, fotos, acessos e demais materiais necessários. Se isso atrasar, o prazo do projeto também pode atrasar.",
     },
     {
       number: "3",
       title: "Materiais e briefing",
       explanation:
-        "O cliente precisa enviar logo, textos, fotos, acessos e demais materiais necessários. Se isso atrasar, o prazo do projeto também pode atrasar, porque a produção depende dessas informações.",
+        "O CONTRATANTE deverá fornecer todos os materiais e informações necessários. O atraso no envio suspende automaticamente a contagem dos prazos. A CONTRATADA não se responsabiliza por atrasos decorrentes de material incompleto ou enviado fora do prazo.",
     },
     {
       number: "4",
-      title: "Prazo e execução",
-      explanation: `O prazo estimado desta proposta é de ${payload.prazoDias} dias úteis. Esse prazo começa de verdade quando briefing, materiais e pagamento inicial estiverem em ordem.`,
+      title: "Prazos e execução",
+      explanation: `Prazo estimado de ${payload.prazoDias} dias úteis. O prazo começa quando briefing, materiais e pagamento inicial estiverem em ordem. Havendo paralisação por mais de 15 dias, a CONTRATADA poderá reprogramar a fila de produção.`,
     },
     {
       number: "5",
       title: "Valores e pagamento",
-      explanation: `A implantação negociada ficou em ${formatCurrencyBRL(
-        payload.pricing.setupSubtotal,
-      )}, com desconto de ${formatCurrencyBRL(
-        payload.pricing.discountAmount,
-      )} e valor final de ${formatCurrencyBRL(
-        payload.pricing.finalSetupTotal,
-      )}, com entrada de ${formatCurrencyBRL(
-        payload.pricing.entryValue,
-      )} e saldo de ${formatCurrencyBRL(payload.pricing.balanceValue)}.${
-        payload.pricing.finalMonthlyTotal > 0
-          ? ` A mensalidade contratada ficou em ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}.`
-          : ""
-      } A forma de pagamento combinada é ${payload.formaPagamento}.`,
+      explanation: `O CONTRATANTE pagará à CONTRATADA os valores definidos nas condições comerciais. A forma de pagamento é: ${payload.formaPagamento}. O início da execução poderá ficar condicionado à compensação da entrada. Custos com licenças, ferramentas de terceiros, domínio, hospedagem, disparos, mídia paga e serviços não inclusos no escopo serão cobrados separadamente.`,
     },
     {
       number: "6",
-      title: "Inadimplência",
+      title: "Atrasos e inadimplência",
       explanation:
-        "Se houver atraso no pagamento, a NovaesWeb pode suspender atendimento, manutenção, automações, publicações ou entregas até a regularização. Se o projeto ainda estiver em andamento, ele também pode ser congelado até quitar o valor pendente.",
+        "Em caso de atraso no pagamento, a CONTRATADA poderá suspender serviços, atendimento, manutenção, publicações, automações, entregas e liberações até a regularização. Se houver saldo em aberto durante projeto, a execução poderá ser congelada até quitação integral.",
     },
     {
       number: "7",
-      title: "Revisões e mudanças",
-      explanation: `Esta proposta inclui ${payload.numeroRevisoes} rodada(s) de revisão dentro do que foi aprovado. Alterações fora do escopo ou novas demandas podem ser cobradas${reviewPrice}.`,
+      title: "Revisões e alterações",
+      explanation: `Estão incluídas até ${payload.numeroRevisoes} rodadas de revisão dentro do escopo aprovado. Revisões, refações, alterações estruturais, mudanças de direção ou novos pedidos fora do escopo poderão ser cobrados adicionalmente no valor mínimo de R$ ${payload.valorRevisao} por demanda.`,
     },
     {
       number: "8",
       title: "Propriedade intelectual",
       explanation:
-        "Enquanto o contrato não estiver quitado por completo, a estrutura, os arquivos, o painel, as páginas, o código e os demais ativos continuam sob titularidade da NovaesWeb. A liberação final acontece após pagamento integral.",
+        "Até a quitação integral, a estrutura, arquivos editáveis, painel, páginas, sistemas, automações, layouts, códigos e ativos digitais permanecem sob titularidade da CONTRATADA. A cessão definitiva ocorre somente após pagamento total.",
     },
     {
       number: "9",
-      title: "Marketing e automações",
+      title: "Marketing e resultados",
       explanation:
-        "Quando houver marketing, atendimento automatizado ou processos comerciais, a NovaesWeb executa com base técnica e estratégica, mas não promete resultado absoluto de vendas, leads ou faturamento porque isso depende de fatores externos e da operação do cliente.",
+        "Quando houver marketing, conteúdo, automações ou processos comerciais, a CONTRATADA atua com base técnica e estratégica, mas não garante resultado absoluto de vendas, leads ou faturamento, pois isso depende de variáveis externas e da operação do CONTRATANTE.",
     },
     {
       number: "10",
-      title: "Suporte e recorrência",
-      explanation: `Suporte, manutenção e operação contínua só valem se estiverem contratados. Nesta proposta, a referência de atendimento ficou definida como: ${payload.prazoSuporte}.`,
+      title: "Suporte e manutenção",
+      explanation: `Serviços de suporte, manutenção, acompanhamento ou operação recorrente só valem se contratados expressamente. Quando existentes, serão prestados dentro da janela: ${payload.prazoSuporte}. Não se incluem automaticamente: criação de novas páginas, novos módulos, mudanças profundas de layout, integrações não previstas ou demandas fora do escopo.`,
     },
     {
       number: "11",
-      title: "Rescisão",
+      title: "Cancelamento e rescisão",
       explanation:
-        "O cliente pode cancelar mesmo depois do início do projeto, mas o valor inicial já pago para ativar e começar a estrutura não é devolvido. Se houver cancelamento, o site, painel, sistema ou automação continua ativo somente até o período já pago; depois disso, a NovaesWeb pode encerrar a estrutura automaticamente.",
+        "O CONTRATANTE pode cancelar mesmo após início dos trabalhos, mas valores já pagos para ativação e estruturação não serão devolvidos. Em caso de cancelamento, a estrutura permanece ativa apenas até o período já pago. Em descumprimento grave, inadimplência reiterada ou uso indevido, a CONTRATADA poderá rescindir imediatamente.",
     },
     {
       number: "12",
       title: "Sigilo e dados",
       explanation:
-        "As informações trocadas para execução do projeto devem ser tratadas com sigilo. Os dados enviados pelo cliente serão usados para executar o serviço, dar suporte e cuidar da operação comercial e financeira do contrato.",
+        "As partes mantêm sigilo sobre informações estratégicas, comerciais, operacionais, dados e documentos. Os dados serão utilizados apenas para execução do serviço, atendimento, suporte e obrigações correlatas. O CONTRATANTE é responsável pela veracidade das informações fornecidas.",
     },
     {
       number: "13",
       title: "Observações comerciais",
       explanation:
         payload.observacoesComerciais.trim() ||
-        "Qualquer observação comercial adicional da proposta passa a fazer parte deste contrato e vale como complemento das condições combinadas.",
+        "As partes reconhecem as observações comerciais como parte integrante do contrato.",
     },
     {
       number: "14",
-      title: "Foro",
+      title: "Foro e jurisdição",
       explanation:
-        "Se surgir discussão jurídica que não seja resolvida entre as partes, o foro escolhido para tratar disso é Canoas/RS.",
+        "Fica eleito o foro da Comarca de Canoas/RS, com renúncia expressa a qualquer outro, por mais privilegiado que seja.",
     },
   ];
 }
