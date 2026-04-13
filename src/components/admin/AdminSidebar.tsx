@@ -29,7 +29,7 @@ import { getFavoriteAdminRoutes, getRecentAdminRoutes } from "@/lib/admin-naviga
 
 interface NavGroup {
   title: string;
-  items: { href: string; label: string; icon: any; accent?: boolean }[];
+  items: { href: string; label: string; icon?: any; accent?: boolean; isSubItem?: boolean }[];
 }
 
 const navGroups: NavGroup[] = [
@@ -58,6 +58,8 @@ const navGroups: NavGroup[] = [
       { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
       { href: "/admin/contratos", label: "Contratos", icon: ShieldCheck },
       { href: "/admin/briefings", label: "Briefings", icon: ClipboardList },
+      { href: "/admin/briefings/em-andamento", label: "Briefings em andamento", isSubItem: true },
+      { href: "/admin/briefings/biblioteca", label: "Biblioteca de perguntas prontas", isSubItem: true },
       { href: "/admin/suporte", label: "Suporte", icon: Headphones },
     ],
   },
@@ -196,7 +198,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
             )}
 
             <div className="space-y-0.5">
-              {group.items.filter((item) => canAccessPath(item.href)).map((item) => {
+              {group.items
+                .filter((item) => canAccessPath(item.href))
+                .filter((item) => !isCollapsed || !item.isSubItem)
+                .map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
                 const badgeCount = getItemCount(item.href);
 
@@ -206,7 +211,11 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                     to={item.href}
                     className={cn(
                       "group flex items-center py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
-                      isCollapsed ? "justify-center px-2" : "gap-3 px-3",
+                      item.isSubItem
+                        ? "ml-7 gap-2 px-3 py-2 text-[11px]"
+                        : isCollapsed
+                          ? "justify-center px-2"
+                          : "gap-3 px-3",
                       isActive
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
@@ -221,23 +230,35 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                     {isActive && (
                       <motion.div
                         layoutId="adminNav"
-                        className="absolute left-0 w-[3px] h-4 rounded-r-full"
+                        className={cn(
+                          "absolute w-[3px] rounded-r-full",
+                          item.isSubItem ? "left-2 h-3" : "left-0 h-4"
+                        )}
                         style={{ background: "var(--gradient-primary)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
-                    <item.icon
-                      className={cn(
-                        "w-4 h-4 shrink-0 transition-all duration-200",
-                        isActive
-                          ? "text-primary"
-                          : item.accent
-                            ? "text-amber-400/50"
-                            : "text-muted-foreground/60 group-hover:text-foreground/80"
-                      )}
-                    />
+                    {item.isSubItem ? (
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-200",
+                          isActive ? "bg-primary" : "bg-white/30 group-hover:bg-white/60"
+                        )}
+                      />
+                    ) : item.icon ? (
+                      <item.icon
+                        className={cn(
+                          "w-4 h-4 shrink-0 transition-all duration-200",
+                          isActive
+                            ? "text-primary"
+                            : item.accent
+                              ? "text-amber-400/50"
+                              : "text-muted-foreground/60 group-hover:text-foreground/80"
+                        )}
+                      />
+                    ) : null}
                     {!isCollapsed && <span className="truncate">{item.label}</span>}
-                    {!isCollapsed && badgeCount > 0 && (
+                    {!isCollapsed && !item.isSubItem && badgeCount > 0 && (
                       <span
                         className="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"
                         style={{ background: "hsl(var(--primary))" }}
