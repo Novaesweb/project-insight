@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowDown,
@@ -29,7 +29,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { usePersistentDraftState } from "@/hooks/usePersistentDraftState";
@@ -160,6 +159,7 @@ type BriefingEditorState = {
 };
 
 type BriefingTab = "briefing" | "sent" | "responses";
+type BriefingsPage = "briefings" | "in-progress" | "library";
 
 const emptyEditorState: BriefingEditorState = {
   id: null,
@@ -219,6 +219,18 @@ function buildEditorFromClient(client?: ClientLite | null): BriefingEditorState 
   };
 }
 
+function getBriefingsPage(pathname: string): BriefingsPage {
+  if (pathname.endsWith("/briefings/em-andamento")) {
+    return "in-progress";
+  }
+
+  if (pathname.endsWith("/briefings/biblioteca")) {
+    return "library";
+  }
+
+  return "briefings";
+}
+
 function toFieldDraft(field: BriefingFieldRow): BriefingFieldDraft {
   return {
     id: field.id,
@@ -268,8 +280,10 @@ function suggestProjectTitle(
 
 export default function Briefings() {
   const { toast } = useToast();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const clientParam = searchParams.get("cliente");
+  const currentPage = useMemo(() => getBriefingsPage(location.pathname), [location.pathname]);
 
   const [loading, setLoading] = useState(true);
   const [briefings, setBriefings] = useState<ClientBriefingRow[]>([]);
@@ -369,6 +383,10 @@ export default function Briefings() {
     templateSection,
     templateSelection,
   ]);
+
+  useEffect(() => {
+    setActiveTab(currentPage === "briefings" ? "sent" : "briefing");
+  }, [currentPage]);
 
   const loadListData = useCallback(async () => {
     const [briefingsResponse, clientsResponse, templatesResponse] = await Promise.all([
@@ -516,6 +534,61 @@ export default function Briefings() {
   }, [briefings, clientParam, clients, loading, queryApplied]);
 
   useEffect(() => {
+    if (!queryApplied || loading) return;
+
+    const sentRows = briefings.filter((item) =>
+      ["enviado", "em_preenchimento", "respondido", "concluido"].includes(item.status),
+    );
+    const draftRows = briefings.filter((item) => item.status === "em_construcao");
+
+    if (currentPage === "briefings") {
+      if (!selectedSentBriefingId && sentRows[0]) {
+        setSelectedSentBriefingId(sentRows[0].id);
+      }
+      return;
+    }
+
+    const activeBriefing = briefings.find((item) => item.id === selectedBriefingId) || null;
+    if (activeBriefing?.status === "em_construcao") return;
+
+    const selectedClientDraft = selectedClientId
+      ? briefings.find(
+          (item) => item.cliente_id === selectedClientId && item.status === "em_construcao",
+        ) || null
+      : null;
+    const fallbackDraft = selectedClientDraft || draftRows[0] || null;
+
+    if (fallbackDraft) {
+      if (selectedBriefingId !== fallbackDraft.id) {
+        setSelectedBriefingId(fallbackDraft.id);
+      }
+      if (selectedClientId !== fallbackDraft.cliente_id) {
+        setSelectedClientId(fallbackDraft.cliente_id);
+      }
+      return;
+    }
+
+    if (selectedClientId) {
+      const selectedClientRecord = clients.find((item) => item.id === selectedClientId) || null;
+      setSelectedBriefingId(null);
+      setEditor(buildEditorFromClient(selectedClientRecord));
+      setFieldDrafts([]);
+      setPersistedFieldIds([]);
+      setAnswers([]);
+      setAttachments([]);
+    }
+  }, [
+    briefings,
+    clients,
+    currentPage,
+    loading,
+    queryApplied,
+    selectedBriefingId,
+    selectedClientId,
+    selectedSentBriefingId,
+  ]);
+
+  useEffect(() => {
     if (selectedBriefingId) {
       void loadDetail();
     }
@@ -634,6 +707,18 @@ export default function Briefings() {
     [briefings, selectedSentBriefingId],
   );
 
+  const selectedDraftBriefing = useMemo(() => {
+    if (selectedBriefing?.status === "em_construcao") {
+      return selectedBriefing;
+    }
+
+    return (
+      draftBriefings.find((item) => item.cliente_id === selectedClientId) ||
+      draftBriefings[0] ||
+      null
+    );
+  }, [draftBriefings, selectedBriefing, selectedClientId]);
+
   const answeredFieldCount = useMemo(
     () =>
       fieldDrafts.filter((field) => {
@@ -702,7 +787,7 @@ export default function Briefings() {
     const client = clients.find((item) => item.id === clientId) || null;
 
     setSelectedClientId(clientId);
-    setActiveTab("briefing");
+    setActiveTab(currentPage === "briefings" ? "sent" : "briefing");
     setSelectedSentBriefingId(firstSentBriefing?.id || null);
     setTemplateSelection([]);
     setSearchParams((current) => {
@@ -710,6 +795,11 @@ export default function Briefings() {
       next.set("cliente", clientId);
       return next;
     });
+
+    if (currentPage === "briefings" && firstSentBriefing) {
+      setSelectedBriefingId(firstSentBriefing.id);
+      return;
+    }
 
     if (draftBriefing) {
       setSelectedBriefingId(draftBriefing.id);
@@ -1320,6 +1410,192 @@ export default function Briefings() {
     </Card>
   );
 
+  const responsePanelCard = selectedSentBriefing ? (
+    <Card className="border-white/10 bg-white/[0.03]">
+      <CardHeader>
+        <CardTitle className="text-white">Respostas do cliente</CardTitle>
+        <CardDescription className="text-white/45">
+          Perguntas respondidas e pendentes do briefing {selectedSentBriefing.titulo}.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {responseSections.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/45">
+            Nenhuma pergunta carregada para esse briefing.
+          </div>
+        )}
+
+        {responseSections.map((section) => (
+          <div key={section.name} className="space-y-4">
+            <div>
+              <p className="text-sm font-black text-white">{section.name}</p>
+              <p className="text-xs text-white/45">{section.fields.length} perguntas nessa seção</p>
+            </div>
+
+            <div className="space-y-3">
+              {section.fields.map((field) => {
+                const value = answerMap[field.id];
+                const files = attachments.filter((file) => file.field_id === field.id);
+                const answered =
+                  field.field_type === "file_upload" ? files.length > 0 : hasAnswerValue(value);
+
+                return (
+                  <div key={field.id} className="rounded-3xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-white">{field.label}</p>
+                          <Badge
+                            className={cn(
+                              "border",
+                              answered
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
+                                : "border-rose-500/20 bg-rose-500/10 text-rose-200",
+                            )}
+                          >
+                            {answered ? "Respondida" : "Pendente"}
+                          </Badge>
+                        </div>
+                        {field.help_text && (
+                          <p className="text-xs leading-relaxed text-white/45">{field.help_text}</p>
+                        )}
+                      </div>
+                      <Badge className="border border-white/10 bg-white/5 text-white/60">
+                        {briefingFieldTypeMeta.find((item) => item.value === field.field_type)?.label}
+                      </Badge>
+                    </div>
+
+                    {field.field_type === "file_upload" ? (
+                      <div className="mt-4 space-y-2">
+                        {files.length === 0 ? (
+                          <p className="text-sm text-white/45">Nenhum arquivo anexado.</p>
+                        ) : (
+                          files.map((file) => (
+                            <a
+                              key={file.id}
+                              href={file.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/75"
+                            >
+                              <span className="truncate">{file.nome}</span>
+                              <span className="text-[11px] text-white/35">
+                                {formatDateTime(file.created_at)}
+                              </span>
+                            </a>
+                          ))
+                        )}
+                      </div>
+                    ) : Array.isArray(value) ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {value.length > 0 ? (
+                          value.map((item) => (
+                            <Badge key={item} className="border border-white/10 bg-white/[0.03] text-white/75">
+                              {item}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-sm text-white/45">Resposta pendente.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/75">
+                        {value?.trim() || "Resposta pendente."}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  ) : (
+    <Card className="border-white/10 bg-white/[0.03]">
+      <CardContent className="p-8 text-center text-sm text-white/45">
+        Escolha um briefing enviado para ler as respostas do cliente.
+      </CardContent>
+    </Card>
+  );
+
+  const libraryContextCard = (
+    <Card className="border-white/10 bg-white/[0.03]">
+      <CardHeader>
+        <CardTitle className="text-white">Destino das perguntas</CardTitle>
+        <CardDescription className="text-white/45">
+          Escolha o cliente e o briefing em construção que vai receber as perguntas prontas.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label className="text-[11px] uppercase tracking-[0.18em] text-white/45">Cliente</Label>
+          <Select value={selectedClientId || ""} onValueChange={handleSelectClient}>
+            <SelectTrigger className="border-white/10 bg-white/[0.03] text-white">
+              <SelectValue placeholder="Selecione um cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {getClientDisplayName(client)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Briefing ativo</p>
+          <p className="mt-2 text-sm font-semibold text-white">
+            {selectedDraftBriefing?.titulo || "Nenhum briefing em construção selecionado"}
+          </p>
+          <p className="mt-2 text-xs text-white/45">
+            {selectedDraftBriefing
+              ? `${fieldDrafts.length} perguntas já acumuladas nesse briefing.`
+              : "Crie ou selecione um briefing em construção para começar a montar a coleta."}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
+            onClick={handleStartDraft}
+            disabled={!selectedClientId}
+          >
+            <FilePlus2 className="mr-2 h-4 w-4" />
+            Novo briefing em construção
+          </Button>
+          <Button asChild className="border-0 text-white" style={{ background: "var(--gradient-primary)" }}>
+            <Link to="/admin/briefings/em-andamento">Abrir montagem do briefing</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const navigationItems = [
+    {
+      href: "/admin/briefings",
+      label: "Briefings",
+      description: "Visão principal e acompanhamento dos briefings enviados.",
+      active: currentPage === "briefings",
+    },
+    {
+      href: "/admin/briefings/em-andamento",
+      label: "Briefings em andamento",
+      description: "Monte, edite e prepare os briefings antes do envio ao cliente.",
+      active: currentPage === "in-progress",
+    },
+    {
+      href: "/admin/briefings/biblioteca",
+      label: "Biblioteca de perguntas prontas",
+      description: "Gerencie a base de perguntas prontas usada na montagem.",
+      active: currentPage === "library",
+    },
+  ];
+
   return (
     <motion.div
       className="space-y-6 pb-10"
@@ -1336,7 +1612,7 @@ export default function Briefings() {
           <div>
             <h1 className="text-2xl font-black tracking-tight text-white">Briefings por cliente</h1>
             <p className="max-w-3xl text-sm text-white/55">
-              Tudo fica em uma única página: montagem do briefing, enviados e respostas do cliente.
+              Área organizada em páginas separadas para montagem, acompanhamento e biblioteca de perguntas.
             </p>
           </div>
         </div>
@@ -1346,11 +1622,36 @@ export default function Briefings() {
             <FilePlus2 className="mr-2 h-4 w-4" />
             Briefing em construção
           </Button>
-          <Button type="button" className="border-0 text-white" style={{ background: "var(--gradient-primary)" }} onClick={() => handlePersist("draft")} disabled={saving || !selectedClientId}>
-            <Save className="mr-2 h-4 w-4" />
-            Salvar sem enviar
-          </Button>
+          {currentPage !== "briefings" && (
+            <Button type="button" className="border-0 text-white" style={{ background: "var(--gradient-primary)" }} onClick={() => handlePersist("draft")} disabled={saving || !selectedClientId}>
+              <Save className="mr-2 h-4 w-4" />
+              Salvar sem enviar
+            </Button>
+          )}
         </div>
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="grid gap-3 lg:grid-cols-3">
+        {navigationItems.map((item) => (
+          <Button
+            key={item.href}
+            asChild
+            variant="outline"
+            className={cn(
+              "h-auto justify-start rounded-3xl px-5 py-4 text-left",
+              item.active
+                ? "border-fuchsia-400/30 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] text-white"
+                : "border-white/10 bg-white/[0.03] text-white/80 hover:bg-white/[0.06]",
+            )}
+          >
+            <Link to={item.href}>
+              <div>
+                <p className="text-sm font-black">{item.label}</p>
+                <p className="mt-1 text-xs text-white/50">{item.description}</p>
+              </div>
+            </Link>
+          </Button>
+        ))}
       </motion.div>
 
       <motion.div variants={fadeUp}>
@@ -1404,72 +1705,55 @@ export default function Briefings() {
         </Card>
       </motion.div>
 
-      <motion.div variants={fadeUp}>
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => {
-            const nextTab = value as BriefingTab;
-            setActiveTab(nextTab);
+      {currentPage !== "library" && (
+        <motion.div variants={fadeUp}>
+          <div className="grid gap-3 md:grid-cols-[260px_1fr_220px]">
+            <Select value={selectedClientId || ""} onValueChange={handleSelectClient}>
+              <SelectTrigger className="border-white/10 bg-white/[0.03] text-white">
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {getClientDisplayName(client)} {client.email ? `• ${client.email}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            if ((nextTab === "sent" || nextTab === "responses") && !selectedSentBriefingId && sentBriefings[0]) {
-              setSelectedSentBriefingId(sentBriefings[0].id);
-              setSelectedBriefingId(sentBriefings[0].id);
-            }
-          }}
-          className="space-y-6"
-        >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="grid gap-3 md:grid-cols-[260px_1fr_220px]">
-              <Select value={selectedClientId || ""} onValueChange={handleSelectClient}>
-                <SelectTrigger className="border-white/10 bg-white/[0.03] text-white">
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {getClientDisplayName(client)} {client.email ? `• ${client.email}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Buscar briefing por cliente ou título"
-                  className="border-white/10 bg-white/[0.03] pl-9 text-white"
-                />
-              </div>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="border-white/10 bg-white/[0.03] text-white">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os status</SelectItem>
-                  {Object.entries(briefingStatusMeta).map(([value, meta]) => (
-                    <SelectItem key={value} value={value}>
-                      {value === "em_preenchimento"
-                        ? "Parcial"
-                        : value === "enviado"
-                          ? "Aguardando resposta"
-                          : meta.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar briefing por cliente ou título"
+                className="border-white/10 bg-white/[0.03] pl-9 text-white"
+              />
             </div>
 
-            <TabsList className="grid w-full max-w-[460px] grid-cols-3 border border-white/10 bg-white/[0.03]">
-              <TabsTrigger value="briefing">Briefing</TabsTrigger>
-              <TabsTrigger value="sent">Enviados</TabsTrigger>
-              <TabsTrigger value="responses">Respostas do Cliente</TabsTrigger>
-            </TabsList>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="border-white/10 bg-white/[0.03] text-white">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os status</SelectItem>
+                {Object.entries(briefingStatusMeta).map(([value, meta]) => (
+                  <SelectItem key={value} value={value}>
+                    {value === "em_preenchimento"
+                      ? "Parcial"
+                      : value === "enviado"
+                        ? "Aguardando resposta"
+                        : meta.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </motion.div>
+      )}
 
-          <TabsContent value="briefing" className="mt-0">
+      {currentPage === "in-progress" && (
+        <motion.div variants={fadeUp}>
             <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
               <Card className="border-white/10 bg-white/[0.03]">
                 <CardHeader>
@@ -1531,14 +1815,13 @@ export default function Briefings() {
                 </CardContent>
               </Card>
 
-              <div className="space-y-6">
-                {briefingEditorCard}
-                {templateLibraryCard}
-              </div>
+              <div className="space-y-6">{briefingEditorCard}</div>
             </div>
-          </TabsContent>
+        </motion.div>
+      )}
 
-          <TabsContent value="sent" className="mt-0">
+      {currentPage === "briefings" && (
+        <motion.div variants={fadeUp}>
             <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
               <div className="space-y-6">
                 <Card className="border-white/10 bg-white/[0.03]">
@@ -1650,181 +1933,31 @@ export default function Briefings() {
                         </div>
                       </CardContent>
                     </Card>
+                    {responsePanelCard}
                     {briefingSummaryCard}
                   </>
                 ) : (
                   <Card className="border-white/10 bg-white/[0.03]">
                     <CardContent className="p-8 text-center text-sm text-white/45">
-                      Selecione um briefing enviado para acompanhar o detalhe e reenviar alterações.
+                      Selecione um briefing enviado para acompanhar o detalhe e as respostas do cliente.
                     </CardContent>
                   </Card>
                 )}
               </div>
             </div>
-          </TabsContent>
+        </motion.div>
+      )}
 
-          <TabsContent value="responses" className="mt-0">
-            <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-              <Card className="border-white/10 bg-white/[0.03]">
-                <CardHeader>
-                  <CardTitle className="text-white">Briefings com resposta</CardTitle>
-                  <CardDescription className="text-white/45">
-                    Escolha um briefing enviado para ler as respostas sem sair da página.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[760px] pr-3">
-                    <div className="space-y-3">
-                      {!loading && sentBriefings.length === 0 && (
-                        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/45">
-                          Nenhum briefing enviado disponível.
-                        </div>
-                      )}
-                      {sentBriefings.map((briefing) => (
-                        <button
-                          key={briefing.id}
-                          type="button"
-                          onClick={() => handleOpenBriefing(briefing, "responses")}
-                          className={cn(
-                            "w-full rounded-3xl border p-4 text-left transition-all",
-                            briefing.id === selectedSentBriefingId
-                              ? "border-fuchsia-400/30 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(194,24,91,0.14))]"
-                              : "border-white/10 bg-white/[0.02] hover:bg-white/[0.04]",
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-1">
-                              <p className="text-sm font-black text-white">{briefing.titulo}</p>
-                              <p className="text-[11px] text-white/45">{getClientDisplayName(briefing.clientes)}</p>
-                            </div>
-                            <Badge className={cn("border", briefingStatusMeta[briefing.status].tone)}>
-                              {getSentStatusLabel(briefing.status)}
-                            </Badge>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-6">
-                {selectedSentBriefing ? (
-                  <>
-                    <Card className="border-white/10 bg-white/[0.03]">
-                      <CardHeader>
-                        <CardTitle className="text-white">Respostas do cliente</CardTitle>
-                        <CardDescription className="text-white/45">
-                          Perguntas respondidas e pendentes do briefing {selectedSentBriefing.titulo}.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {responseSections.length === 0 && (
-                          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center text-sm text-white/45">
-                            Nenhuma pergunta carregada para esse briefing.
-                          </div>
-                        )}
-
-                        {responseSections.map((section) => (
-                          <div key={section.name} className="space-y-4">
-                            <div>
-                              <p className="text-sm font-black text-white">{section.name}</p>
-                              <p className="text-xs text-white/45">{section.fields.length} perguntas nessa seção</p>
-                            </div>
-
-                            <div className="space-y-3">
-                              {section.fields.map((field) => {
-                                const value = answerMap[field.id];
-                                const files = attachments.filter((file) => file.field_id === field.id);
-                                const answered =
-                                  field.field_type === "file_upload" ? files.length > 0 : hasAnswerValue(value);
-
-                                return (
-                                  <div key={field.id} className="rounded-3xl border border-white/10 bg-black/20 p-4">
-                                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                      <div className="space-y-2">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                          <p className="text-sm font-semibold text-white">{field.label}</p>
-                                          <Badge
-                                            className={cn(
-                                              "border",
-                                              answered
-                                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
-                                                : "border-rose-500/20 bg-rose-500/10 text-rose-200",
-                                            )}
-                                          >
-                                            {answered ? "Respondida" : "Pendente"}
-                                          </Badge>
-                                        </div>
-                                        {field.help_text && (
-                                          <p className="text-xs leading-relaxed text-white/45">{field.help_text}</p>
-                                        )}
-                                      </div>
-                                      <Badge className="border border-white/10 bg-white/5 text-white/60">
-                                        {briefingFieldTypeMeta.find((item) => item.value === field.field_type)?.label}
-                                      </Badge>
-                                    </div>
-
-                                    {field.field_type === "file_upload" ? (
-                                      <div className="mt-4 space-y-2">
-                                        {files.length === 0 ? (
-                                          <p className="text-sm text-white/45">Nenhum arquivo anexado.</p>
-                                        ) : (
-                                          files.map((file) => (
-                                            <a
-                                              key={file.id}
-                                              href={file.url}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                              className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/75"
-                                            >
-                                              <span className="truncate">{file.nome}</span>
-                                              <span className="text-[11px] text-white/35">
-                                                {formatDateTime(file.created_at)}
-                                              </span>
-                                            </a>
-                                          ))
-                                        )}
-                                      </div>
-                                    ) : Array.isArray(value) ? (
-                                      <div className="mt-4 flex flex-wrap gap-2">
-                                        {value.length > 0 ? (
-                                          value.map((item) => (
-                                            <Badge key={item} className="border border-white/10 bg-white/[0.03] text-white/75">
-                                              {item}
-                                            </Badge>
-                                          ))
-                                        ) : (
-                                          <p className="text-sm text-white/45">Resposta pendente.</p>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/75">
-                                        {value?.trim() || "Resposta pendente."}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                    {briefingSummaryCard}
-                  </>
-                ) : (
-                  <Card className="border-white/10 bg-white/[0.03]">
-                    <CardContent className="p-8 text-center text-sm text-white/45">
-                      Escolha um briefing na aba de enviados para ler as respostas do cliente.
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+      {currentPage === "library" && (
+        <motion.div variants={fadeUp}>
+          <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+            {libraryContextCard}
+            <div className="space-y-6">
+              {templateLibraryCard}
             </div>
-          </TabsContent>
-        </Tabs>
-      </motion.div>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

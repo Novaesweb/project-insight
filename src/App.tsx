@@ -124,6 +124,8 @@ function AdminWithSplash() {
             <Route path="revenda" element={<AdminRevenda />} />
             <Route path="contratos" element={<Contratos />} />
             <Route path="briefings" element={<Briefings />} />
+            <Route path="briefings/em-andamento" element={<Briefings />} />
+            <Route path="briefings/biblioteca" element={<Briefings />} />
             <Route path="menu" element={<AdminMenu />} />
             <Route path="configuracoes-legado" element={<AdminConfig />} />
             <Route path="recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
