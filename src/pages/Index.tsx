@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Users, FolderKanban, ShoppingCart, DollarSign, Headphones, 
-  BellRing, Sparkles, UserPlus, Zap, Plus, ShieldCheck, ArrowRight
+  BellRing, Sparkles, UserPlus, Zap, Plus, ShieldCheck, ArrowRight, ClipboardList
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -213,6 +213,11 @@ export default function Dashboard() {
         <div className="flex flex-wrap gap-3">
           <Button className="h-10 px-4 rounded-xl bg-gradient-to-r from-[#7b1fa2] to-[#c2185b] text-white shadow-lg shadow-[#7b1fa2]/20 border-0 group text-xs font-bold hover:shadow-[#7b1fa2]/30 transition-shadow" onClick={openAddExtra}>
             <Plus className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-90 transition-transform" /> Injetar Módulo
+          </Button>
+          <Button asChild className="h-10 px-4 rounded-xl bg-gradient-to-r from-[#8A2BE2] via-[#FF0000] to-[#FF007F] text-white border-0 shadow-lg shadow-[#8A2BE2]/20 text-xs font-bold hover:shadow-[#FF007F]/30">
+            <Link to="/admin/briefings">
+              <ClipboardList className="w-3.5 h-3.5 mr-1.5" /> Abrir Briefings
+            </Link>
           </Button>
           <Button asChild className="h-10 px-4 rounded-xl bg-white/[0.04] text-foreground border border-white/[0.06] text-xs font-medium hover:bg-white/[0.08]">
             <Link to="/admin/clientes"><Users className="w-3.5 h-3.5 mr-1.5 text-[#7b1fa2]" /> Novo Ecossistema</Link>
