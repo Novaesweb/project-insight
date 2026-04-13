@@ -1,23 +1,54 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 
+type DashboardSnapshot = {
+  stats?: {
+    clientes?: number;
+    projetos?: number;
+    leads?: number;
+    receita?: number;
+  };
+  pedidos?: unknown[];
+  tickets?: unknown[];
+  subCount?: number;
+  monthlyRevenue?: Array<{ name?: string; total?: number }>;
+  topModules?: Array<{ name?: string; value?: number }>;
+  funnelData?: Array<{ name?: string; value?: number }>;
+  revenue?: {
+    paid?: number;
+    pending?: number;
+  };
+  pendingInvoices?: number;
+  newLeads?: number;
+  lateProjects?: number;
+};
+
+type DashboardActivityItem = {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  url?: string | null;
+  read?: boolean;
+};
+
+const defaultFunnelData = [
+  { name: "Leads", value: 0 },
+  { name: "Clientes", value: 0 },
+  { name: "Projetos", value: 0 },
+];
+
 export function useDashboardData() {
-  const { toast } = useToast();
   const [stats, setStats] = useState({ clientes: 0, projetos: 0, leads: 0, receita: 0 });
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [dbStatus, setDbStatus] = useState<"conectado" | "erro" | "carregando">("carregando");
   const [subCount, setSubCount] = useState(0);
-  const [activity, setActivity] = useState<any[]>([]);
+  const [activity, setActivity] = useState<DashboardActivityItem[]>([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState<any[]>([]);
   const [topModules, setTopModules] = useState<any[]>([]);
-  const [funnelData, setFunnelData] = useState<any[]>([
-    { name: "Leads", value: 0 },
-    { name: "Clientes", value: 0 },
-    { name: "Projetos", value: 0 }
-  ]);
+  const [funnelData, setFunnelData] = useState<any[]>(defaultFunnelData);
   const [revenue, setRevenue] = useState({ paid: 0, pending: 0 });
   const [pendingInvoices, setPendingInvoices] = useState(0);
   const [newLeads, setNewLeads] = useState(0);
@@ -25,117 +56,74 @@ export function useDashboardData() {
 
   const load = useCallback(async () => {
     try {
-      const [c, p, ped, t, fin, extrasCli, catFull, newLeadsRes, lateProjectsRes] = await Promise.all([
-        supabase.from("clientes").select("*", { count: "exact", head: true }).eq("status", "ativo"),
-        supabase.from("projetos").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
-        supabase.from("pedidos").select("*, clientes(nome)").order("created_at", { ascending: false }).limit(5),
-        supabase.from("tickets").select("*, clientes(nome)").neq("status", "resolvido").order("created_at", { ascending: false }).limit(5),
-        supabase.from("financeiro").select("valor, created_at").eq("tipo", "entrada").eq("status", "pago"),
-        supabase.from("extras_clientes").select("extra_id"),
-        supabase.from("extras_catalogo").select("id, nome"),
-        supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "novo"),
-        supabase.from("projetos").select("id, status, data_entrega").neq("status", "concluido")
+      const [snapshotResponse, activityResponse] = await Promise.all([
+        supabase.rpc("get_admin_dashboard_snapshot"),
+        supabase.rpc("get_admin_dashboard_activity"),
       ]);
 
-      const totalRevenue = (fin.data || []).reduce((s: number, f: any) => s + Number(f.valor), 0);
+      if (snapshotResponse.error) {
+        throw snapshotResponse.error;
+      }
+
+      if (activityResponse.error) {
+        throw activityResponse.error;
+      }
+
+      const snapshot = (snapshotResponse.data || {}) as DashboardSnapshot;
+      const activityItems = Array.isArray(activityResponse.data)
+        ? (activityResponse.data as DashboardActivityItem[])
+        : [];
+
       setStats({
-        clientes: c.count || 0,
-        projetos: p.count || 0,
-        leads: newLeadsRes.count || 0,
-        receita: totalRevenue
+        clientes: Number(snapshot.stats?.clientes || 0),
+        projetos: Number(snapshot.stats?.projetos || 0),
+        leads: Number(snapshot.stats?.leads || 0),
+        receita: Number(snapshot.stats?.receita || 0),
       });
-      setPedidos(ped.data || []);
-      setTickets(t.data || []);
-      setNewLeads(newLeadsRes.count || 0);
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const lateProjectsCount = (lateProjectsRes.data || []).filter((project: any) => {
-        if (!project?.data_entrega) return false;
-        const deliveryDate = new Date(project.data_entrega);
-        deliveryDate.setHours(0, 0, 0, 0);
-        return deliveryDate < today;
-      }).length;
-      setLateProjects(lateProjectsCount);
-
-      const hasError = c.error || p.error || ped.error || t.error || fin.error;
-      setDbStatus(hasError ? "erro" : "conectado");
-
-      // Chart Calculations: Monthly Revenue
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const currentMonthIndex = new Date().getMonth();
-      const revenueMap: Record<string, number> = {};
-
-      for (let i = 5; i >= 0; i--) {
-        let mIdx = currentMonthIndex - i;
-        if (mIdx < 0) mIdx += 12;
-        revenueMap[months[mIdx]] = 0;
-      }
-
-      fin.data?.forEach((f: any) => {
-        const date = new Date(f.created_at);
-        const monthName = months[date.getMonth()];
-        if (revenueMap[monthName] !== undefined) {
-          revenueMap[monthName] += Number(f.valor);
-        }
+      setPedidos(Array.isArray(snapshot.pedidos) ? snapshot.pedidos : []);
+      setTickets(Array.isArray(snapshot.tickets) ? snapshot.tickets : []);
+      setSubCount(Number(snapshot.subCount || 0));
+      setActivity(activityItems);
+      setMonthlyRevenue(
+        Array.isArray(snapshot.monthlyRevenue)
+          ? snapshot.monthlyRevenue.map((item) => ({
+              name: item.name || "—",
+              total: Number(item.total || 0),
+            }))
+          : [],
+      );
+      setTopModules(
+        Array.isArray(snapshot.topModules) && snapshot.topModules.length > 0
+          ? snapshot.topModules.map((item) => ({
+              name: item.name || "Outro",
+              value: Number(item.value || 0),
+            }))
+          : [{ name: "Nenhuma venda", value: 1 }],
+      );
+      setFunnelData(
+        Array.isArray(snapshot.funnelData)
+          ? snapshot.funnelData.map((item) => ({
+              name: item.name || "—",
+              value: Number(item.value || 0),
+            }))
+          : defaultFunnelData,
+      );
+      setRevenue({
+        paid: Number(snapshot.revenue?.paid || 0),
+        pending: Number(snapshot.revenue?.pending || 0),
       });
-
-      setMonthlyRevenue(Object.keys(revenueMap).map(k => ({ name: k, total: Number(revenueMap[k].toFixed(2)) })));
-
-      // Chart Calculations: Top Modules
-      const moduleCounts: Record<string, number> = {};
-      extrasCli.data?.forEach((e: any) => {
-        if (!e.extra_id) return;
-        moduleCounts[e.extra_id] = (moduleCounts[e.extra_id] || 0) + 1;
-      });
-
-      const pieData = Object.keys(moduleCounts)
-        .map((id) => {
-          const cat = catFull.data?.find(item => item.id === id);
-          return { name: cat ? cat.nome : 'Outro', value: moduleCounts[id] };
-        })
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
-
-      if (pieData.length === 0) pieData.push({ name: 'Nenhum venda', value: 1 });
-      setTopModules(pieData);
-
-      // Other counts & revenue split
-      const [leadsRes, cliRes, projRes, pedDataRes] = await Promise.all([
-        supabase.from("leads").select("*", { count: "exact", head: true }),
-        supabase.from("clientes").select("*", { count: "exact", head: true }),
-        supabase.from("projetos").select("*", { count: "exact", head: true }),
-        supabase.from("pedidos").select("valor, status, created_at")
-      ]);
-
-      setFunnelData([
-        { name: "Leads", value: leadsRes.count || 0 },
-        { name: "Clientes", value: cliRes.count || 0 },
-        { name: "Projetos", value: projRes.count || 0 }
-      ]);
-
-      if (pedDataRes.data) {
-        const totalPaid = pedDataRes.data.filter(p => p.status === "pago").reduce((s, p) => s + (p.valor || 0), 0);
-        const totalPending = pedDataRes.data.filter(p => p.status === "pendente").reduce((s, p) => s + (p.valor || 0), 0);
-        setRevenue({ paid: totalPaid, pending: totalPending });
-        setPendingInvoices(pedDataRes.data.filter(p => p.status === "pendente").length);
-      }
-
-      // Subscriptions & Activity
-      supabase.from("push_subscriptions").select("id", { count: "exact", head: true }).then(({ count }) => setSubCount(count || 0));
-      const { data: acts } = await supabase.from("notifications").select("*").eq("user_type", "admin").order("created_at", { ascending: false }).limit(20);
-      setActivity(acts || []);
-
+      setPendingInvoices(Number(snapshot.pendingInvoices || 0));
+      setNewLeads(Number(snapshot.newLeads || 0));
+      setLateProjects(Number(snapshot.lateProjects || 0));
+      setDbStatus("conectado");
     } catch (err) {
       console.error("Dashboard error:", err);
       setDbStatus("erro");
     }
   }, []);
 
-  useEffect(() => { 
-    load(); 
-    const interval = setInterval(load, 120000); // Atualiza a cada 2 minutos
-    return () => clearInterval(interval);
+  useEffect(() => {
+    void load();
   }, [load]);
 
   useRealtimeRefresh(
@@ -152,15 +140,23 @@ export function useDashboardData() {
       { table: "notifications" },
     ],
     load,
-    { channelPrefix: "admin-dashboard", debounceMs: 500 },
+    { channelPrefix: "admin-dashboard", debounceMs: 800, mode: "conservative" },
   );
 
   return {
-    stats, pedidos, tickets, dbStatus, subCount, activity, 
-    monthlyRevenue, topModules, funnelData, revenue, pendingInvoices, 
-    newLeads, lateProjects, refresh: load
+    stats,
+    pedidos,
+    tickets,
+    dbStatus,
+    subCount,
+    activity,
+    monthlyRevenue,
+    topModules,
+    funnelData,
+    revenue,
+    pendingInvoices,
+    newLeads,
+    lateProjects,
+    refresh: load,
   };
 }
-
-
-

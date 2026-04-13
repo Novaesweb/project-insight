@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import TopProgressBar from "@/components/TopProgressBar";
-import { SupabaseHeartbeat } from "./SupabaseHeartbeat";
 import { ReloadPrompt } from "./ReloadPrompt";
 import { useBranding } from "@/hooks/useBranding";
 import { useUI } from "@/store";
@@ -302,7 +301,6 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 
       {/* Main Area */}
       <main className="flex-1 relative flex flex-col min-w-0">
-        <SupabaseHeartbeat />
         <TopProgressBar />
         <AdminHeader />
         <AdminMainContent pathname={pathname}>

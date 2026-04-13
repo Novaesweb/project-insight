@@ -15,6 +15,8 @@ type UseRealtimeRefreshOptions = {
   enabled?: boolean;
   debounceMs?: number;
   channelPrefix?: string;
+  mode?: "conservative" | "critical";
+  pauseWhenHidden?: boolean;
 };
 
 export function useRealtimeRefresh(
@@ -24,6 +26,8 @@ export function useRealtimeRefresh(
     enabled = true,
     debounceMs = 250,
     channelPrefix = "realtime-refresh",
+    mode = "conservative",
+    pauseWhenHidden = mode !== "critical",
   }: UseRealtimeRefreshOptions = {},
 ) {
   const normalizedSources = sources
@@ -50,15 +54,32 @@ export function useRealtimeRefresh(
     }
 
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const effectiveDebounceMs = mode === "critical" ? debounceMs : Math.max(debounceMs, 600);
+
+    const canRefresh = () => {
+      if (typeof document === "undefined") {
+        return true;
+      }
+
+      return !(pauseWhenHidden && document.hidden);
+    };
 
     const scheduleRefresh = () => {
+      if (!canRefresh()) {
+        return;
+      }
+
       if (refreshTimer) {
         clearTimeout(refreshTimer);
       }
 
       refreshTimer = setTimeout(() => {
+        if (!canRefresh()) {
+          return;
+        }
+
         void onRefresh();
-      }, debounceMs);
+      }, effectiveDebounceMs);
     };
 
     const channels = parsedSources.map((source, index) =>
@@ -77,5 +98,5 @@ export function useRealtimeRefresh(
         void supabase.removeChannel(channel);
       });
     };
-  }, [channelPrefix, debounceMs, enabled, onRefresh, sourcesSignature]);
+  }, [channelPrefix, debounceMs, enabled, mode, onRefresh, pauseWhenHidden, sourcesSignature]);
 }

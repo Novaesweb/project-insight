@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Plus, MessageSquare } from "lucide-react";
+import { Send, Plus, MessageSquare, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,13 @@ export default function ClienteSuporte() {
 
   const loadTickets = useCallback(() => {
     if (!cliente?.id) return;
-    supabase.from("tickets").select("*").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
+    supabase.from("tickets").select("id, titulo, descricao, status, codigo, created_at").eq("cliente_id", cliente.id).order("created_at", { ascending: false })
       .then(({ data }) => setTickets(data || []));
   }, [cliente?.id]);
 
   const loadMsgs = useCallback(() => {
     if (!selectedTicket) return;
-    supabase.from("ticket_mensagens").select("*").eq("ticket_id", selectedTicket).order("created_at", { ascending: true })
+    supabase.from("ticket_mensagens").select("id, ticket_id, remetente, nome, texto, created_at").eq("ticket_id", selectedTicket).order("created_at", { ascending: true })
       .then(({ data }) => setMsgs(data || []));
   }, [selectedTicket]);
 
@@ -49,13 +49,10 @@ export default function ClienteSuporte() {
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs.length]);
 
   useRealtimeSubscription("tickets", loadTickets);
-  useRealtimeSubscription("ticket_mensagens", loadMsgs);
-
-  useEffect(() => {
-    if (!selectedTicket) return;
-    const interval = setInterval(loadMsgs, 5000);
-    return () => clearInterval(interval);
-  }, [selectedTicket, loadMsgs]);
+  useRealtimeSubscription("ticket_mensagens", loadMsgs, {
+    enabled: Boolean(selectedTicket),
+    filter: selectedTicket ? `ticket_id=eq.${selectedTicket}` : undefined,
+  });
 
   const ticketAtivo = tickets.find(t => t.id === selectedTicket);
 
@@ -137,9 +134,21 @@ export default function ClienteSuporte() {
             <h2 className="text-sm font-bold text-white">{ticketAtivo.titulo}</h2>
             <p className="text-[11px] text-white/40">Dossiê de Evolução: {ticketAtivo.codigo}</p>
           </div>
-          <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: statusColors[ticketAtivo.status] + "33", color: statusColors[ticketAtivo.status] }}>
-            {statusLabels[ticketAtivo.status]}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-white/60 hover:text-white"
+              onClick={() => void loadMsgs()}
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1" />
+              Atualizar
+            </Button>
+            <Badge variant="outline" className="text-[10px] border-0 px-2" style={{ backgroundColor: statusColors[ticketAtivo.status] + "33", color: statusColors[ticketAtivo.status] }}>
+              {statusLabels[ticketAtivo.status]}
+            </Badge>
+          </div>
         </div>
 
         <div ref={chatRef} className="flex-1 overflow-y-auto space-y-3 min-h-[300px] max-h-[500px] p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
@@ -169,9 +178,20 @@ export default function ClienteSuporte() {
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-white">Engenharia de Evolução</h1>
-        <Button className="border-0 text-white text-xs" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={() => setShowNovoTicket(true)}>
-          <Plus className="w-3 h-3 mr-1" /> Solicitar Otimização
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-xs text-white/70 hover:text-white"
+            onClick={() => void loadTickets()}
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+            Atualizar
+          </Button>
+          <Button className="border-0 text-white text-xs" style={{ background: "linear-gradient(135deg, #e8334a, #c2185b, #7b1fa2)" }} onClick={() => setShowNovoTicket(true)}>
+            <Plus className="w-3 h-3 mr-1" /> Solicitar Otimização
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-3">

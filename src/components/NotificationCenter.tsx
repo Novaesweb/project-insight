@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bell } from "lucide-react";
+import { Bell, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,7 +39,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
   const fetchNotifications = useCallback(async () => {
     let query = supabase
       .from("notifications")
-      .select("*")
+      .select("id, title, body, url, read, created_at, user_type, user_id")
       .eq("user_type", userType)
       .order("created_at", { ascending: false })
       .limit(30);
@@ -81,15 +81,10 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
           }
         }
       )
-      .subscribe((status) => {
-        console.log(`[NotificationCenter] Realtime ${userType}: ${status}`);
-      });
+      .subscribe();
 
-    // Fallback polling every 15s
-    const interval = setInterval(fetchNotifications, 15000);
     return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
     }, [userType, userId, fetchNotifications]);
 
@@ -120,11 +115,23 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
       <PopoverContent align="end" className="w-80 p-0 border-[hsl(var(--border))]">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[hsl(var(--border))]">
           <h3 className="text-sm font-semibold">Notificações</h3>
-          {unreadCount > 0 && (
-            <button onClick={markAllAsRead} className="text-xs text-[hsl(var(--primary))] hover:underline">
-              Marcar todas como lidas
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => void fetchNotifications()}
+              className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+            >
+              <span className="inline-flex items-center gap-1">
+                <RefreshCw className="w-3 h-3" />
+                Atualizar
+              </span>
             </button>
-          )}
+            {unreadCount > 0 && (
+              <button onClick={markAllAsRead} className="text-xs text-[hsl(var(--primary))] hover:underline">
+                Marcar todas como lidas
+              </button>
+            )}
+          </div>
         </div>
         <ScrollArea className="max-h-80">
           {notifications.length === 0 ? (

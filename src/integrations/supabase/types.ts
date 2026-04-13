@@ -2279,6 +2279,8 @@ export type Database = {
     }
     Functions: {
       bootstrap_client_portal_profile: { Args: never; Returns: Json }
+      get_admin_dashboard_activity: { Args: never; Returns: Json }
+      get_admin_dashboard_snapshot: { Args: never; Returns: Json }
       get_cliente_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       mark_contract_viewed: {

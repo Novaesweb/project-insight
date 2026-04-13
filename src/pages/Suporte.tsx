@@ -15,6 +15,7 @@ import {
   Search,
   TimerReset,
   UserRound,
+  RefreshCw,
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,7 +60,7 @@ export default function Suporte() {
   const loadTickets = useCallback(async () => {
     const { data } = await supabase
       .from("tickets")
-      .select("*, clientes(nome)")
+      .select("id, codigo, titulo, descricao, status, prioridade, cliente_id, created_at, clientes(nome)")
       .order("created_at", { ascending: false });
     setTickets(data || []);
   }, []);
@@ -86,7 +87,7 @@ export default function Suporte() {
   const loadMessages = useCallback(async (ticketId: string) => {
     const { data } = await supabase
       .from("ticket_mensagens")
-      .select("*")
+      .select("id, ticket_id, remetente, nome, texto, created_at")
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true });
     setMensagens(data || []);
@@ -107,13 +108,10 @@ export default function Suporte() {
   }, [selectedTicket, loadMessages]);
 
   useRealtimeSubscription("tickets", loadTickets);
-  useRealtimeSubscription("ticket_mensagens", refreshSelectedMessages);
-
-  useEffect(() => {
-    if (!selectedTicket) return;
-    const interval = setInterval(refreshSelectedMessages, 5000);
-    return () => clearInterval(interval);
-  }, [selectedTicket, refreshSelectedMessages]);
+  useRealtimeSubscription("ticket_mensagens", refreshSelectedMessages, {
+    enabled: Boolean(selectedTicket),
+    filter: selectedTicket ? `ticket_id=eq.${selectedTicket}` : undefined,
+  });
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -294,6 +292,15 @@ export default function Suporte() {
                   <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{ticket.clientes?.nome}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 text-xs border border-white/10 text-[hsl(var(--muted-foreground))] hover:text-white"
+                    onClick={() => void refreshSelectedMessages()}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                    Atualizar conversa
+                  </Button>
                   <StatusBadge status={ticket.prioridade} />
                   {ticket.overdue && (
                     <BadgeAlert label="SLA atrasado" tone="danger" />
@@ -460,6 +467,14 @@ export default function Suporte() {
         </div>
 
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <Button
+            variant="ghost"
+            className="h-10 rounded-xl border border-white/10 text-xs text-white hover:bg-white/5"
+            onClick={() => void loadTickets()}
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            Atualizar tickets
+          </Button>
           <div className="flex gap-2 flex-wrap">
             <span className="text-xs text-[hsl(var(--muted-foreground))] self-center mr-1">Status:</span>
             {["todos", "aberto", "em_atendimento", "resolvido"].map((status) => (
