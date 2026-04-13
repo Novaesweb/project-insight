@@ -441,7 +441,12 @@ function parseComercialSummaryLines(lines: string[]): Partial<Record<keyof Contr
     const normalized = line.toLowerCase();
     const numericValue = parseMoneyInput(line);
 
-    if (normalized.includes("ativação total")) acc.setupSubtotal = numericValue;
+    if (normalized.includes("subtotal da implantação")) acc.setupSubtotal = numericValue;
+    if (normalized.includes("valor final da implantação") || normalized.includes("ativação total")) {
+      acc.finalSetupTotal = numericValue;
+      acc.setupSubtotal = numericValue;
+    }
+    if (normalized.includes("desconto aplicado")) acc.discountAmount = numericValue;
     if (normalized.includes("entrada / sinal")) acc.entryValue = numericValue;
     if (normalized.includes("saldo na entrega")) acc.balanceValue = numericValue;
     if (normalized.includes("mensalidade contratada")) acc.negotiatedMonthly = numericValue;

@@ -9,7 +9,14 @@ import { refreshAdminSessionSilently } from "@/lib/admin-function-client";
 import type { ContractEventRow } from "@/lib/contract-activity";
 
 import { buildArchivePayload, buildSendToClientUpdate } from "./domain";
-import { BUILDER_TEMPLATE_ID, type Cliente, type Contrato, type ContratoVersion, type ExtraCatalogo } from "./types";
+import {
+  BUILDER_TEMPLATE_ID,
+  type Cliente,
+  type Contrato,
+  type ContratoVersion,
+  type ExtraCatalogo,
+  type ExtraCliente,
+} from "./types";
 
 export async function fetchBuilderContracts() {
   return loadProposalFromSupabase<Contrato[]>({
@@ -45,6 +52,19 @@ export async function fetchActiveExtrasCatalog() {
     .order("nome", { ascending: true });
 
   return (data as ExtraCatalogo[]) || [];
+}
+
+export async function fetchActiveClientExtras(clientId: string) {
+  if (!clientId) return [];
+
+  const { data } = await supabase
+    .from("extras_clientes")
+    .select("*, extras_catalogo(*)")
+    .eq("cliente_id", clientId)
+    .eq("status", "ativo")
+    .order("data_ativacao", { ascending: true });
+
+  return (data as ExtraCliente[]) || [];
 }
 
 export async function fetchContractEvents(contractId: string) {

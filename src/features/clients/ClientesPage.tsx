@@ -52,6 +52,7 @@ import {
   normalizeEmailSuggestion,
 } from "@/lib/client-registration";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { usePersistentDraftState } from "@/hooks/usePersistentDraftState";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -115,6 +116,13 @@ const INITIAL_CLIENT_FORM = {
   projeto_valor: "",
   projeto_tipo: "site",
   gerar_fatura: true,
+};
+
+const INITIAL_NEW_CLIENT_DRAFT = {
+  showNew: false,
+  criarConta: true,
+  senhaCliente: "",
+  form: { ...INITIAL_CLIENT_FORM },
 };
 
 const CLIENT_REGISTRATION_FIELDS = [
@@ -901,12 +909,50 @@ export default function Clientes() {
     }
   }, [location.state]);
   
-  const [showNew, setShowNew] = useState(false);
-  const [criarConta, setCriarConta] = useState(true);
-  const [senhaCliente, setSenhaCliente] = useState("");
+  const {
+    state: newClientDraft,
+    setState: setNewClientDraft,
+    markSaved: markNewClientDraftSaved,
+    discardDraft: discardNewClientDraft,
+  } = usePersistentDraftState({
+    storageKey: "novaesweb:admin:clientes:new-client-draft",
+    initialState: INITIAL_NEW_CLIENT_DRAFT,
+  });
   const [contaCriada, setContaCriada] = useState<{ email: string; senha: string; link: string } | null>(null);
-  const [form, setForm] = useState(() => ({ ...INITIAL_CLIENT_FORM }));
   const [saving, setSaving] = useState(false);
+
+  const showNew = newClientDraft.showNew;
+  const criarConta = newClientDraft.criarConta;
+  const senhaCliente = newClientDraft.senhaCliente;
+  const form = newClientDraft.form;
+
+  const setShowNew = useCallback((value: boolean) => {
+    setNewClientDraft((current) => ({
+      ...current,
+      showNew: value,
+    }));
+  }, [setNewClientDraft]);
+
+  const setCriarConta = useCallback((value: boolean) => {
+    setNewClientDraft((current) => ({
+      ...current,
+      criarConta: value,
+    }));
+  }, [setNewClientDraft]);
+
+  const setSenhaCliente = useCallback((value: string) => {
+    setNewClientDraft((current) => ({
+      ...current,
+      senhaCliente: value,
+    }));
+  }, [setNewClientDraft]);
+
+  const setForm = useCallback((value: typeof INITIAL_CLIENT_FORM | ((current: typeof INITIAL_CLIENT_FORM) => typeof INITIAL_CLIENT_FORM)) => {
+    setNewClientDraft((current) => ({
+      ...current,
+      form: typeof value === "function" ? value(current.form) : value,
+    }));
+  }, [setNewClientDraft]);
 
   const updateFormField = (key: string, value: string) => {
     setForm((current) => ({
@@ -969,6 +1015,15 @@ export default function Clientes() {
     fetchClientes,
     { channelPrefix: "admin-clientes-lista" },
   );
+
+  const handleToggleNewDialog = useCallback((open: boolean) => {
+    if (!open) {
+      discardNewClientDraft({ ...INITIAL_NEW_CLIENT_DRAFT });
+      return;
+    }
+
+    setShowNew(true);
+  }, [discardNewClientDraft, setShowNew]);
 
   if (selectedCliente) {
     return <ClienteDetalhes clienteId={selectedCliente} onBack={() => setSelectedCliente(null)} />;
@@ -1129,10 +1184,7 @@ export default function Clientes() {
         : "Seu acesso está ativo. Você já pode acompanhar contratos, projetos e financeiro.",
       url: form.gerar_fatura && valor > 0 ? "/cliente/faturas" : "/cliente/dashboard",
     });
-    setShowNew(false);
-    setForm({ ...INITIAL_CLIENT_FORM });
-    setSenhaCliente("");
-    setCriarConta(true);
+    markNewClientDraftSaved({ ...INITIAL_NEW_CLIENT_DRAFT });
     setSaving(false);
     fetchClientes();
   };
@@ -1173,7 +1225,7 @@ export default function Clientes() {
       <motion.div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" variants={fadeUp}>
         <div />
         <div className="flex flex-wrap gap-2">
-          <Dialog open={showNew} onOpenChange={setShowNew}>
+          <Dialog open={showNew} onOpenChange={handleToggleNewDialog}>
             <DialogTrigger asChild>
               <Button className="gradient-primary border-0 text-white rounded-lg"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
             </DialogTrigger>

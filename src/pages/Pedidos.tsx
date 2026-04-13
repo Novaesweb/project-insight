@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { usePersistentDraftState } from "@/hooks/usePersistentDraftState";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -36,6 +37,12 @@ const INITIAL_FORM = {
   cliente_id: "",
 };
 
+const INITIAL_PEDIDO_DRAFT = {
+  dialogOpen: false,
+  editingItemId: "",
+  form: { ...INITIAL_FORM },
+};
+
 function getPedidoTipoLabel(tipo: string) {
   return PEDIDO_TIPO_OPTIONS.find((option) => option.value === tipo)?.label || tipo || "Pedido";
 }
@@ -46,10 +53,36 @@ export default function Pedidos() {
   const [filtro, setFiltro] = useState("todos");
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const {
+    state: pedidoDraft,
+    setState: setPedidoDraft,
+    markSaved: markPedidoDraftSaved,
+    discardDraft: discardPedidoDraft,
+  } = usePersistentDraftState({
+    storageKey: "novaesweb:admin:pedidos:dialog-draft",
+    initialState: INITIAL_PEDIDO_DRAFT,
+  });
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const dialogOpen = pedidoDraft.dialogOpen;
+  const editingItem = useMemo(
+    () => pedidos.find((item) => item.id === pedidoDraft.editingItemId) || null,
+    [pedidoDraft.editingItemId, pedidos],
+  );
+  const form = pedidoDraft.form;
+
+  const setDialogOpen = useCallback((value: boolean) => {
+    setPedidoDraft((current) => ({
+      ...current,
+      dialogOpen: value,
+    }));
+  }, [setPedidoDraft]);
+
+  const setForm = useCallback((value: typeof INITIAL_FORM | ((current: typeof INITIAL_FORM) => typeof INITIAL_FORM)) => {
+    setPedidoDraft((current) => ({
+      ...current,
+      form: typeof value === "function" ? value(current.form) : value,
+    }));
+  }, [setPedidoDraft]);
 
   const load = useCallback(async () => {
     const [pedidosResponse, clientesResponse] = await Promise.all([
@@ -76,8 +109,7 @@ export default function Pedidos() {
   );
 
   const resetForm = () => {
-    setForm(INITIAL_FORM);
-    setEditingItem(null);
+    discardPedidoDraft({ ...INITIAL_PEDIDO_DRAFT });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,8 +139,7 @@ export default function Pedidos() {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
       toast({ title: form.id ? "Pedido atualizado!" : "Pedido criado!" });
-      resetForm();
-      setDialogOpen(false);
+      markPedidoDraftSaved({ ...INITIAL_PEDIDO_DRAFT });
       await load();
     }
 
@@ -137,8 +168,11 @@ export default function Pedidos() {
       valor: pedido.valor?.toString?.() || "",
       cliente_id: pedido.cliente_id || "",
     });
-    setEditingItem(pedido);
-    setDialogOpen(true);
+    setPedidoDraft((current) => ({
+      ...current,
+      dialogOpen: true,
+      editingItemId: pedido.id,
+    }));
   };
 
   const iniciarProjeto = async (pedido: any) => {
@@ -226,8 +260,12 @@ export default function Pedidos() {
         <Dialog
           open={dialogOpen}
           onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) resetForm();
+            if (!open) {
+              resetForm();
+              return;
+            }
+
+            setDialogOpen(true);
           }}
         >
           <DialogTrigger asChild>

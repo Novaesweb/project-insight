@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -31,6 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { usePersistentDraftState } from "@/hooks/usePersistentDraftState";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -270,6 +271,76 @@ export default function Briefings() {
   const [attachments, setAttachments] = useState<BriefingAttachmentRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [queryApplied, setQueryApplied] = useState(false);
+  const briefingDraftRestoredRef = useRef(false);
+  const {
+    state: briefingDraftState,
+    setState: setBriefingDraftState,
+    markSaved: markBriefingDraftSaved,
+    isDirty: briefingDraftDirty,
+    isHydrated: briefingDraftHydrated,
+    hasRestoredDraft: hasRestoredBriefingDraft,
+  } = usePersistentDraftState({
+    storageKey: "novaesweb:admin:briefings:editor-draft",
+    initialState: {
+      selectedBriefingId: null as string | null,
+      selectedClientId: "",
+      statusFilter: "todos",
+      search: "",
+      templateSearch: "",
+      templateSection: "todas",
+      templateSelection: [] as string[],
+      editor: emptyEditorState,
+      fieldDrafts: [] as BriefingFieldDraft[],
+      persistedFieldIds: [] as string[],
+    },
+  });
+
+  useEffect(() => {
+    if (!briefingDraftHydrated || briefingDraftRestoredRef.current || !hasRestoredBriefingDraft) return;
+
+    briefingDraftRestoredRef.current = true;
+    setSelectedBriefingId(briefingDraftState.selectedBriefingId);
+    setSelectedClientId(briefingDraftState.selectedClientId);
+    setStatusFilter(briefingDraftState.statusFilter);
+    setSearch(briefingDraftState.search);
+    setTemplateSearch(briefingDraftState.templateSearch);
+    setTemplateSection(briefingDraftState.templateSection);
+    setTemplateSelection(briefingDraftState.templateSelection);
+    setEditor(briefingDraftState.editor);
+    setFieldDrafts(briefingDraftState.fieldDrafts);
+    setPersistedFieldIds(briefingDraftState.persistedFieldIds);
+    setQueryApplied(true);
+  }, [briefingDraftHydrated, briefingDraftState, hasRestoredBriefingDraft]);
+
+  useEffect(() => {
+    if (!briefingDraftHydrated) return;
+
+    setBriefingDraftState({
+      selectedBriefingId,
+      selectedClientId,
+      statusFilter,
+      search,
+      templateSearch,
+      templateSection,
+      templateSelection,
+      editor,
+      fieldDrafts,
+      persistedFieldIds,
+    });
+  }, [
+    briefingDraftHydrated,
+    editor,
+    fieldDrafts,
+    persistedFieldIds,
+    search,
+    selectedBriefingId,
+    selectedClientId,
+    setBriefingDraftState,
+    statusFilter,
+    templateSearch,
+    templateSection,
+    templateSelection,
+  ]);
 
   const loadListData = useCallback(async () => {
     const [briefingsResponse, clientsResponse, templatesResponse] = await Promise.all([
@@ -313,7 +384,14 @@ export default function Briefings() {
     if (!briefingRow) return;
 
     const parsedFields = (fieldsResponse.data || []).map(toFieldDraft);
-    setEditor({
+    setAnswers(answersResponse.data || []);
+    setAttachments(attachmentsResponse.data || []);
+
+    if (briefingDraftDirty && editor.id === briefingRow.id) {
+      return;
+    }
+
+    const nextEditor = {
       id: briefingRow.id,
       cliente_id: briefingRow.cliente_id,
       projeto_id: briefingRow.projeto_id,
@@ -322,12 +400,35 @@ export default function Briefings() {
       status: briefingRow.status,
       snapshot_briefing: briefingRow.snapshot_briefing || "",
       snapshot_references: briefingRow.snapshot_references || "",
-    });
+    };
+    const nextPersistedFieldIds = parsedFields.map((field) => field.id);
+
+    setEditor(nextEditor);
     setFieldDrafts(parsedFields);
-    setPersistedFieldIds(parsedFields.map((field) => field.id));
-    setAnswers(answersResponse.data || []);
-    setAttachments(attachmentsResponse.data || []);
-  }, [selectedBriefingId]);
+    setPersistedFieldIds(nextPersistedFieldIds);
+    markBriefingDraftSaved({
+      selectedBriefingId: briefingRow.id,
+      selectedClientId: briefingRow.cliente_id,
+      statusFilter,
+      search,
+      templateSearch,
+      templateSection,
+      templateSelection,
+      editor: nextEditor,
+      fieldDrafts: parsedFields,
+      persistedFieldIds: nextPersistedFieldIds,
+    });
+  }, [
+    briefingDraftDirty,
+    editor.id,
+    markBriefingDraftSaved,
+    search,
+    selectedBriefingId,
+    statusFilter,
+    templateSearch,
+    templateSection,
+    templateSelection,
+  ]);
 
   useEffect(() => {
     void loadListData();
@@ -676,45 +777,52 @@ export default function Briefings() {
         if (deleteFieldsError) throw deleteFieldsError;
       }
 
+      const nextFieldDrafts =
+        sanitizedFields.length > 0
+          ? (
+              await (async () => {
+                const fieldsPayload = sanitizedFields.map((field) => ({
+                  id: field.id,
+                  briefing_id: briefingRow.id,
+                  template_id: field.template_id,
+                  section_name: field.section_name,
+                  label: field.label,
+                  help_text: field.help_text || null,
+                  field_type: field.field_type,
+                  required: field.required,
+                  placeholder: field.placeholder || null,
+                  options:
+                    field.field_type === "single_choice" || field.field_type === "multi_choice"
+                      ? serializeBriefingOptions(field.options)
+                      : [],
+                  sort_order: field.sort_order,
+                  is_custom: field.is_custom,
+                }));
+
+                const { data: savedFields, error: fieldsError } = await (supabase
+                  .from("client_briefing_fields" as never)
+                  .upsert(fieldsPayload)
+                  .select("*") as Promise<{ data: BriefingFieldRow[] | null; error: Error | null }>);
+
+                if (fieldsError) throw fieldsError;
+
+                return (savedFields || [])
+                  .sort((left, right) => left.sort_order - right.sort_order)
+                  .map(toFieldDraft);
+              })()
+            )
+          : [];
+
       if (sanitizedFields.length > 0) {
-        const fieldsPayload = sanitizedFields.map((field) => ({
-          id: field.id,
-          briefing_id: briefingRow.id,
-          template_id: field.template_id,
-          section_name: field.section_name,
-          label: field.label,
-          help_text: field.help_text || null,
-          field_type: field.field_type,
-          required: field.required,
-          placeholder: field.placeholder || null,
-          options:
-            field.field_type === "single_choice" || field.field_type === "multi_choice"
-              ? serializeBriefingOptions(field.options)
-              : [],
-          sort_order: field.sort_order,
-          is_custom: field.is_custom,
-        }));
-
-        const { data: savedFields, error: fieldsError } = await (supabase
-          .from("client_briefing_fields" as never)
-          .upsert(fieldsPayload)
-          .select("*") as Promise<{ data: BriefingFieldRow[] | null; error: Error | null }>);
-
-        if (fieldsError) throw fieldsError;
-
-        setFieldDrafts(
-          (savedFields || [])
-            .sort((left, right) => left.sort_order - right.sort_order)
-            .map(toFieldDraft),
-        );
-        setPersistedFieldIds((savedFields || []).map((field) => field.id));
+        setFieldDrafts(nextFieldDrafts);
+        setPersistedFieldIds(nextFieldDrafts.map((field) => field.id));
       } else {
         setPersistedFieldIds([]);
       }
 
       setSelectedBriefingId(briefingRow.id);
       setSelectedClientId(briefingRow.cliente_id);
-      setEditor({
+      const nextEditor = {
         id: briefingRow.id,
         cliente_id: briefingRow.cliente_id,
         projeto_id: briefingRow.projeto_id,
@@ -723,6 +831,19 @@ export default function Briefings() {
         status: briefingRow.status,
         snapshot_briefing: briefingRow.snapshot_briefing || "",
         snapshot_references: briefingRow.snapshot_references || "",
+      };
+      setEditor(nextEditor);
+      markBriefingDraftSaved({
+        selectedBriefingId: briefingRow.id,
+        selectedClientId: briefingRow.cliente_id,
+        statusFilter,
+        search,
+        templateSearch,
+        templateSection,
+        templateSelection: [],
+        editor: nextEditor,
+        fieldDrafts: nextFieldDrafts,
+        persistedFieldIds: nextFieldDrafts.map((field) => field.id),
       });
 
       if (mode === "send") {
@@ -766,6 +887,11 @@ export default function Briefings() {
       setSearchParams,
       snapshot.briefing,
       snapshot.references,
+      statusFilter,
+      search,
+      templateSearch,
+      templateSection,
+      markBriefingDraftSaved,
     ],
   );
 

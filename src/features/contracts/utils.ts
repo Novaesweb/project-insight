@@ -2,6 +2,7 @@ import {
   buildBuilderTemplateValues,
   computeBuilderPricing,
   createEmptyBuilderPayload,
+  getContractExtraSnapshots,
   parseMoneyInput,
   stripLegacySignaturePlaceholders,
   type BuilderPrimaryPlanId,
@@ -25,7 +26,7 @@ export function buildItemMoneyDraftKey(itemId: string, field: "setupPrice" | "mo
   return `item:${itemId}:${field}`;
 }
 
-export function buildPricingMoneyDraftKey(field: "negotiatedSetup" | "entryValue" | "negotiatedMonthly") {
+export function buildPricingMoneyDraftKey(field: "discountValue" | "entryValue" | "negotiatedMonthly") {
   return `pricing:root:${field}`;
 }
 
@@ -85,10 +86,24 @@ export function normalizeBuilderPayload(
       ? (payload.primaryPlanId as BuilderPrimaryPlanId)
       : ((items.find((item) => item.isPrimaryPlan && item.selected)?.sourceId as BuilderPrimaryPlanId) || "none");
 
-  const pricing = computeBuilderPricing(items, {
+  const clientExtrasSnapshot = Array.isArray(payload.clientExtrasSnapshot)
+    ? payload.clientExtrasSnapshot.map((item) => ({
+        ...item,
+        setupPrice: Number(item.setupPrice || 0),
+        monthlyPrice: Number(item.monthlyPrice || 0),
+        typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
+        category:
+          item.category === "mensal" || item.category === "intermediario" || item.category === "fixo"
+            ? item.category
+            : "fixo",
+      }))
+    : [];
+
+  const pricing = computeBuilderPricing(items, clientExtrasSnapshot, {
     negotiatedSetup: Number(payload.pricing?.negotiatedSetup ?? payload.pricing?.setupSubtotal ?? 0),
+    discountType: payload.pricing?.discountType === "percentage" ? "percentage" : "fixed",
+    discountValue: Number(payload.pricing?.discountValue ?? 0),
     entryValue: Number(payload.pricing?.entryValue ?? 0),
-    balanceValue: Number(payload.pricing?.balanceValue ?? 0),
     negotiatedMonthly: Number(payload.pricing?.negotiatedMonthly ?? payload.pricing?.monthlySubtotal ?? 0),
   });
 
@@ -107,6 +122,7 @@ export function normalizeBuilderPayload(
       ...(payload.contratada || {}),
     },
     items,
+    clientExtrasSnapshot,
     pricing,
     createdAt: payload.createdAt || base.createdAt,
     updatedAt: new Date().toISOString(),
@@ -133,7 +149,8 @@ export function buildBuilderSavePayload(
   });
 
   const templateValues = buildBuilderTemplateValues(normalizedPayload);
-  const selectedCount = normalizedPayload.items.filter((item) => item.selected).length;
+  const selectedCount =
+    (normalizedPayload.primaryPlanId !== "none" ? 1 : 0) + getContractExtraSnapshots(normalizedPayload).length;
   const selectedPlan =
     PUBLIC_PLAN_CATALOG.find((plan) => plan.id === normalizedPayload.primaryPlanId)?.title || "Sem plano principal";
   const clientLabel =
@@ -143,8 +160,8 @@ export function buildBuilderSavePayload(
     normalizedPayload,
     title: `Contrato Mestre NovaesWeb — ${clientLabel}`,
     body: fillTemplate(template.corpo, templateValues),
-    description: `Montador Comercial • ${selectedPlan} • ${selectedCount} item(ns) selecionado(s)`,
-    value: normalizedPayload.pricing.negotiatedSetup,
+    description: `Montador Comercial • ${selectedPlan} • ${selectedCount} item(ns) contratado(s)`,
+    value: normalizedPayload.pricing.finalSetupTotal,
   };
 }
 
@@ -152,6 +169,7 @@ export function hasMeaningfulBuilderState(payload: ContractBuilderPayload) {
   return Boolean(
     payload.clienteId ||
       payload.primaryPlanId !== "none" ||
+      payload.clientExtrasSnapshot.length > 0 ||
       payload.items.some(
         (item) => item.selected || Number(item.setupPrice || 0) > 0 || Number(item.monthlyPrice || 0) > 0,
       ) ||

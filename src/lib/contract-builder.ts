@@ -41,13 +41,29 @@ export interface ContractBuilderItem {
   isPrimaryPlan: boolean;
 }
 
+export interface ContractBuilderClientExtraSnapshot {
+  id: string;
+  extraId: string;
+  name: string;
+  description: string;
+  category: BuilderItemGroup;
+  typeLabel: "mensal" | "único";
+  setupPrice: number;
+  monthlyPrice: number;
+}
+
 export interface ContractBuilderPricing {
   setupSubtotal: number;
   monthlySubtotal: number;
   negotiatedSetup: number;
+  discountType: "fixed" | "percentage";
+  discountValue: number;
+  discountAmount: number;
+  finalSetupTotal: number;
   entryValue: number;
   balanceValue: number;
   negotiatedMonthly: number;
+  finalMonthlyTotal: number;
 }
 
 export interface ContractBuilderPayload {
@@ -57,6 +73,7 @@ export interface ContractBuilderPayload {
   contractante: ContractBuilderParty;
   contratada: ContractBuilderContractor;
   items: ContractBuilderItem[];
+  clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[];
   customScope: string;
   prazoDias: string;
   formaPagamento: string;
@@ -129,13 +146,6 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-const grupoLabels: Record<BuilderItemGroup, string> = {
-  planos: "PLANOS PRINCIPAIS",
-  fixo: "EXTRAS ÚNICOS",
-  intermediario: "EXTRAS PRO",
-  mensal: "EXTRAS MENSAIS",
-};
-
 const LEGACY_SIGNATURE_LINES_REGEX =
   /\n{0,2}(CONTRATANTE|CONTRATADA):\s*_+\s*(?=\n|$)/gi;
 
@@ -158,7 +168,7 @@ export const DEFAULT_PAYMENT_METHOD =
   "PIX, boleto, cartão ou link de pagamento";
 
 export function createEmptyBuilderPayload(
-  extras: Tables<"extras_catalogo">[],
+  extras: Tables<"extras_catalogo">[] = [],
 ): ContractBuilderPayload {
   const now = new Date().toISOString();
   const items = buildContractBuilderItems(extras);
@@ -183,6 +193,7 @@ export function createEmptyBuilderPayload(
     },
     contratada: { ...DEFAULT_CONTRACTOR_DATA },
     items,
+    clientExtrasSnapshot: [],
     customScope: "",
     prazoDias: "15",
     formaPagamento: DEFAULT_PAYMENT_METHOD,
@@ -257,9 +268,9 @@ export function buildContractanteFromClient(cliente: Tables<"clientes">): Contra
 }
 
 export function buildContractBuilderItems(
-  extras: Tables<"extras_catalogo">[],
+  _extras: Tables<"extras_catalogo">[],
 ): ContractBuilderItem[] {
-  const planItems: ContractBuilderItem[] = PUBLIC_PLAN_CATALOG.map((plan) => ({
+  return PUBLIC_PLAN_CATALOG.map((plan) => ({
     id: `plan:${plan.id}`,
     source: "plan",
     sourceId: plan.id,
@@ -271,21 +282,29 @@ export function buildContractBuilderItems(
     monthlyPrice: plan.monthlyPrice,
     isPrimaryPlan: true,
   }));
+}
 
-  const extraItems: ContractBuilderItem[] = extras.map((extra) => ({
-    id: `extra:${extra.id}`,
-    source: "extra",
-    sourceId: extra.id,
-    group: normalizeBuilderGroup(extra.categoria),
-    name: extra.nome,
-    description: extra.descricao || "",
-    selected: false,
-    setupPrice: Number(extra.preco_ativacao || 0),
-    monthlyPrice: Number(extra.preco_mensal || 0),
-    isPrimaryPlan: false,
-  }));
+function getSelectedPlanItem(items: ContractBuilderItem[]) {
+  return items.find((item) => item.isPrimaryPlan && item.selected) || null;
+}
 
-  return [...planItems, ...extraItems];
+export function getContractExtraSnapshots(payload: ContractBuilderPayload) {
+  if (payload.clientExtrasSnapshot.length > 0) {
+    return payload.clientExtrasSnapshot;
+  }
+
+  return payload.items
+    .filter((item) => item.selected && !item.isPrimaryPlan)
+    .map((item) => ({
+      id: item.id,
+      extraId: item.sourceId || item.id,
+      name: item.name,
+      description: item.description,
+      category: item.group,
+      typeLabel: item.monthlyPrice > 0 ? "mensal" : "único",
+      setupPrice: item.setupPrice,
+      monthlyPrice: item.monthlyPrice,
+    }));
 }
 
 export function selectPrimaryPlan(
@@ -330,30 +349,51 @@ export function updateBuilderItemPrice(
 
 export function computeBuilderPricing(
   items: ContractBuilderItem[],
+  clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[] = [],
   overrides?: Partial<ContractBuilderPricing>,
 ): ContractBuilderPricing {
-  const setupSubtotal = items
-    .filter((item) => item.selected)
-    .reduce((sum, item) => sum + item.setupPrice, 0);
+  const selectedPlan = getSelectedPlanItem(items);
+  const pricedExtras =
+    clientExtrasSnapshot.length > 0
+      ? clientExtrasSnapshot
+      : items.filter((item) => item.selected && !item.isPrimaryPlan).map((item) => ({
+          setupPrice: item.setupPrice,
+          monthlyPrice: item.monthlyPrice,
+        }));
 
-  const monthlySubtotal = items
-    .filter((item) => item.selected)
-    .reduce((sum, item) => sum + item.monthlyPrice, 0);
+  const setupSubtotal =
+    Number(selectedPlan?.setupPrice || 0) +
+    pricedExtras.reduce((sum, item) => sum + Number(item.setupPrice || 0), 0);
 
-  const negotiatedSetup =
-    overrides?.negotiatedSetup ?? setupSubtotal;
-  const entryValue = overrides?.entryValue ?? 0;
-  const balanceValue = overrides?.balanceValue ?? Math.max(negotiatedSetup - entryValue, 0);
-  const negotiatedMonthly =
-    overrides?.negotiatedMonthly ?? monthlySubtotal;
+  const monthlySubtotal =
+    Number(selectedPlan?.monthlyPrice || 0) +
+    pricedExtras.reduce((sum, item) => sum + Number(item.monthlyPrice || 0), 0);
+
+  const negotiatedSetup = overrides?.negotiatedSetup ?? setupSubtotal;
+  const negotiatedMonthly = overrides?.negotiatedMonthly ?? monthlySubtotal;
+  const discountType = overrides?.discountType === "percentage" ? "percentage" : "fixed";
+  const discountValue = Math.max(Number(overrides?.discountValue || 0), 0);
+  const discountAmount =
+    discountType === "percentage"
+      ? Math.min((negotiatedSetup * discountValue) / 100, negotiatedSetup)
+      : Math.min(discountValue, negotiatedSetup);
+  const finalSetupTotal = Math.max(negotiatedSetup - discountAmount, 0);
+  const entryValue = Math.min(overrides?.entryValue ?? 0, finalSetupTotal);
+  const balanceValue = Math.max(finalSetupTotal - entryValue, 0);
+  const finalMonthlyTotal = negotiatedMonthly;
 
   return {
     setupSubtotal,
     monthlySubtotal,
     negotiatedSetup,
+    discountType,
+    discountValue,
+    discountAmount,
+    finalSetupTotal,
     entryValue,
     balanceValue,
     negotiatedMonthly,
+    finalMonthlyTotal,
   };
 }
 
@@ -363,25 +403,26 @@ export function getSelectedPrimaryPlanId(items: ContractBuilderItem[]): BuilderP
 }
 
 export function buildContractedServicesSummary(
-  items: ContractBuilderItem[],
-  primaryPlanId: BuilderPrimaryPlanId,
-  customScope: string,
+  payload: ContractBuilderPayload,
 ) {
-  const selectedItems = items.filter((item) => item.selected);
+  const selectedPlan = getSelectedPlanItem(payload.items);
+  const selectedExtras = getContractExtraSnapshots(payload);
 
-  if (primaryPlanId === "sob-medida" && customScope.trim()) {
-    const selectedExtras = selectedItems
-      .filter((item) => !item.isPrimaryPlan)
-      .map((item) => item.name);
-
-    return [customScope.trim(), selectedExtras.length ? `Itens adicionais contratados: ${selectedExtras.join(", ")}` : null]
+  if (payload.primaryPlanId === "sob-medida" && payload.customScope.trim()) {
+    return [
+      payload.customScope.trim(),
+      selectedPlan?.name ? `Plano base: ${selectedPlan.name}` : null,
+      selectedExtras.length
+        ? `Itens adicionais contratados: ${selectedExtras.map((item) => item.name).join(", ")}`
+        : null,
+    ]
       .filter(Boolean)
       .join(" | ");
   }
 
-  const selectedNames = selectedItems.map((item) => item.name);
-
-  return selectedNames.join(", ");
+  return [selectedPlan?.name || null, ...selectedExtras.map((item) => item.name)]
+    .filter(Boolean)
+    .join(", ");
 }
 
 export function describeBuilderItemPricing(item: ContractBuilderItem) {
@@ -401,14 +442,26 @@ export function describeBuilderItemPricing(item: ContractBuilderItem) {
   return `${setupText} (Setup)`;
 }
 
+export function describeClientExtraPricing(item: ContractBuilderClientExtraSnapshot) {
+  const setupText = item.setupPrice > 0 ? formatCurrencyBRL(item.setupPrice) : "Incluso";
+  const monthlyText = item.monthlyPrice > 0 ? `${formatCurrencyBRL(item.monthlyPrice)}/mês` : "Sem recorrência";
+
+  if (item.monthlyPrice > 0 && item.setupPrice > 0) {
+    return `${setupText} + ${monthlyText}`;
+  }
+
+  if (item.monthlyPrice > 0) {
+    return monthlyText;
+  }
+
+  return setupText;
+}
+
 export function buildServicesTableText(
-  items: ContractBuilderItem[],
-  primaryPlanId: BuilderPrimaryPlanId,
-  customScope: string,
-  pricing: ContractBuilderPricing,
+  payload: ContractBuilderPayload,
 ) {
-  const selectedPlan = items.find((item) => item.isPrimaryPlan && item.selected);
-  const selectedExtras = items.filter((item) => !item.isPrimaryPlan && item.selected);
+  const selectedPlan = getSelectedPlanItem(payload.items);
+  const selectedExtras = getContractExtraSnapshots(payload);
   const lines = ["RESUMO COMERCIAL DA PROPOSTA:", ""];
 
   if (selectedPlan) {
@@ -417,25 +470,29 @@ export function buildServicesTableText(
     lines.push("");
   }
 
-  if (primaryPlanId === "sob-medida" && customScope.trim()) {
+  if (payload.primaryPlanId === "sob-medida" && payload.customScope.trim()) {
     lines.push("ESCOPO CUSTOMIZADO:");
-    lines.push(customScope.trim());
+    lines.push(payload.customScope.trim());
     lines.push("");
   }
 
   if (selectedExtras.length) {
-    lines.push("SERVIÇOS E EXTRAS CONTRATADOS:");
+    lines.push("EXTRAS CONTRATADOS:");
     selectedExtras.forEach((item) => {
-      lines.push(`• ${item.name} — ${describeBuilderItemPricing(item)}`);
+      lines.push(`• ${item.name} — ${describeClientExtraPricing(item)} — Tipo: ${item.typeLabel}`);
     });
     lines.push("");
   }
 
   lines.push("CONDIÇÕES COMERCIAIS:");
-  lines.push(`• Ativação total: ${formatCurrencyBRL(pricing.negotiatedSetup)}`);
-  lines.push(`• Entrada / sinal: ${formatCurrencyBRL(pricing.entryValue)}`);
-  lines.push(`• Saldo na entrega: ${formatCurrencyBRL(pricing.balanceValue)}`);
-  lines.push(`• Mensalidade contratada: ${formatCurrencyBRL(pricing.negotiatedMonthly)}`);
+  lines.push(`• Subtotal da implantação: ${formatCurrencyBRL(payload.pricing.setupSubtotal)}`);
+  lines.push(`• Desconto aplicado: ${formatCurrencyBRL(payload.pricing.discountAmount)}`);
+  lines.push(`• Valor final da implantação: ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`);
+  lines.push(`• Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)}`);
+  lines.push(`• Saldo na entrega: ${formatCurrencyBRL(payload.pricing.balanceValue)}`);
+  if (payload.pricing.finalMonthlyTotal > 0) {
+    lines.push(`• Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}`);
+  }
 
   return lines.join("\n");
 }
@@ -454,22 +511,13 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
     endereco_contratada: payload.contratada.endereco,
     cidade_foro: "Canoas",
     estado_foro: "RS",
-    lista_servicos: buildContractedServicesSummary(
-      payload.items,
-      payload.primaryPlanId,
-      payload.customScope,
-    ),
-    tabela_servicos: buildServicesTableText(
-      payload.items,
-      payload.primaryPlanId,
-      payload.customScope,
-      payload.pricing,
-    ),
+    lista_servicos: buildContractedServicesSummary(payload),
+    tabela_servicos: buildServicesTableText(payload),
     escopo_exclusoes: payload.escopoExclusoes,
     prazo_dias: payload.prazoDias,
     valor_entrada: payload.pricing.entryValue.toFixed(2).replace(".", ","),
     valor_saldo: payload.pricing.balanceValue.toFixed(2).replace(".", ","),
-    valor_mensal: payload.pricing.negotiatedMonthly.toFixed(2).replace(".", ","),
+    valor_mensal: payload.pricing.finalMonthlyTotal.toFixed(2).replace(".", ","),
     dia_vencimento: "10",
     forma_pagamento: payload.formaPagamento,
     numero_revisoes: payload.numeroRevisoes,
@@ -481,15 +529,13 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
 }
 
 export function buildProposalSummary(payload: ContractBuilderPayload): ContractProposalSummary {
-  const selectedPlan = payload.items.find((item) => item.isPrimaryPlan && item.selected) || null;
-  const selectedServices = payload.items
-    .filter((item) => item.selected && !item.isPrimaryPlan)
-    .map((item) => ({
-      name: item.name,
-      description: item.description,
-      pricing: describeBuilderItemPricing(item),
-      highlight: grupoLabels[item.group],
-    }));
+  const selectedPlan = getSelectedPlanItem(payload.items);
+  const selectedServices = getContractExtraSnapshots(payload).map((item) => ({
+    name: item.name,
+    description: item.description,
+    pricing: describeClientExtraPricing(item),
+    highlight: item.typeLabel === "mensal" ? "Extra mensal" : "Extra único",
+  }));
 
   const contractanteLines = [
     payload.contractante.nomeEmpresa?.trim() ? `Empresa: ${payload.contractante.nomeEmpresa.trim()}` : null,
@@ -508,13 +554,17 @@ export function buildProposalSummary(payload: ContractBuilderPayload): ContractP
   ].filter(Boolean);
 
   const comercialLines = [
-    `Ativação total: ${formatCurrencyBRL(payload.pricing.negotiatedSetup)}`,
+    `Subtotal da implantação: ${formatCurrencyBRL(payload.pricing.setupSubtotal)}`,
+    `Desconto aplicado: ${formatCurrencyBRL(payload.pricing.discountAmount)}`,
+    `Valor final da implantação: ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`,
     `Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)}`,
     `Saldo na entrega: ${formatCurrencyBRL(payload.pricing.balanceValue)}`,
-    `Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.negotiatedMonthly)}`,
+    payload.pricing.finalMonthlyTotal > 0
+      ? `Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}`
+      : null,
     `Prazo estimado: ${payload.prazoDias} dias úteis`,
     `Pagamento: ${payload.formaPagamento}`,
-  ];
+  ].filter(Boolean) as string[];
 
   return {
     contractante: {
@@ -575,9 +625,8 @@ export function buildContractSignatureSummary(
 export function buildContractClauseExplanations(
   payload: ContractBuilderPayload,
 ): ContractClauseExplanation[] {
-  const selectedPlan =
-    payload.items.find((item) => item.isPrimaryPlan && item.selected)?.name || "sem plano principal";
-  const selectedExtras = payload.items.filter((item) => item.selected && !item.isPrimaryPlan);
+  const selectedPlan = getSelectedPlanItem(payload.items)?.name || "sem plano principal";
+  const selectedExtras = getContractExtraSnapshots(payload);
   const selectedExtrasLabel = selectedExtras.length
     ? `${selectedExtras.length} extra(s) adicional(is)`
     : "nenhum extra adicional";
@@ -622,12 +671,18 @@ export function buildContractClauseExplanations(
       number: "5",
       title: "Valores e pagamento",
       explanation: `A implantação negociada ficou em ${formatCurrencyBRL(
-        payload.pricing.negotiatedSetup,
+        payload.pricing.setupSubtotal,
+      )}, com desconto de ${formatCurrencyBRL(
+        payload.pricing.discountAmount,
+      )} e valor final de ${formatCurrencyBRL(
+        payload.pricing.finalSetupTotal,
       )}, com entrada de ${formatCurrencyBRL(
         payload.pricing.entryValue,
-      )} e saldo de ${formatCurrencyBRL(payload.pricing.balanceValue)}. A mensalidade contratada ficou em ${formatCurrencyBRL(
-        payload.pricing.negotiatedMonthly,
-      )}. A forma de pagamento combinada é ${payload.formaPagamento}.`,
+      )} e saldo de ${formatCurrencyBRL(payload.pricing.balanceValue)}.${
+        payload.pricing.finalMonthlyTotal > 0
+          ? ` A mensalidade contratada ficou em ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}.`
+          : ""
+      } A forma de pagamento combinada é ${payload.formaPagamento}.`,
     },
     {
       number: "6",

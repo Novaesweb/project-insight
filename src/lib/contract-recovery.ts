@@ -1,4 +1,5 @@
 import type { ContractBuilderPayload, ContractBuilderStepIndex } from "@/lib/contract-builder";
+import { readDraftStorage, removeDraftStorage, writeDraftStorage } from "@/lib/draft-storage";
 
 const CONTRACT_RECOVERY_STORAGE_KEY = "novaesweb:admin:contract-recovery";
 const CONTRACT_RECOVERY_PENDING_KEY = "novaesweb:admin:contract-recovery-pending";
@@ -21,27 +22,13 @@ export type ContractRecoverySnapshot = {
 };
 
 function readContractRecoverySnapshot() {
-  if (typeof window === "undefined") return null;
+  const envelope = readDraftStorage<ContractRecoverySnapshot>({
+    storageKey: CONTRACT_RECOVERY_STORAGE_KEY,
+    ttlMs: CONTRACT_RECOVERY_TTL_MS,
+    version: "v1",
+  });
 
-  const rawSnapshot = localStorage.getItem(CONTRACT_RECOVERY_STORAGE_KEY);
-  if (!rawSnapshot) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(rawSnapshot) as ContractRecoverySnapshot;
-    const savedAt = new Date(parsed.savedAt).getTime();
-
-    if (!savedAt || Date.now() - savedAt > CONTRACT_RECOVERY_TTL_MS) {
-      clearContractRecoverySnapshot();
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    clearContractRecoverySnapshot();
-    return null;
-  }
+  return envelope?.state ?? null;
 }
 
 export function saveContractRecoverySnapshot(
@@ -50,7 +37,11 @@ export function saveContractRecoverySnapshot(
 ) {
   if (typeof window === "undefined") return;
 
-  localStorage.setItem(CONTRACT_RECOVERY_STORAGE_KEY, JSON.stringify(snapshot));
+  writeDraftStorage({
+    storageKey: CONTRACT_RECOVERY_STORAGE_KEY,
+    version: "v1",
+    state: snapshot,
+  });
   if (options?.markPendingRestore) {
     sessionStorage.setItem(CONTRACT_RECOVERY_PENDING_KEY, "1");
   }
@@ -59,7 +50,7 @@ export function saveContractRecoverySnapshot(
 export function clearContractRecoverySnapshot() {
   if (typeof window === "undefined") return;
 
-  localStorage.removeItem(CONTRACT_RECOVERY_STORAGE_KEY);
+  removeDraftStorage(CONTRACT_RECOVERY_STORAGE_KEY);
   sessionStorage.removeItem(CONTRACT_RECOVERY_PENDING_KEY);
 }
 

@@ -59,6 +59,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useContractsCatalog } from "@/features/contracts/hooks/useContractsCatalog";
 import {
   deleteBuilderDraftContract,
+  fetchActiveClientExtras,
   fetchContractVersions,
   saveBuilderContractRecord,
   sendBuilderContractToClientRecord,
@@ -84,13 +85,14 @@ import {
   buildContractanteFromClient,
   computeBuilderPricing,
   createEmptyBuilderPayload,
+  describeClientExtraPricing,
   formatCurrencyBRL,
+  getContractExtraSnapshots,
   parseMoneyInput,
   selectPrimaryPlan,
   stripLegacySignaturePlaceholders,
-  toggleBuilderItem,
-  updateBuilderItemPrice,
   type BuilderPrimaryPlanId,
+  type ContractBuilderClientExtraSnapshot,
   type ContractClauseExplanation,
   type ContractBuilderPayload,
   type ContractBuilderPricing,
@@ -143,15 +145,12 @@ const fadeUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-const builderGroupTitles: Record<string, string> = {
-  fixo: "Extras Únicos",
-  intermediario: "Extras Pro",
-  mensal: "Extras Mensais",
-};
+const moneyDraftFieldPattern = /^(pricing):(.+):(discountValue|entryValue|negotiatedMonthly)$/;
 
-const moneyDraftFieldPattern = /^(item|pricing):(.+):(setupPrice|monthlyPrice|negotiatedSetup|entryValue|negotiatedMonthly)$/;
-
-type MoneyDraftField = "setupPrice" | "monthlyPrice" | "negotiatedSetup" | "entryValue" | "negotiatedMonthly";
+type MoneyDraftField =
+  | "discountValue"
+  | "entryValue"
+  | "negotiatedMonthly";
 
 function buildPdfFileName(title: string) {
   return title.replace(/[^a-zA-Z0-9]/g, "_");
@@ -164,11 +163,7 @@ function formatMoneyInputValue(value: number) {
   });
 }
 
-function buildItemMoneyDraftKey(itemId: string, field: "setupPrice" | "monthlyPrice") {
-  return `item:${itemId}:${field}`;
-}
-
-function buildPricingMoneyDraftKey(field: "negotiatedSetup" | "entryValue" | "negotiatedMonthly") {
+function buildPricingMoneyDraftKey(field: "discountValue" | "entryValue" | "negotiatedMonthly") {
   return `pricing:root:${field}`;
 }
 
@@ -537,6 +532,38 @@ function isBuilderContract(contrato: Contrato) {
   return Boolean(contrato.builder_payload);
 }
 
+function mapClientExtraToSnapshot(extra: {
+  id: string;
+  extra_id: string;
+  categoria: string;
+  preco_ativacao: number;
+  preco_mensal: number;
+  extras_catalogo?: {
+    nome?: string | null;
+    descricao?: string | null;
+  } | null;
+}): ContractBuilderClientExtraSnapshot {
+  const category = extra.categoria === "mensal" || extra.categoria === "intermediario" || extra.categoria === "fixo"
+    ? extra.categoria
+    : "fixo";
+
+  return {
+    id: extra.id,
+    extraId: extra.extra_id,
+    name: extra.extras_catalogo?.nome?.trim() || "Extra",
+    description: extra.extras_catalogo?.descricao?.trim() || "",
+    category,
+    typeLabel: Number(extra.preco_mensal || 0) > 0 ? "mensal" : "único",
+    setupPrice: Number(extra.preco_ativacao || 0),
+    monthlyPrice: Number(extra.preco_mensal || 0),
+  };
+}
+
+function countSelectedBuilderEntries(payload: ContractBuilderPayload) {
+  const selectedPlanCount = payload.primaryPlanId !== "none" ? 1 : 0;
+  return selectedPlanCount + getContractExtraSnapshots(payload).length;
+}
+
 function normalizeBuilderPayload(
   rawPayload: unknown,
   extras: ExtraCatalogo[],
@@ -576,10 +603,24 @@ function normalizeBuilderPayload(
       ? (payload.primaryPlanId as BuilderPrimaryPlanId)
       : ((items.find((item) => item.isPrimaryPlan && item.selected)?.sourceId as BuilderPrimaryPlanId) || "none");
 
-  const pricing = computeBuilderPricing(items, {
+  const clientExtrasSnapshot = Array.isArray(payload.clientExtrasSnapshot)
+    ? payload.clientExtrasSnapshot.map((item) => ({
+        ...item,
+        setupPrice: Number(item.setupPrice || 0),
+        monthlyPrice: Number(item.monthlyPrice || 0),
+        typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
+        category:
+          item.category === "mensal" || item.category === "intermediario" || item.category === "fixo"
+            ? item.category
+            : "fixo",
+      }))
+    : [];
+
+  const pricing = computeBuilderPricing(items, clientExtrasSnapshot, {
     negotiatedSetup: Number(payload.pricing?.negotiatedSetup ?? payload.pricing?.setupSubtotal ?? 0),
+    discountType: payload.pricing?.discountType === "percentage" ? "percentage" : "fixed",
+    discountValue: Number(payload.pricing?.discountValue ?? 0),
     entryValue: Number(payload.pricing?.entryValue ?? 0),
-    balanceValue: Number(payload.pricing?.balanceValue ?? 0),
     negotiatedMonthly: Number(payload.pricing?.negotiatedMonthly ?? payload.pricing?.monthlySubtotal ?? 0),
   });
 
@@ -598,6 +639,7 @@ function normalizeBuilderPayload(
       ...(payload.contratada || {}),
     },
     items,
+    clientExtrasSnapshot,
     pricing,
     createdAt: payload.createdAt || base.createdAt,
     updatedAt: new Date().toISOString(),
@@ -624,7 +666,7 @@ function buildBuilderSavePayload(
   });
 
   const templateValues = buildBuilderTemplateValues(normalizedPayload);
-  const selectedCount = normalizedPayload.items.filter((item) => item.selected).length;
+  const selectedCount = countSelectedBuilderEntries(normalizedPayload);
   const selectedPlan =
     PUBLIC_PLAN_CATALOG.find((plan) => plan.id === normalizedPayload.primaryPlanId)?.title || "Sem plano principal";
   const clientLabel =
@@ -634,8 +676,8 @@ function buildBuilderSavePayload(
     normalizedPayload,
     title: `Contrato Mestre NovaesWeb — ${clientLabel}`,
     body: fillTemplate(template.corpo, templateValues),
-    description: `Montador Comercial • ${selectedPlan} • ${selectedCount} item(ns) selecionado(s)`,
-    value: normalizedPayload.pricing.negotiatedSetup,
+    description: `Montador Comercial • ${selectedPlan} • ${selectedCount} item(ns) contratado(s)`,
+    value: normalizedPayload.pricing.finalSetupTotal,
   };
 }
 
@@ -683,6 +725,7 @@ function hasMeaningfulBuilderState(payload: ContractBuilderPayload) {
   return Boolean(
     payload.clienteId ||
       payload.primaryPlanId !== "none" ||
+      payload.clientExtrasSnapshot.length > 0 ||
       payload.items.some(
         (item) => item.selected || Number(item.setupPrice || 0) > 0 || Number(item.monthlyPrice || 0) > 0,
       ) ||
@@ -1221,7 +1264,11 @@ function BuilderLiveSummary({
     const normalized = line.toLowerCase();
     const numericValue = parseMoneyInput(line);
 
-    if (normalized.includes("ativação total")) acc.setup = numericValue;
+    if (normalized.includes("subtotal da implantação")) acc.subtotal = numericValue;
+    if (normalized.includes("desconto aplicado")) acc.discount = numericValue;
+    if (normalized.includes("valor final da implantação") || normalized.includes("ativação total")) {
+      acc.setup = numericValue;
+    }
     if (normalized.includes("entrada / sinal")) acc.entry = numericValue;
     if (normalized.includes("saldo na entrega")) acc.balance = numericValue;
     if (normalized.includes("mensalidade contratada")) acc.monthly = numericValue;
@@ -1383,6 +1430,7 @@ export default function Contratos() {
   const [compareVersion, setCompareVersion] = useState<ContratoVersion | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
   const [moneyDrafts, setMoneyDrafts] = useState<Record<string, string>>({});
+  const [syncingClientExtras, setSyncingClientExtras] = useState(false);
   const [builderRecoveredLocally, setBuilderRecoveredLocally] = useState(false);
   const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const shouldReduceMotion = useReducedMotion();
@@ -2075,22 +2123,22 @@ export default function Contratos() {
   );
 
   const recalculateBuilderPricing = useCallback(
-    (items: ContractBuilderPayload["items"], previousPricing: ContractBuilderPricing) => {
-      const basePricing = computeBuilderPricing(items);
-      const negotiatedSetup =
-        previousPricing.negotiatedSetup === previousPricing.setupSubtotal
-          ? basePricing.setupSubtotal
-          : previousPricing.negotiatedSetup;
+    (
+      items: ContractBuilderPayload["items"],
+      previousPricing: ContractBuilderPricing,
+      clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[] = [],
+    ) => {
+      const basePricing = computeBuilderPricing(items, clientExtrasSnapshot);
       const negotiatedMonthly =
         previousPricing.negotiatedMonthly === previousPricing.monthlySubtotal
           ? basePricing.monthlySubtotal
           : previousPricing.negotiatedMonthly;
-      const entryValue = Math.min(previousPricing.entryValue, negotiatedSetup);
 
-      return computeBuilderPricing(items, {
-        negotiatedSetup,
-        entryValue,
-        balanceValue: Math.max(negotiatedSetup - entryValue, 0),
+      return computeBuilderPricing(items, clientExtrasSnapshot, {
+        negotiatedSetup: basePricing.setupSubtotal,
+        discountType: previousPricing.discountType === "percentage" ? "percentage" : "fixed",
+        discountValue: previousPricing.discountValue,
+        entryValue: previousPricing.entryValue,
         negotiatedMonthly,
       });
     },
@@ -2104,7 +2152,6 @@ export default function Contratos() {
 
       let nextPayload: ContractBuilderPayload = {
         ...payload,
-        items: payload.items.map((item) => ({ ...item })),
         pricing: { ...payload.pricing },
       };
 
@@ -2112,49 +2159,26 @@ export default function Contratos() {
         const matched = key.match(moneyDraftFieldPattern);
         if (!matched) continue;
 
-        const [, target, targetId, fieldName] = matched;
+        const [, target, , fieldName] = matched;
         const numericValue = Math.max(parseMoneyInput(draftValue), 0);
-
-        if (target === "item" && (fieldName === "setupPrice" || fieldName === "monthlyPrice")) {
-          nextPayload = {
-            ...nextPayload,
-            items: updateBuilderItemPrice(
-              nextPayload.items,
-              targetId,
-              fieldName,
-              numericValue,
-            ),
-          };
-          nextPayload = {
-            ...nextPayload,
-            pricing: recalculateBuilderPricing(nextPayload.items, nextPayload.pricing),
-          };
-        }
 
         if (
           target === "pricing" &&
-          (fieldName === "negotiatedSetup" || fieldName === "entryValue" || fieldName === "negotiatedMonthly")
+          (fieldName === "discountValue" || fieldName === "entryValue" || fieldName === "negotiatedMonthly")
         ) {
           const nextPricing = { ...nextPayload.pricing };
 
-          if (fieldName === "negotiatedSetup") {
-            nextPricing.negotiatedSetup = numericValue;
-            nextPricing.entryValue = Math.min(nextPricing.entryValue, numericValue);
-            nextPricing.balanceValue = Math.max(numericValue - nextPricing.entryValue, 0);
-          }
-
-          if (fieldName === "entryValue") {
-            nextPricing.entryValue = Math.min(numericValue, nextPricing.negotiatedSetup);
-            nextPricing.balanceValue = Math.max(nextPricing.negotiatedSetup - nextPricing.entryValue, 0);
-          }
-
-          if (fieldName === "negotiatedMonthly") {
-            nextPricing.negotiatedMonthly = numericValue;
-          }
+          if (fieldName === "discountValue") nextPricing.discountValue = numericValue;
+          if (fieldName === "entryValue") nextPricing.entryValue = numericValue;
+          if (fieldName === "negotiatedMonthly") nextPricing.negotiatedMonthly = numericValue;
 
           nextPayload = {
             ...nextPayload,
-            pricing: nextPricing,
+            pricing: recalculateBuilderPricing(
+              nextPayload.items,
+              nextPricing,
+              nextPayload.clientExtrasSnapshot,
+            ),
           };
         }
       }
@@ -2278,17 +2302,40 @@ export default function Contratos() {
     });
   };
 
-  const handleBuilderClientChange = (clienteId: string) => {
+  const handleBuilderClientChange = async (clienteId: string) => {
     const cliente = clientes.find((item) => item.id === clienteId);
     const currentPayload = getWorkingBuilderPayload();
     if (!cliente || !currentPayload) return;
 
-    setBuilderPayload({
-      ...currentPayload,
-      clienteId,
-      contractante: buildContractanteFromClient(cliente),
-      updatedAt: new Date().toISOString(),
-    });
+    setSyncingClientExtras(true);
+    try {
+      const activeClientExtras = await fetchActiveClientExtras(clienteId);
+      const clientExtrasSnapshot = activeClientExtras.map(mapClientExtraToSnapshot);
+      const nextItems = currentPayload.items.filter((item) => item.isPrimaryPlan);
+      const nextPricing = recalculateBuilderPricing(
+        nextItems,
+        currentPayload.pricing,
+        clientExtrasSnapshot,
+      );
+
+      setBuilderPayload({
+        ...currentPayload,
+        clienteId,
+        contractante: buildContractanteFromClient(cliente),
+        items: nextItems,
+        clientExtrasSnapshot,
+        pricing: nextPricing,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao sincronizar extras do cliente",
+        description: getContractErrorMessage(error, "Não foi possível carregar os extras ativos deste cliente."),
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingClientExtras(false);
+    }
   };
 
   const updateBuilderContractante = (
@@ -2349,7 +2396,11 @@ export default function Contratos() {
     if (!currentPayload) return;
 
     const nextItems = selectPrimaryPlan(currentPayload.items, planId);
-    const nextPricing = recalculateBuilderPricing(nextItems, currentPayload.pricing);
+    const nextPricing = recalculateBuilderPricing(
+      nextItems,
+      currentPayload.pricing,
+      currentPayload.clientExtrasSnapshot,
+    );
 
     setBuilderPayload({
       ...currentPayload,
@@ -2360,31 +2411,26 @@ export default function Contratos() {
     });
   };
 
-  const handleBuilderItemToggle = (itemId: string, selected: boolean) => {
+  const handleBuilderDiscountTypeChange = (discountType: ContractBuilderPricing["discountType"]) => {
     const currentPayload = getWorkingBuilderPayload();
     if (!currentPayload) return;
 
-    const nextItems = toggleBuilderItem(currentPayload.items, itemId, selected);
-    const nextPricing = recalculateBuilderPricing(nextItems, currentPayload.pricing);
-
     setBuilderPayload({
       ...currentPayload,
-      items: nextItems,
-      pricing: nextPricing,
+      pricing: recalculateBuilderPricing(
+        currentPayload.items,
+        {
+          ...currentPayload.pricing,
+          discountType,
+        },
+        currentPayload.clientExtrasSnapshot,
+      ),
       updatedAt: new Date().toISOString(),
     });
   };
 
-  const handleBuilderItemPriceChange = (
-    itemId: string,
-    field: "setupPrice" | "monthlyPrice",
-    rawValue: string,
-  ) => {
-    setMoneyDraftValue(buildItemMoneyDraftKey(itemId, field), rawValue);
-  };
-
   const handleBuilderPricingChange = (
-    field: "negotiatedSetup" | "entryValue" | "negotiatedMonthly",
+    field: "discountValue" | "entryValue" | "negotiatedMonthly",
     rawValue: string,
   ) => {
     setMoneyDraftValue(buildPricingMoneyDraftKey(field), rawValue);
@@ -2428,9 +2474,11 @@ export default function Contratos() {
           if (!currentPayload.contratada.endereco.trim()) return "Preencha o endereço da contratada.";
           return null;
         case 2: {
-          const selectedItems = currentPayload.items.filter((item) => item.selected);
-          if (!selectedItems.length) {
-            return "Selecione pelo menos um plano ou extra para montar o contrato.";
+          const hasLegacyExtraSelection = currentPayload.items.some(
+            (item) => !item.isPrimaryPlan && item.selected,
+          );
+          if (currentPayload.primaryPlanId === "none" && !hasLegacyExtraSelection) {
+            return "Selecione um dos planos para montar o contrato.";
           }
           if (currentPayload.primaryPlanId === "sob-medida" && !currentPayload.customScope.trim()) {
             return "Descreva o escopo customizado para propostas Sob Medida.";
@@ -2440,8 +2488,8 @@ export default function Contratos() {
         case 3:
           if (!currentPayload.prazoDias.trim()) return "Informe o prazo estimado da proposta.";
           if (!currentPayload.formaPagamento.trim()) return "Informe a forma de pagamento.";
-          if (currentPayload.pricing.entryValue > currentPayload.pricing.negotiatedSetup) {
-            return "A entrada não pode ser maior que o valor negociado.";
+          if (currentPayload.pricing.entryValue > currentPayload.pricing.finalSetupTotal) {
+            return "A entrada não pode ser maior que o valor final da implantação.";
           }
           return null;
         default:
@@ -2755,35 +2803,53 @@ export default function Contratos() {
   const handleRefreshBuilderExtras = async () => {
     const currentPayload = syncMoneyDraftsToState();
     if (!currentPayload) return;
+    if (!currentPayload.clienteId) {
+      toast({
+        title: "Selecione um cliente primeiro",
+        description: "Os extras automáticos são carregados a partir do cadastro do cliente.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const currentExtraIds = new Set(
-      currentPayload.items.filter((item) => item.source === "extra").map((item) => item.id),
-    );
+    setSyncingClientExtras(true);
+    try {
+      const previousIds = new Set(currentPayload.clientExtrasSnapshot.map((item) => item.id));
+      const activeClientExtras = await fetchActiveClientExtras(currentPayload.clienteId);
+      const clientExtrasSnapshot = activeClientExtras.map(mapClientExtraToSnapshot);
+      const nextItems = currentPayload.items.filter((item) => item.isPrimaryPlan);
+      const nextPricing = recalculateBuilderPricing(
+        nextItems,
+        currentPayload.pricing,
+        clientExtrasSnapshot,
+      );
+      const newExtraCount = clientExtrasSnapshot.filter((item) => !previousIds.has(item.id)).length;
 
-    const freshExtras = await loadExtrasCatalogo();
-    const normalizedPayload = normalizeBuilderPayload(
-      currentPayload,
-      freshExtras,
-      currentPayload.clienteId,
-      builderStep,
-    );
-    const newExtraCount = normalizedPayload.items.filter(
-      (item) => item.source === "extra" && !currentExtraIds.has(item.id),
-    ).length;
+      setBuilderPayload({
+        ...currentPayload,
+        items: nextItems,
+        clientExtrasSnapshot,
+        pricing: nextPricing,
+        updatedAt: new Date().toISOString(),
+      });
+      setMoneyDrafts({});
 
-    setBuilderPayload({
-      ...normalizedPayload,
-      updatedAt: new Date().toISOString(),
-    });
-    setMoneyDrafts({});
-
-    toast({
-      title: "Extras atualizados",
-      description:
-        newExtraCount > 0
-          ? `${newExtraCount} novo(s) extra(s) ativo(s) entraram no montador.`
-          : "Nenhum extra novo foi encontrado. Sua seleção atual foi preservada.",
-    });
+      toast({
+        title: "Extras sincronizados",
+        description:
+          newExtraCount > 0
+            ? `${newExtraCount} novo(s) extra(s) ativo(s) foram puxados do cadastro do cliente.`
+            : "Os extras do contrato foram atualizados com o cadastro atual do cliente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar extras",
+        description: getContractErrorMessage(error, "Não foi possível sincronizar os extras ativos do cliente."),
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingClientExtras(false);
+    }
   };
 
   const builderDirtySignature = useMemo(
@@ -2916,16 +2982,9 @@ export default function Contratos() {
     ];
   }, [contratos]);
 
-  const groupedExtras = useMemo(
-    () =>
-      builderPayload?.items
-        .filter((item) => !item.isPrimaryPlan)
-        .reduce<Record<string, typeof builderPayload.items>>((acc, item) => {
-          if (!acc[item.group]) acc[item.group] = [];
-          acc[item.group].push(item);
-          return acc;
-        }, {}),
-    [builderPayload],
+  const builderClientExtras = useMemo(
+    () => (workingBuilderPayload ? getContractExtraSnapshots(workingBuilderPayload) : []),
+    [workingBuilderPayload],
   );
 
   const builderPrepared = useMemo(
@@ -2946,7 +3005,7 @@ export default function Contratos() {
     [workingBuilderPayload],
   );
 
-  const selectedItemsCount = workingBuilderPayload?.items.filter((item) => item.selected).length || 0;
+  const selectedItemsCount = workingBuilderPayload ? countSelectedBuilderEntries(workingBuilderPayload) : 0;
   const builderProgress = ((builderStep + 1) / BUILDER_STEPS.length) * 100;
 
   return (
@@ -3733,7 +3792,7 @@ export default function Contratos() {
                               <CardHeader className="pb-4">
                                 <CardTitle className="text-sm text-white">Plano principal</CardTitle>
                                 <CardDescription className="text-xs text-white/45">
-                                  Escolha única. O contrato final mostrará apenas o plano selecionado e os extras marcados.
+                                  Escolha um dos 3 planos oficiais. Os extras ativos do cliente entram automaticamente na proposta.
                                 </CardDescription>
                               </CardHeader>
                               <CardContent className="space-y-4">
@@ -3742,17 +3801,6 @@ export default function Contratos() {
                                   onValueChange={(value) => handlePrimaryPlanChange(value as BuilderPrimaryPlanId)}
                                   className="space-y-4"
                                 >
-                                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 flex items-center justify-between gap-4">
-                                    <div>
-                                      <p className="text-sm font-medium text-white">Sem plano principal</p>
-                                      <p className="text-xs text-white/45">Use quando a proposta for baseada apenas em extras ou composição manual.</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                      <Label htmlFor="plan-none" className="text-xs text-white/55">Selecionar</Label>
-                                      <RadioGroupItem id="plan-none" value="none" />
-                                    </div>
-                                  </div>
-
                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                     {PUBLIC_PLAN_CATALOG.map((plan) => {
                                       const selected = builderPayload.primaryPlanId === plan.id;
@@ -3804,9 +3852,9 @@ export default function Contratos() {
                               <CardHeader className="pb-4">
                                 <div className="flex items-center justify-between gap-3 flex-wrap">
                                   <div>
-                                    <CardTitle className="text-sm text-white">Extras e serviços adicionais</CardTitle>
+                                    <CardTitle className="text-sm text-white">Extras ativos do cliente</CardTitle>
                                     <CardDescription className="text-xs text-white/45">
-                                      Somente extras ativos entram no montador. O refresh preserva seleção e preços já editados.
+                                      O contrato puxa os extras ativos do cadastro do cliente. Quando houver mudança no cadastro, sincronize manualmente este rascunho.
                                     </CardDescription>
                                   </div>
                                   <Button
@@ -3814,87 +3862,48 @@ export default function Contratos() {
                                     variant="outline"
                                     className="border-white/10 bg-white/5 text-white hover:bg-white/10"
                                     onClick={handleRefreshBuilderExtras}
+                                    disabled={!builderPayload.clienteId || syncingClientExtras}
                                   >
-                                    <RefreshCw className="w-3.5 h-3.5 mr-2" /> Atualizar extras
+                                    <RefreshCw className={`w-3.5 h-3.5 mr-2 ${syncingClientExtras ? "animate-spin" : ""}`} />
+                                    {syncingClientExtras ? "Sincronizando" : "Atualizar extras"}
                                   </Button>
                                 </div>
                               </CardHeader>
                               <CardContent className="space-y-5">
-                                {groupedExtras && Object.keys(groupedExtras).length > 0 ? (
-                                  Object.entries(groupedExtras).map(([group, items]) => (
-                                    <div key={group} className="space-y-3">
-                                      <div className="flex items-center justify-between gap-3">
-                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">
-                                          {builderGroupTitles[group] || "Extras"}
-                                        </p>
-                                        <p className="text-xs text-white/40">{items.length} item(ns)</p>
-                                      </div>
-                                      <div className="space-y-3">
-                                        {items.map((item) => (
-                                          <div
-                                            key={item.id}
-                                            className={`rounded-2xl border p-4 transition-colors ${
-                                              item.selected
-                                                ? "border-fuchsia-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.2),rgba(232,51,74,0.12),rgba(194,24,91,0.14))]"
-                                                : "border-white/10 bg-white/[0.02] hover:border-white/20"
-                                            }`}
-                                          >
-                                            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_140px_140px] gap-4 items-start">
-                                              <div className="space-y-2">
-                                                <div className="flex items-start gap-3">
-                                                  <input
-                                                    type="checkbox"
-                                                    checked={item.selected}
-                                                    onChange={(event) => handleBuilderItemToggle(item.id, event.target.checked)}
-                                                    className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent accent-[hsl(var(--primary))]"
-                                                  />
-                                                  <div className="space-y-1">
-                                                    <p className="text-sm font-medium text-white">{item.name}</p>
-                                                    <p className="text-xs text-white/50 leading-relaxed">
-                                                      {item.description || "Sem descrição adicional."}
-                                                    </p>
-                                                  </div>
-                                                </div>
-                                              </div>
-
-                                              <div className="space-y-2">
-                                                <Label className="text-[10px] uppercase tracking-[0.18em] text-white/35">Setup</Label>
-                                                <Input
-                                                  value={getMoneyInputDisplayValue(
-                                                    buildItemMoneyDraftKey(item.id, "setupPrice"),
-                                                    item.setupPrice,
-                                                  )}
-                                                  onChange={(event) =>
-                                                    handleBuilderItemPriceChange(item.id, "setupPrice", event.target.value)
-                                                  }
-                                                  onBlur={() => commitMoneyDraft(buildItemMoneyDraftKey(item.id, "setupPrice"))}
-                                                  className="glass-input border-white/10 text-white"
-                                                />
-                                              </div>
-
-                                              <div className="space-y-2">
-                                                <Label className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensal</Label>
-                                                <Input
-                                                  value={getMoneyInputDisplayValue(
-                                                    buildItemMoneyDraftKey(item.id, "monthlyPrice"),
-                                                    item.monthlyPrice,
-                                                  )}
-                                                  onChange={(event) =>
-                                                    handleBuilderItemPriceChange(item.id, "monthlyPrice", event.target.value)
-                                                  }
-                                                  onBlur={() => commitMoneyDraft(buildItemMoneyDraftKey(item.id, "monthlyPrice"))}
-                                                  className="glass-input border-white/10 text-white"
-                                                />
-                                              </div>
+                                {!builderPayload.clienteId ? (
+                                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm text-white/45">
+                                    Selecione um cliente para carregar os extras ativos automaticamente.
+                                  </div>
+                                ) : builderClientExtras.length > 0 ? (
+                                  <div className="space-y-3">
+                                    {builderClientExtras.map((item) => (
+                                      <div
+                                        key={item.id}
+                                        className="rounded-2xl border border-fuchsia-300/15 bg-[linear-gradient(135deg,rgba(123,31,162,0.16),rgba(232,51,74,0.08),rgba(194,24,91,0.1))] p-4"
+                                      >
+                                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                          <div className="space-y-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <p className="text-sm font-medium text-white">{item.name}</p>
+                                              <Badge variant="outline" className="border-white/10 text-white/60">
+                                                {item.typeLabel === "mensal" ? "Mensal" : "Único"}
+                                              </Badge>
                                             </div>
+                                            <p className="text-xs text-white/50 leading-relaxed">
+                                              {item.description || "Sem descrição adicional."}
+                                            </p>
                                           </div>
-                                        ))}
+                                          <div className="text-right space-y-1 min-w-[180px]">
+                                            <p className="text-xs uppercase tracking-[0.18em] text-white/35">Snapshot do contrato</p>
+                                            <p className="text-sm font-medium text-white">{describeClientExtraPricing(item)}</p>
+                                          </div>
+                                        </div>
                                       </div>
-                                    </div>
-                                  ))
+                                    ))}
+                                  </div>
                                 ) : (
                                   <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm text-white/45">
-                                    Nenhum extra ativo encontrado no catálogo.
+                                    Nenhum extra ativo encontrado no cadastro deste cliente.
                                   </div>
                                 )}
                               </CardContent>
@@ -3904,10 +3913,10 @@ export default function Contratos() {
 
                         {builderStep === 3 && (
                           <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                               <Card className="bg-white/[0.03] border-white/10">
                                 <CardContent className="p-5 space-y-2">
-                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Implantação base</p>
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Subtotal implantação</p>
                                   <AnimatedValue
                                     value={workingBuilderPayload?.pricing.setupSubtotal || builderPayload.pricing.setupSubtotal}
                                     format={formatCurrencyBRL}
@@ -3917,9 +3926,9 @@ export default function Contratos() {
                               </Card>
                               <Card className="bg-white/[0.03] border-white/10">
                                 <CardContent className="p-5 space-y-2">
-                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensal base</p>
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Desconto</p>
                                   <AnimatedValue
-                                    value={workingBuilderPayload?.pricing.monthlySubtotal || builderPayload.pricing.monthlySubtotal}
+                                    value={workingBuilderPayload?.pricing.discountAmount || builderPayload.pricing.discountAmount}
                                     format={formatCurrencyBRL}
                                     className="block text-2xl font-semibold text-white"
                                   />
@@ -3927,8 +3936,22 @@ export default function Contratos() {
                               </Card>
                               <Card className="bg-white/[0.03] border-primary/20">
                                 <CardContent className="p-5 space-y-2">
-                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Itens contratados</p>
-                                  <p className="text-2xl font-semibold text-white">{selectedItemsCount}</p>
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Valor final</p>
+                                  <AnimatedValue
+                                    value={workingBuilderPayload?.pricing.finalSetupTotal || builderPayload.pricing.finalSetupTotal}
+                                    format={formatCurrencyBRL}
+                                    className="block text-2xl font-semibold text-white"
+                                  />
+                                </CardContent>
+                              </Card>
+                              <Card className="bg-white/[0.03] border-white/10">
+                                <CardContent className="p-5 space-y-2">
+                                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Mensalidade</p>
+                                  <AnimatedValue
+                                    value={workingBuilderPayload?.pricing.finalMonthlyTotal || builderPayload.pricing.finalMonthlyTotal}
+                                    format={formatCurrencyBRL}
+                                    className="block text-2xl font-semibold text-white"
+                                  />
                                 </CardContent>
                               </Card>
                             </div>
@@ -3939,20 +3962,61 @@ export default function Contratos() {
                                   <CircleDollarSign className="w-4 h-4 text-primary" /> Totais e pagamento
                                 </CardTitle>
                                 <CardDescription className="text-xs text-white/45">
-                                  Você pode negociar os totais finais sem perder a composição detalhada da proposta.
+                                  O valor é calculado automaticamente com base no plano, nos extras ativos do cliente e no desconto aplicado.
                                 </CardDescription>
                               </CardHeader>
-                              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                  <Label className="text-xs text-white/55">Valor negociado da implantação</Label>
+                                  <Label className="text-xs text-white/55">Tipo de desconto</Label>
+                                  <Select
+                                    value={builderPayload.pricing.discountType}
+                                    onValueChange={(value) =>
+                                      handleBuilderDiscountTypeChange(value as ContractBuilderPricing["discountType"])
+                                    }
+                                  >
+                                    <SelectTrigger className="glass-input border-white/10 text-white">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="fixed">Valor fixo</SelectItem>
+                                      <SelectItem value="percentage">Porcentagem</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">
+                                    {builderPayload.pricing.discountType === "percentage"
+                                      ? "Desconto (%)"
+                                      : "Desconto (R$)"}
+                                  </Label>
                                   <Input
                                     value={getMoneyInputDisplayValue(
-                                      buildPricingMoneyDraftKey("negotiatedSetup"),
-                                      builderPayload.pricing.negotiatedSetup,
+                                      buildPricingMoneyDraftKey("discountValue"),
+                                      builderPayload.pricing.discountValue,
                                     )}
-                                    onChange={(event) => handleBuilderPricingChange("negotiatedSetup", event.target.value)}
-                                    onBlur={() => commitMoneyDraft(buildPricingMoneyDraftKey("negotiatedSetup"))}
+                                    onChange={(event) => handleBuilderPricingChange("discountValue", event.target.value)}
+                                    onBlur={() => commitMoneyDraft(buildPricingMoneyDraftKey("discountValue"))}
                                     className="glass-input border-white/10 text-white"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Subtotal da implantação</Label>
+                                  <Input
+                                    value={formatMoneyInputValue(
+                                      workingBuilderPayload?.pricing.setupSubtotal || builderPayload.pricing.setupSubtotal,
+                                    )}
+                                    readOnly
+                                    className="glass-input border-white/10 text-white/75"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-xs text-white/55">Valor final da implantação</Label>
+                                  <Input
+                                    value={formatMoneyInputValue(
+                                      workingBuilderPayload?.pricing.finalSetupTotal || builderPayload.pricing.finalSetupTotal,
+                                    )}
+                                    readOnly
+                                    className="glass-input border-white/10 text-white/75"
                                   />
                                 </div>
                                 <div className="space-y-2">
@@ -3978,15 +4042,13 @@ export default function Contratos() {
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="text-xs text-white/55">Mensalidade negociada</Label>
+                                  <Label className="text-xs text-white/55">Mensalidade final</Label>
                                   <Input
-                                    value={getMoneyInputDisplayValue(
-                                      buildPricingMoneyDraftKey("negotiatedMonthly"),
-                                      builderPayload.pricing.negotiatedMonthly,
+                                    value={formatMoneyInputValue(
+                                      workingBuilderPayload?.pricing.finalMonthlyTotal || builderPayload.pricing.finalMonthlyTotal,
                                     )}
-                                    onChange={(event) => handleBuilderPricingChange("negotiatedMonthly", event.target.value)}
-                                    onBlur={() => commitMoneyDraft(buildPricingMoneyDraftKey("negotiatedMonthly"))}
-                                    className="glass-input border-white/10 text-white"
+                                    readOnly
+                                    className="glass-input border-white/10 text-white/75"
                                   />
                                 </div>
                                 <div className="space-y-2">

@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { notifyClientPanel } from "@/lib/user-notifications";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
+import { usePersistentDraftState } from "@/hooks/usePersistentDraftState";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -31,25 +32,67 @@ const kanbanColumns = [
 
 function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSelectedProjeto }: { projetoId: string; onBack: () => void; onReload: () => void; selectedProjeto: string | null; setSelectedProjeto: (id: string | null) => void }) {
   const { toast } = useToast();
+  const {
+    state: detailsDraft,
+    setState: setDetailsDraft,
+    replaceState: replaceDetailsDraft,
+    markSaved: markDetailsDraftSaved,
+    isDirty: detailsDraftDirty,
+  } = usePersistentDraftState({
+    storageKey: `novaesweb:admin:projetos:detalhe:${projetoId}`,
+    initialState: {
+      novaAtualizacao: "",
+      visivelCliente: true,
+      urlSite: "",
+      dataEntrega: "",
+      horaEntrega: "",
+    },
+  });
   const [projeto, setProjeto] = useState<any>(null);
   const [pedido, setPedido] = useState<any>(null);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
   const [arquivos, setArquivos] = useState<any[]>([]);
-  const [novaAtualizacao, setNovaAtualizacao] = useState("");
-  const [visivelCliente, setVisivelCliente] = useState(true);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [urlSite, setUrlSite] = useState("");
-  const [dataEntrega, setDataEntrega] = useState("");
-  const [horaEntrega, setHoraEntrega] = useState("");
+  const novaAtualizacao = detailsDraft.novaAtualizacao;
+  const visivelCliente = detailsDraft.visivelCliente;
+  const urlSite = detailsDraft.urlSite;
+  const dataEntrega = detailsDraft.dataEntrega;
+  const horaEntrega = detailsDraft.horaEntrega;
+
+  const setNovaAtualizacao = useCallback((value: string) => {
+    setDetailsDraft((current) => ({ ...current, novaAtualizacao: value }));
+  }, [setDetailsDraft]);
+
+  const setVisivelCliente = useCallback((value: boolean) => {
+    setDetailsDraft((current) => ({ ...current, visivelCliente: value }));
+  }, [setDetailsDraft]);
+
+  const setUrlSite = useCallback((value: string) => {
+    setDetailsDraft((current) => ({ ...current, urlSite: value }));
+  }, [setDetailsDraft]);
+
+  const setDataEntrega = useCallback((value: string) => {
+    setDetailsDraft((current) => ({ ...current, dataEntrega: value }));
+  }, [setDetailsDraft]);
+
+  const setHoraEntrega = useCallback((value: string) => {
+    setDetailsDraft((current) => ({ ...current, horaEntrega: value }));
+  }, [setDetailsDraft]);
 
   const loadData = useCallback(async () => {
     const { data: proj } = await supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single();
     setProjeto(proj);
     if (proj) {
-      setUrlSite((proj as any).url_site || "");
-      setDataEntrega((proj as any).data_entrega || "");
-      setHoraEntrega((proj as any).hora_entrega || "");
+      if (!detailsDraftDirty) {
+        replaceDetailsDraft({
+          novaAtualizacao: "",
+          visivelCliente: true,
+          urlSite: (proj as any).url_site || "",
+          dataEntrega: (proj as any).data_entrega || "",
+          horaEntrega: (proj as any).hora_entrega || "",
+        }, { markClean: true });
+      }
       const { data: pedData } = await supabase.from("pedidos").select("codigo").eq("projeto_id", proj.id).maybeSingle();
       setPedido(pedData);
       
@@ -59,7 +102,7 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
       const { data: arData } = await (supabase.from("projeto_arquivos" as any) as any).select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false });
       setArquivos(arData || []);
     }
-  }, [projetoId]);
+  }, [detailsDraftDirty, projetoId, replaceDetailsDraft]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -146,6 +189,11 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
         data_entrega: dataEntrega.trim(), 
         hora_entrega: horaEntrega.trim() 
       }));
+      markDetailsDraftSaved({
+        ...detailsDraft,
+        dataEntrega: dataEntrega.trim(),
+        horaEntrega: horaEntrega.trim(),
+      });
 
       await notifyClientPanel(projeto.cliente_id, {
         title: "Entrega agendada",
@@ -170,6 +218,10 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
       if (error) throw error;
       
       setProjeto((prev: any) => ({ ...prev, url_site: urlSite.trim() }));
+      markDetailsDraftSaved({
+        ...detailsDraft,
+        urlSite: urlSite.trim(),
+      });
       await notifyClientPanel(projeto.cliente_id, {
         title: "Link do projeto disponível",
         body: `O link de ${projeto.titulo} já está liberado no seu painel.`,
@@ -584,10 +636,28 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
 }
 
 export default function Projetos() {
-  const [view, setView] = useState<"lista" | "kanban">("kanban");
+  const {
+    state: projetosViewDraft,
+    setState: setProjetosViewDraft,
+  } = usePersistentDraftState({
+    storageKey: "novaesweb:admin:projetos:view-draft",
+    initialState: {
+      view: "kanban" as "lista" | "kanban",
+      selectedProjeto: null as string | null,
+    },
+  });
+  const view = projetosViewDraft.view;
   const [projetos, setProjetos] = useState<any[]>([]);
-  const [selectedProjeto, setSelectedProjeto] = useState<string | null>(null);
+  const selectedProjeto = projetosViewDraft.selectedProjeto;
   const { toast } = useToast();
+
+  const setView = useCallback((value: "lista" | "kanban") => {
+    setProjetosViewDraft((current) => ({ ...current, view: value }));
+  }, [setProjetosViewDraft]);
+
+  const setSelectedProjeto = useCallback((value: string | null) => {
+    setProjetosViewDraft((current) => ({ ...current, selectedProjeto: value }));
+  }, [setProjetosViewDraft]);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("projetos").select("*, clientes(nome)").order("updated_at", { ascending: false });

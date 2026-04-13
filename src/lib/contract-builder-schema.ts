@@ -6,6 +6,7 @@ import {
   parseMoneyInput,
   selectPrimaryPlan,
   type BuilderPrimaryPlanId,
+  type ContractBuilderClientExtraSnapshot,
   type ContractBuilderItem,
   type ContractBuilderPayload,
   type ContractBuilderPricing,
@@ -158,13 +159,29 @@ const itemSchema = z.object({
   isPrimaryPlan: z.boolean(),
 });
 
+const clientExtraSnapshotSchema = z.object({
+  id: z.string().min(1).max(200),
+  extraId: z.string().min(1).max(200),
+  name: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
+  description: z.any().transform((value) => sanitizePlainText(value, { maxLength: 800, preserveLineBreaks: true })),
+  category: z.enum(["planos", "fixo", "intermediario", "mensal"]),
+  typeLabel: z.enum(["mensal", "único"]),
+  setupPrice: z.any().transform(sanitizeMoney),
+  monthlyPrice: z.any().transform(sanitizeMoney),
+});
+
 const pricingSchema = z.object({
   setupSubtotal: z.any().transform(sanitizeMoney),
   monthlySubtotal: z.any().transform(sanitizeMoney),
   negotiatedSetup: z.any().transform(sanitizeMoney),
+  discountType: z.enum(["fixed", "percentage"]),
+  discountValue: z.any().transform(sanitizeMoney),
+  discountAmount: z.any().transform(sanitizeMoney),
+  finalSetupTotal: z.any().transform(sanitizeMoney),
   entryValue: z.any().transform(sanitizeMoney),
   balanceValue: z.any().transform(sanitizeMoney),
   negotiatedMonthly: z.any().transform(sanitizeMoney),
+  finalMonthlyTotal: z.any().transform(sanitizeMoney),
 });
 
 export const contractBuilderPayloadSchema = z.object({
@@ -174,6 +191,7 @@ export const contractBuilderPayloadSchema = z.object({
   contractante: contractanteSchema,
   contratada: contratadaSchema,
   items: z.array(itemSchema),
+  clientExtrasSnapshot: z.array(clientExtraSnapshotSchema).default([]),
   customScope: z.any().transform((value) => sanitizePlainText(value, { maxLength: 2000, preserveLineBreaks: true })),
   prazoDias: z.any().transform((value) => sanitizePlainText(value, { maxLength: 16 })),
   formaPagamento: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
@@ -193,17 +211,19 @@ export const contractBuilderPayloadSchema = z.object({
 
 function normalizePricing(
   items: ContractBuilderItem[],
+  clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[],
   previousPricing: ContractBuilderPricing,
 ) {
-  const setupBase = items.filter((item) => item.selected).reduce((sum, item) => sum + item.setupPrice, 0);
-  const monthlyBase = items.filter((item) => item.selected).reduce((sum, item) => sum + item.monthlyPrice, 0);
+  const setupBase = computeBuilderPricing(items, clientExtrasSnapshot).setupSubtotal;
+  const monthlyBase = computeBuilderPricing(items, clientExtrasSnapshot).monthlySubtotal;
   const negotiatedSetup = Math.max(previousPricing.negotiatedSetup, 0);
   const entryValue = Math.max(previousPricing.entryValue, 0);
 
-  return computeBuilderPricing(items, {
+  return computeBuilderPricing(items, clientExtrasSnapshot, {
     negotiatedSetup: negotiatedSetup || setupBase,
+    discountType: previousPricing.discountType || "fixed",
+    discountValue: previousPricing.discountValue || 0,
     entryValue,
-    balanceValue: Math.max((negotiatedSetup || setupBase) - entryValue, 0),
     negotiatedMonthly: previousPricing.negotiatedMonthly || monthlyBase,
   });
 }
@@ -219,12 +239,13 @@ export function validateAndSanitizeBuilderPayload(input: unknown) {
   }));
 
   const reconciledPrimaryPlan = getSelectedPrimaryPlanId(normalizedItems);
-  const normalizedPricing = normalizePricing(normalizedItems, parsed.pricing);
+  const normalizedPricing = normalizePricing(normalizedItems, parsed.clientExtrasSnapshot, parsed.pricing);
   const nextPayload: ContractBuilderPayload = {
     ...parsed,
     lastStep: step,
     primaryPlanId: reconciledPrimaryPlan,
     items: normalizedItems,
+    clientExtrasSnapshot: parsed.clientExtrasSnapshot,
     pricing: normalizedPricing,
     updatedAt: new Date().toISOString(),
   };
@@ -239,12 +260,12 @@ export function validateAndSanitizeBuilderPayload(input: unknown) {
     ]);
   }
 
-  if (nextPayload.pricing.entryValue > nextPayload.pricing.negotiatedSetup) {
+  if (nextPayload.pricing.entryValue > nextPayload.pricing.finalSetupTotal) {
     throw new z.ZodError([
       {
         code: "custom",
         path: ["pricing", "entryValue"],
-        message: "A entrada não pode ser maior que o valor negociado.",
+        message: "A entrada não pode ser maior que o valor final da implantação.",
       },
     ]);
   }

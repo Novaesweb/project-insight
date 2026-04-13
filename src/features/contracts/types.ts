@@ -3,6 +3,9 @@ import type { ContractBuilderPayload, ContractBuilderStepIndex } from "@/lib/con
 
 export type Cliente = Tables<"clientes">;
 export type ExtraCatalogo = Tables<"extras_catalogo">;
+export type ExtraCliente = Tables<"extras_clientes"> & {
+  extras_catalogo?: Tables<"extras_catalogo"> | null;
+};
 export type Contrato = Tables<"contratos"> & {
   clientes?: {
     nome: string;

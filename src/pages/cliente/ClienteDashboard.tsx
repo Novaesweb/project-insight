@@ -230,26 +230,6 @@ export default function ClienteDashboard() {
   };
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    if (!cId) return;
-
-    const handleFocus = () => load();
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        load();
-      }
-    };
-
-    const interval = window.setInterval(load, 15000);
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [cId, load]);
   useRealtimeSubscription("projetos", load);
   useRealtimeSubscription("client_briefings", load);
   useRealtimeSubscription("financeiro", load);
