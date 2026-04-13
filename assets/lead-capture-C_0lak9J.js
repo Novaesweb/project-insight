@@ -1,0 +1,1 @@
+import{s}from"./index-BTtcP8fp.js";async function n(o){const{data:r,error:e}=await s.functions.invoke("capture-lead",{body:o});if(e)throw new Error(e.message);if(r!=null&&r.error)throw new Error(String(r.error));return r}export{n as s};
