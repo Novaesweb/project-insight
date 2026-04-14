@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
@@ -1435,7 +1436,21 @@ export default function Contratos() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [extrasCatalogo, setExtrasCatalogo] = useState<ExtraCatalogo[]>([]);
   const [extrasLoaded, setExtrasLoaded] = useState(false);
-  const [tab, setTab] = useState("lista");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname.split("/").pop() || "contratos";
+  
+  const tab = currentPath === "modelos" 
+    ? "modelos" 
+    : (currentPath === "novo" || currentPath === "montador") 
+      ? "montador" 
+      : "lista";
+      
+  const setTab = (newTab: string) => {
+    if (newTab === "lista" || newTab === "ativos") navigate("/admin/contratos");
+    else if (newTab === "modelos") navigate("/admin/contratos/modelos");
+    else if (newTab === "montador") navigate("/admin/contratos/novo");
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState | null>(null);
@@ -3043,31 +3058,59 @@ export default function Contratos() {
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.18),transparent_36%),radial-gradient(circle_at_center,rgba(194,24,91,0.14),transparent_48%)] blur-3xl" />
       <motion.div variants={fadeUp}>
-        <Tabs value={tab} onValueChange={setTab} className="space-y-6">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <TabsList className="glass-card border-[0.5px] bg-transparent p-1 gap-1 flex-wrap">
-              <TabsTrigger
-                value="lista"
-                className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" /> Cofre
-              </TabsTrigger>
-              <TabsTrigger
-                value="modelos"
-                className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4"
-              >
-                <Boxes className="w-3.5 h-3.5" /> Modelo Mestre
-              </TabsTrigger>
-              <TabsTrigger
-                value="montador"
-                className="data-[state=active]:gradient-primary data-[state=active]:text-white text-[hsl(var(--muted-foreground))] text-xs gap-1.5 px-4"
-              >
-                <FilePenLine className="w-3.5 h-3.5" /> Montador
-              </TabsTrigger>
-            </TabsList>
+        {tab === "lista" && (
+          <div className="grid gap-4 lg:grid-cols-3 mb-6">
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto justify-start rounded-3xl px-6 py-8 text-left border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-fuchsia-500/30 transition-all group"
+            >
+              <Link to="/admin/contratos">
+                <div>
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black/30 group-hover:bg-fuchsia-500/20 group-hover:text-fuchsia-400 text-white/60 transition-colors">
+                    <ShieldCheck className="h-6 w-6" />
+                  </div>
+                  <p className="text-lg font-black text-white">Dashboard</p>
+                  <p className="mt-2 text-sm text-white/50">Cofre de contratos e gestão de assinaturas.</p>
+                </div>
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto justify-start rounded-3xl px-6 py-8 text-left border border-white/10 bg-[linear-gradient(135deg,rgba(123,31,162,0.1),rgba(194,24,91,0.05))] hover:bg-white/[0.06] hover:border-fuchsia-500/30 transition-all group"
+              onClick={(e) => { e.preventDefault(); handleInitNewBuilder(); }}
+            >
+              <a href="#">
+                <div>
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-fuchsia-400 transition-colors">
+                    <FilePenLine className="h-6 w-6" />
+                  </div>
+                  <p className="text-lg font-black text-white">Criar Contrato</p>
+                  <p className="mt-2 text-sm text-white/50">Assistente para gerar um novo documento.</p>
+                </div>
+              </a>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto justify-start rounded-3xl px-6 py-8 text-left border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-fuchsia-500/30 transition-all group"
+            >
+              <Link to="/admin/contratos/modelos">
+                <div>
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black/30 group-hover:bg-fuchsia-500/20 group-hover:text-fuchsia-400 text-white/60 transition-colors">
+                    <Boxes className="h-6 w-6" />
+                  </div>
+                  <p className="text-lg font-black text-white">Modelos Master</p>
+                  <p className="mt-2 text-sm text-white/50">Edite as cláusulas contratuais base.</p>
+                </div>
+              </Link>
+            </Button>
           </div>
+        )}
 
-          <TabsContent value="lista">
+        <div className="space-y-6">
+          {tab === "lista" && (
             <Card className="glass-card overflow-hidden border-[0.5px] border-fuchsia-400/15 bg-[linear-gradient(180deg,rgba(17,15,24,0.98),rgba(17,15,24,0.9))]">
               <CardHeader>
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -3357,9 +3400,9 @@ export default function Contratos() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
-          <TabsContent value="modelos">
+          {tab === "modelos" && (
             <Card className="glass-card border-[0.5px]">
               <CardContent className="p-6 grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6 items-start">
                 <div className="space-y-4">
@@ -3414,9 +3457,10 @@ export default function Contratos() {
                 </Card>
               </CardContent>
             </Card>
-          </TabsContent>
+          )}
 
-          <TabsContent value="montador" className="space-y-6">
+          {tab === "montador" && (
+            <div className="space-y-6">
             <Card className="glass-card border-[0.5px] overflow-hidden">
               <CardContent className="p-0">
                 <div className="bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.16),rgba(194,24,91,0.2))] p-6 space-y-5">
@@ -4309,8 +4353,9 @@ export default function Contratos() {
                 </div>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+            </div>
+          )}
+        </div>
       </motion.div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
