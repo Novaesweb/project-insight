@@ -1563,6 +1563,18 @@ export default function Briefings() {
             className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
             onClick={handleStartDraft}
             disabled={!selectedClientId}
+          >
+            <FilePlus2 className="mr-2 h-4 w-4" />
+            Novo briefing em construção
+          </Button>
+          <Button asChild className="border-0 text-white" style={{ background: "var(--gradient-primary)" }}>
+            <Link to="/admin/briefings/em-andamento">Abrir montagem do briefing</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const navigationItems = [
     {
       href: "/admin/briefings/enviados",
