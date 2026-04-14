@@ -114,7 +114,10 @@ export const contractTemplates: ContractTemplate[] = [
     variaveis: [
       { key: "nome_cliente", label: "Nome do Cliente", type: "text", autoFill: "nome_cliente" },
       { key: "cpf_cnpj", label: "CPF/CNPJ do Cliente", type: "text", autoFill: "cpf_cnpj" },
-      { key: "endereco", label: "Endereço do Cliente", type: "text", autoFill: "ende    corpo: `CONTRATO MESTRE UNIVERSAL NOVAESWEB
+      { key: "endereco", label: "Endereço do Cliente", type: "text", autoFill: "endereco" },
+      ...contratoMestreVars,
+    ],
+    corpo: `CONTRATO MESTRE UNIVERSAL NOVAESWEB
 
 CONTRATANTE
 
@@ -205,12 +208,6 @@ Cláusula 6 — Atrasos: Em caso de atraso, o serviço e o atendimento podem ser
 Cláusulas 8 e 9 — Propriedade e Resultados: A estrutura é sua após a quitação total. A NovaesWeb garante a parte técnica e estratégica, mas resultados de vendas dependem do seu mercado e operação.
 
 Cláusula 11 — Cancelamento: Você pode cancelar, mas o valor de ativação já usado em horas de trabalho não é devolvido.
-
-{cidade_foro}/{estado_foro}, {data}.`,tos criativos, fotos profissionais, vídeos personalizados, artes gráficas, licenças premium de terceiros, campanhas pagas, domínio, hospedagem ou novas funcionalidades não descritas na proposta aprovada.
-
-Flexibilidade e evolução: O ecossistema NovaesWeb permite expansões, upgrades e novas funcionalidades. Qualquer evolução além do escopo original poderá ser contratada separadamente, com condições comerciais justas e transparentes.
-
-E, por estarem justas e contratadas, as partes confirmam sua concordância com o presente instrumento, inclusive por meios eletrônicos quando aplicável.
 
 {cidade_foro}/{estado_foro}, {data}.`,
   },

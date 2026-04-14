@@ -774,17 +774,13 @@ export function buildContractClauseExplanations(
       title: "Observações comerciais",
       explanation:
         payload.observacoesComerciais.trim() ||
-<<<<<<< HEAD
-        "As partes reconhecem as observações comerciais como parte integrante do contrato.",
-=======
         "Serviços recorrentes, extras, integrações, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do CONTRATANTE.",
->>>>>>> 43edab4 (Refatoração das cláusulas contratuais: Limitação de escopo, conformidade LGPD e ajustes financeiros.)
     },
     {
       number: "14",
       title: "Foro e jurisdição",
       explanation:
-        "Fica eleito o foro da Comarca de Canoas/RS, com renúncia expressa a qualquer outro, por mais privilegiado que seja.",
+        "Fica eleito o foro da Comarca de Canoas/RS para dirimir quaisquer controvérsias oriundas deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.",
     },
   ];
 }
