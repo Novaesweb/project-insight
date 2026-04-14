@@ -181,28 +181,35 @@ function ClienteDetalhes({ clienteId, onBack }: { clienteId: string; onBack: () 
 
   const loadData = useCallback(async () => {
     try {
-      const { data: c, error: errorCliente } = await supabase.from("clientes").select("*").eq("id", clienteId).single();
+      const [
+        { data: c, error: errorCliente },
+        { data: e, error: errorExtras },
+        { data: p, error: errorProjetos },
+        { data: ped, error: errorPedidos },
+        { data: cat, error: errorCatalogo }
+      ] = await Promise.all([
+        supabase.from("clientes").select("*").eq("id", clienteId).single(),
+        supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId),
+        supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false }),
+        supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false }),
+        supabase.from("extras_catalogo").select("*")
+      ]);
+
       if (errorCliente) {
         console.error("Erro ao carregar cliente");
         throw errorCliente;
       }
+
       if (c) setCliente(c);
-
-      const { data: e, error: errorExtras } = await supabase.from("extras_clientes").select("*, extras_catalogo(*)").eq("cliente_id", clienteId);
-      if (errorExtras) console.error("Erro ao carregar extras do cliente");
       if (e) setExtras(e);
-
-      const { data: p, error: errorProjetos } = await supabase.from("projetos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
-      if (errorProjetos) console.error("Erro ao carregar projetos do cliente");
       if (p) setProjetos(p);
-
-      const { data: ped, error: errorPedidos } = await supabase.from("pedidos").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: false });
-      if (errorPedidos) console.error("Erro ao carregar pedidos do cliente");
       if (ped) setPedidos(ped);
-
-      const { data: cat, error: errorCatalogo } = await supabase.from("extras_catalogo").select("*");
-      if (errorCatalogo) console.error("Erro ao carregar catálogo de extras");
       if (cat) setCatalogo(cat);
+
+      if (errorExtras) console.error("Erro ao carregar extras do cliente");
+      if (errorProjetos) console.error("Erro ao carregar projetos do cliente");
+      if (errorPedidos) console.error("Erro ao carregar pedidos do cliente");
+      if (errorCatalogo) console.error("Erro ao carregar catálogo de extras");
     } catch (error) {
       console.error("Erro ao carregar dados do cliente");
       toast({ 

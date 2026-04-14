@@ -81,8 +81,23 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
   }, [setDetailsDraft]);
 
   const loadData = useCallback(async () => {
-    const { data: proj } = await supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single();
+    const [
+      { data: proj },
+      { data: pedData },
+      { data: atData },
+      { data: arData }
+    ] = await Promise.all([
+      supabase.from("projetos").select("*, clientes(nome)").eq("id", projetoId).single(),
+      supabase.from("pedidos").select("codigo").eq("projeto_id", projetoId).maybeSingle(),
+      supabase.from("projeto_atualizacoes").select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false }),
+      (supabase.from("projeto_arquivos" as any) as any).select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false })
+    ]);
+
     setProjeto(proj);
+    setPedido(pedData);
+    setAtualizacoes(atData || []);
+    setArquivos(arData || []);
+
     if (proj) {
       if (!detailsDraftDirty) {
         replaceDetailsDraft({
@@ -93,14 +108,6 @@ function ProjetoDetalhes({ projetoId, onBack, onReload, selectedProjeto, setSele
           horaEntrega: (proj as any).hora_entrega || "",
         }, { markClean: true });
       }
-      const { data: pedData } = await supabase.from("pedidos").select("codigo").eq("projeto_id", proj.id).maybeSingle();
-      setPedido(pedData);
-      
-      const { data: atData } = await supabase.from("projeto_atualizacoes").select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false });
-      setAtualizacoes(atData || []);
-
-      const { data: arData } = await (supabase.from("projeto_arquivos" as any) as any).select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false });
-      setArquivos(arData || []);
     }
   }, [detailsDraftDirty, projetoId, replaceDetailsDraft]);
 
