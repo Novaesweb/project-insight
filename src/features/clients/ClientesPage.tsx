@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import { useToast } from "@/hooks/use-toast";
 import { invokeAdminFunction } from "@/lib/admin-function-client";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { persistClientProfile, sanitizeClientProfile } from "@/lib/client-portal-auth";
 import { notifyAdminPanel, notifyClientPanel } from "@/lib/user-notifications";
 import InternalNotes from "@/components/InternalNotes";
@@ -908,13 +908,19 @@ export default function Clientes() {
   const [clientes, setClientes] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [selectedCliente, setSelectedCliente] = useState<string | null>(null);
+  
+  const { id: routeId } = useParams<{ id: string }>();
+  const selectedCliente = routeId || null;
+  const setSelectedCliente = useCallback((newId: string | null) => {
+    if (newId) navigate(`/admin/clientes/${newId}`);
+    else navigate('/admin/clientes');
+  }, [navigate]);
 
   useEffect(() => {
     if (location.state?.selectedId) {
       setSelectedCliente(location.state.selectedId);
     }
-  }, [location.state]);
+  }, [location.state, setSelectedCliente]);
   
   const {
     state: newClientDraft,

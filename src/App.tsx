@@ -110,6 +110,7 @@ function AdminWithSplash() {
           <Routes>
             <Route index element={<Index />} />
             <Route path="clientes" element={<Clientes />} />
+            <Route path="clientes/:id" element={<Clientes />} />
             <Route path="leads" element={<Leads />} />
             <Route path="projetos" element={<Projetos />} />
             <Route path="pedidos" element={<Pedidos />} />
