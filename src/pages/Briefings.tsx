@@ -1595,6 +1595,19 @@ export default function Briefings() {
       active: currentPage === "library",
     },
   ];
+  const pageTitle =
+    currentPage === "in-progress"
+      ? "Briefings em andamento"
+      : currentPage === "library"
+        ? "Biblioteca de perguntas prontas"
+        : "Briefings por cliente";
+
+  const pageDescription =
+    currentPage === "in-progress"
+      ? "Monte, edite e prepare os briefings antes do envio ao cliente."
+      : currentPage === "library"
+        ? "Gerencie a base de perguntas prontas usada na montagem."
+        : "Área organizada em páginas separadas para montagem, acompanhamento e biblioteca de perguntas.";
 
   return (
     <motion.div
@@ -1610,14 +1623,22 @@ export default function Briefings() {
             Estratégia antes do projeto
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-white">Briefings por cliente</h1>
-            <p className="max-w-3xl text-sm text-white/55">
-              Área organizada em páginas separadas para montagem, acompanhamento e biblioteca de perguntas.
-            </p>
+            <h1 className="text-2xl font-black tracking-tight text-white">{pageTitle}</h1>
+            <p className="max-w-3xl text-sm text-white/55">{pageDescription}</p>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {currentPage !== "briefings" && (
+            <Button
+              asChild
+              type="button"
+              variant="outline"
+              className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
+            >
+              <Link to="/admin/briefings">Voltar ao Painel</Link>
+            </Button>
+          )}
           <Button type="button" variant="outline" className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]" onClick={handleStartDraft} disabled={!selectedClientId}>
             <FilePlus2 className="mr-2 h-4 w-4" />
             Briefing em construção
@@ -1631,28 +1652,30 @@ export default function Briefings() {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="grid gap-3 lg:grid-cols-3">
-        {navigationItems.map((item) => (
-          <Button
-            key={item.href}
-            asChild
-            variant="outline"
-            className={cn(
-              "h-auto justify-start rounded-3xl px-5 py-4 text-left",
-              item.active
-                ? "border-fuchsia-400/30 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] text-white"
-                : "border-white/10 bg-white/[0.03] text-white/80 hover:bg-white/[0.06]",
-            )}
-          >
-            <Link to={item.href}>
-              <div>
-                <p className="text-sm font-black">{item.label}</p>
-                <p className="mt-1 text-xs text-white/50">{item.description}</p>
-              </div>
-            </Link>
-          </Button>
-        ))}
-      </motion.div>
+      {currentPage === "briefings" && (
+        <motion.div variants={fadeUp} className="grid gap-3 lg:grid-cols-3">
+          {navigationItems.map((item) => (
+            <Button
+              key={item.href}
+              asChild
+              variant="outline"
+              className={cn(
+                "h-auto justify-start rounded-3xl px-5 py-4 text-left",
+                item.active
+                  ? "border-fuchsia-400/30 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] text-white"
+                  : "border-white/10 bg-white/[0.03] text-white/80 hover:bg-white/[0.06]",
+              )}
+            >
+              <Link to={item.href}>
+                <div>
+                  <p className="text-sm font-black">{item.label}</p>
+                  <p className="mt-1 text-xs text-white/50">{item.description}</p>
+                </div>
+              </Link>
+            </Button>
+          ))}
+        </motion.div>
+      )}
 
       <motion.div variants={fadeUp}>
         <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(138,43,226,0.18),rgba(255,0,0,0.08),rgba(255,0,127,0.12))]">
