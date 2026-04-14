@@ -1563,51 +1563,43 @@ export default function Briefings() {
             className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
             onClick={handleStartDraft}
             disabled={!selectedClientId}
-          >
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            Novo briefing em construção
-          </Button>
-          <Button asChild className="border-0 text-white" style={{ background: "var(--gradient-primary)" }}>
-            <Link to="/admin/briefings/em-andamento">Abrir montagem do briefing</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   const navigationItems = [
     {
-      href: "/admin/briefings",
-      label: "Briefings",
-      description: "Visão principal e acompanhamento dos briefings enviados.",
-      active: currentPage === "briefings",
+      href: "/admin/briefings/enviados",
+      label: "Briefings enviados",
+      description: "Acompanhe briefings já repassados para aprovação/resposta.",
+      active: currentPage === "enviados",
     },
     {
       href: "/admin/briefings/em-andamento",
       label: "Briefings em andamento",
       description: "Monte, edite e prepare os briefings antes do envio ao cliente.",
-      active: currentPage === "in-progress",
+      active: currentPage === "em-andamento" || currentPage === "in-progress",
     },
     {
       href: "/admin/briefings/biblioteca",
       label: "Biblioteca de perguntas prontas",
       description: "Gerencie a base de perguntas prontas usada na montagem.",
-      active: currentPage === "library",
+      active: currentPage === "library" || currentPage === "biblioteca",
     },
   ];
   const pageTitle =
-    currentPage === "in-progress"
+    currentPage === "em-andamento" || currentPage === "in-progress"
       ? "Briefings em andamento"
-      : currentPage === "library"
+      : currentPage === "library" || currentPage === "biblioteca"
         ? "Biblioteca de perguntas prontas"
-        : "Briefings por cliente";
+        : currentPage === "enviados"
+          ? "Briefings enviados"
+          : "Módulo de Briefings";
 
   const pageDescription =
-    currentPage === "in-progress"
+    currentPage === "em-andamento" || currentPage === "in-progress"
       ? "Monte, edite e prepare os briefings antes do envio ao cliente."
-      : currentPage === "library"
+      : currentPage === "library" || currentPage === "biblioteca"
         ? "Gerencie a base de perguntas prontas usada na montagem."
-        : "Área organizada em páginas separadas para montagem, acompanhamento e biblioteca de perguntas.";
+        : currentPage === "enviados"
+          ? "Acompanhamento detalhado dos briefings repassados ao cliente."
+          : "Selecione uma das opções abaixo para gerenciar ou criar novos briefings.";
 
   return (
     <motion.div
@@ -1653,23 +1645,23 @@ export default function Briefings() {
       </motion.div>
 
       {currentPage === "briefings" && (
-        <motion.div variants={fadeUp} className="grid gap-3 lg:grid-cols-3">
+        <motion.div variants={fadeUp} className="grid gap-4 lg:grid-cols-3">
           {navigationItems.map((item) => (
             <Button
               key={item.href}
               asChild
               variant="outline"
               className={cn(
-                "h-auto justify-start rounded-3xl px-5 py-4 text-left",
-                item.active
-                  ? "border-fuchsia-400/30 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] text-white"
-                  : "border-white/10 bg-white/[0.03] text-white/80 hover:bg-white/[0.06]",
+                "h-auto justify-start rounded-3xl px-6 py-8 text-left border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-fuchsia-500/30 transition-all group",
               )}
             >
               <Link to={item.href}>
                 <div>
-                  <p className="text-sm font-black">{item.label}</p>
-                  <p className="mt-1 text-xs text-white/50">{item.description}</p>
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black/30 group-hover:bg-fuchsia-500/20 group-hover:text-fuchsia-400 text-white/60 transition-colors">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <p className="text-lg font-black text-white">{item.label}</p>
+                  <p className="mt-2 text-sm text-white/50">{item.description}</p>
                 </div>
               </Link>
             </Button>
@@ -1677,58 +1669,60 @@ export default function Briefings() {
         </motion.div>
       )}
 
-      <motion.div variants={fadeUp}>
-        <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(138,43,226,0.18),rgba(255,0,0,0.08),rgba(255,0,127,0.12))]">
-          <CardContent className="space-y-5 p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      {(currentPage === "em-andamento" || currentPage === "in-progress" || currentPage === "enviados") && (
+        <motion.div variants={fadeUp}>
+          <Card className="overflow-hidden border-white/10 bg-[linear-gradient(135deg,rgba(138,43,226,0.18),rgba(255,0,0,0.08),rgba(255,0,127,0.12))]">
+            <CardContent className="space-y-5 p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/45">Radar de prontidão</p>
+                  <h2 className="text-xl font-black text-white">{editor.titulo || "Briefing sem título"}</h2>
+                  <p className="text-sm text-white/55">
+                    Cliente: {selectedClient ? getClientDisplayName(selectedClient) : "nenhum selecionado"}
+                  </p>
+                </div>
+                <Badge className={cn("border", readinessTone)}>{readinessLabel}</Badge>
+              </div>
+
               <div className="space-y-2">
-                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/45">Radar de prontidão</p>
-                <h2 className="text-xl font-black text-white">{editor.titulo || "Briefing sem título"}</h2>
-                <p className="text-sm text-white/55">
-                  Cliente: {selectedClient ? getClientDisplayName(selectedClient) : "nenhum selecionado"}
-                </p>
+                <div className="h-3 overflow-hidden rounded-full bg-black/30">
+                  <div
+                    className="h-full rounded-full bg-[linear-gradient(90deg,#8A2BE2,#FF0000,#FF007F)] transition-all"
+                    style={{ width: `${readinessScore}%` }}
+                  />
+                </div>
+                <div className="flex flex-wrap justify-between gap-3 text-xs text-white/55">
+                  <span>{readinessScore}% completo</span>
+                  <span>{contentValidation.missing.length} pendências críticas</span>
+                </div>
               </div>
-              <Badge className={cn("border", readinessTone)}>{readinessLabel}</Badge>
-            </div>
 
-            <div className="space-y-2">
-              <div className="h-3 overflow-hidden rounded-full bg-black/30">
-                <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#8A2BE2,#FF0000,#FF007F)] transition-all"
-                  style={{ width: `${readinessScore}%` }}
-                />
+              <div className="grid gap-3 md:grid-cols-4">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Perguntas enviadas</p>
+                  <p className="mt-2 text-3xl font-black text-white">{fieldDrafts.length}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Respondidas</p>
+                  <p className="mt-2 text-3xl font-black text-white">{answeredFieldCount}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Pendentes</p>
+                  <p className="mt-2 text-3xl font-black text-white">{pendingFieldCount}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Status</p>
+                  <p className="mt-2 text-lg font-black text-white">
+                    {selectedBriefing ? getSentStatusLabel(selectedBriefing.status) : "Sem briefing ativo"}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-wrap justify-between gap-3 text-xs text-white/55">
-                <span>{readinessScore}% completo</span>
-                <span>{contentValidation.missing.length} pendências críticas</span>
-              </div>
-            </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
-            <div className="grid gap-3 md:grid-cols-4">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Perguntas enviadas</p>
-                <p className="mt-2 text-3xl font-black text-white">{fieldDrafts.length}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Respondidas</p>
-                <p className="mt-2 text-3xl font-black text-white">{answeredFieldCount}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Pendentes</p>
-                <p className="mt-2 text-3xl font-black text-white">{pendingFieldCount}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Status</p>
-                <p className="mt-2 text-lg font-black text-white">
-                  {selectedBriefing ? getSentStatusLabel(selectedBriefing.status) : "Sem briefing ativo"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {currentPage !== "library" && (
+      {(currentPage === "em-andamento" || currentPage === "in-progress" || currentPage === "enviados") && (
         <motion.div variants={fadeUp}>
           <div className="grid gap-3 md:grid-cols-[260px_1fr_220px]">
             <Select value={selectedClientId || ""} onValueChange={handleSelectClient}>
@@ -1775,7 +1769,7 @@ export default function Briefings() {
         </motion.div>
       )}
 
-      {currentPage === "in-progress" && (
+      {(currentPage === "em-andamento" || currentPage === "in-progress") && (
         <motion.div variants={fadeUp}>
             <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
               <Card className="border-white/10 bg-white/[0.03]">
@@ -1843,7 +1837,7 @@ export default function Briefings() {
         </motion.div>
       )}
 
-      {currentPage === "briefings" && (
+      {currentPage === "enviados" && (
         <motion.div variants={fadeUp}>
             <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
               <div className="space-y-6">
@@ -1971,7 +1965,7 @@ export default function Briefings() {
         </motion.div>
       )}
 
-      {currentPage === "library" && (
+      {(currentPage === "library" || currentPage === "biblioteca") && (
         <motion.div variants={fadeUp}>
           <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
             {libraryContextCard}
