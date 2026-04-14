@@ -104,6 +104,8 @@ export interface ContractProposalSummary {
   contractante: ContractProposalSummarySection;
   contratada: ContractProposalSummarySection;
   comercial: ContractProposalSummarySection;
+  pricingBreakdown: string[];
+  scopeNotice: ContractProposalSummarySection;
   selectedPlan: ContractProposalSummaryService | null;
   selectedServices: ContractProposalSummaryService[];
   customScope: string;
@@ -159,13 +161,21 @@ export const DEFAULT_CONTRACTOR_DATA: ContractBuilderContractor = {
 };
 
 export const DEFAULT_SCOPE_EXCLUSIONS =
-  "Não estão inclusos serviços, licenças, integrações, campanhas pagas, textos, fotos, artes, hospedagem, domínio ou novas funcionalidades não descritas na proposta aprovada.";
+  "Licenças, integrações não previstas, campanhas pagas, textos, fotos, artes, hospedagem, domínio ou novas funcionalidades não descritas na proposta aprovada.";
 
 export const DEFAULT_COMMERCIAL_NOTES =
-  "Serviços recorrentes, extras, integrações, mídia paga, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do contratante.";
+  "Serviços recorrentes, extras, integrações, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do CONTRATANTE.";
 
 export const DEFAULT_PAYMENT_METHOD =
   "PIX, boleto, cartão ou link de pagamento";
+
+const CONTRACT_SCOPE_NOTICE_TITLE = "Escopo de atuação - importante";
+
+const CONTRACT_SCOPE_NOTICE_LINES = [
+  "AVISO: A NovaesWeb atua exclusivamente na criação, desenvolvimento e manutenção do site e das estruturas digitais contratadas.",
+  "Serviços de marketing digital, gestão de tráfego pago, produção de conteúdo, gerenciamento de redes sociais, campanhas publicitárias e estratégias comerciais não estão incluídos no escopo da NovaesWeb.",
+  "A NovaesWeb não oferece nem se responsabiliza por resultados de marketing, captação de clientes ou performance comercial.",
+];
 
 export function createEmptyBuilderPayload(
   extras: Tables<"extras_catalogo">[] = [],
@@ -462,29 +472,46 @@ export function buildServicesTableText(
 ) {
   const selectedPlan = getSelectedPlanItem(payload.items);
   const selectedExtras = getContractExtraSnapshots(payload);
-  const lines = ["RESUMO COMERCIAL DA PROPOSTA:", ""];
+  const lines = ["CONDIÇÕES COMERCIAIS:", ""];
+
+  lines.push(`• Total ativação (setup único): ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`);
+  lines.push(
+    `• Total mensal: ${
+      payload.pricing.finalMonthlyTotal > 0
+        ? `${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)} / mês`
+        : "Sem recorrência"
+    }`,
+  );
+  lines.push(
+    `• Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)} | Saldo na entrega: ${formatCurrencyBRL(
+      payload.pricing.balanceValue,
+    )}`,
+  );
+  lines.push(`• Prazo estimado: ${payload.prazoDias} dias úteis | Pagamento: ${payload.formaPagamento}`);
+  lines.push("");
 
   if (selectedPlan) {
-    lines.push("PLANO CONTRATADO:");
+    lines.push("PLANO E SERVIÇOS CONTRATADOS:");
+    lines.push("Plano principal");
     lines.push(`• ${selectedPlan.name} — ${describeBuilderItemPricing(selectedPlan)}`);
     lines.push("");
   }
 
   if (payload.primaryPlanId === "sob-medida" && payload.customScope.trim()) {
-    lines.push("ESCOPO CUSTOMIZADO:");
+    lines.push("Escopo customizado:");
     lines.push(payload.customScope.trim());
     lines.push("");
   }
 
   if (selectedExtras.length) {
-    lines.push("EXTRAS CONTRATADOS:");
+    lines.push("Extras contratados:");
     selectedExtras.forEach((item) => {
       lines.push(`• ${item.name} — ${describeClientExtraPricing(item)} — Tipo: ${item.typeLabel}`);
     });
     lines.push("");
   }
 
-  lines.push("CONDIÇÕES COMERCIAIS:");
+  lines.push("FECHAMENTO FINANCEIRO:");
   lines.push(`• Subtotal da implantação: ${formatCurrencyBRL(payload.pricing.setupSubtotal)}`);
   lines.push(`• Desconto aplicado: ${formatCurrencyBRL(payload.pricing.discountAmount)}`);
   lines.push(`• Valor final da implantação: ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`);
@@ -493,6 +520,11 @@ export function buildServicesTableText(
   if (payload.pricing.finalMonthlyTotal > 0) {
     lines.push(`• Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}`);
   }
+  lines.push("");
+  lines.push(CONTRACT_SCOPE_NOTICE_TITLE.toUpperCase() + ":");
+  CONTRACT_SCOPE_NOTICE_LINES.forEach((line) => {
+    lines.push(line);
+  });
 
   return lines.join("\n");
 }
@@ -514,6 +546,9 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
     lista_servicos: buildContractedServicesSummary(payload),
     tabela_servicos: buildServicesTableText(payload),
     escopo_exclusoes: payload.escopoExclusoes,
+    valor_subtotal_implantacao: payload.pricing.setupSubtotal.toFixed(2).replace(".", ","),
+    valor_desconto: payload.pricing.discountAmount.toFixed(2).replace(".", ","),
+    valor_ativacao_total: payload.pricing.finalSetupTotal.toFixed(2).replace(".", ","),
     prazo_dias: payload.prazoDias,
     valor_entrada: payload.pricing.entryValue.toFixed(2).replace(".", ","),
     valor_saldo: payload.pricing.balanceValue.toFixed(2).replace(".", ","),
@@ -539,7 +574,7 @@ export function buildProposalSummary(payload: ContractBuilderPayload): ContractP
 
   const contractanteLines = [
     payload.contractante.nomeEmpresa?.trim() ? `Empresa: ${payload.contractante.nomeEmpresa.trim()}` : null,
-    payload.contractante.documento?.trim() ? `Documento: ${payload.contractante.documento.trim()}` : null,
+    payload.contractante.documento?.trim() ? `CPF/CNPJ: ${payload.contractante.documento.trim()}` : null,
     payload.contractante.email?.trim() ? `E-mail: ${payload.contractante.email.trim()}` : null,
     payload.contractante.whatsapp?.trim() ? `WhatsApp: ${payload.contractante.whatsapp.trim()}` : null,
     payload.contractante.telefone?.trim() ? `Telefone: ${payload.contractante.telefone.trim()}` : null,
@@ -548,22 +583,31 @@ export function buildProposalSummary(payload: ContractBuilderPayload): ContractP
 
   const contratadaLines = [
     `Representante: ${payload.contratada.representante}`,
-    `Documento: ${payload.contratada.documento}`,
+    `CPF/CNPJ: ${payload.contratada.documento}`,
     `Endereço: ${payload.contratada.endereco}`,
     payload.contratada.observacaoRecebimento.trim(),
   ].filter(Boolean);
 
   const comercialLines = [
+    `Total Ativação (Setup Único): ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`,
+    `Total Mensal: ${
+      payload.pricing.finalMonthlyTotal > 0
+        ? `${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)} / mês`
+        : "Sem recorrência"
+    }`,
+    `Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)} | Saldo na entrega: ${formatCurrencyBRL(
+      payload.pricing.balanceValue,
+    )}`,
+    `Prazo estimado: ${payload.prazoDias} dias úteis | Pagamento: ${payload.formaPagamento}`,
+  ].filter(Boolean) as string[];
+
+  const pricingBreakdown = [
     `Subtotal da implantação: ${formatCurrencyBRL(payload.pricing.setupSubtotal)}`,
     `Desconto aplicado: ${formatCurrencyBRL(payload.pricing.discountAmount)}`,
     `Valor final da implantação: ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`,
-    `Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)}`,
-    `Saldo na entrega: ${formatCurrencyBRL(payload.pricing.balanceValue)}`,
     payload.pricing.finalMonthlyTotal > 0
       ? `Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}`
       : null,
-    `Prazo estimado: ${payload.prazoDias} dias úteis`,
-    `Pagamento: ${payload.formaPagamento}`,
   ].filter(Boolean) as string[];
 
   return {
@@ -581,6 +625,12 @@ export function buildProposalSummary(payload: ContractBuilderPayload): ContractP
       eyebrow: "Comercial",
       title: "Condições comerciais",
       lines: comercialLines,
+    },
+    pricingBreakdown,
+    scopeNotice: {
+      eyebrow: "Escopo",
+      title: CONTRACT_SCOPE_NOTICE_TITLE,
+      lines: [...CONTRACT_SCOPE_NOTICE_LINES],
     },
     selectedPlan: selectedPlan
       ? {
@@ -628,8 +678,8 @@ export function buildContractClauseExplanations(
   const selectedPlan = getSelectedPlanItem(payload.items)?.name || "sem plano principal";
   const selectedExtras = getContractExtraSnapshots(payload);
   const selectedExtrasLabel = selectedExtras.length
-    ? `${selectedExtras.length} extra(s) adicional(is)`
-    : "nenhum extra adicional";
+    ? "e foram incluídos os extras listados acima."
+    : "sem extras adicionais vinculados nesta proposta.";
   const customScopeText =
     payload.primaryPlanId === "sob-medida" && payload.customScope.trim()
       ? ` O escopo customizado desta proposta é: ${payload.customScope.trim()}.`
@@ -641,13 +691,13 @@ export function buildContractClauseExplanations(
     {
       number: "1",
       title: "O que está sendo contratado",
-      explanation: `Este contrato cobre a estrutura digital contratada dentro do ecossistema NovaesWeb, podendo abranger site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos, automação de atendimento via WhatsApp, marketing digital, manutenção recorrente, módulos adicionais, integrações e extras, conforme detalhado nas condições comerciais. Nesta venda, o plano principal é ${selectedPlan} e foram incluídos ${selectedExtrasLabel}.${customScopeText}`,
+      explanation: `Este contrato cobre a estrutura digital contratada dentro do ecossistema NovaesWeb, podendo abranger site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos, manutenção recorrente, módulos adicionais, integrações e extras, conforme detalhado nas condições comerciais. Nesta venda, o plano principal é ${selectedPlan} e ${selectedExtrasLabel}${customScopeText}`,
     },
     {
       number: "2",
       title: "Escopo e exclusões",
       explanation:
-        "Tudo o que está descrito no resumo comercial faz parte da entrega. O que estiver fora do escopo, nas exclusões ou não estiver aprovado na proposta pode ser tratado como adicional e cobrado à parte. O cliente precisa enviar logo, textos, fotos, acessos e demais materiais necessários. Se isso atrasar, o prazo do projeto também pode atrasar.",
+        "Tudo o que está descrito no resumo comercial faz parte da entrega. Serviços de marketing digital, gestão de tráfego pago, produção de conteúdo e gerenciamento de redes sociais NÃO fazem parte do escopo da NovaesWeb. O cliente deve fornecer materiais (logo, textos, fotos) em tempo ágil para não comprometer o prazo.",
     },
     {
       number: "3",
@@ -663,13 +713,27 @@ export function buildContractClauseExplanations(
     {
       number: "5",
       title: "Valores e pagamento",
-      explanation: `O CONTRATANTE pagará à CONTRATADA os valores definidos nas condições comerciais. A forma de pagamento é: ${payload.formaPagamento}. O início da execução poderá ficar condicionado à compensação da entrada. Custos com licenças, ferramentas de terceiros, domínio, hospedagem, disparos, mídia paga e serviços não inclusos no escopo serão cobrados separadamente.`,
+      explanation: `A implantação negociada ficou em ${formatCurrencyBRL(
+        payload.pricing.finalSetupTotal,
+      )}${
+        payload.pricing.discountAmount > 0
+          ? `, já considerando desconto de ${formatCurrencyBRL(payload.pricing.discountAmount)} sobre o subtotal de ${formatCurrencyBRL(
+              payload.pricing.setupSubtotal,
+            )}`
+          : ""
+      }, com entrada de ${formatCurrencyBRL(payload.pricing.entryValue)} e saldo de ${formatCurrencyBRL(
+        payload.pricing.balanceValue,
+      )}.${
+        payload.pricing.finalMonthlyTotal > 0
+          ? ` A mensalidade contratada ficou em ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}.`
+          : ""
+      } A forma de pagamento combinada é ${payload.formaPagamento}. Custos externos com licenças, APIs ou domínio são de responsabilidade do CONTRATANTE.`,
     },
     {
       number: "6",
       title: "Atrasos e inadimplência",
       explanation:
-        "Em caso de atraso no pagamento, a CONTRATADA poderá suspender serviços, atendimento, manutenção, publicações, automações, entregas e liberações até a regularização. Se houver saldo em aberto durante projeto, a execução poderá ser congelada até quitação integral.",
+        "Em caso de atraso no pagamento, a CONTRATADA poderá suspender serviços, atendimento, manutenção, publicações, entregas e liberações até a regularização financeira. Se houver saldo em aberto durante o projeto, a execução poderá ser congelada até a quitação integral.",
     },
     {
       number: "7",
@@ -686,7 +750,7 @@ export function buildContractClauseExplanations(
       number: "9",
       title: "Marketing e resultados",
       explanation:
-        "Quando houver marketing, conteúdo, automações ou processos comerciais, a CONTRATADA atua com base técnica e estratégica, mas não garante resultado absoluto de vendas, leads ou faturamento, pois isso depende de variáveis externas e da operação do CONTRATANTE.",
+        "A NovaesWeb garante trabalho técnico de ponta e estratégia digital moderna, mas não garante resultado absoluto de vendas, leads ou faturamento, pois isso depende da operação e mercado do cliente. Serviços de marketing (anúncios, redes sociais) não estão inclusos nesta contratação técnica.",
     },
     {
       number: "10",
@@ -697,7 +761,7 @@ export function buildContractClauseExplanations(
       number: "11",
       title: "Cancelamento e rescisão",
       explanation:
-        "O CONTRATANTE pode cancelar mesmo após início dos trabalhos, mas valores já pagos para ativação e estruturação não serão devolvidos. Em caso de cancelamento, a estrutura permanece ativa apenas até o período já pago. Em descumprimento grave, inadimplência reiterada ou uso indevido, a CONTRATADA poderá rescindir imediatamente.",
+        "Você pode cancelar mesmo após o início dos trabalhos, mas os valores já pagos para ativação e estruturação do projeto não serão devolvidos, pois cobrem as horas de produção técnica já utilizadas. Em caso de cancelamento, a estrutura permanece ativa apenas até o fim do período já pago.",
     },
     {
       number: "12",
@@ -710,7 +774,11 @@ export function buildContractClauseExplanations(
       title: "Observações comerciais",
       explanation:
         payload.observacoesComerciais.trim() ||
+<<<<<<< HEAD
         "As partes reconhecem as observações comerciais como parte integrante do contrato.",
+=======
+        "Serviços recorrentes, extras, integrações, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do CONTRATANTE.",
+>>>>>>> 43edab4 (Refatoração das cláusulas contratuais: Limitação de escopo, conformidade LGPD e ajustes financeiros.)
     },
     {
       number: "14",
@@ -749,6 +817,13 @@ export function buildContractWordHtml(
       <div class="service-name">${escapeHtml(service.name)}</div>
       <div class="service-pricing">${escapeHtml(service.pricing)}</div>
       ${service.description ? `<div class="service-description">${escapeHtml(service.description)}</div>` : ""}
+    </div>
+  `;
+
+  const renderScopeBox = (title: string, lines: string[]) => `
+    <div class="scope-box">
+      <strong>${escapeHtml(title)}</strong><br />
+      ${lines.map((line) => escapeHtml(line)).join("<br />")}
     </div>
   `;
 
@@ -1023,6 +1098,9 @@ export function buildContractWordHtml(
         ${summary.selectedPlan ? renderServiceCard(summary.selectedPlan, true) : ""}
         ${summary.customScope ? `<div class="scope-box"><strong>Escopo customizado</strong><br />${escapeHtml(summary.customScope)}</div>` : ""}
         ${summary.selectedServices.map((service) => renderServiceCard(service)).join("")}
+        ${summary.pricingBreakdown.length ? renderScopeBox("Fechamento financeiro", summary.pricingBreakdown) : ""}
+        <div class="section-title">${escapeHtml(summary.scopeNotice.title)}</div>
+        ${renderScopeBox(summary.scopeNotice.title, summary.scopeNotice.lines)}
         `
             : ""
         }

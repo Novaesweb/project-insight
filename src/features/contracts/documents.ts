@@ -88,7 +88,7 @@ export function generateContractPDF(
     doc.setFontSize(9.5);
     y = drawWrappedText(
       doc,
-      "Proposta premium gerada pelo montador comercial da NovaesWeb com escopo selecionado, condições financeiras e corpo contratual consolidado.",
+      "Proposta premium gerada pelo montador comercial da NovaesWeb com escopo selecionado, condições financeiras, bloco de escopo e corpo contratual consolidado.",
       margin,
       y,
       maxWidth,
@@ -166,6 +166,49 @@ export function generateContractPDF(
       y += 1;
     });
 
+    if (summary.pricingBreakdown.length > 0) {
+      y += 4;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(141, 60, 176);
+      doc.text("FECHAMENTO FINANCEIRO", margin, y);
+      y += 7;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.4);
+      doc.setTextColor(41, 31, 50);
+      summary.pricingBreakdown.forEach((line) => {
+        const wrapped = doc.splitTextToSize(`• ${line}`, maxWidth);
+        wrapped.forEach((entry: string) => {
+          if (y > pageHeight - 22) {
+            doc.addPage();
+            y = 18;
+          }
+          doc.text(entry, margin, y);
+          y += 4.8;
+        });
+      });
+      y += 3;
+    }
+
+    if (y > pageHeight - 28) {
+      doc.addPage();
+      y = 18;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(141, 60, 176);
+    doc.text(summary.scopeNotice.title.toUpperCase(), margin, y);
+    y += 7;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.4);
+    doc.setTextColor(41, 31, 50);
+    summary.scopeNotice.lines.forEach((line) => {
+      y = drawWrappedText(doc, line, margin, y, maxWidth, 4.8, pageHeight, 18);
+      y += 1.5;
+    });
+
     y += 3;
     doc.setDrawColor(240, 216, 234);
     doc.line(margin, y, pageWidth - margin, y);
@@ -219,7 +262,7 @@ export function generateContractPDF(
   doc.setFont("helvetica", "bold");
   doc.setTextColor(19, 13, 26);
   doc.setFontSize(11);
-  doc.text("Corpo contratual", margin, y);
+  doc.text("CONTRATO MESTRE UNIVERSAL DE PRESTAÇÃO DE SERVIÇOS DIGITAIS NOVAESWEB", margin, y);
   y += 7;
 
   const paragraphs = cleanedBody.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);

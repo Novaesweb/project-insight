@@ -1129,6 +1129,32 @@ function BuilderPreviewDocument({
                   ))}
                 </div>
               )}
+
+              {summary.pricingBreakdown.length > 0 && (
+                <Card className="bg-white/[0.03] border-white/10">
+                  <CardContent className="p-4 space-y-2">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Fechamento financeiro</p>
+                    <div className="space-y-2 text-sm text-white/70">
+                      {summary.pricingBreakdown.map((line) => (
+                        <div key={line} className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2">
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card className="bg-white/[0.03] border-white/10">
+                <CardContent className="p-4 space-y-2">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">{summary.scopeNotice.title}</p>
+                  <div className="space-y-2 text-sm text-white/70 leading-relaxed">
+                    {summary.scopeNotice.lines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </CardContent>
           </Card>
         </>
@@ -1154,7 +1180,7 @@ function BuilderPreviewDocument({
             </AccordionItem>
             <AccordionItem value="corpo-contratual" className="border-b-0">
               <AccordionTrigger className="px-6 py-5 text-sm text-white hover:no-underline">
-                Corpo contratual completo
+                Contrato mestre universal de prestação de serviços digitais NovaesWeb
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
                 <div className="rounded-2xl bg-white text-black p-6 font-serif text-sm leading-relaxed whitespace-pre-wrap">

@@ -79,6 +79,9 @@ const contratoMestreVars: ContractVariable[] = [
       "Não estão inclusos serviços, licenças, integrações, campanhas pagas, textos, fotos, artes, hospedagem, domínio ou novas funcionalidades não descritas na proposta aprovada.",
   },
   { key: "prazo_dias", label: "Prazo Inicial de Entrega (dias úteis)", type: "number", defaultValue: "20" },
+  { key: "valor_subtotal_implantacao", label: "Subtotal da Implantação (R$)", type: "number", defaultValue: "0" },
+  { key: "valor_desconto", label: "Desconto Aplicado (R$)", type: "number", defaultValue: "0" },
+  { key: "valor_ativacao_total", label: "Valor Final da Ativação (R$)", type: "number", defaultValue: "0" },
   { key: "valor_entrada", label: "Valor da Entrada / Sinal (R$)", type: "number", defaultValue: "0" },
   { key: "valor_saldo", label: "Valor do Saldo Final (R$)", type: "number", defaultValue: "0" },
   { key: "valor_mensal", label: "Valor Mensal / Recorrente (R$)", type: "number", defaultValue: "0" },
@@ -111,10 +114,7 @@ export const contractTemplates: ContractTemplate[] = [
     variaveis: [
       { key: "nome_cliente", label: "Nome do Cliente", type: "text", autoFill: "nome_cliente" },
       { key: "cpf_cnpj", label: "CPF/CNPJ do Cliente", type: "text", autoFill: "cpf_cnpj" },
-      { key: "endereco", label: "Endereço do Cliente", type: "text", autoFill: "endereco" },
-      ...contratoMestreVars,
-    ],
-    corpo: `CONTRATO MESTRE UNIVERSAL NOVAESWEB
+      { key: "endereco", label: "Endereço do Cliente", type: "text", autoFill: "ende    corpo: `CONTRATO MESTRE UNIVERSAL NOVAESWEB
 
 CONTRATANTE
 
@@ -130,57 +130,83 @@ CONDIÇÕES COMERCIAIS
 
 {tabela_servicos}
 
-PLANO E SERVIÇOS CONTRATADOS
+CLÁUSULA 1 — DO OBJETO
+1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, de serviços digitais, estratégicos e operacionais dentro do ecossistema NovaesWeb, podendo abranger, de forma modular e conforme contratação específica, a criação, implantação, personalização, manutenção e evolução de site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos e módulos adicionais.
+1.2. Os serviços efetivamente contratados neste instrumento são os seguintes: {lista_servicos}.
+1.3. Integra ainda o presente contrato o resumo comercial constante na seção Plano e Serviços Contratados, com subtotal de implantação de R$ {valor_subtotal_implantacao}, desconto de R$ {valor_desconto}, ativação total de R$ {valor_ativacao_total} e mensalidade de R$ {valor_mensal}.
 
-Os serviços efetivamente contratados neste instrumento são: {lista_servicos}.
+CLÁUSULA 2 — DO ESCOPO CONTRATADO E DAS EXCLUSÕES
+2.1. A execução observará o escopo aprovado comercialmente e os limites operacionais definidos pela proposta, briefing, checklist e aprovações trocadas entre as partes.
+2.2. Ficam expressamente excluídos do escopo desta contratação todos os serviços de marketing digital, gestão de tráfego pago, produção de conteúdo, gerenciamento de redes sociais, campanhas publicitárias e estratégias de captação. Tais serviços são de responsabilidade exclusiva do CONTRATANTE ou de profissionais por ele contratados.
+2.3. Ficam desde já reconhecidas como exclusões padrão, salvo previsão expressa em contrário: {escopo_exclusoes}.
+2.4. Qualquer item, módulo, integração, página, automação, ajuste estrutural ou material não previsto expressamente no escopo inicial será tratado como adicional e poderá ser objeto de novo orçamento, aditivo ou faturamento complementar.
 
-ESCOPO DE ATUAÇÃO — IMPORTANTE
+CLÁUSULA 3 — DOS MATERIAIS E DO BRIEFING
+3.1. O CONTRATANTE deverá fornecer, em prazo razoável, todos os materiais e informações necessários para a execução do projeto ou serviço, incluindo, quando aplicável, logotipo, identidade visual, textos, fotos, vídeos, descrições, tabela de preços, links, acessos, credenciais, documentação técnica, briefing validado e demais conteúdos necessários.
+3.2. O atraso no envio de materiais, acessos, aprovações, feedbacks ou qualquer informação essencial pelo CONTRATANTE suspenderá automaticamente a contagem dos prazos da CONTRATADA até a regularização da pendência.
 
-A execução observará o escopo aprovado comercialmente e os limites operacionais definidos pela proposta, briefing, checklist e aprovações trocadas entre as partes. Ficam desde já reconhecidas como exclusões padrão, salvo previsão expressa em contrário: {escopo_exclusoes}. Qualquer item, módulo, integração, campanha, página, automação, criativo, rotina, ajuste estrutural ou material não previsto expressamente no escopo inicial será tratado como adicional e poderá ser objeto de novo orçamento, aditivo ou faturamento complementar.
+CLÁUSULA 4 — DOS PRAZOS E DA EXECUÇÃO
+4.1. O prazo inicial estimado para entrega é de {prazo_dias} dias úteis, contados a partir do recebimento do briefing aprovado, dos materiais mínimos necessários e da confirmação do pagamento da entrada, quando aplicável.
+4.2. O prazo acima é estimado e poderá ser ajustado em razão de volume de alterações, mudanças de escopo, pendências do CONTRATANTE, indisponibilidade técnica externa ou qualquer fato superveniente que impacte a execução.
 
-O CONTRATANTE deverá fornecer, em prazo razoável, todos os materiais e informações necessários para a execução do projeto ou serviço, incluindo, quando aplicável, logotipo, identidade visual, textos, fotos, vídeos, descrições, tabela de preços, links, acessos, credenciais, documentação técnica, briefing validado e demais conteúdos necessários. O atraso no envio de materiais, acessos, aprovações, feedbacks ou qualquer informação essencial pelo CONTRATANTE suspenderá automaticamente a contagem dos prazos da CONTRATADA até a regularização da pendência.
+CLÁUSULA 5 — DOS VALORES E DO PAGAMENTO
+5.1. O CONTRATANTE pagará à CONTRATADA os valores definidos nas condições comerciais.
+5.2. A forma de pagamento acordada é: {forma_pagamento}.
+5.3. Custos com licenças de terceiros, APIs, gateways, domínio, hospedagem, disparos e serviços não inclusos no escopo serão de responsabilidade do CONTRATANTE.
 
-O prazo inicial estimado para entrega é de {prazo_dias} dias úteis, contados a partir do recebimento do briefing aprovado, dos materiais mínimos necessários e da confirmação do pagamento da entrada, quando aplicável. O prazo acima é estimado e poderá ser ajustado em razão de volume de alterações, mudanças de escopo, pendências do CONTRATANTE, indisponibilidade de terceiros, aprovações demoradas, indisponibilidade técnica externa ou qualquer fato superveniente que impacte a execução.
+CLÁUSULA 6 — DA INADIMPLÊNCIA
+6.1. O inadimplemento de qualquer parcela ou mensalidade sujeitará o CONTRATANTE à incidência de multa moratória de 2% (dois por cento), juros de 1% (um por cento) ao mês, correção monetária pelo IGPM e demais encargos legais cabíveis.
+6.2. Em caso de atraso, a CONTRATADA poderá suspender parcial ou integralmente os serviços recorrentes, atendimento, manutenção, publicações, entregas e liberações até a regularização financeira.
+6.3. Caso haja saldo em aberto durante projeto em andamento, a CONTRATADA poderá congelar a continuidade da execução e reter entregas, acessos, arquivos e publicações até a quitação integral.
 
+CLÁUSULA 7 — DAS REVISÕES, AJUSTES E MUDANÇAS DE ESCOPO
+7.1. Estão incluídas até {numero_revisoes} rodadas de revisão dentro do escopo aprovado.
+7.2. Revisões extras, refações por mudança de direção ou novos pedidos fora do escopo serão cobrados adicionalmente no valor mínimo de R$ {valor_revisao} por demanda.
+
+CLÁUSULA 8 — DA PROPRIEDADE INTELECTUAL, TITULARIDADE E ACESSOS
+8.1. Até a quitação integral de todos os valores contratados, a estrutura produzida, os arquivos editáveis, o painel, as páginas, os sistemas, os layouts, os códigos, as integrações e quaisquer ativos digitais desenvolvidos permanecerão sob titularidade da CONTRATADA.
+8.2. A cessão definitiva de uso, acesso, entrega final ou transferência plena dos ativos contratados ocorrerá somente após a quitação total do contrato e de eventuais adicionais.
+8.3. Domínio, hospedagem, contas de terceiros, plataformas externas, APIs, gateways, ferramentas e licenças obedecerão àquilo que tiver sido efetivamente contratado.
+
+CLÁUSULA 9 — DO ESCOPO DE ATUAÇÃO E LIMITAÇÃO DE RESPONSABILIDADE
+9.1. A CONTRATADA atua exclusivamente na criação, desenvolvimento, implantação e manutenção das estruturas digitais objeto deste contrato, conforme escopo aprovado.
+9.2. Serviços de marketing digital, gestão de tráfego pago, produção de conteúdo, gerenciamento de redes sociais, campanhas publicitárias e estratégias de captação NÃO fazem parte do escopo da CONTRATADA e são de responsabilidade exclusiva do CONTRATANTE.
+9.3. O CONTRATANTE declara ciência de que não existe garantia absoluta de resultado comercial, faturamento, quantidade de leads, volume de pedidos, conversão, alcance ou retorno financeiro, pois tais fatores dependem integralmente de variáveis externas e da operação comercial do CONTRATANTE.
+
+CLÁUSULA 10 — DO SUPORTE, MANUTENÇÃO E RECORRÊNCIA
+10.1. Serviços de suporte, manutenção, acompanhamento ou operação recorrente só serão devidos se contratados expressamente.
+10.2. Quando existentes, serão prestados dentro da janela: {prazo_suporte}.
+
+CLÁUSULA 11 — DA RESCISÃO
+11.1. O CONTRATANTE poderá solicitar o cancelamento do contrato após o início dos trabalhos. Nessa hipótese, os valores já pagos para ativação, configuração e estruturação não serão devolvidos, considerando as horas de produção já utilizadas.
+11.2. Em caso de cancelamento, a estrutura contratada permanecerá ativa apenas até o fim do período já pago.
+11.3. A CONTRATADA poderá rescindir o contrato de forma imediata em caso de descumprimento grave, inadimplência reiterada ou uso indevido da estrutura.
+
+CLÁUSULA 12 — DO SIGILO, DADOS E CONFORMIDADE (LGPD)
+12.1. As partes comprometem-se a manter sigilo sobre informações estratégicas, comerciais e operacionais trocadas em razão deste contrato.
+12.2. Os dados tratados pela CONTRATADA serão utilizados apenas para execução do objeto contratado, em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+
+CLÁUSULA 13 — DAS OBSERVAÇÕES COMERCIAIS
+13.1. As partes reconhecem e integram ao presente contrato as seguintes observações comerciais: {observacoes_comerciais}.
+13.2. Serviços de marketing digital, mídia paga e gestão de redes sociais ficam sob responsabilidade exclusiva do CONTRATANTE.
+
+CLÁUSULA 14 — DO FORO
+14.1. Fica eleito o foro da Comarca de {cidade_foro}/{estado_foro} para dirimir quaisquer controvérsias oriundas deste contrato.
+
+--------------------------------------------------
 CONTRATO EXPLICADO EM LINGUAGEM SIMPLES
 
-Cláusula 1 — O que está sendo contratado: Este contrato cobre a estrutura digital contratada dentro do ecossistema NovaesWeb, podendo abranger site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos, automação de atendimento via WhatsApp, marketing digital, manutenção recorrente, módulos adicionais, integrações e extras, conforme detalhado nas condições comerciais.
+Cláusula 1 — O que está sendo contratado: Este contrato cobre a estrutura digital (site, sistema, painel) do ecossistema NovaesWeb conforme detalhado nas condições comerciais.
 
-Cláusula 2 — Escopo e exclusões: Tudo o que está descrito no resumo comercial faz parte da entrega. O que estiver fora do escopo, nas exclusões ou não estiver aprovado na proposta pode ser tratado como adicional e cobrado à parte. O cliente precisa enviar logo, textos, fotos, acessos e demais materiais necessários. Se isso atrasar, o prazo do projeto também pode atrasar.
+Cláusula 2 — Escopo e exclusões: Tudo o que está no resumo faz parte da entrega. Marketing digital, tráfego pago e redes sociais NÃO estão inclusos. Placeholders e materiais devem ser enviados pelo cliente para não atrasar o prazo.
 
-Cláusula 3 — Materiais e briefing: O CONTRATANTE deverá fornecer todos os materiais e informações necessários. O atraso no envio suspende automaticamente a contagem dos prazos. A CONTRATADA não se responsabiliza por atrasos decorrentes de material incompleto ou enviado fora do prazo.
+Cláusula 6 — Atrasos: Em caso de atraso, o serviço e o atendimento podem ser suspensos até a regularização.
 
-Cláusula 4 — Prazos e execução: Prazo estimado de {prazo_dias} dias úteis. O prazo começa quando briefing, materiais e pagamento inicial estiverem em ordem. Havendo paralisação por mais de 15 dias, a CONTRATADA poderá reprogramar a fila de produção.
+Cláusulas 8 e 9 — Propriedade e Resultados: A estrutura é sua após a quitação total. A NovaesWeb garante a parte técnica e estratégica, mas resultados de vendas dependem do seu mercado e operação.
 
-Cláusula 5 — Valores e pagamento: O CONTRATANTE pagará à CONTRATADA os valores definidos nas condições comerciais. A forma de pagamento é: {forma_pagamento}. O início da execução poderá ficar condicionado à compensação da entrada. Custos com licenças, ferramentas de terceiros, domínio, hospedagem, disparos, mídia paga e serviços não inclusos no escopo serão cobrados separadamente.
+Cláusula 11 — Cancelamento: Você pode cancelar, mas o valor de ativação já usado em horas de trabalho não é devolvido.
 
-Cláusula 6 — Atrasos e inadimplência: Em caso de atraso no pagamento, a CONTRATADA poderá suspender serviços, atendimento, manutenção, publicações, automações, entregas e liberações até a regularização. Se houver saldo em aberto durante projeto, a execução poderá ser congelada até quitação integral.
-
-Cláusula 7 — Revisões e alterações: Estão incluídas até {numero_revisoes} rodadas de revisão dentro do escopo aprovado. Revisões, refações, alterações estruturais, mudanças de direção ou novos pedidos fora do escopo poderão ser cobrados adicionalmente no valor mínimo de R$ {valor_revisao} por demanda.
-
-Cláusula 8 — Propriedade intelectual: Até a quitação integral, a estrutura, arquivos editáveis, painel, páginas, sistemas, automações, layouts, códigos e ativos digitais permanecem sob titularidade da CONTRATADA. A cessão definitiva ocorre somente após pagamento total.
-
-Cláusula 9 — Marketing e resultados: Quando houver marketing, conteúdo, automações ou processos comerciais, a CONTRATADA atua com base técnica e estratégica, mas não garante resultado absoluto de vendas, leads ou faturamento, pois isso depende de variáveis externas e da operação do CONTRATANTE.
-
-Cláusula 10 — Suporte e manutenção: Serviços de suporte, manutenção, acompanhamento ou operação recorrente só valem se contratados expressamente. Quando existentes, serão prestados dentro da janela: {prazo_suporte}. Não se incluem automaticamente: criação de novas páginas, novos módulos, mudanças profundas de layout, integrações não previstas ou demandas fora do escopo.
-
-Cláusula 11 — Cancelamento e rescisão: O CONTRATANTE pode cancelar mesmo após início dos trabalhos, mas valores já pagos para ativação e estruturação não serão devolvidos. Em caso de cancelamento, a estrutura permanece ativa apenas até o período já pago. Em descumprimento grave, inadimplência reiterada ou uso indevido, a CONTRATADA poderá rescindir imediatamente.
-
-Cláusula 12 — Sigilo e dados: As partes mantêm sigilo sobre informações estratégicas, comerciais, operacionais, dados e documentos. Os dados serão utilizados apenas para execução do serviço, atendimento, suporte e obrigações correlatas. O CONTRATANTE é responsável pela veracidade das informações fornecidas.
-
-Cláusula 13 — Observações comerciais: As partes reconhecem as seguintes observações comerciais: {observacoes_comerciais}.
-
-Cláusula 14 — Foro e jurisdição: Fica eleito o foro da Comarca de {cidade_foro}/{estado_foro}, com renúncia expressa a qualquer outro, por mais privilegiado que seja.
-
-CONTRATO MESTRE UNIVERSAL — PROTEÇÃO AMPLA E CLAREZA TOTAL
-
-Este contrato foi redigido para proteger ambos os lados, garantir clareza total nas responsabilidades e assegurar que o projeto digital seja entregue com excelência técnica e profissionalismo. A NovaesWeb se compromete com a qualidade, inovação e resultados, enquanto o CONTRATANTE se compromete com fornecer materiais em prazo, aprovações ágeis e cumprir com as condições financeiras acordadas.
-
-Nosso diferencial: estrutura digital premium, atendimento especializado, tecnologia atualizada e acompanhamento contínuo. Trabalhamos com foco em resultados, mas respeitamos as variáveis de mercado, operação do cliente e fatores externos que podem influenciar performance.
-
-Importante: Não fazemos promessas milagrosas. Garantimos trabalho técnico de ponta, estratégia digital moderna e suporte qualificado, mas resultados comerciais dependem também da qualidade dos produtos/serviços do cliente, precificação competitiva, operação interna e agilidade nas decisões.
-
-Exclusões claras: Não estão inclusos textos criativos, fotos profissionais, vídeos personalizados, artes gráficas, licenças premium de terceiros, campanhas pagas, domínio, hospedagem ou novas funcionalidades não descritas na proposta aprovada.
+{cidade_foro}/{estado_foro}, {data}.`,tos criativos, fotos profissionais, vídeos personalizados, artes gráficas, licenças premium de terceiros, campanhas pagas, domínio, hospedagem ou novas funcionalidades não descritas na proposta aprovada.
 
 Flexibilidade e evolução: O ecossistema NovaesWeb permite expansões, upgrades e novas funcionalidades. Qualquer evolução além do escopo original poderá ser contratada separadamente, com condições comerciais justas e transparentes.
 
