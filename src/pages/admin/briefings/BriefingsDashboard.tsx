@@ -94,7 +94,7 @@ export default function BriefingsDashboard() {
     >
       <motion.div variants={fadeUp} className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-fuchsia-200">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-primary fx-glintReveal">
             <Sparkles className="h-3.5 w-3.5" />
             Central de Estratégia
           </div>
@@ -125,7 +125,7 @@ export default function BriefingsDashboard() {
       <motion.div variants={fadeUp} className="grid gap-4 md:grid-cols-3">
         {navigationItems.map((item) => (
           <Link key={item.href} to={item.href} className="group">
-            <Card className="h-full border-white/10 bg-white/[0.03] transition-all hover:border-fuchsia-500/30 hover:bg-white/[0.06]">
+            <Card className="h-full glass-card-premium transition-all hover:scale-[1.02]">
               <CardContent className="flex items-center gap-4 p-6">
                 <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-black/30 group-hover:bg-fuchsia-500/10", item.color)}>
                   <item.icon className="h-6 w-6" />
@@ -147,7 +147,7 @@ export default function BriefingsDashboard() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div variants={fadeUp}>
-          <Card className="border-white/10 bg-white/[0.03]">
+          <Card className="glass-card-premium overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-white">Em construção</CardTitle>
@@ -181,7 +181,7 @@ export default function BriefingsDashboard() {
         </motion.div>
 
         <motion.div variants={fadeUp}>
-          <Card className="border-white/10 bg-white/[0.03]">
+          <Card className="glass-card-premium overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-white">Últimos enviados</CardTitle>

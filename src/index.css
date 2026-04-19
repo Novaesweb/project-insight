@@ -110,8 +110,12 @@ section {
     --gradient-admin: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899, #FF6B6B);
     --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
     --gradient-admin-subtle: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(107, 33, 168, 0.08), rgba(236, 72, 153, 0.08));
-    --admin-bg: #07060a;
-    --admin-surface: #0d0b12;
+    --admin-bg: #030305;
+    --admin-surface: #0a0a0f;
+    --admin-border: 240 10% 20% / 0.4;
+    --glow-primary: rgba(220, 38, 38, 0.15);
+    --glow-secondary: rgba(107, 33, 168, 0.15);
+    --glow-accent: rgba(236, 72, 153, 0.15);
     --gold: 43 100% 50%;
   }
 
@@ -386,9 +390,34 @@ section {
 
   .glass-card {
     background: hsla(240, 10%, 7%, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 0.5px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
+
+  .glass-card-premium {
+    background: rgba(13, 11, 18, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+  }
+
+  .glass-card-premium:hover {
+    border-color: rgba(220, 38, 38, 0.4);
+    box-shadow: 0 8px 40px 0 rgba(220, 38, 38, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .nav-glass {
+    background: rgba(7, 6, 10, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
 
   .glass-input {
     background: hsla(240, 10%, 12%, 0.4);
@@ -447,6 +476,21 @@ section {
     50% {
       left: 150%;
     }
+  }
+
+  /* High-End Admin Layout Mesh Gradient */
+  .admin-mesh-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--admin-bg);
+    background-image: 
+      radial-gradient(at 0% 0%, var(--glow-primary) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, var(--glow-secondary) 0, transparent 50%), 
+      radial-gradient(at 50% 100%, var(--glow-accent) 0, transparent 50%);
+    filter: blur(60px);
+    opacity: 0.7;
+    pointer-events: none;
   }
 
   /* Ambient glow with animated rays */

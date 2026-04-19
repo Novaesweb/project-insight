@@ -279,8 +279,10 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen text-foreground font-sora selection:bg-primary/30 overflow-hidden"
-      style={{ background: 'hsl(var(--background))' }}>
+    <div className="flex h-screen text-foreground font-sora selection:bg-primary/30 overflow-hidden relative">
+      <div className="admin-mesh-bg" />
+      <div className="fixed inset-0 pointer-events-none ambient-glow opacity-20" />
+
       
       {/* Desktop Sidebar */}
       <AdminSidebar

@@ -140,8 +140,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className="hidden md:flex md:flex-col relative z-50 shrink-0 h-screen"
       style={{
-        background: "hsl(var(--background))",
-        borderRight: "1px solid hsl(var(--border))",
+        background: "rgba(3, 3, 5, 0.4)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderRight: "1px solid rgba(255, 255, 255, 0.05)",
       }}
     >
       <div
@@ -222,8 +224,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                       item.accent && !isActive && "text-amber-400/60 hover:text-amber-400"
                     )}
                     style={isActive ? {
-                      background: "hsl(var(--secondary))",
-                      boxShadow: "0 0 0 1px hsl(var(--border))",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.08)",
+                      backdropFilter: "blur(10px)",
                     } : undefined}
                     aria-current={isActive ? "page" : undefined}
                   >
