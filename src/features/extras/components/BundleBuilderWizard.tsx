@@ -1,27 +1,28 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Package, 
-  Plus, 
-  Trash2, 
-  ArrowRight, 
-  ArrowLeft, 
-  Check, 
-  Sparkles,
-  Zap,
-  Star,
+import React, { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Package,
+  Plus,
   Rocket,
   Search,
-  ShoppingCart
+  ShoppingCart,
+  Sparkles,
+  Star,
+  Zap,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+
+import { SuccessCelebration } from "@/components/SuccessCelebration";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { useExtras } from "@/features/extras/hooks/useExtras";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { SuccessCelebration } from "@/components/SuccessCelebration";
 
 const steps = [
   { id: "info", title: "Informações", icon: Package },
@@ -31,74 +32,133 @@ const steps = [
 ];
 
 export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void }) {
-  const { catalog } = useExtras();
+  const { catalog, createPackage } = useExtras();
+  const { toast } = useToast();
+
   const [step, setStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [busca, setBusca] = useState("");
-  
   const [bundleData, setBundleData] = useState({
     nome: "",
     descricao: "",
-    itens: [] as any[],
+    itens: [] as Array<{ id: string; nome: string; preco_ativacao: number }>,
     preco_total: 0,
-    preco_mensal: 0,
   });
 
-  const nextStep = () => setStep(s => Math.min(s + 1, steps.length - 1));
-  const prevStep = () => setStep(s => Math.max(s - 1, 0));
+  const nextStep = () => setStep((current) => Math.min(current + 1, steps.length - 1));
+  const prevStep = () => setStep((current) => Math.max(current - 1, 0));
 
-  const toggleItem = (item: any) => {
-    setBundleData(prev => {
-      const exists = prev.itens.find(i => i.id === item.id);
+  const toggleItem = (item: { id: string; nome: string; preco_ativacao: number }) => {
+    setBundleData((current) => {
+      const exists = current.itens.some((selected) => selected.id === item.id);
+
       if (exists) {
-        return { ...prev, itens: prev.itens.filter(i => i.id !== item.id) };
+        return {
+          ...current,
+          itens: current.itens.filter((selected) => selected.id !== item.id),
+        };
       }
-      return { ...prev, itens: [...prev.itens, item] };
+
+      return {
+        ...current,
+        itens: [...current.itens, item],
+      };
     });
   };
 
-  const handleFinish = () => {
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onComplete?.();
-    }, 3000);
-  };
-
-  const filteredCatalog = catalog.filter(item => 
-    item.nome.toLowerCase().includes(busca.toLowerCase())
+  const filteredCatalog = useMemo(
+    () => catalog.filter((item) => item.nome.toLowerCase().includes(busca.toLowerCase())),
+    [busca, catalog],
   );
+
+  const originalTotal = useMemo(
+    () => bundleData.itens.reduce((acc, item) => acc + Number(item.preco_ativacao || 0), 0),
+    [bundleData.itens],
+  );
+
+  const canGoNext = useMemo(() => {
+    if (step === 0) return bundleData.nome.trim().length > 0;
+    if (step === 1) return bundleData.itens.length > 0;
+    if (step === 2) return Number(bundleData.preco_total) > 0;
+    return true;
+  }, [bundleData.itens.length, bundleData.nome, bundleData.preco_total, step]);
+
+  const handleFinish = async () => {
+    if (!bundleData.nome.trim()) {
+      toast({ title: "Defina um nome para o pacote.", variant: "destructive" });
+      setStep(0);
+      return;
+    }
+
+    if (bundleData.itens.length === 0) {
+      toast({ title: "Selecione ao menos um item para o pacote.", variant: "destructive" });
+      setStep(1);
+      return;
+    }
+
+    if (Number(bundleData.preco_total) <= 0) {
+      toast({ title: "Informe o preço final do pacote.", variant: "destructive" });
+      setStep(2);
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      await createPackage({
+        nome: bundleData.nome.trim(),
+        descricao: bundleData.descricao.trim() || null,
+        preco_total: Number(bundleData.preco_total),
+        itemIds: bundleData.itens.map((item) => item.id),
+      });
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onComplete?.();
+      }, 2400);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {/* Step Indicator */}
       <div className="flex items-center justify-between px-4">
-        {steps.map((s, idx) => (
-          <div key={s.id} className="flex flex-col items-center gap-2 relative">
-            <div className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-10",
-              step >= idx 
-                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110" 
-                : "bg-white/5 text-white/20 border border-white/5"
-            )}>
-              <s.icon size={20} />
+        {steps.map((stepItem, index) => (
+          <div key={stepItem.id} className="flex flex-col items-center gap-2 relative">
+            <div
+              className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-10",
+                step >= index
+                  ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110"
+                  : "bg-white/5 text-white/20 border border-white/5",
+              )}
+            >
+              <stepItem.icon size={20} />
             </div>
-            <span className={cn(
-              "text-[9px] font-black uppercase tracking-widest transition-colors",
-              step >= idx ? "text-white" : "text-white/20"
-            )}>{s.title}</span>
-            
-            {idx < steps.length - 1 && (
-              <div className={cn(
-                "absolute left-[120%] top-6 h-[2px] w-20 transition-colors hidden md:block",
-                step > idx ? "bg-primary" : "bg-white/5"
-              )} />
+            <span
+              className={cn(
+                "text-[9px] font-black uppercase tracking-widest transition-colors",
+                step >= index ? "text-white" : "text-white/20",
+              )}
+            >
+              {stepItem.title}
+            </span>
+
+            {index < steps.length - 1 && (
+              <div
+                className={cn(
+                  "absolute left-[120%] top-6 h-[2px] w-20 transition-colors hidden md:block",
+                  step > index ? "bg-primary" : "bg-white/5",
+                )}
+              />
             )}
           </div>
         ))}
       </div>
 
-      {/* Content */}
       <div className="min-h-[400px]">
         <AnimatePresence mode="wait">
           <motion.div
@@ -111,26 +171,26 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
             {step === 0 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-white">Defina a identidade do Bundle</h3>
+                  <h3 className="text-2xl font-black text-white">Defina a identidade do bundle</h3>
                   <p className="text-sm text-white/40">Como este combo aparecerá para o cliente no portal?</p>
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Nome do Pacote</label>
-                    <Input 
-                      placeholder="Ex: Combo Performance 2024"
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Nome do pacote</label>
+                    <Input
+                      placeholder="Ex: Combo Performance 2026"
                       className="h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold"
                       value={bundleData.nome}
-                      onChange={e => setBundleData({ ...bundleData, nome: e.target.value })}
+                      onChange={(event) => setBundleData({ ...bundleData, nome: event.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Descrição de Valor</label>
-                    <Textarea 
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Descrição de valor</label>
+                    <Textarea
                       placeholder="Descreva os benefícios de contratar este conjunto de módulos..."
                       className="min-h-[120px] bg-white/5 border-white/10 rounded-2xl"
                       value={bundleData.descricao}
-                      onChange={e => setBundleData({ ...bundleData, descricao: e.target.value })}
+                      onChange={(event) => setBundleData({ ...bundleData, descricao: event.target.value })}
                     />
                   </div>
                 </div>
@@ -141,7 +201,7 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-black text-white">Composição do Combo</h3>
+                    <h3 className="text-2xl font-black text-white">Composição do combo</h3>
                     <p className="text-sm text-white/40">Selecione os módulos que fazem parte deste pacote.</p>
                   </div>
                   <Badge className="bg-primary/20 text-primary border-0 h-8 px-4 rounded-full font-black">
@@ -151,38 +211,43 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
 
                 <div className="relative group">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
-                  <Input 
+                  <Input
                     placeholder="Buscar módulos no catálogo..."
                     className="h-12 pl-11 bg-white/5 border-white/10 rounded-2xl"
                     value={busca}
-                    onChange={e => setBusca(e.target.value)}
+                    onChange={(event) => setBusca(event.target.value)}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
-                  {filteredCatalog.map(item => {
-                    const isSelected = bundleData.itens.find(i => i.id === item.id);
+                  {filteredCatalog.map((item) => {
+                    const isSelected = bundleData.itens.some((selected) => selected.id === item.id);
+
                     return (
-                      <div 
+                      <div
                         key={item.id}
                         onClick={() => toggleItem(item)}
                         className={cn(
                           "p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between",
-                          isSelected 
-                            ? "bg-primary/10 border-primary/40 shadow-lg shadow-primary/5" 
-                            : "bg-white/5 border-white/5 hover:border-white/10"
+                          isSelected
+                            ? "bg-primary/10 border-primary/40 shadow-lg shadow-primary/5"
+                            : "bg-white/5 border-white/5 hover:border-white/10",
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "p-2 rounded-lg",
-                            isSelected ? "bg-primary text-white" : "bg-white/10 text-white/40"
-                          )}>
+                          <div
+                            className={cn(
+                              "p-2 rounded-lg",
+                              isSelected ? "bg-primary text-white" : "bg-white/10 text-white/40",
+                            )}
+                          >
                             <Zap size={16} />
                           </div>
                           <div>
                             <p className="text-sm font-bold text-white">{item.nome}</p>
-                            <p className="text-[10px] text-white/40">R$ {item.preco_total || 0}</p>
+                            <p className="text-[10px] text-white/40">
+                              R$ {Number(item.preco_ativacao || 0).toLocaleString()}
+                            </p>
                           </div>
                         </div>
                         {isSelected && <Check size={16} className="text-primary" />}
@@ -196,24 +261,30 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
             {step === 2 && (
               <div className="space-y-8">
                 <div className="space-y-1">
-                  <h3 className="text-2xl font-black text-white">Estratégia de Pricing</h3>
+                  <h3 className="text-2xl font-black text-white">Estratégia de pricing</h3>
                   <p className="text-sm text-white/40">Defina o preço promocional para o pacote completo.</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="p-8 rounded-3xl bg-white/5 border border-white/10 space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Valor Original Acumulado</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Valor original acumulado</p>
                     <p className="text-4xl font-black text-white/20 line-through">
-                      R$ {bundleData.itens.reduce((acc, i) => acc + (i.preco_total || 0), 0).toLocaleString()}
+                      R$ {originalTotal.toLocaleString()}
                     </p>
                   </div>
                   <div className="p-8 rounded-3xl bg-primary/5 border border-primary/20 space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-primary">Preço Especial do Bundle</p>
-                    <Input 
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary">Preço especial do bundle</p>
+                    <Input
                       type="number"
+                      min={0}
                       className="h-14 bg-transparent border-0 border-b border-primary/20 rounded-none text-4xl font-black text-white focus:ring-0 p-0"
                       value={bundleData.preco_total}
-                      onChange={e => setBundleData({ ...bundleData, preco_total: Number(e.target.value) })}
+                      onChange={(event) =>
+                        setBundleData({
+                          ...bundleData,
+                          preco_total: Number(event.target.value),
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -223,8 +294,11 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
                     <Star size={20} />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-white">Desconto Sugerido: 20%</p>
-                    <p className="text-xs text-white/40 italic">Bundles com descontos entre 15% e 25% têm maior taxa de conversão no portal.</p>
+                    <p className="text-sm font-bold text-white">Desconto sugerido: 20%</p>
+                    <p className="text-xs text-white/40 italic">
+                      Valor original estimado: R$ {originalTotal.toLocaleString()}.
+                      Bundles com descontos entre 15% e 25% costumam converter melhor.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -236,7 +310,7 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
                   <div className="inline-flex p-4 rounded-3xl bg-primary/10 text-primary mb-4">
                     <Sparkles size={32} />
                   </div>
-                  <h3 className="text-3xl font-black text-white">Pronto para Lançar?</h3>
+                  <h3 className="text-3xl font-black text-white">Pronto para lançar?</h3>
                   <p className="text-sm text-white/40">Confira o resumo do seu novo bundle premium.</p>
                 </div>
 
@@ -246,24 +320,30 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
                       <Badge className="bg-primary/20 text-primary border-0">Pacote Premium</Badge>
                       <ShoppingCart className="text-white/20" size={20} />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <h4 className="text-2xl font-black text-white">{bundleData.nome || "Sem Nome"}</h4>
-                      <p className="text-xs text-white/40 leading-relaxed">{bundleData.descricao || "Sem descrição..."}</p>
+                      <h4 className="text-2xl font-black text-white">{bundleData.nome || "Sem nome"}</h4>
+                      <p className="text-xs text-white/40 leading-relaxed">
+                        {bundleData.descricao || "Sem descrição..."}
+                      </p>
                     </div>
 
                     <div className="space-y-2">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Módulos Inclusos</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Módulos inclusos</p>
                       <div className="flex flex-wrap gap-2">
-                        {bundleData.itens.map(i => (
-                          <Badge key={i.id} variant="outline" className="bg-white/5 border-white/10 text-[9px]">{i.nome}</Badge>
+                        {bundleData.itens.map((item) => (
+                          <Badge key={item.id} variant="outline" className="bg-white/5 border-white/10 text-[9px]">
+                            {item.nome}
+                          </Badge>
                         ))}
                       </div>
                     </div>
 
                     <div className="pt-6 border-t border-white/10 flex items-center justify-between">
-                      <p className="text-sm font-bold text-white/40">Investimento Único</p>
-                      <p className="text-3xl font-black text-primary">R$ {bundleData.preco_total.toLocaleString()}</p>
+                      <p className="text-sm font-bold text-white/40">Investimento único</p>
+                      <p className="text-3xl font-black text-primary">
+                        R$ {Number(bundleData.preco_total || 0).toLocaleString()}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -273,35 +353,36 @@ export function BundleBuilderWizard({ onComplete }: { onComplete?: () => void })
         </AnimatePresence>
       </div>
 
-      {/* Footer Navigation */}
       <div className="pt-8 border-t border-white/5 flex items-center justify-between">
-        <Button 
-          variant="ghost" 
-          onClick={prevStep} 
-          disabled={step === 0}
+        <Button
+          variant="ghost"
+          onClick={prevStep}
+          disabled={step === 0 || saving}
           className="text-white/40 hover:text-white"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
         </Button>
 
         {step < steps.length - 1 ? (
-          <Button 
+          <Button
             className="gradient-primary text-white font-black uppercase tracking-widest text-xs px-8 h-12 rounded-2xl shadow-xl shadow-primary/20"
             onClick={nextStep}
+            disabled={!canGoNext || saving}
           >
-            Próximo Passo <ArrowRight className="ml-2 h-4 w-4" />
+            Próximo passo <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
-          <Button 
+          <Button
             className="gradient-primary text-white font-black uppercase tracking-widest text-xs px-8 h-12 rounded-2xl shadow-xl shadow-primary/20"
             onClick={handleFinish}
+            disabled={saving}
           >
-            Publicar no Portal <Sparkles className="ml-2 h-4 w-4" />
+            {saving ? "Publicando..." : "Publicar no portal"} <Sparkles className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>
 
-      {showSuccess && <SuccessCelebration message="Bundle Criado com Sucesso!" />}
+      {showSuccess && <SuccessCelebration message="Bundle criado com sucesso!" />}
     </div>
   );
 }

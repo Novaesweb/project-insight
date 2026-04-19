@@ -38,6 +38,7 @@ interface ExtraCardProps {
   onDelete?: (id: string) => void;
   onAssign?: (item: any) => void;
   onEdit?: (item: any) => void;
+  onAddToPackage?: (item: any) => void;
 }
 
 export function ExtraCard({ 
@@ -46,7 +47,8 @@ export function ExtraCard({
   onUpdate, 
   onDelete, 
   onAssign, 
-  onEdit 
+  onEdit,
+  onAddToPackage,
 }: ExtraCardProps) {
   const category = isPkg ? "pacotes" : (item.categoria as keyof typeof catConfig || "fixo");
   const config = catConfig[category] || catConfig.fixo;
@@ -119,8 +121,11 @@ export function ExtraCard({
                   >
                     <Pencil className="w-3.5 h-3.5 text-blue-400" /> Editar Item
                   </DropdownMenuItem>
-                  {!isPkg && (
-                    <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest gap-2 cursor-pointer py-3">
+                  {!isPkg && onAddToPackage && (
+                    <DropdownMenuItem
+                      className="text-[10px] font-bold uppercase tracking-widest gap-2 cursor-pointer py-3"
+                      onClick={() => onAddToPackage(item)}
+                    >
                       <Plus className="w-3.5 h-3.5 text-emerald-400" /> Adicionar ao Pacote
                     </DropdownMenuItem>
                   )}
