@@ -51,6 +51,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
       { href: "/admin/extras", label: "Extras", icon: Puzzle, accent: true },
+      { href: "/admin/extras/lista", label: "Catálogo de Itens", isSubItem: true },
       { href: "/admin/recurrent-extras", label: "Extras Recorrentes", icon: CalendarDays },
     ],
   },

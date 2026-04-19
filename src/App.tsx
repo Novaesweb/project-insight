@@ -41,8 +41,9 @@ const ProjectsList = React.lazy(() => import("./pages/admin/projects/ProjectsLis
 const ProjectsKanban = React.lazy(() => import("./pages/admin/projects/ProjectsKanban"));
 const ProjectDetailsPage = React.lazy(() => import("./pages/admin/projects/ProjectDetailsPage"));
 const Pedidos = React.lazy(() => import("./pages/Pedidos"));
-const Extras = React.lazy(() => import("./pages/Extras"));
 const Relatorios = React.lazy(() => import("./pages/Relatorios"));
+const ExtrasDashboard = React.lazy(() => import("./pages/admin/extras/ExtrasDashboard"));
+const ExtrasList = React.lazy(() => import("./pages/admin/extras/ExtrasList"));
 const FinanceDashboard = React.lazy(() => import("./pages/admin/finance/FinanceDashboard"));
 const InvoicesList = React.lazy(() => import("./pages/admin/finance/InvoicesList"));
 const CustosSistema = React.lazy(() => import("./pages/CustosSistema"));
@@ -132,7 +133,8 @@ function AdminWithSplash() {
             <Route path="projetos/kanban" element={<ProjectsKanban />} />
             <Route path="projetos/:id" element={<ProjectDetailsPage />} />
             <Route path="pedidos" element={<Pedidos />} />
-            <Route path="extras" element={<Extras />} />
+            <Route path="extras" element={<ExtrasDashboard />} />
+            <Route path="extras/lista" element={<ExtrasList />} />
             <Route path="extras-ativos" element={<ExtrasAtivos />} />
             <Route path="relatorios" element={<Relatorios />} />
             <Route path="financeiro" element={<FinanceDashboard />} />
