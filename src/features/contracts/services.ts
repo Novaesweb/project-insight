@@ -132,6 +132,42 @@ export async function saveBuilderContractRecord({
   return saveDraftToSupabase<Contrato>(saveOptions);
 }
 
+export async function saveBuilderContractDirectly({
+  contractId,
+  payloadToPersist,
+  createVersionSnapshot = true,
+}: {
+  contractId: string | null;
+  payloadToPersist: Record<string, unknown>;
+  createVersionSnapshot?: boolean;
+}) {
+  let currentContracts: Contrato[] = [];
+
+  if (contractId) {
+    const { data, error } = await supabase
+      .from("contratos")
+      .select("*, clientes(nome)")
+      .eq("id", contractId)
+      .eq("modelo", BUILDER_TEMPLATE_ID)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data) {
+      currentContracts = [data as Contrato];
+    }
+  }
+
+  return saveBuilderContractRecord({
+    contractId,
+    payloadToPersist,
+    currentContracts,
+    createVersionSnapshot,
+  });
+}
+
 export async function sendBuilderContractToClientRecord(contract: Contrato) {
   await refreshAdminSessionSilently({ force: false });
 

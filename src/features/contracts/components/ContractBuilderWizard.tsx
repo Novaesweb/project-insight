@@ -12,7 +12,6 @@ import { BuilderLiveSummary } from "@/components/contracts/BuilderLiveSummary";
 import { BuilderPreviewDocument } from "@/components/contracts/BuilderPreviewDocument";
 import { AnimatedValue } from "@/components/AnimatedValue";
 import { 
-  BUILDER_STEPS, 
   ContractBuilderPayload, 
   ContractBuilderStepIndex, 
   BuilderPrimaryPlanId,
@@ -22,7 +21,7 @@ import {
 } from "@/lib/contract-builder";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 import { formatCurrencyBRL, formatMoneyInputValue } from "@/lib/contract-utils";
-import { Contrato, Cliente } from "@/features/contracts/types";
+import { BUILDER_STEPS, Contrato, Cliente } from "@/features/contracts/types";
 
 interface ContractBuilderWizardProps {
   builderPayload: ContractBuilderPayload;

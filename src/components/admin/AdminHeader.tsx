@@ -20,6 +20,33 @@ interface AdminHeaderProps {
   subtitle?: string;
 }
 
+const extraPageInfo: Record<string, { titulo: string; subtitulo: string }> = {
+  "/admin/briefings/em-andamento": {
+    titulo: "Briefings em Andamento",
+    subtitulo: "Montagem, filtros e fluxo de envio",
+  },
+  "/admin/briefings/enviados": {
+    titulo: "Briefings Enviados",
+    subtitulo: "Respostas, acompanhamento e proximos passos",
+  },
+  "/admin/briefings/biblioteca": {
+    titulo: "Biblioteca de Perguntas",
+    subtitulo: "CRUD de perguntas modelo do briefing",
+  },
+};
+
+function resolvePageInfoMatch(pathname: string) {
+  const availablePageInfo = { ...pageInfo, ...extraPageInfo };
+  const directMatch = availablePageInfo[pathname as keyof typeof availablePageInfo];
+  if (directMatch) return directMatch;
+
+  const prefixMatch = Object.entries(availablePageInfo)
+    .filter(([route]) => pathname === route || pathname.startsWith(`${route}/`))
+    .sort((left, right) => right[0].length - left[0].length)[0];
+
+  return prefixMatch?.[1];
+}
+
 export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
@@ -36,7 +63,8 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
     { href: "/admin/leads", label: "Ver Leads", icon: Headphones },
   ].filter((action) => canAccessPath(action.href));
 
-  const pageTitle = title || pageInfo[pathname as keyof typeof pageInfo]?.titulo || "Painel Admin";
+  const matchedPageInfo = resolvePageInfoMatch(pathname);
+  const pageTitle = title || matchedPageInfo?.titulo || "Painel Admin";
   const pageSubtitle = subtitle || "Gestão Digital";
 
   return (

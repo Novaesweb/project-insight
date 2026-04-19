@@ -1,201 +1,157 @@
-import { Link, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, RefreshCcw, FileText, History } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBriefingEditor } from "@/features/briefings/hooks/useBriefingEditor";
-import { useBriefings } from "@/features/briefings/hooks/useBriefings";
-import { BriefingEditor } from "@/features/briefings/components/BriefingEditor";
-import { BriefingResponseView } from "@/features/briefings/components/BriefingResponseView";
-import { BriefingSnapshotCard } from "@/features/briefings/components/BriefingSnapshotCard";
-import { BriefingDashboardKPIs as KPIs } from "@/features/briefings/components/BriefingDashboardKPIs";
-import { briefingStatusMeta } from "@/lib/project-briefings";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
+import { useToast } from "@/hooks/use-toast";
+import {
+  BriefingEditorCard,
+  BriefingReadinessCard,
+  BriefingResponsePanelCard,
+  BriefingSummaryCard,
+  BriefingTemplatePickerCard,
+  BriefingsPageHeader,
+} from "@/features/briefings/admin/views";
+import { useAdminBriefingsOverview, useBriefingEditor } from "@/features/briefings/admin/hooks";
+import { ADMIN_BRIEFINGS_HOME, ADMIN_BRIEFINGS_SENT } from "@/features/briefings/admin/routes";
+import { getClientDisplayName, getSentStatusLabel } from "@/features/briefings/admin/types";
 
 export default function SentBriefingDetailPage() {
   const { id } = useParams();
-  const { clients } = useBriefings();
-  const { 
-    editor, 
-    setEditor, 
-    fieldDrafts, 
-    loading, 
-    saving, 
-    handlePersist, 
-    addField, 
-    removeField, 
-    moveField, 
-    updateField,
-    snapshot,
-    answerMap,
-    attachments,
-    existingBriefing
-  } = useBriefingEditor(id);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { loading: overviewLoading, briefings, clients, templates, reload } = useAdminBriefingsOverview();
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [templateSection, setTemplateSection] = useState("todas");
 
-  const getClientDisplayName = (client: any) => {
-    if (!client) return "Cliente não encontrado";
-    const val = Array.isArray(client) ? client[0] : client;
-    return val?.nome_empresa?.trim() || val?.nome?.trim() || "Cliente não encontrado";
-  };
+  const editorState = useBriefingEditor({
+    mode: "sent",
+    briefingId: id || null,
+    clients,
+    briefings,
+    templates,
+    reloadOverview: reload,
+  });
 
-  const getProjectTitle = (project: any) => {
-    if (!project) return null;
-    const val = Array.isArray(project) ? project[0] : project;
-    return val?.titulo || null;
-  };
+  const filteredTemplates = useMemo(
+    () => editorState.filteredTemplates(templateSearch, templateSection),
+    [editorState, templateSearch, templateSection],
+  );
 
-  const formatDateTime = (val: string) => {
-    if (!val) return "Sem registro";
-    return new Date(val).toLocaleString("pt-BR");
-  };
-
-  const hasAnswerValue = (value: any) => {
-    if (Array.isArray(value)) return value.length > 0;
-    return Boolean(value?.toString().trim());
-  };
-
-  const selectedClient = clients.find(c => c.id === editor.cliente_id);
-
-  const onPersistWrapper = async (mode: "draft" | "send" | "reopen" | "conclude") => {
-    await handlePersist(mode, getClientDisplayName(selectedClient));
-  };
-
-  const answeredFieldCount = fieldDrafts.filter((field) => {
-    if (field.field_type === "file_upload") {
-      return attachments.some((file) => file.field_id === field.id);
+  const runAction = async (mode: "draft" | "send" | "reopen" | "conclude") => {
+    try {
+      await editorState.persist(mode);
+      toast({
+        title:
+          mode === "send"
+            ? "Briefing reenviado"
+            : mode === "reopen"
+              ? "Briefing reaberto"
+              : mode === "conclude"
+                ? "Briefing concluido"
+                : "Alteracoes salvas",
+      });
+    } catch (error) {
+      toast({
+        title: "Nao foi possivel atualizar o briefing",
+        description: error instanceof Error ? error.message : "Tente novamente.",
+        variant: "destructive",
+      });
     }
-    const val = answerMap[field.id];
-    return hasAnswerValue(val);
-  }).length;
+  };
 
-  const readinessScore = fieldDrafts.length === 0 ? 0 : Math.round((answeredFieldCount / fieldDrafts.length) * 100);
-  const readinessLabel = readinessScore >= 80 ? "Pronto" : readinessScore >= 50 ? "Médio" : "Baixo";
-  const readinessTone = readinessScore >= 80 
-    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200" 
-    : readinessScore >= 50 
-      ? "border-amber-500/30 bg-amber-500/10 text-amber-200" 
-      : "border-rose-500/30 bg-rose-500/10 text-rose-200";
+  const handleCreateProject = async () => {
+    try {
+      const projectId = await editorState.createProject();
+      toast({ title: "Projeto criado", description: "O briefing foi vinculado a um novo projeto." });
+      navigate(`/admin/projetos/${projectId}`);
+    } catch (error) {
+      toast({
+        title: "Nao foi possivel criar o projeto",
+        description: error instanceof Error ? error.message : "Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
 
-  if (loading) return <div className="p-10 text-white/40">Carregando detalhes...</div>;
-  if (!existingBriefing) return <div className="p-10 text-white/40">Briefing não encontrado.</div>;
+  if (overviewLoading || editorState.loading) {
+    return <div className="p-10 text-sm text-white/45">Carregando detalhe do briefing...</div>;
+  }
+
+  if (!editorState.selectedBriefing) {
+    return <div className="p-10 text-sm text-white/45">Briefing enviado nao encontrado.</div>;
+  }
 
   return (
-    <motion.div
-      className="space-y-6 pb-10"
-      initial="hidden"
-      animate="show"
-      variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-    >
-      <motion.div variants={fadeUp} className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <Button asChild variant="ghost" className="mb-2 -ml-2 text-white/40 hover:text-white">
-            <Link to="/admin/briefings/enviados">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar à Lista
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-black tracking-tight text-white">Respostas e Acompanhamento</h1>
-          <p className="text-sm text-white/55">Visualize respostas, anexos e gerencie o fluxo operacional.</p>
-        </div>
-      </motion.div>
+    <div className="space-y-6 pb-10">
+      <BriefingsPageHeader
+        title="Respostas e acompanhamento"
+        description="Detalhe do briefing enviado, com respostas por pergunta, anexos, timeline e acoes operacionais."
+        breadcrumbs={[
+          { label: "Briefings", to: ADMIN_BRIEFINGS_HOME },
+          { label: "Enviados", to: ADMIN_BRIEFINGS_SENT },
+          { label: "Detalhe" },
+        ]}
+      />
 
-      <motion.div variants={fadeUp}>
-        <KPIs 
-          title={editor.titulo}
-          clientName={getClientDisplayName(selectedClient)}
-          readinessLabel={readinessLabel}
-          readinessTone={readinessTone}
-          readinessScore={readinessScore}
-          missingCount={fieldDrafts.length - answeredFieldCount}
-          fieldCount={fieldDrafts.length}
-          answeredCount={answeredFieldCount}
-          pendingCount={fieldDrafts.length - answeredFieldCount}
-          statusLabel={briefingStatusMeta[editor.status].label}
-        />
-      </motion.div>
+      <BriefingReadinessCard
+        title={editorState.editor.titulo}
+        clientName={getClientDisplayName(editorState.selectedClient)}
+        readinessScore={editorState.readinessScore}
+        missingCount={editorState.contentValidation.missing.length}
+        answeredFieldCount={editorState.answeredFieldCount}
+        pendingFieldCount={editorState.pendingFieldCount}
+        totalQuestions={editorState.fieldDrafts.length}
+        statusLabel={getSentStatusLabel(editorState.editor.status)}
+      />
 
-      <motion.div variants={fadeUp} className="grid gap-6 xl:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <BriefingResponseView 
-            fieldDrafts={fieldDrafts}
-            answerMap={answerMap}
-            attachments={attachments}
-            formatDateTime={formatDateTime}
-            hasAnswerValue={hasAnswerValue}
-          />
-          
-          <BriefingEditor 
-            editor={editor}
-            setEditor={setEditor}
-            fieldDrafts={fieldDrafts}
+          <BriefingEditorCard
+            mode="sent"
             clients={clients}
-            saving={saving}
-            onPersist={onPersistWrapper}
-            onAddField={() => addField()}
-            onRemoveField={removeField}
-            onMoveField={moveField}
-            onUpdateField={updateField}
-            getSentStatusLabel={(s) => briefingStatusMeta[s].label}
-            getClientDisplayName={getClientDisplayName}
-            getProjectTitle={getProjectTitle}
-            selectedBriefing={existingBriefing}
-            isSentContext={true}
+            editor={editorState.editor}
+            selectedClientId={editorState.editor.cliente_id}
+            selectedBriefing={editorState.selectedBriefing}
+            fieldDrafts={editorState.fieldDrafts}
+            saving={editorState.saving}
+            onClientChange={editorState.selectClient}
+            onEditorChange={(patch) => editorState.setEditor((current) => ({ ...current, ...patch }))}
+            onFieldChange={editorState.handleFieldChange}
+            onMoveField={editorState.moveField}
+            onRemoveField={editorState.removeField}
+            onAddCustomField={editorState.addCustomField}
+            onSaveDraft={() => void runAction("draft")}
+            onSend={() => void runAction("send")}
+            onReopen={() => void runAction("reopen")}
+            onConclude={() => void runAction("conclude")}
+            onCreateProject={() => void handleCreateProject()}
+          />
+
+          <BriefingResponsePanelCard
+            responseSections={editorState.responseSections}
+            answerMap={editorState.answerMap}
+            attachments={editorState.attachments}
+          />
+
+          <BriefingSummaryCard
+            snapshotBriefing={editorState.snapshot.briefing || editorState.editor.snapshot_briefing}
+            snapshotReferences={editorState.snapshot.references || editorState.editor.snapshot_references}
+            attachments={editorState.attachments}
+            selectedBriefing={editorState.selectedBriefing}
           />
         </div>
 
-        <div className="space-y-6">
-          <BriefingSnapshotCard 
-            snapshot={snapshot}
-            editor={editor}
-            attachments={attachments}
-            selectedBriefing={existingBriefing}
-            formatDateTime={formatDateTime}
-          />
-
-          <Card className="border-white/10 bg-white/[0.03]">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <History className="h-4 w-4 text-fuchsia-400" />
-                <CardTitle className="text-sm text-white">Histórico e Datas</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-xs text-white/50">
-                <div className="flex justify-between">
-                  <span>Criado em</span>
-                  <span className="text-white/70">{formatDateTime(existingBriefing.created_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Enviado em</span>
-                  <span className="text-white/70">{formatDateTime(existingBriefing.sent_at)}</span>
-                </div>
-                {existingBriefing.started_at && (
-                  <div className="flex justify-between">
-                    <span>Iniciado pelo cliente</span>
-                    <span className="text-white/70">{formatDateTime(existingBriefing.started_at)}</span>
-                  </div>
-                )}
-                {existingBriefing.submitted_at && (
-                  <div className="flex justify-between">
-                    <span>Respondido em</span>
-                    <span className="text-white/70">{formatDateTime(existingBriefing.submitted_at)}</span>
-                  </div>
-                )}
-                {existingBriefing.completed_at && (
-                  <div className="flex justify-between">
-                    <span>Concluído em</span>
-                    <span className="text-white/70">{formatDateTime(existingBriefing.completed_at)}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </motion.div>
-    </motion.div>
+        <BriefingTemplatePickerCard
+          templates={filteredTemplates}
+          fieldDrafts={editorState.fieldDrafts}
+          templateSelection={editorState.templateSelection}
+          onToggleSelection={editorState.toggleTemplateSelection}
+          onAddSelected={editorState.addSelectedTemplates}
+          templateSearch={templateSearch}
+          onTemplateSearchChange={setTemplateSearch}
+          templateSection={templateSection}
+          onTemplateSectionChange={setTemplateSection}
+        />
+      </div>
+    </div>
   );
 }

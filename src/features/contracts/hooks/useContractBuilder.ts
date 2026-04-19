@@ -7,37 +7,35 @@ import {
   ContractBuilderPricing,
   ContractBuilderClientExtraSnapshot,
   BuilderPrimaryPlanId,
-  buildBuilderDirtySignature,
   createEmptyBuilderPayload,
   computeBuilderPricing,
   selectPrimaryPlan,
-  normalizeBuilderPayload,
-  normalizeBuilderStep,
-  hasMeaningfulBuilderState,
-  buildBuilderSavePayload,
-  ContractRecoveryOriginAction,
-  saveContractRecoverySnapshot,
-  clearContractRecoverySnapshot,
-  BUILDER_STEPS,
-  BUILDER_TEMPLATE_ID,
-  RESIGN_REASON_DEFAULT,
 } from "@/lib/contract-builder";
 import {
-  getContractErrorMessage,
-  generateContractPDF,
-  downloadWordDocument,
-  formatContractClock,
-  parseMoneyInput,
-  formatMoneyInputValue,
+  ContractRecoveryOriginAction,
+  clearContractRecoverySnapshot,
+  saveContractRecoverySnapshot,
+} from "@/lib/contract-recovery";
+import {
   buildPricingMoneyDraftKey,
+  buildBuilderDirtySignature,
+  buildBuilderSavePayload,
+  getContractErrorMessage,
+  downloadWordDocument,
+  formatMoneyInputValue,
+  formatContractClock,
+  generateContractPDF,
+  hasMeaningfulBuilderState,
+  normalizeBuilderPayload,
+  normalizeBuilderStep,
+  parseMoneyInput,
 } from "@/lib/contract-utils";
 import {
   saveBuilderContractDirectly,
   fetchActiveClientExtras,
-  runContractRealtimeSideEffects,
-  hasSignedContractMaterialChanges,
 } from "@/features/contracts/services";
-import { Contrato, ExtraCatalogo, Cliente } from "@/features/contracts/types";
+import { hasSignedContractMaterialChanges } from "@/features/contracts/utils";
+import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, RESIGN_REASON_DEFAULT } from "@/features/contracts/types";
 import { mapClientExtraToSnapshot } from "@/lib/contract-builder-utils";
 
 interface UseContractBuilderProps {

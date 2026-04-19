@@ -7,7 +7,7 @@ import { Contrato, ContratoVersion } from "@/features/contracts/types";
 import { getContractStatusLabel, getContractStatusBadgeClass, getContractStatusInsight } from "@/lib/contract-status";
 import { formatContratoValue, formatContractDateTime, generateContractPDF, downloadWordDocument } from "@/lib/contract-utils";
 import { ContractLifecycleTimeline } from "@/components/contracts/ContractLifecycleTimeline";
-import { normalizeBuilderPayload } from "@/lib/contract-builder";
+import { normalizeBuilderPayload } from "@/features/contracts/utils";
 
 interface ContractCofreListProps {
   contratos: Contrato[];
