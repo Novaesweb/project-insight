@@ -29,6 +29,8 @@ const mobileNavGroups = [
       { href: "/admin/clientes", label: "Clientes", icon: Users },
       { href: "/admin/leads", label: "Leads", icon: Headphones, showCount: true },
       { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
+      { href: "/admin/projetos/lista", label: "Lista de Projetos", isSubItem: true },
+      { href: "/admin/projetos/kanban", label: "Quadro Kanban", isSubItem: true },
     ],
   },
   {
@@ -111,6 +113,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                     onClick={onClose}
                     className={cn(
                       "flex items-center gap-3 py-2.5 px-3 text-[13px] font-medium transition-all rounded-xl",
+                      item.isSubItem && "ml-7 py-2 text-[12px]",
                       isActive
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"

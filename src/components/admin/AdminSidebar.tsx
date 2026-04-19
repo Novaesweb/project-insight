@@ -21,11 +21,12 @@ import {
   ServerCog,
   ClipboardList,
 } from "lucide-react";
-import { useLeadCount } from "@/hooks/useLeadCount";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getFavoriteAdminRoutes, getRecentAdminRoutes } from "@/lib/admin-navigation";
+import { useAdminStore } from "@/features/admin/store/admin-store";
+import { useLeadCount } from "@/hooks/useLeadCount";
 
 interface NavGroup {
   title: string;
@@ -40,6 +41,8 @@ const navGroups: NavGroup[] = [
       { href: "/admin/clientes", label: "Clientes", icon: Users },
       { href: "/admin/leads", label: "Leads", icon: Headphones },
       { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
+      { href: "/admin/projetos/lista", label: "Lista de Projetos", isSubItem: true },
+      { href: "/admin/projetos/kanban", label: "Quadro Kanban", isSubItem: true },
     ],
   },
   {
@@ -84,7 +87,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
   const leadCount = useLeadCount();
   const { canAccessPath } = useAdminAccess();
   const [recentRoutes, setRecentRoutes] = useState(() => getRecentAdminRoutes());
-  const [counts, setCounts] = useState({ leads: 0, financeiro: 0, projetos: 0 });
+  const { counts, refreshCounts } = useAdminStore();
 
   const favoriteRoutes = useMemo(
     () => getFavoriteAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 3),
@@ -96,31 +99,8 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
   }, [canAccessPath, pathname]);
 
   useEffect(() => {
-    const loadCounts = async () => {
-      const [newLeads, financeOpen, projectData] = await Promise.all([
-        supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "novo"),
-        supabase.from("financeiro").select("*", { count: "exact", head: true }).in("status", ["pendente", "em_atraso"]),
-        supabase.from("projetos").select("id, status, data_entrega").neq("status", "concluido"),
-      ]);
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const lateProjects = (projectData.data || []).filter((project: any) => {
-        if (!project?.data_entrega) return false;
-        const deliveryDate = new Date(project.data_entrega);
-        deliveryDate.setHours(0, 0, 0, 0);
-        return deliveryDate < today;
-      }).length;
-
-      setCounts({
-        leads: newLeads.count || 0,
-        financeiro: financeOpen.count || 0,
-        projetos: lateProjects,
-      });
-    };
-
-    loadCounts();
-  }, [pathname]);
+    refreshCounts();
+  }, [pathname, refreshCounts]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
