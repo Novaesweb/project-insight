@@ -1,138 +1,107 @@
 # Novaes Web - Painel Administrativo
 
-Um painel administrativo completo para gestão de clientes, projetos, financeiro e muito mais. Construído com React, TypeScript, Tailwind CSS e Supabase.
+Painel administrativo para gestao de clientes, projetos, financeiro, contratos e operacao digital. O projeto usa React, TypeScript, Tailwind CSS e Supabase.
 
-## 🚀 Início Rápido
+## Inicio rapido
 
-### Desenvolvimento Local
+### Desenvolvimento local
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/Novaesweb/novaesweb.git
-cd novaesweb
+# 1. Clone o repositorio
+git clone https://github.com/Novaesweb/project-insight.git
+cd project-insight
 
-# 2. Instale as dependências
+# 2. Instale as dependencias
 npm install
 
-# 3. Configure as variáveis de ambiente
+# 3. Configure o ambiente
 cp .env.example .env
-# Edite o .env com suas credenciais do Supabase
 
-# 4. Inicie o servidor de desenvolvimento
+# 4. Inicie o projeto
 npm run dev
 ```
 
-O aplicativo estará disponível em `http://localhost:8080`
+O app fica disponivel em `http://localhost:8080`.
 
-## 📋 Scripts Disponíveis
+## Variaveis de ambiente
 
-| Script | Descrição |
-|--------|-----------|
-| `npm run dev` | Inicia servidor de desenvolvimento com hot reload |
-| `npm run build` | Build para produção |
-| `npm run build:dev` | Build em modo desenvolvimento |
-| `npm run preview` | Preview do build de produção |
-| `npm run lint` | Executa verificações de ESLint |
-| `npm run test` | Executa suite de testes |
-| `npm run test:watch` | Testes em modo watch |
-
-## 🛠️ Tecnologias
-
-- **Vite** - Build tool rápido e moderno
-- **React 18+** - Biblioteca de UI
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Utilitários CSS
-- **shadcn/ui** - Componentes UI acessíveis
-- **Supabase** - Backend e autenticação
-- **React Query** - Gerenciamento de estado
-- **PWA** - Aplicação web progressiva
-## 🗂️ Estrutura do Projeto
-
-```
-src/
-├── components/          # Componentes React reutilizáveis
-│   ├── ui/             # Componentes shadcn/ui base
-│   ├── site/           # Componentes específicos do site
-│   └── [...]           # Outros componentes
-├── pages/              # Páginas da aplicação
-├── hooks/              # Custom React hooks
-├── lib/                # Funções utilitárias
-├── integrations/       # Integrações (Supabase, etc)
-├── assets/             # Imagens e recursos estáticos
-└── main.tsx            # Ponto de entrada da aplicação
-
-supabase/
-├── migrations/         # Migrações de banco de dados
-└── functions/          # Edge functions serverless
-```
-
-## 🔐 Variáveis de Ambiente
-
-Copie `.env.example` para `.env` e configure:
+Copie `.env.example` para `.env` e confirme estes valores publicos do Supabase:
 
 ```env
-VITE_SUPABASE_PROJECT_ID=your_project_id
-VITE_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PROJECT_ID=mvxlbvfryzmocrafhfjp
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_Xw4VPjd7bgJXobOqmfL4Gw_lf4IbGC_
+VITE_SUPABASE_URL=https://mvxlbvfryzmocrafhfjp.supabase.co
+SUPABASE_URL=https://mvxlbvfryzmocrafhfjp.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-## 💾 Integração com Supabase
+Use a `SUPABASE_SERVICE_ROLE_KEY` somente em ambientes seguros de backend e Edge Functions.
 
-A aplicação utiliza Supabase para:
-- ✅ Autenticação (JWT)
-- ✅ Banco de dados relacional em tempo real
-- ✅ Funções serverless (Edge Functions)
-- ✅ Notificações push
-- ✅ Armazenamento de arquivos
+## Scripts
 
-## 📱 PWA (Progressive Web App)
+| Script | Descricao |
+| --- | --- |
+| `npm run dev` | Sobe o servidor de desenvolvimento |
+| `npm run build` | Gera o build de producao |
+| `npm run preview` | Abre o preview do build |
+| `npm run lint` | Executa o ESLint |
+| `npm run test` | Executa os testes |
+| `npm run test:e2e` | Executa os testes end-to-end |
 
-O projeto inclui suporte completo a PWA:
-- Offline-first com Service Worker
-- Instalação na tela inicial
-- Sincronização em background
-- Notificações push nativas
+## Stack
 
-## 🚀 Deployment
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- Supabase
+- TanStack Query
+- PWA
+- Electron
 
-### Via Vercel, Netlify ou similar
-1. Conecte seu repositório GitHub
-2. Configure variáveis de ambiente
-3. Deploy automático em cada push para main
+## Estrutura do projeto
 
-```bash
-# Build para produção
-npm run build
+```text
+src/
+  components/      Componentes reutilizaveis
+  features/        Fluxos e modulos principais
+  hooks/           Hooks customizados
+  integrations/    Integracoes externas
+  lib/             Regras de negocio e utilitarios
+  pages/           Paginas da aplicacao
 
-# Testar build localmente
-npm run preview
+supabase/
+  functions/       Edge Functions
+  migrations/      Migracoes do banco
 ```
 
-## 📖 Documentação Adicional
+## Supabase
 
-- [Documentação Vite](https://vitejs.dev/)
-- [Documentação shadcn/ui](https://ui.shadcn.com/)
-- [Documentação Supabase](https://supabase.com/docs)
-- [Documentação Tailwind CSS](https://tailwindcss.com/docs)
+O projeto usa Supabase para:
 
-## 🤝 Contribuindo
+- autenticacao
+- banco relacional e realtime
+- Edge Functions
+- notificacoes push
+- armazenamento de arquivos
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## Deploy
 
-## 📝 Licença
+1. Conecte o repositorio no provedor de deploy.
+2. Configure as variaveis de ambiente.
+3. Gere o build com `npm run build`.
+4. Publique a branch desejada.
 
-Este projeto é propriedade de Novaes Web.
+## Documentacao util
 
-## 🆘 Suporte
+- [Vite](https://vitejs.dev/)
+- [Supabase](https://supabase.com/docs)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [shadcn/ui](https://ui.shadcn.com/)
 
-Para dúvidas sobre:
-- **Supabase**: visite https://supabase.com/docs
-- **Projeto**: crie uma issue no GitHub
+## Suporte
 
----
+Para ajustes de infraestrutura do projeto, abra uma issue no repositorio ou continue a manutencao a partir deste workspace.
 
-**Última atualização**: Março 2026
+Ultima atualizacao: Abril 2026

@@ -2,6 +2,10 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useBranding } from '@/hooks/useBranding';
 
+const flushBrandingEffect = () => act(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
+
 // Mock Supabase
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -32,7 +36,7 @@ describe('useBranding Hook', () => {
     vi.clearAllMocks();
   });
 
-  it('returns default branding values initially', () => {
+  it('returns default branding values initially', async () => {
     const { result } = renderHook(() => useBranding());
     
     expect(result.current).toEqual({
@@ -40,14 +44,14 @@ describe('useBranding Hook', () => {
       primary_color: '#e8334a',
       nome: 'NovaesWeb'
     });
+
+    await flushBrandingEffect();
   });
 
   it('fetches branding from Supabase on mount', async () => {
     const { result } = renderHook(() => useBranding());
     
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
+    await flushBrandingEffect();
     
     expect(result.current).toEqual({
       logo: '/test-logo.png',
@@ -56,7 +60,7 @@ describe('useBranding Hook', () => {
     });
   });
 
-  it('applies theme correctly', () => {
+  it('applies theme correctly', async () => {
     const mockSetProperty = vi.fn();
     Object.defineProperty(document.documentElement.style, 'setProperty', {
       value: mockSetProperty,
@@ -74,5 +78,7 @@ describe('useBranding Hook', () => {
     expect(result.current.logo).toBe('/novaesweb-logo.png');
     expect(result.current.primary_color).toBe('#e8334a');
     expect(result.current.nome).toBe('NovaesWeb');
+
+    await flushBrandingEffect();
   });
 });

@@ -1,6 +1,37 @@
-export const PUBLIC_SUPABASE_CONFIG = {
+const DEFAULT_PUBLIC_SUPABASE_CONFIG = {
   projectId: "mvxlbvfryzmocrafhfjp",
   url: "https://mvxlbvfryzmocrafhfjp.supabase.co",
-  publishableKey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12eGxidmZyeXptb2NyYWZoZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTgwOTMsImV4cCI6MjA4OTQ5NDA5M30.l3vZib37kooIIMUSdW7dybSYr-4-OsCnq9l0ezyJ2oQ",
+  publishableKey: "sb_publishable_Xw4VPjd7bgJXobOqmfL4Gw_lf4IbGC_",
 } as const;
+
+function normalizeEnvValue(value: string | undefined) {
+  return String(value || "").trim().replace(/^['"]|['"]$/g, "");
+}
+
+function deriveProjectId(url: string) {
+  try {
+    return new URL(url).hostname.split(".")[0] || "";
+  } catch {
+    return "";
+  }
+}
+
+const runtimeUrl =
+  normalizeEnvValue(import.meta.env.VITE_SUPABASE_URL) || DEFAULT_PUBLIC_SUPABASE_CONFIG.url;
+const runtimeProjectId =
+  normalizeEnvValue(import.meta.env.VITE_SUPABASE_PROJECT_ID) ||
+  deriveProjectId(runtimeUrl) ||
+  DEFAULT_PUBLIC_SUPABASE_CONFIG.projectId;
+const runtimePublishableKey =
+  normalizeEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+  DEFAULT_PUBLIC_SUPABASE_CONFIG.publishableKey;
+
+export const PUBLIC_SUPABASE_CONFIG = Object.freeze({
+  projectId: runtimeProjectId,
+  url: runtimeUrl,
+  publishableKey: runtimePublishableKey,
+});
+
+export const IS_USING_SUPABASE_FALLBACK =
+  !normalizeEnvValue(import.meta.env.VITE_SUPABASE_URL) ||
+  !normalizeEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);

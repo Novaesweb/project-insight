@@ -14,7 +14,7 @@ export const API_CONFIG = {
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000,
-  baseUrl: import.meta.env.VITE_SUPABASE_URL || PUBLIC_SUPABASE_CONFIG.url,
+  baseUrl: PUBLIC_SUPABASE_CONFIG.url,
 } as const;
 
 // Cache Configuration

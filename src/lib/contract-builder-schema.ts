@@ -232,6 +232,7 @@ export function validateAndSanitizeBuilderPayload(input: unknown) {
   const parsed = contractBuilderPayloadSchema.parse(input);
   const primaryPlanId = parsed.primaryPlanId as BuilderPrimaryPlanId;
   const step = parsed.lastStep as ContractBuilderStepIndex;
+  const requestedEntryValue = Math.max(parsed.pricing.entryValue, 0);
 
   const normalizedItems = selectPrimaryPlan(parsed.items, primaryPlanId).map((item) => ({
     ...item,
@@ -240,6 +241,17 @@ export function validateAndSanitizeBuilderPayload(input: unknown) {
 
   const reconciledPrimaryPlan = getSelectedPrimaryPlanId(normalizedItems);
   const normalizedPricing = normalizePricing(normalizedItems, parsed.clientExtrasSnapshot, parsed.pricing);
+
+  if (requestedEntryValue > normalizedPricing.finalSetupTotal) {
+    throw new z.ZodError([
+      {
+        code: "custom",
+        path: ["pricing", "entryValue"],
+        message: "A entrada não pode ser maior que o valor final da implantação.",
+      },
+    ]);
+  }
+
   const nextPayload: ContractBuilderPayload = {
     ...parsed,
     lastStep: step,

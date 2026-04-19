@@ -162,7 +162,7 @@ export default function SEOHead({
 
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="preconnect" href={import.meta.env.VITE_SUPABASE_URL || PUBLIC_SUPABASE_CONFIG.url} />
+      <link rel="preconnect" href={PUBLIC_SUPABASE_CONFIG.url} />
 
       <link rel="dns-prefetch" href="//fonts.googleapis.com" />
       <link rel="dns-prefetch" href="//www.googletagmanager.com" />
