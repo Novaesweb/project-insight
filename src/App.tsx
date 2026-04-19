@@ -45,7 +45,12 @@ const Usuarios = React.lazy(() => import("./pages/Usuarios"));
 const Leads = React.lazy(() => import("./pages/Leads"));
 const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
 const Contratos = React.lazy(() => import("./pages/Contratos"));
-const Briefings = React.lazy(() => import("./pages/Briefings"));
+const BriefingsDashboard = React.lazy(() => import("./pages/admin/briefings/BriefingsDashboard"));
+const InProgressList = React.lazy(() => import("./pages/admin/briefings/InProgressList"));
+const BriefingEditorPage = React.lazy(() => import("./pages/admin/briefings/BriefingEditorPage"));
+const SentBriefingsList = React.lazy(() => import("./pages/admin/briefings/SentBriefingsList"));
+const SentBriefingDetailPage = React.lazy(() => import("./pages/admin/briefings/SentBriefingDetailPage"));
+const BriefingLibraryPage = React.lazy(() => import("./pages/admin/briefings/BriefingLibraryPage"));
 const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
 const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
@@ -126,9 +131,13 @@ function AdminWithSplash() {
             <Route path="contratos" element={<Contratos />} />
             <Route path="contratos/novo" element={<Contratos />} />
             <Route path="contratos/modelos" element={<Contratos />} />
-            <Route path="briefings" element={<Briefings />} />
-            <Route path="briefings/em-andamento" element={<Briefings />} />
-            <Route path="briefings/biblioteca" element={<Briefings />} />
+            <Route path="briefings" element={<BriefingsDashboard />} />
+            <Route path="briefings/em-andamento" element={<InProgressList />} />
+            <Route path="briefings/em-andamento/novo" element={<BriefingEditorPage />} />
+            <Route path="briefings/em-andamento/:id" element={<BriefingEditorPage />} />
+            <Route path="briefings/enviados" element={<SentBriefingsList />} />
+            <Route path="briefings/enviados/:id" element={<SentBriefingDetailPage />} />
+            <Route path="briefings/biblioteca" element={<BriefingLibraryPage />} />
             <Route path="menu" element={<AdminMenu />} />
             <Route path="configuracoes-legado" element={<AdminConfig />} />
             <Route path="recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />

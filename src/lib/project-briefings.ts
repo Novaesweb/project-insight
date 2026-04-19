@@ -205,6 +205,22 @@ export function createEmptyBriefingField(sortOrder = 0): BriefingFieldDraft {
   };
 }
 
+export function toFieldDraft(field: any): BriefingFieldDraft {
+  return {
+    id: field.id,
+    template_id: field.template_id,
+    section_name: field.section_name,
+    label: field.label,
+    help_text: field.help_text || "",
+    field_type: field.field_type,
+    required: field.required,
+    placeholder: field.placeholder || "",
+    options: parseBriefingOptions(field.options),
+    sort_order: field.sort_order,
+    is_custom: field.is_custom,
+  };
+}
+
 export function createFieldDraftFromTemplate(
   template: {
     id?: string | null;
