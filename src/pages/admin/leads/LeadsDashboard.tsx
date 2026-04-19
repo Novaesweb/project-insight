@@ -68,7 +68,7 @@ export default function LeadsDashboard() {
         
         {/* Card Principal - Hoje */}
         <motion.div variants={fadeUp} className="md:col-span-2">
-          <Card className="glass-card-premium h-full relative overflow-hidden group bg-primary/5 border-primary/20">
+          <Card className="glass-card-premium fx-glint h-full relative overflow-hidden group bg-primary/5 border-primary/20">
              <CardContent className="p-8">
                <div className="flex justify-between items-start">
                   <div>
@@ -89,7 +89,7 @@ export default function LeadsDashboard() {
         {/* Card Pendentes */}
         <motion.div variants={fadeUp} className="col-span-1">
           <Card className={cn(
-            "glass-card-premium h-full transition-all border-l-4",
+            "glass-card-premium fx-glint h-full transition-all border-l-4",
             stats.unvisited > 0 ? "border-l-rose-500 bg-rose-500/5" : "border-l-emerald-500"
           )}>
             <CardContent className="p-8">

@@ -129,8 +129,8 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       }}
     >
       <div
-        className="absolute top-0 left-0 w-[2px] h-full opacity-50"
-        style={{ background: "linear-gradient(180deg, hsl(var(--primary)), hsl(var(--accent)), transparent)" }}
+        className="absolute top-0 left-0 w-[1px] h-full opacity-30"
+        style={{ background: "linear-gradient(180deg, hsl(var(--primary)), transparent 60%)" }}
       />
 
       <button
@@ -214,10 +214,22 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                   >
                     {isActive && (
                       <motion.div
-                        layoutId="adminNav"
+                        layoutId="activeNavBackground"
+                        className="absolute inset-x-2 inset-y-1 rounded-xl -z-10"
+                        style={{ 
+                          background: "rgba(255, 51, 102, 0.08)",
+                          border: "1px solid rgba(255, 51, 102, 0.15)",
+                          boxShadow: "0 0 20px -5px rgba(255, 51, 102, 0.2)"
+                        }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    {isActive && (
+                      <motion.div
+                        layoutId="adminNavIndicator"
                         className={cn(
-                          "absolute w-[3px] rounded-r-full",
-                          item.isSubItem ? "left-2 h-3" : "left-0 h-4"
+                          "absolute w-[2px] rounded-r-full left-0",
+                          item.isSubItem ? "h-3" : "h-5"
                         )}
                         style={{ background: "var(--gradient-primary)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}

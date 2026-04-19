@@ -68,7 +68,7 @@ export default function FinanceDashboard() {
         
         {/* Card Principal - Receita Total */}
         <motion.div variants={fadeUp} className="md:col-span-2">
-          <Card className="glass-card-premium h-full relative overflow-hidden group bg-emerald-500/[0.03] border-emerald-500/20">
+          <Card className="glass-card-premium fx-glint h-full relative overflow-hidden group bg-emerald-500/[0.03] border-emerald-500/20">
              <CardContent className="p-8">
                <div className="flex justify-between items-start">
                   <div>
@@ -92,7 +92,7 @@ export default function FinanceDashboard() {
 
         {/* Card Recebido */}
         <motion.div variants={fadeUp} className="col-span-1">
-          <Card className="glass-card-premium h-full border-l-4 border-l-emerald-500">
+          <Card className="glass-card-premium fx-glint h-full border-l-4 border-l-emerald-500">
             <CardContent className="p-8">
               <div className="p-3 rounded-xl bg-emerald-500/10 w-fit mb-6">
                 <TrendingUp className="text-emerald-400" />

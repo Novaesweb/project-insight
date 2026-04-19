@@ -21,6 +21,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import SEOHead from "@/components/SEOHead";
 import NativeNotificationManager from "@/components/NativeNotificationManager";
 import HttpsRedirect from "@/components/HttpsRedirect";
+import PWAHandler from "@/components/PWAHandler";
 import { getQueryClient } from "@/lib/query-client";
 import NichePage from "./pages/NichePage";
 import Nichos from "./pages/Nichos";
@@ -178,14 +179,14 @@ const DesktopNavigationHandler = () => {
 
   return null;
 };
-
-const App = () => (
+const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <HttpsRedirect>
           <NativeNotificationManager />
           <BrowserRouter>
+            <PWAHandler />
             <SEOHead />
             <Toaster />
             <Sonner />

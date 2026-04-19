@@ -67,7 +67,7 @@ export default function ProjectsDashboard() {
         
         {/* KPI: Projetos Ativos - Grande */}
         <motion.div variants={fadeUp} className="md:col-span-2 row-span-1">
-          <Card className="glass-card-premium h-full relative overflow-hidden group">
+          <Card className="glass-card-premium fx-glint h-full relative overflow-hidden group">
              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                <FolderKanban size={120} />
              </div>
@@ -94,7 +94,7 @@ export default function ProjectsDashboard() {
         {/* KPI: Atrasados - Alerta */}
         <motion.div variants={fadeUp} className="col-span-1">
           <Card className={cn(
-            "glass-card-premium h-full transition-all border-l-4",
+            "glass-card-premium fx-glint h-full transition-all border-l-4",
             kpis.late > 0 ? "border-l-red-500 bg-red-500/5" : "border-l-emerald-500"
           )}>
             <CardContent className="p-8">
@@ -115,7 +115,7 @@ export default function ProjectsDashboard() {
 
         {/* KPI: Saúde (Estagnados) */}
         <motion.div variants={fadeUp} className="col-span-1">
-           <Card className="glass-card-premium h-full">
+           <Card className="glass-card-premium fx-glint h-full">
             <CardContent className="p-8">
               <div className="p-3 rounded-xl bg-amber-500/20 w-fit">
                 <Clock className="text-amber-400" />
