@@ -28,6 +28,26 @@ import {
   type AdminUserMetadataMap,
 } from "@/lib/admin-audit";
 
+const ADMIN_ACCESS_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs = ADMIN_ACCESS_TIMEOUT_MS) {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("Admin permission check timed out."));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+}
+
 interface AdminAccessContextValue {
   loading: boolean;
   currentUser: Tables<"usuarios"> | null;
@@ -51,61 +71,77 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
   const [permissions, setPermissions] = useState<AdminPermissionsConfig>(DEFAULT_ADMIN_PERMISSIONS);
   const [userMetadata, setUserMetadata] = useState<AdminUserMetadataMap>({});
 
+  const resetAccessState = useCallback(() => {
+    setCurrentUser(null);
+    setSessionEmail(null);
+    setRole("visualizador");
+    setPermissions(DEFAULT_ADMIN_PERMISSIONS);
+    setUserMetadata({});
+  }, []);
+
   const refresh = useCallback(async () => {
     setLoading(true);
 
-    const session = await getCompatibleAdminSession({
-      allowRefresh: true,
-      clearInvalidLocalSession: false,
-    });
+    try {
+      const session = await withTimeout(
+        getCompatibleAdminSession({
+          allowRefresh: true,
+          clearInvalidLocalSession: false,
+        }),
+      );
 
-    if (!session) {
-      setCurrentUser(null);
-      setSessionEmail(null);
-      setRole("visualizador");
-      setPermissions(DEFAULT_ADMIN_PERMISSIONS);
-      setUserMetadata({});
+      if (!session) {
+        resetAccessState();
+        return;
+      }
+
+      const email = session.user.email?.trim().toLowerCase() || null;
+      setSessionEmail(email);
+
+      const [configResponse, userResponse] = await withTimeout(
+        Promise.all([
+          supabase
+            .from("app_config")
+            .select("key, value")
+            .in("key", ["admin_permissions", ADMIN_USER_METADATA_KEY]),
+          email
+            ? supabase.from("usuarios").select("*").eq("email", email).maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+        ]),
+      );
+
+      if (!configResponse.error && configResponse.data) {
+        const permissionRow = configResponse.data.find((row) => row.key === "admin_permissions");
+        const userMetadataRow = configResponse.data.find((row) => row.key === ADMIN_USER_METADATA_KEY);
+        setPermissions(parsePermissionsConfig(permissionRow?.value));
+        setUserMetadata(parseAdminUserMetadata(userMetadataRow?.value));
+      } else {
+        setPermissions(DEFAULT_ADMIN_PERMISSIONS);
+        setUserMetadata({});
+      }
+
+      if (userResponse?.error) {
+        throw userResponse.error;
+      }
+
+      const usuario = userResponse?.data || null;
+      const activeInternalUser =
+        usuario && usuario.status === "ativo" && !usuario.bloqueado ? usuario : null;
+
+      setCurrentUser(activeInternalUser);
+
+      if (activeInternalUser?.acesso) {
+        setRole(normalizeAdminRole(activeInternalUser.acesso));
+      } else {
+        setRole("visualizador");
+      }
+    } catch (error) {
+      console.error("Admin access refresh failed", error);
+      resetAccessState();
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const email = session.user.email?.trim().toLowerCase() || null;
-    setSessionEmail(email);
-
-    const [configResponse, userResponse] = await Promise.all([
-      supabase
-        .from("app_config")
-        .select("key, value")
-        .in("key", ["admin_permissions", ADMIN_USER_METADATA_KEY]),
-      email
-        ? supabase.from("usuarios").select("*").eq("email", email).maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-    ]);
-
-    if (!configResponse.error && configResponse.data) {
-      const permissionRow = configResponse.data.find((row) => row.key === "admin_permissions");
-      const userMetadataRow = configResponse.data.find((row) => row.key === ADMIN_USER_METADATA_KEY);
-      setPermissions(parsePermissionsConfig(permissionRow?.value));
-      setUserMetadata(parseAdminUserMetadata(userMetadataRow?.value));
-    } else {
-      setPermissions(DEFAULT_ADMIN_PERMISSIONS);
-      setUserMetadata({});
-    }
-
-    const usuario = userResponse?.data || null;
-    const activeInternalUser =
-      usuario && usuario.status === "ativo" && !usuario.bloqueado ? usuario : null;
-
-    setCurrentUser(activeInternalUser);
-
-    if (activeInternalUser?.acesso) {
-      setRole(normalizeAdminRole(activeInternalUser.acesso));
-    } else {
-      setRole("visualizador");
-    }
-
-    setLoading(false);
-  }, []);
+  }, [resetAccessState]);
 
   useEffect(() => {
     void refresh();
