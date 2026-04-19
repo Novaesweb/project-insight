@@ -79,8 +79,10 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
     setUserMetadata({});
   }, []);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
+  const refresh = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
+    if (showLoading) {
+      setLoading(true);
+    }
 
     try {
       const session = await withTimeout(
@@ -139,27 +141,39 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
       console.error("Admin access refresh failed", error);
       resetAccessState();
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, [resetAccessState]);
 
   useEffect(() => {
-    void refresh();
+    void refresh({ showLoading: true });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      void refresh();
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+        return;
+      }
+
+      if (event === "SIGNED_OUT" || !session) {
+        resetAccessState();
+        setLoading(false);
+        return;
+      }
+
+      void refresh({ showLoading: false });
     });
 
     return () => subscription.unsubscribe();
-  }, [refresh]);
+  }, [refresh, resetAccessState]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const handler = () => {
-      void refresh();
+      void refresh({ showLoading: false });
     };
 
     window.addEventListener("admin-access-refresh", handler);

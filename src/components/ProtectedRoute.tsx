@@ -33,10 +33,16 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     let active = true;
     let latestRunId = 0;
 
-    const checkAccess = async () => {
+    const resetToLogin = () => {
+      setAuthenticated(false);
+      setAuthorized(false);
+      setRedirectTo("/admin/login");
+    };
+
+    const checkAccess = async ({ showLoading = false }: { showLoading?: boolean } = {}) => {
       const runId = ++latestRunId;
 
-      if (active) {
+      if (active && showLoading) {
         setLoading(true);
       }
 
@@ -51,9 +57,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         if (!active || runId !== latestRunId) return;
 
         if (!session) {
-          setAuthenticated(false);
-          setAuthorized(false);
-          setRedirectTo("/admin/login");
+          resetToLogin();
           return;
         }
 
@@ -81,9 +85,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
           if (!active || runId !== latestRunId) return;
 
-          setAuthenticated(false);
-          setAuthorized(false);
-          setRedirectTo("/admin/login");
+          resetToLogin();
           return;
         }
 
@@ -95,11 +97,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
         if (!active || runId !== latestRunId) return;
 
-        setAuthenticated(false);
-        setAuthorized(false);
-        setRedirectTo("/admin/login");
+        resetToLogin();
       } finally {
-        if (active && runId === latestRunId) {
+        if (showLoading && active && runId === latestRunId) {
           setLoading(false);
         }
       }
@@ -107,11 +107,23 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      void checkAccess();
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+
+      if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+        return;
+      }
+
+      if (event === "SIGNED_OUT" || !session) {
+        resetToLogin();
+        setLoading(false);
+        return;
+      }
+
+      void checkAccess({ showLoading: false });
     });
 
-    void checkAccess();
+    void checkAccess({ showLoading: true });
 
     return () => {
       active = false;

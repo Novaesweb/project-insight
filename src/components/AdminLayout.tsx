@@ -220,13 +220,11 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
 
       try {
-        await refreshAdminSessionSilently({ force: true });
+        await refreshAdminSessionSilently();
       } catch {
         void 0;
       }
     };
-
-    void keepSessionAlive();
 
     const interval = window.setInterval(() => {
       void keepSessionAlive();
