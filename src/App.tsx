@@ -33,7 +33,8 @@ import CriacaoConteudo from "./pages/CriacaoConteudo";
 // Divisões Assíncronas (Lazy Loaded Chunks)
 const Site = React.lazy(() => import("./pages/Site"));
 const Index = React.lazy(() => import("./pages/Index"));
-const Clientes = React.lazy(() => import("./pages/Clientes"));
+const ClientsList = React.lazy(() => import("./pages/admin/clients/ClientsList"));
+const ClientDetailsPage = React.lazy(() => import("./pages/admin/clients/ClientDetailsPage"));
 const ProjectsDashboard = React.lazy(() => import("./pages/admin/projects/ProjectsDashboard"));
 const ProjectsList = React.lazy(() => import("./pages/admin/projects/ProjectsList"));
 const ProjectsKanban = React.lazy(() => import("./pages/admin/projects/ProjectsKanban"));
@@ -41,11 +42,14 @@ const ProjectDetailsPage = React.lazy(() => import("./pages/admin/projects/Proje
 const Pedidos = React.lazy(() => import("./pages/Pedidos"));
 const Extras = React.lazy(() => import("./pages/Extras"));
 const Relatorios = React.lazy(() => import("./pages/Relatorios"));
-const Financeiro = React.lazy(() => import("./pages/Financeiro"));
+const FinanceDashboard = React.lazy(() => import("./pages/admin/finance/FinanceDashboard"));
+const InvoicesList = React.lazy(() => import("./pages/admin/finance/InvoicesList"));
 const CustosSistema = React.lazy(() => import("./pages/CustosSistema"));
 const Suporte = React.lazy(() => import("./pages/Suporte"));
 const Usuarios = React.lazy(() => import("./pages/Usuarios"));
-const Leads = React.lazy(() => import("./pages/Leads"));
+const LeadsDashboard = React.lazy(() => import("./pages/admin/leads/LeadsDashboard"));
+const LeadsList = React.lazy(() => import("./pages/admin/leads/LeadsList"));
+const LeadDetailsPage = React.lazy(() => import("./pages/admin/leads/LeadDetailsPage"));
 const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
 const Contratos = React.lazy(() => import("./pages/Contratos"));
 const BriefingsDashboard = React.lazy(() => import("./pages/admin/briefings/BriefingsDashboard"));
@@ -117,9 +121,11 @@ function AdminWithSplash() {
         <React.Suspense fallback={<SplashScreen />}>
           <Routes>
             <Route index element={<Index />} />
-            <Route path="clientes" element={<Clientes />} />
-            <Route path="clientes/:id" element={<Clientes />} />
-            <Route path="leads" element={<Leads />} />
+            <Route path="clientes" element={<ClientsList />} />
+            <Route path="clientes/:id" element={<ClientDetailsPage />} />
+            <Route path="leads" element={<LeadsDashboard />} />
+            <Route path="leads/lista" element={<LeadsList />} />
+            <Route path="leads/:id" element={<LeadDetailsPage />} />
             <Route path="projetos" element={<ProjectsDashboard />} />
             <Route path="projetos/lista" element={<ProjectsList />} />
             <Route path="projetos/kanban" element={<ProjectsKanban />} />
@@ -128,7 +134,8 @@ function AdminWithSplash() {
             <Route path="extras" element={<Extras />} />
             <Route path="extras-ativos" element={<ExtrasAtivos />} />
             <Route path="relatorios" element={<Relatorios />} />
-            <Route path="financeiro" element={<Financeiro />} />
+            <Route path="financeiro" element={<FinanceDashboard />} />
+            <Route path="financeiro/lista" element={<InvoicesList />} />
             <Route path="custos-sistema" element={<CustosSistema />} />
             <Route path="suporte" element={<Suporte />} />
             <Route path="usuarios" element={<Usuarios />} />

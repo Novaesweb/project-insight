@@ -40,6 +40,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
       { href: "/admin/clientes", label: "Clientes", icon: Users },
       { href: "/admin/leads", label: "Leads", icon: Headphones },
+      { href: "/admin/leads/lista", label: "Gestão de Base", isSubItem: true },
       { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
       { href: "/admin/projetos/lista", label: "Lista de Projetos", isSubItem: true },
       { href: "/admin/projetos/kanban", label: "Quadro Kanban", isSubItem: true },
@@ -57,6 +58,7 @@ const navGroups: NavGroup[] = [
     title: "Gestão",
     items: [
       { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign, accent: true },
+      { href: "/admin/financeiro/lista", label: "Gestão de Faturas", isSubItem: true },
       { href: "/admin/custos-sistema", label: "Custos do Sistema", icon: ServerCog },
       { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
       { href: "/admin/contratos", label: "Contratos", icon: ShieldCheck },
