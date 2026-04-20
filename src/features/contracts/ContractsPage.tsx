@@ -86,6 +86,14 @@ export default function Contratos() {
     });
   }, []);
 
+  const sortContractEvents = useCallback((items: ContractEventRow[]) => {
+    return [...items].sort((a, b) => {
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  }, []);
+
   const upsertContratoState = useCallback((contrato: any) => {
     const decorated = decorateContrato(contrato);
     setContratos((current) => {
@@ -100,9 +108,10 @@ export default function Contratos() {
   }, []);
 
   // --- Data Orchestration ---
-  const { loadContratos, loadClientes, loadExtrasCatalogo } = useContractsCatalog({
+  const { loadContratos, loadClientes, loadExtrasCatalogo, loadPreviewContractEvents } = useContractsCatalog({
     decorateContrato,
     sortContratosByUpdatedAt,
+    sortContractEvents,
     setContratos,
     setContratosLoaded,
     setClientes,
@@ -205,6 +214,26 @@ export default function Contratos() {
     }
   }, [extrasCatalogo, extrasLoaded, toast, upsertContratoState]);
 
+  const handleOpenPreview = useCallback(async (contrato: Contrato) => {
+    setPreviewState({
+      title: contrato.titulo,
+      body: (contrato.corpo as string) || "",
+      contract: contrato,
+      proposal: normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id),
+    });
+    setPreviewOpen(true);
+
+    try {
+      await loadPreviewContractEvents(contrato.id);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar atividades",
+        description: "O contrato foi aberto, mas não foi possível carregar o histórico agora.",
+        variant: "destructive",
+      });
+    }
+  }, [extrasCatalogo, loadPreviewContractEvents, toast]);
+
   const handleSendToClient = useCallback(async (contrato: Contrato) => {
     try {
       const result = await sendBuilderContractToClientRecord(contrato);
@@ -274,10 +303,7 @@ export default function Contratos() {
           builder={builder}
           clientes={clientes}
           extrasCatalogo={extrasCatalogo}
-          onPreview={(c) => {
-            setPreviewState({ title: c.titulo, body: c.corpo as string, contract: c });
-            setPreviewOpen(true);
-          }}
+          onPreview={handleOpenPreview}
           onDuplicate={handleDuplicateContract}
           onVersions={handleOpenVersions}
           onSend={handleSendToClient}
@@ -288,7 +314,7 @@ export default function Contratos() {
           onOpenChange={setPreviewOpen}
           previewState={previewState}
           events={previewContractEvents}
-          isLoadingEvents={previewContractEventsLoading}
+          eventsLoading={previewContractEventsLoading}
         />
 
         <SuccessCelebration 

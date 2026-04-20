@@ -209,14 +209,14 @@ export function BuilderPreviewDocument({
   title,
   body,
   summary,
-  explanations,
-  signatureSummary,
+  explanations = [],
+  signatureSummary = null,
 }: {
   title: string;
   body: string;
   summary: ContractProposalSummary | null;
-  explanations: ContractClauseExplanation[];
-  signatureSummary: ContractSignatureSummary | null;
+  explanations?: ContractClauseExplanation[];
+  signatureSummary?: ContractSignatureSummary | null;
 }) {
   return (
     <div className="space-y-6">

@@ -96,6 +96,11 @@ export function ContractBuilderWizard({
   buildPricingMoneyDraftKey,
   builderPrepared,
 }: ContractBuilderWizardProps) {
+  const previewExplanations = workingBuilderPayload
+    ? buildContractClauseExplanations(workingBuilderPayload)
+    : [];
+  const previewSignatureSummary = buildContractSignatureSummary(workingBuilderPayload);
+
   return (
     <div className="space-y-6">
       <Card className="glass-card-premium border-[0.5px] overflow-hidden">
@@ -308,6 +313,8 @@ export function ContractBuilderWizard({
                             title={builderPrepared.title}
                             body={builderPrepared.body}
                             summary={builderSummary}
+                            explanations={previewExplanations}
+                            signatureSummary={previewSignatureSummary}
                           />
                         ) : (
                           <p className="text-center text-white/40 py-10">Gerando visualização...</p>
