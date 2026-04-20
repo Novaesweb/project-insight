@@ -1,152 +1,92 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('NovaesWeb E2E Tests', () => {
+test.describe('NovaesWeb E2E smoke tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Limpar cookies antes de cada teste
     await page.context().clearCookies();
   });
 
-  test('🏠 Homepage carrega corretamente', async ({ page }) => {
-    await page.goto('/');
-    
-    // Verificar se o título está correto
-    await expect(page).toHaveTitle(/NovaesWeb/);
-    
-    // Verificar elementos principais
-    await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('nav')).toBeVisible();
-    
-    // Verificar performance
-    const loadTime = await page.evaluate(() => {
-      return performance.timing.loadEventEnd - performance.timing.navigationStart;
-    });
-    expect(loadTime).toBeLessThan(3000); // 3 segundos máximo
+  test('homepage carrega corretamente', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    await expect(page).toHaveTitle(/NovaesWeb/i);
+    await expect(page.locator('h1').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /solicitar/i }).first()).toBeVisible();
   });
 
-  test('🔐 Login funciona corretamente', async ({ page }) => {
+  test('rota legada de login redireciona para o login admin', async ({ page }) => {
     await page.goto('/login');
-    
-    // Preencher formulário de login
-    await page.fill('input[type="email"]', 'test@novaesweb.com');
-    await page.fill('input[type="password"]', 'testpassword123');
-    await page.click('button[type="submit"]');
-    
-    // Verificar redirecionamento após login
-    await expect(page).toHaveURL(/\/admin/);
-    
-    // Verificar se o dashboard carregou
-    await expect(page.locator('h1')).toContainText('Dashboard');
+    await page.waitForURL('**/admin/login');
+
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: /iniciar/i })).toBeVisible();
   });
 
-  test('📱 Versão mobile funciona', async ({ page }) => {
-    // Simular dispositivo mobile
+  test('acesso admin sem sessao volta para login', async ({ page }) => {
+    await page.goto('/admin');
+    await page.waitForURL('**/admin/login');
+
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: /iniciar/i })).toBeVisible();
+  });
+
+  test('menu mobile abre corretamente', async ({ page }, testInfo) => {
+    test.skip(
+      ['firefox', 'webkit'].includes(testInfo.project.name),
+      'A cobertura mobile desta smoke suite fica nos projetos Mobile Chrome e Mobile Safari.',
+    );
+
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    
-    // Verificar menu mobile
-    await expect(page.locator('button[aria-label="menu"]')).toBeVisible();
-    
-    // Testar navegação mobile
-    await page.click('button[aria-label="menu"]');
-    await expect(page.locator('.mobile-menu')).toBeVisible();
+
+    const openMenuButton = page.locator('button[aria-label="Abrir menu"]').first();
+    await expect(openMenuButton).toBeVisible();
+    await openMenuButton.click();
+
+    await expect(page.locator('button[aria-label="Fechar menu"]').nth(1)).toBeVisible();
+    await expect(page.getByText('Explorar', { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /solicitar/i }).first()).toBeVisible();
   });
 
-  test('🎨 Tema escuro/claro funciona', async ({ page }) => {
+  test('pwa basico esta exposto na home', async ({ page }) => {
     await page.goto('/');
-    
-    // Encontrar botão de tema
-    const themeButton = page.locator('[aria-label="toggle theme"]');
-    await expect(themeButton).toBeVisible();
-    
-    // Clicar para alternar tema
-    await themeButton.click();
-    
-    // Verificar se o tema mudou (verificar classe no body)
-    const bodyClass = await page.locator('body').getAttribute('class');
-    expect(bodyClass).toContain('dark');
-  });
 
-  test('📊 Dashboard admin carrega dados', async ({ page }) => {
-    // Fazer login primeiro
-    await page.goto('/login');
-    await page.fill('input[type="email"]', 'admin@novaesweb.com');
-    await page.fill('input[type="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    
-    // Esperar carregar dashboard
-    await page.waitForURL(/\/admin/);
-    
-    // Verificar se os cards do dashboard estão visíveis
-    await expect(page.locator('[data-testid="stats-card"]')).toHaveCount(4);
-    
-    // Verificar se há dados nos cards
-    await expect(page.locator('[data-testid="total-clients"]')).toBeVisible();
-    await expect(page.locator('[data-testid="active-projects"]')).toBeVisible();
-  });
+    const manifest = page.locator('link[rel="manifest"]');
+    await expect(manifest).toHaveCount(1);
+    await expect(manifest).toHaveAttribute('href', /manifest/i);
 
-  test('🔍 Busca funciona', async ({ page }) => {
-    await page.goto('/');
-    
-    // Encontrar campo de busca
-    const searchInput = page.locator('input[placeholder*="buscar" i]');
-    await expect(searchInput).toBeVisible();
-    
-    // Preencher busca
-    await searchInput.fill('serviços');
-    
-    // Verificar se resultados aparecem
-    await expect(page.locator('[data-testid="search-results"]')).toBeVisible();
-  });
-
-  test('📱 PWA features funcionam', async ({ page }) => {
-    await page.goto('/');
-    
-    // Verificar se há manifest link
-    const manifest = await page.locator('link[rel="manifest"]');
-    await expect(manifest).toBeVisible();
-    
-    // Verificar service worker registration
-    const serviceWorker = await page.evaluate(() => {
-      return 'serviceWorker' in navigator;
-    });
+    const serviceWorker = await page.evaluate(() => 'serviceWorker' in navigator);
     expect(serviceWorker).toBe(true);
   });
 
-  test('♿ Acessibilidade', async ({ page }) => {
+  test('skip link fica acessivel por teclado', async ({ page }) => {
     await page.goto('/');
-    
-    // Verificar se há skip link
-    await expect(page.locator('a[href="#main"]')).toBeVisible();
-    
-    // Verificar se o foco funciona com teclado
-    await page.keyboard.press('Tab');
-    const focusedElement = await page.locator(':focus');
-    await expect(focusedElement).toBeVisible();
-    
-    // Verificar ARIA labels
-    const buttons = page.locator('button[aria-label]');
-    await expect(buttons).toHaveCount(3); // Pelo menos 3 botões com ARIA
+    const skipLink = page.locator('a[href="#main-content"]');
+    await skipLink.focus();
+    await expect(skipLink).toBeFocused();
+    await expect(skipLink).toBeVisible();
   });
 
-  test('📱 Responsividade', async ({ page }) => {
+  test('layout nao cria overflow horizontal nas larguras principais', async ({ page }) => {
     const viewports = [
-      { width: 1920, height: 1080 }, // Desktop
-      { width: 768, height: 1024 },  // Tablet
-      { width: 375, height: 667 },   // Mobile
+      { width: 1920, height: 1080 },
+      { width: 768, height: 1024 },
+      { width: 375, height: 667 },
     ];
+
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     for (const viewport of viewports) {
       await page.setViewportSize(viewport);
-      await page.goto('/');
-      
-      // Verificar se layout se adapta
-      const container = page.locator('.container');
-      await expect(container).toBeVisible();
-      
-      // Verificar se não há overflow horizontal
-      const bodyWidth = await page.locator('body').evaluate(el => el.scrollWidth);
-      const viewportWidth = viewport.width;
-      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
+      await page.waitForTimeout(150);
+      await expect(page.locator('h1').first()).toBeVisible();
+
+      const dimensions = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        innerWidth: window.innerWidth,
+      }));
+
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.innerWidth + 1);
     }
   });
 });

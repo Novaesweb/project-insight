@@ -230,6 +230,7 @@ const DesktopNavigationHandler = () => {
               } />
 
               {/* Admin Login */}
+              <Route path="/login" element={<Navigate to="/admin/login" replace />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/reset-password" element={<AdminResetPassword />} />
 

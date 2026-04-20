@@ -107,13 +107,13 @@ export function useBriefingEditor(briefingId?: string | null) {
       setFieldDrafts(draftState.fieldDrafts);
       setPersistedFieldIds(draftState.persistedFieldIds);
     }
-  }, [draftHydrated]);
+  }, [draftHydrated, draftDirty, draftState.editor, draftState.fieldDrafts, draftState.persistedFieldIds]);
 
   useEffect(() => {
     if (draftHydrated) {
       setDraftState({ editor, fieldDrafts, persistedFieldIds });
     }
-  }, [editor, fieldDrafts, persistedFieldIds, draftHydrated]);
+  }, [editor, fieldDrafts, persistedFieldIds, draftHydrated, setDraftState]);
 
   const answerMap = useMemo(() => {
     return answers.reduce((acc, ans) => {

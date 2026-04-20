@@ -48,7 +48,15 @@ export default function Site() {
     <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
       <GlobalBackground />
 
-      <main className="relative z-10">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[120] focus:rounded-xl focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-white"
+        style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.96), rgba(107,33,168,0.92), rgba(236,72,153,0.9))" }}
+      >
+        Pular para o conteudo principal
+      </a>
+
+      <main id="main-content" className="relative z-10">
         <SiteNavbar onOpenModal={setModalOpen} />
         <HeroSection onOpenDemo={openDemo} />
         

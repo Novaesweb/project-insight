@@ -38,6 +38,8 @@ import { hasSignedContractMaterialChanges } from "@/features/contracts/utils";
 import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, RESIGN_REASON_DEFAULT } from "@/features/contracts/types";
 import { mapClientExtraToSnapshot } from "@/lib/contract-builder-utils";
 
+const moneyDraftFieldPattern = /^(pricing):(.+):(discountValue|entryValue|negotiatedMonthly)$/;
+
 interface UseContractBuilderProps {
   clientes: Cliente[];
   extrasCatalogo: ExtraCatalogo[];
@@ -73,8 +75,6 @@ export function useContractBuilder({
 
   const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
   const contractRemoteAutosaveSignatureRef = useRef<string | null>(null);
-
-  const moneyDraftFieldPattern = /^(pricing):(.+):(discountValue|entryValue|negotiatedMonthly)$/;
 
   const syncBuilderSavedState = useCallback(
     (payload: ContractBuilderPayload, step: ContractBuilderStepIndex, savedAt?: string | null) => {
@@ -342,7 +342,7 @@ export function useContractBuilder({
         return false;
       }
     },
-    [builderStep, editingBuilderContract, extrasCatalogo, saveBuilderContractDirectly, saveBuilderRecoveryLocally, setTab, syncBuilderSavedState, syncMoneyDraftsToState, toast, upsertContratoState],
+    [builderStep, editingBuilderContract, extrasCatalogo, saveBuilderRecoveryLocally, setTab, syncBuilderSavedState, syncMoneyDraftsToState, toast, upsertContratoState],
   );
 
   return {
