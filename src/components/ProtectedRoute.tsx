@@ -99,7 +99,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
         resetToLogin();
       } finally {
-        if (showLoading && active && runId === latestRunId) {
+        if (active && runId === latestRunId) {
           setLoading(false);
         }
       }

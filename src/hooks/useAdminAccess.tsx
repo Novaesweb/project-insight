@@ -79,7 +79,11 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
     setUserMetadata({});
   }, []);
 
+  const latestRunIdRef = useRef(0);
+
   const refresh = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
+    const runId = ++latestRunIdRef.current;
+
     if (showLoading) {
       setLoading(true);
     }
@@ -141,7 +145,7 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
       console.error("Admin access refresh failed", error);
       resetAccessState();
     } finally {
-      if (showLoading) {
+      if (runId === latestRunIdRef.current) {
         setLoading(false);
       }
     }
