@@ -1,0 +1,94 @@
+<testsuites id="" name="" tests="35" failures="0" skipped="2" errors="0" time="128.90589500000002">
+<testsuite name="basic.spec.ts" timestamp="2026-04-20T00:28:52.262Z" hostname="chromium" tests="7" failures="0" skipped="0" time="38.472" errors="0">
+<testcase name="NovaesWeb E2E smoke tests › homepage carrega corretamente" classname="basic.spec.ts" time="6.528">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › rota legada de login redireciona para o login admin" classname="basic.spec.ts" time="5.969">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › acesso admin sem sessao volta para login" classname="basic.spec.ts" time="5.968">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › menu mobile abre corretamente" classname="basic.spec.ts" time="5.84">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › pwa basico esta exposto na home" classname="basic.spec.ts" time="4.657">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › skip link fica acessivel por teclado" classname="basic.spec.ts" time="4.921">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › layout nao cria overflow horizontal nas larguras principais" classname="basic.spec.ts" time="4.589">
+</testcase>
+</testsuite>
+<testsuite name="basic.spec.ts" timestamp="2026-04-20T00:28:52.262Z" hostname="firefox" tests="7" failures="0" skipped="1" time="84.224" errors="0">
+<testcase name="NovaesWeb E2E smoke tests › homepage carrega corretamente" classname="basic.spec.ts" time="12.707">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › rota legada de login redireciona para o login admin" classname="basic.spec.ts" time="11.547">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › acesso admin sem sessao volta para login" classname="basic.spec.ts" time="14.117">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › menu mobile abre corretamente" classname="basic.spec.ts" time="9.837">
+<properties>
+<property name="skip" value="A cobertura mobile desta smoke suite fica nos projetos Mobile Chrome e Mobile Safari.">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › pwa basico esta exposto na home" classname="basic.spec.ts" time="11.562">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › skip link fica acessivel por teclado" classname="basic.spec.ts" time="13.169">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › layout nao cria overflow horizontal nas larguras principais" classname="basic.spec.ts" time="11.285">
+</testcase>
+</testsuite>
+<testsuite name="basic.spec.ts" timestamp="2026-04-20T00:28:52.262Z" hostname="webkit" tests="7" failures="0" skipped="1" time="55.804" errors="0">
+<testcase name="NovaesWeb E2E smoke tests › homepage carrega corretamente" classname="basic.spec.ts" time="13.109">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › rota legada de login redireciona para o login admin" classname="basic.spec.ts" time="7.458">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › acesso admin sem sessao volta para login" classname="basic.spec.ts" time="9.214">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › menu mobile abre corretamente" classname="basic.spec.ts" time="2.266">
+<properties>
+<property name="skip" value="A cobertura mobile desta smoke suite fica nos projetos Mobile Chrome e Mobile Safari.">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › pwa basico esta exposto na home" classname="basic.spec.ts" time="5.97">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › skip link fica acessivel por teclado" classname="basic.spec.ts" time="12.625">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › layout nao cria overflow horizontal nas larguras principais" classname="basic.spec.ts" time="5.162">
+</testcase>
+</testsuite>
+<testsuite name="basic.spec.ts" timestamp="2026-04-20T00:28:52.262Z" hostname="Mobile Chrome" tests="7" failures="0" skipped="0" time="74.571" errors="0">
+<testcase name="NovaesWeb E2E smoke tests › homepage carrega corretamente" classname="basic.spec.ts" time="12.067">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › rota legada de login redireciona para o login admin" classname="basic.spec.ts" time="7.815">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › acesso admin sem sessao volta para login" classname="basic.spec.ts" time="7.526">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › menu mobile abre corretamente" classname="basic.spec.ts" time="11.437">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › pwa basico esta exposto na home" classname="basic.spec.ts" time="7.013">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › skip link fica acessivel por teclado" classname="basic.spec.ts" time="13.18">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › layout nao cria overflow horizontal nas larguras principais" classname="basic.spec.ts" time="15.533">
+</testcase>
+</testsuite>
+<testsuite name="basic.spec.ts" timestamp="2026-04-20T00:28:52.262Z" hostname="Mobile Safari" tests="7" failures="0" skipped="0" time="58.16" errors="0">
+<testcase name="NovaesWeb E2E smoke tests › homepage carrega corretamente" classname="basic.spec.ts" time="13.868">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › rota legada de login redireciona para o login admin" classname="basic.spec.ts" time="12.32">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › acesso admin sem sessao volta para login" classname="basic.spec.ts" time="7.287">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › menu mobile abre corretamente" classname="basic.spec.ts" time="7.57">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › pwa basico esta exposto na home" classname="basic.spec.ts" time="5.182">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › skip link fica acessivel por teclado" classname="basic.spec.ts" time="7.003">
+</testcase>
+<testcase name="NovaesWeb E2E smoke tests › layout nao cria overflow horizontal nas larguras principais" classname="basic.spec.ts" time="4.93">
+</testcase>
+</testsuite>
+</testsuites>
