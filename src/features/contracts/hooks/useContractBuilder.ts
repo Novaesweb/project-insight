@@ -40,7 +40,9 @@ import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, R
 
 const mapClientExtraToSnapshot = (item: any): ContractBuilderClientExtraSnapshot => ({
   id: item.id,
-  label: item.label || item.nome || "",
+  extraId: item.extra_id || item.extraId || item.id,
+  name: item.label || item.nome || item.name || "",
+  description: item.descricao || item.description || "",
   setupPrice: Number(item.preco_setup || item.setupPrice || 0),
   monthlyPrice: Number(item.preco_mensal || item.monthlyPrice || 0),
   typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
@@ -254,9 +256,16 @@ export function useContractBuilder({
   const onPrimaryPlanChange = useCallback((planId: BuilderPrimaryPlanId) => {
     setBuilderPayload(current => {
       if (!current) return null;
-      return selectPrimaryPlan(current, planId, extrasCatalogo);
+      const nextItems = selectPrimaryPlan(current.items, planId);
+      return {
+        ...current,
+        primaryPlanId: planId,
+        items: nextItems,
+        pricing: recalculateBuilderPricing(nextItems, current.pricing, current.clientExtrasSnapshot),
+        updatedAt: new Date().toISOString()
+      };
     });
-  }, [extrasCatalogo]);
+  }, [recalculateBuilderPricing]);
 
   const onDiscountTypeChange = useCallback((type: ContractBuilderPricing["discountType"]) => {
     setBuilderPayload(current => {
@@ -269,6 +278,22 @@ export function useContractBuilder({
       };
     });
   }, [recalculateBuilderPricing]);
+
+  const setMoneyDraftValue = useCallback((key: string, value: string) => {
+    setMoneyDrafts((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }, []);
+
+  const clearMoneyDraftValue = useCallback((key: string) => {
+    setMoneyDrafts((current) => {
+      if (!(key in current)) return current;
+      const nextDrafts = { ...current };
+      delete nextDrafts[key];
+      return nextDrafts;
+    });
+  }, []);
 
   const onPricingChange = useCallback((field: any, value: string) => {
     setMoneyDraftValue(buildPricingMoneyDraftKey(field), value);
@@ -360,22 +385,6 @@ export function useContractBuilder({
     }
     return null;
   }, [getWorkingBuilderPayload]);
-
-  const setMoneyDraftValue = useCallback((key: string, value: string) => {
-    setMoneyDrafts((current) => ({
-      ...current,
-      [key]: value,
-    }));
-  }, []);
-
-  const clearMoneyDraftValue = useCallback((key: string) => {
-    setMoneyDrafts((current) => {
-      if (!(key in current)) return current;
-      const nextDrafts = { ...current };
-      delete nextDrafts[key];
-      return nextDrafts;
-    });
-  }, []);
 
   const resetBuilder = useCallback(() => {
     if (!extrasLoaded) return;
@@ -557,6 +566,7 @@ export function useContractBuilder({
     builderLastSavedSignature,
     builderLastSavedAt,
     builderRemoteAutosaveState,
+    shouldReduceMotion,
     workingBuilderPayload,
     resetBuilder,
     openBuilderContract,

@@ -11,6 +11,7 @@ interface ContractTabsProps {
   onTabChange: (tab: string) => void;
   cofre: any;
   builder: any;
+  clientes: any[];
   extrasCatalogo: any[];
   onPreview: (contrato: any) => void;
   onDuplicate: (contrato: any) => void;
@@ -23,12 +24,22 @@ export function ContractTabs({
   onTabChange,
   cofre,
   builder,
+  clientes,
   extrasCatalogo,
   onPreview,
   onDuplicate,
   onVersions,
   onSend
 }: ContractTabsProps) {
+  const handleSaveDraftAndExit = async () => {
+    const saved = await builder.persistBuilderDraft();
+    if (saved) onTabChange("lista");
+  };
+
+  const handleSaveCompletedContract = async () => {
+    await builder.persistBuilderDraft({ requireCompleteValidation: true });
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-8">
       <div className="flex items-center justify-between">
@@ -106,11 +117,52 @@ export function ContractTabs({
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.3 }}
           >
-            <ContractBuilderWizard 
-              builder={builder}
-              onCancel={() => onTabChange("lista")}
-              onDuplicate={onDuplicate}
-            />
+            {builder.builderPayload ? (
+              <ContractBuilderWizard 
+                builderPayload={builder.builderPayload}
+                builderStep={builder.builderStep}
+                editingBuilderContract={builder.editingBuilderContract}
+                clientes={clientes}
+                builderSummary={builder.builderSummary}
+                builderProgress={builder.builderProgress}
+                builderStatusLabel={builder.builderStatusLabel}
+                builderRemoteAutosaveState={builder.builderRemoteAutosaveState}
+                workingBuilderPayload={builder.workingBuilderPayload}
+                mobileSummaryOpen={builder.mobileSummaryOpen}
+                selectedItemsCount={builder.selectedItemsCount}
+                builderClientExtras={builder.builderClientExtras}
+                syncingClientExtras={builder.syncingClientExtras}
+                shouldReduceMotion={builder.shouldReduceMotion}
+                onStepChange={builder.setBuilderStep}
+                onReset={builder.resetBuilder}
+                onMobileSummaryToggle={() => builder.setMobileSummaryOpen(!builder.mobileSummaryOpen)}
+                onClientChange={(clientId) => {
+                  void builder.onClientChange(clientId);
+                }}
+                onUpdateContractante={builder.onUpdateContractante}
+                onUpdateContratada={builder.onUpdateContratada}
+                onUpdateTextField={builder.onUpdateTextField}
+                onPrimaryPlanChange={builder.onPrimaryPlanChange}
+                onDiscountTypeChange={builder.onDiscountTypeChange}
+                onPricingChange={builder.onPricingChange}
+                onMoneyDraftBlur={builder.onMoneyDraftBlur}
+                onRefreshExtras={() => {
+                  void builder.onRefreshExtras();
+                }}
+                onPreview={onPreview}
+                onSaveAndExit={handleSaveDraftAndExit}
+                onSave={handleSaveCompletedContract}
+                getStepError={builder.getBuilderStepError}
+                getMoneyInputDisplayValue={builder.getMoneyInputDisplayValue}
+                describeClientExtraPricing={builder.describeClientExtraPricing}
+                buildPricingMoneyDraftKey={builder.buildPricingMoneyDraftKey}
+                builderPrepared={builder.builderPrepared}
+              />
+            ) : (
+              <div className="rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-10 text-center text-sm text-white/60">
+                Preparando montador de contratos...
+              </div>
+            )}
           </motion.div>
         </TabsContent>
 

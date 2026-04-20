@@ -250,6 +250,12 @@ export default function Contratos() {
     setCofreFilter: cofre.setCofreFilter,
     setSearchTerm: setSearchTerm
   });
+  const { builderPayload, resetBuilder } = builder;
+
+  useEffect(() => {
+    if (activeTab !== "montador" || !extrasLoaded || builderPayload) return;
+    resetBuilder();
+  }, [activeTab, builderPayload, extrasLoaded, resetBuilder]);
 
   return (
     <div className="min-h-screen bg-[#0a0510] pb-20 pt-4 md:pt-8">
@@ -258,7 +264,7 @@ export default function Contratos() {
         <ContractHeader 
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          onNewContract={() => handleTabChange("montador")}
+          onNewContract={() => resetBuilder()}
         />
 
         <ContractTabs 
@@ -266,6 +272,7 @@ export default function Contratos() {
           onTabChange={handleTabChange}
           cofre={cofre}
           builder={builder}
+          clientes={clientes}
           extrasCatalogo={extrasCatalogo}
           onPreview={(c) => {
             setPreviewState({ title: c.titulo, body: c.corpo as string, contract: c });
