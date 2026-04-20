@@ -20,6 +20,7 @@ import {
   buildContractSignatureSummary,
   stripLegacySignaturePlaceholders,
 } from "@/lib/contract-builder";
+import { normalizeBuilderPayload } from "@/features/contracts/utils";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import {
   CONTRACT_STATUS_ORDER,
@@ -36,6 +37,10 @@ const fadeUp = {
 
 type ContratoCliente = Tables<"contratos">;
 
+function getNormalizedContractBuilderPayload(contrato: ContratoCliente) {
+  return normalizeBuilderPayload(contrato.builder_payload, [], contrato.cliente_id || "");
+}
+
 function generatePDF(contrato: ContratoCliente) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -43,7 +48,7 @@ function generatePDF(contrato: ContratoCliente) {
   const margin = 20;
   const maxWidth = pageWidth - margin * 2;
   const cleanedBody = stripLegacySignaturePlaceholders(contrato.corpo || contrato.descricao || "");
-  const signatureSummary = buildContractSignatureSummary((contrato.builder_payload as any) || null, {
+  const signatureSummary = buildContractSignatureSummary(getNormalizedContractBuilderPayload(contrato), {
     contractanteSignedName: contrato.assinatura_cliente_nome,
     signedAt: contrato.data_assinatura,
   });
@@ -406,7 +411,7 @@ export default function ClienteContratos() {
     : null;
 
   const viewSignatureSummary = viewContrato
-    ? buildContractSignatureSummary((viewContrato.builder_payload as any) || null, {
+    ? buildContractSignatureSummary(getNormalizedContractBuilderPayload(viewContrato), {
         contractanteSignedName: viewContrato.assinatura_cliente_nome,
         signedAt: viewContrato.data_assinatura,
       })

@@ -15,6 +15,76 @@ import { contractTemplates, fillTemplate } from "@/lib/contract-templates";
 
 import { BUILDER_TEMPLATE_ID, type Contrato, type ExtraCatalogo } from "./types";
 
+function isRecord(value: unknown): value is Record<string, any> {
+  return typeof value === "object" && value !== null;
+}
+
+function normalizeBuilderGroup(value: unknown): "planos" | "fixo" | "intermediario" | "mensal" {
+  return value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal"
+    ? value
+    : "fixo";
+}
+
+function normalizeBuilderText(value: unknown, fallback = "") {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return fallback;
+}
+
+function normalizeBuilderMoney(value: unknown) {
+  return parseMoneyInput(value as string | number | null | undefined);
+}
+
+function normalizeBuilderTypeLabel(value: unknown): "mensal" | "único" {
+  return value === "mensal" ? "mensal" : "único";
+}
+
+function normalizePrimaryPlanId(
+  value: unknown,
+  items: ContractBuilderPayload["items"],
+): BuilderPrimaryPlanId {
+  if (value === "express" || value === "pro" || value === "sob-medida" || value === "none") {
+    return value;
+  }
+
+  return (items.find((item) => item.isPrimaryPlan && item.selected)?.sourceId as BuilderPrimaryPlanId) || "none";
+}
+
+function normalizeContractante(
+  value: Record<string, any>,
+  fallback: ContractBuilderPayload["contractante"],
+): ContractBuilderPayload["contractante"] {
+  return {
+    ...fallback,
+    nome: normalizeBuilderText(value.nome, fallback.nome),
+    nomeEmpresa: normalizeBuilderText(value.nomeEmpresa, fallback.nomeEmpresa),
+    documento: normalizeBuilderText(value.documento, fallback.documento),
+    email: normalizeBuilderText(value.email, fallback.email),
+    whatsapp: normalizeBuilderText(value.whatsapp, fallback.whatsapp),
+    telefone: normalizeBuilderText(value.telefone, fallback.telefone),
+    instagram: normalizeBuilderText(value.instagram, fallback.instagram),
+    siteUrl: normalizeBuilderText(value.siteUrl, fallback.siteUrl),
+    endereco: normalizeBuilderText(value.endereco, fallback.endereco),
+    cep: normalizeBuilderText(value.cep, fallback.cep),
+    cidade: normalizeBuilderText(value.cidade, fallback.cidade),
+    estado: normalizeBuilderText(value.estado, fallback.estado),
+  };
+}
+
+function normalizeContratada(
+  value: Record<string, any>,
+  fallback: ContractBuilderPayload["contratada"],
+): ContractBuilderPayload["contratada"] {
+  return {
+    ...fallback,
+    nome: normalizeBuilderText(value.nome, fallback.nome),
+    representante: normalizeBuilderText(value.representante, fallback.representante),
+    documento: normalizeBuilderText(value.documento, fallback.documento),
+    endereco: normalizeBuilderText(value.endereco, fallback.endereco),
+    observacaoRecebimento: normalizeBuilderText(value.observacaoRecebimento, fallback.observacaoRecebimento),
+  };
+}
+
 export function formatMoneyInputValue(value: number) {
   return Number(value || 0).toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
@@ -63,7 +133,10 @@ export function normalizeBuilderPayload(
   }
 
   const payload = rawPayload as Partial<ContractBuilderPayload>;
-  const savedItems = Array.isArray(payload.items) ? payload.items : [];
+  const rawContractante = isRecord(payload.contractante) ? payload.contractante : {};
+  const rawContratada = isRecord(payload.contratada) ? payload.contratada : {};
+  const rawPricing = isRecord(payload.pricing) ? payload.pricing : {};
+  const savedItems = Array.isArray(payload.items) ? payload.items.filter(isRecord) : [];
   const baseById = new Map(base.items.map((item) => [item.id, item]));
   const mergedItems = base.items.map((item) => {
     const saved = savedItems.find((entry) => entry.id === item.id);
@@ -71,60 +144,82 @@ export function normalizeBuilderPayload(
 
     return {
       ...item,
-      name: saved.name || item.name,
-      description: saved.description || item.description,
+      name: normalizeBuilderText(saved.name, item.name),
+      description: normalizeBuilderText(saved.description, item.description),
       selected: Boolean(saved.selected),
-      setupPrice: Number(saved.setupPrice ?? item.setupPrice ?? 0),
-      monthlyPrice: Number(saved.monthlyPrice ?? item.monthlyPrice ?? 0),
+      setupPrice: normalizeBuilderMoney(saved.setupPrice ?? item.setupPrice ?? 0),
+      monthlyPrice: normalizeBuilderMoney(saved.monthlyPrice ?? item.monthlyPrice ?? 0),
     };
   });
 
-  const legacyItems = savedItems.filter((item) => !baseById.has(item.id));
+  const legacyItems = savedItems
+    .filter((item) => typeof item.id === "string" && !baseById.has(item.id))
+    .map((item) => ({
+      id: String(item.id),
+      source: item.source === "plan" || item.source === "extra" ? item.source : "extra",
+      sourceId: typeof item.sourceId === "string" ? item.sourceId : undefined,
+      group: normalizeBuilderGroup(item.group),
+      name: normalizeBuilderText(item.name, "Extra legado").trim() || "Extra legado",
+      description: normalizeBuilderText(item.description),
+      selected: Boolean(item.selected),
+      setupPrice: normalizeBuilderMoney(item.setupPrice),
+      monthlyPrice: normalizeBuilderMoney(item.monthlyPrice),
+      isPrimaryPlan: Boolean(item.isPrimaryPlan),
+    }));
   const items = [...mergedItems, ...legacyItems];
-  const primaryPlanId =
-    payload.primaryPlanId && payload.primaryPlanId !== "none"
-      ? (payload.primaryPlanId as BuilderPrimaryPlanId)
-      : ((items.find((item) => item.isPrimaryPlan && item.selected)?.sourceId as BuilderPrimaryPlanId) || "none");
+  const primaryPlanId = normalizePrimaryPlanId(payload.primaryPlanId, items);
 
   const clientExtrasSnapshot = Array.isArray(payload.clientExtrasSnapshot)
-    ? payload.clientExtrasSnapshot.map((item) => ({
-        ...item,
-        setupPrice: Number(item.setupPrice || 0),
-        monthlyPrice: Number(item.monthlyPrice || 0),
-        typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
-        category:
-          item.category === "mensal" || item.category === "intermediario" || item.category === "fixo"
-            ? item.category
-            : "fixo",
-      }))
+    ? payload.clientExtrasSnapshot
+        .filter(isRecord)
+        .map((item, index) => ({
+          id:
+            normalizeBuilderText(item.id).trim() ||
+            normalizeBuilderText(item.extraId).trim() ||
+            `legacy-extra-${index}`,
+          extraId:
+            normalizeBuilderText(item.extraId).trim() ||
+            normalizeBuilderText(item.id).trim() ||
+            `legacy-extra-${index}`,
+          name:
+            normalizeBuilderText(item.name).trim() ||
+            normalizeBuilderText(item.label).trim() ||
+            "Extra legado",
+          description: normalizeBuilderText(item.description),
+          setupPrice: normalizeBuilderMoney(item.setupPrice),
+          monthlyPrice: normalizeBuilderMoney(item.monthlyPrice),
+          typeLabel: normalizeBuilderTypeLabel(item.typeLabel),
+          category: normalizeBuilderGroup(item.category ?? item.group),
+        }))
     : [];
 
   const pricing = computeBuilderPricing(items, clientExtrasSnapshot, {
-    negotiatedSetup: Number(payload.pricing?.negotiatedSetup ?? payload.pricing?.setupSubtotal ?? 0),
-    discountType: payload.pricing?.discountType === "percentage" ? "percentage" : "fixed",
-    discountValue: Number(payload.pricing?.discountValue ?? 0),
-    entryValue: Number(payload.pricing?.entryValue ?? 0),
-    negotiatedMonthly: Number(payload.pricing?.negotiatedMonthly ?? payload.pricing?.monthlySubtotal ?? 0),
+    negotiatedSetup: normalizeBuilderMoney(rawPricing.negotiatedSetup ?? rawPricing.setupSubtotal ?? 0),
+    discountType: rawPricing.discountType === "percentage" ? "percentage" : "fixed",
+    discountValue: normalizeBuilderMoney(rawPricing.discountValue),
+    entryValue: normalizeBuilderMoney(rawPricing.entryValue),
+    negotiatedMonthly: normalizeBuilderMoney(rawPricing.negotiatedMonthly ?? rawPricing.monthlySubtotal ?? 0),
   });
 
   const normalizedPayload: ContractBuilderPayload = {
     ...base,
-    ...payload,
-    clienteId: payload.clienteId || fallbackClientId,
+    clienteId: typeof payload.clienteId === "string" ? payload.clienteId : fallbackClientId,
     lastStep: normalizeBuilderStep(payload.lastStep, fallbackStep),
     primaryPlanId,
-    contractante: {
-      ...base.contractante,
-      ...(payload.contractante || {}),
-    },
-    contratada: {
-      ...base.contratada,
-      ...(payload.contratada || {}),
-    },
+    contractante: normalizeContractante(rawContractante, base.contractante),
+    contratada: normalizeContratada(rawContratada, base.contratada),
     items,
     clientExtrasSnapshot,
+    customScope: normalizeBuilderText(payload.customScope, base.customScope),
+    prazoDias: normalizeBuilderText(payload.prazoDias, base.prazoDias),
+    formaPagamento: normalizeBuilderText(payload.formaPagamento, base.formaPagamento),
+    numeroRevisoes: normalizeBuilderText(payload.numeroRevisoes, base.numeroRevisoes),
+    valorRevisao: normalizeBuilderText(payload.valorRevisao, base.valorRevisao),
+    prazoSuporte: normalizeBuilderText(payload.prazoSuporte, base.prazoSuporte),
+    observacoesComerciais: normalizeBuilderText(payload.observacoesComerciais, base.observacoesComerciais),
+    escopoExclusoes: normalizeBuilderText(payload.escopoExclusoes, base.escopoExclusoes),
     pricing,
-    createdAt: payload.createdAt || base.createdAt,
+    createdAt: typeof payload.createdAt === "string" ? payload.createdAt : base.createdAt,
     updatedAt: new Date().toISOString(),
   };
 
