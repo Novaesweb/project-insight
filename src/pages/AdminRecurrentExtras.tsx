@@ -2,15 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  CalendarDays, CreditCard, DollarSign, CheckCircle2, Clock, AlertCircle, Users,
-  FileText, ArrowLeft, Loader2, RefreshCw, Send, Eye, ExternalLink, Plus, Trash2, Edit
+import { 
+  CreditCard, CheckCircle2, AlertCircle, ArrowLeft, Loader2, RefreshCw, Plus 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,49 +11,21 @@ import { useNavigate } from "react-router-dom";
 import { useRealtimeRefresh } from "@/hooks/useRealtimeRefresh";
 import { notifyClientPanel } from "@/lib/user-notifications";
 
-// ── Types ──
-interface ClienteRecorrente {
-  cliente_id: string;
-  cliente_nome: string;
-  cliente_email: string;
-  cliente_documento?: string;
-  cliente_telefone?: string;
-  extras: { id: string; nome: string; preco_mensal: number; status: string; data_ativacao: string }[];
-  totalMensal: number;
-}
+// Componentes Modularizados
+import { RecurrentBillingStats } from "@/features/recurrent-billing/components/RecurrentBillingStats";
+import { RecurrentBillingGuide } from "@/features/recurrent-billing/components/RecurrentBillingGuide";
+import { ClienteRecorrenteCard } from "@/features/recurrent-billing/components/ClienteRecorrenteCard";
+import { GerarFaturaDialog } from "@/features/recurrent-billing/components/GerarFaturaDialog";
+import { EditFaturaDialog } from "@/features/recurrent-billing/components/EditFaturaDialog";
+import { ClienteHistoricoDialog } from "@/features/recurrent-billing/components/ClienteHistoricoDialog";
 
-interface FaturaMes {
-  id: string;
-  cliente_id: string;
-  mes: string;
-  ano: number;
-  mes_numero: number;
-  valor_total: number;
-  status: string;
-  forma_pagamento?: string;
-  data_pagamento?: string;
-  financeiro_id?: string;
-  asaas_payment_id?: string;
-  asaas_invoice_url?: string;
-  extras_count: number;
-  descricao?: string;
-  vencimento?: string;
-  created_at: string;
-}
+// Tipos e Helpers
+import { 
+  formatMes, 
+  type ClienteRecorrente, 
+  type FaturaMes 
+} from "@/features/recurrent-billing/types";
 
-// ── Helpers ──
-const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const formatMes = (mes: string) => { const [a, m] = mes.split("-"); return `${MESES[parseInt(m)-1]}/${a}`; };
-
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: typeof Clock }> = {
-  rascunho: { label: "Rascunho", variant: "outline", icon: FileText },
-  pendente: { label: "Pendente", variant: "secondary", icon: Clock },
-  pago_manualmente: { label: "Pago Manual", variant: "default", icon: CheckCircle2 },
-  pago_asaas: { label: "Pago Asaas", variant: "default", icon: CheckCircle2 },
-  em_atraso: { label: "Em Atraso", variant: "destructive", icon: AlertCircle },
-};
-
-/** Dia de corte: extras adicionados após este dia vão para o mês seguinte */
 const DIA_CORTE = 20;
 
 function getMesCompetencia(dataAtivacao: string): string {
@@ -85,7 +50,6 @@ function gerarOpcoesMeses(): { value: string; label: string }[] {
   return opcoes;
 }
 
-// ── Component ──
 export default function AdminRecurrentExtras() {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -110,12 +74,13 @@ export default function AdminRecurrentExtras() {
   const [enviandoFinanceiro, setEnviandoFinanceiro] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [deletingFatura, setDeletingFatura] = useState<string | null>(null);
+  
+  // Dialog: editar fatura
   const [editingFatura, setEditingFatura] = useState<FaturaMes | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editValor, setEditValor] = useState("");
   const [editDescricao, setEditDescricao] = useState("");
 
-  // ── Load data ──
   const loadClientes = useCallback(async () => {
     setLoading(true);
     try {
@@ -175,7 +140,6 @@ export default function AdminRecurrentExtras() {
     { channelPrefix: "admin-recurrent-extras", debounceMs: 400 },
   );
 
-  // ── Gerar faturas (rascunho — NÃO vai pro financeiro) ──
   const handleGerarFaturas = async () => {
     if (selectedClientes.size === 0) {
       toast({ title: "Selecione pelo menos um cliente", variant: "destructive" });
@@ -194,7 +158,6 @@ export default function AdminRecurrentExtras() {
       if (!cliente) continue;
 
       try {
-        // Check existing
         const { data: existing } = await (supabase as any)
           .from("recurrent_billing_history")
           .select("id")
@@ -212,7 +175,6 @@ export default function AdminRecurrentExtras() {
           continue;
         }
 
-        // Calcular extras do mês (respeitar corte)
         const extrasDoMes = cliente.extras.filter(e => {
           const comp = getMesCompetencia(e.data_ativacao);
           return comp <= mesSelecionado;
@@ -258,7 +220,6 @@ export default function AdminRecurrentExtras() {
     loadClientes();
   };
 
-  // ── Load faturas de um cliente ──
   const loadClienteHistorico = useCallback(async (clienteId: string) => {
     try {
       const { data, error } = await (supabase as any)
@@ -269,7 +230,6 @@ export default function AdminRecurrentExtras() {
         .order("mes_numero", { ascending: true });
       
       if (error) throw error;
-      
       setFaturasMes(data || []);
     } catch (err) {
       console.error("Erro ao carregar histórico de faturamento");
@@ -300,7 +260,6 @@ export default function AdminRecurrentExtras() {
     },
   );
 
-  // ── Enviar para financeiro + Asaas ──
   const handleEnviarFinanceiro = async (fatura: FaturaMes) => {
     if (!selectedCliente) return;
     setEnviandoFinanceiro(fatura.id);
@@ -310,7 +269,6 @@ export default function AdminRecurrentExtras() {
         return d.toISOString().split("T")[0];
       })();
 
-      // 1. Criar no financeiro
       const { data: fin, error: finErr } = await supabase.from("financeiro").insert({
         cliente_id: fatura.cliente_id,
         tipo: "entrada",
@@ -323,23 +281,12 @@ export default function AdminRecurrentExtras() {
 
       if (finErr || !fin) throw finErr;
 
-      // 2. Atualizar recurrent_billing_history (sem enviar ao Asaas — isso é automático 3 dias antes do vencimento)
       await (supabase as any).from("recurrent_billing_history").update({
-        status: "pendente",
-        financeiro_id: fin.id,
-        vencimento: venc,
-        updated_at: new Date().toISOString(),
+        status: "pendente", financeiro_id: fin.id, vencimento: venc, updated_at: new Date().toISOString(),
       }).eq("id", fatura.id);
 
-      // Update local state
-      setFaturasMes(prev => prev.map(f => f.id === fatura.id ? {
-        ...f, status: "pendente", financeiro_id: fin.id,
-      } : f));
-
-      toast({
-        title: "Enviado para o Financeiro!",
-        description: "Fatura criada. O Asaas será acionado automaticamente 3 dias antes do vencimento.",
-      });
+      setFaturasMes(prev => prev.map(f => f.id === fatura.id ? { ...f, status: "pendente", financeiro_id: fin.id } : f));
+      toast({ title: "Enviado para o Financeiro!" });
 
       await notifyClientPanel(fatura.cliente_id, {
         title: "Nova cobrança recorrente disponível",
@@ -347,14 +294,12 @@ export default function AdminRecurrentExtras() {
         url: "/cliente/faturas",
       });
     } catch (err: any) {
-      console.error("Erro ao enviar fatura para o financeiro");
       toast({ title: "Erro ao enviar para financeiro", description: err?.message, variant: "destructive" });
     } finally {
       setEnviandoFinanceiro(null);
     }
   };
 
-  // ── Update payment status ──
   const handleUpdateStatus = async (fatura: FaturaMes, newStatus: string) => {
     setUpdatingStatus(fatura.id);
     try {
@@ -367,14 +312,10 @@ export default function AdminRecurrentExtras() {
       }).eq("id", fatura.id);
 
       if (fatura.financeiro_id) {
-        await supabase.from("financeiro").update({
-          status: newStatus.includes("pago") ? "pago" : "pendente",
-        }).eq("id", fatura.financeiro_id);
+        await supabase.from("financeiro").update({ status: newStatus.includes("pago") ? "pago" : "pendente" }).eq("id", fatura.financeiro_id);
       }
 
-      setFaturasMes(prev => prev.map(f => f.id === fatura.id ? {
-        ...f, status: newStatus, forma_pagamento: formaPagamento, data_pagamento: dataPagamento,
-      } : f));
+      setFaturasMes(prev => prev.map(f => f.id === fatura.id ? { ...f, status: newStatus, forma_pagamento: formaPagamento, data_pagamento: dataPagamento } : f));
       toast({ title: "Status atualizado!" });
     } catch {
       toast({ title: "Erro ao atualizar status", variant: "destructive" });
@@ -383,47 +324,22 @@ export default function AdminRecurrentExtras() {
     }
   };
 
-  // ── Delete fatura ──
   const handleDeleteFatura = async (fatura: FaturaMes) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a fatura de ${formatMes(fatura.mes)}?`)) {
-      return;
-    }
-    
+    if (!window.confirm(`Tem certeza que deseja excluir a fatura de ${formatMes(fatura.mes)}?`)) return;
     setDeletingFatura(fatura.id);
     try {
-      // Remover do financeiro se existir
-      if (fatura.financeiro_id) {
-        await supabase.from("financeiro").delete().eq("id", fatura.financeiro_id);
-      }
-      
-      // Remover do recurrent_billing_history
+      if (fatura.financeiro_id) await supabase.from("financeiro").delete().eq("id", fatura.financeiro_id);
       const { error } = await (supabase as any).from("recurrent_billing_history").delete().eq("id", fatura.id);
-      
-      if (error) {
-        console.error("Erro ao excluir fatura recorrente");
-        throw error;
-      }
-
-      // Atualizar estado local
+      if (error) throw error;
       setFaturasMes(prev => prev.filter(f => f.id !== fatura.id));
-      
-      toast({ 
-        title: "Fatura excluída!", 
-        description: `Fatura de ${formatMes(fatura.mes)} foi removida com sucesso.` 
-      });
+      toast({ title: "Fatura excluída!" });
     } catch (err: any) {
-      console.error("Erro ao excluir fatura recorrente");
-      toast({ 
-        title: "Erro ao excluir fatura", 
-        description: err?.message || "Tente novamente",
-        variant: "destructive" 
-      });
+      toast({ title: "Erro ao excluir fatura", description: err?.message, variant: "destructive" });
     } finally {
       setDeletingFatura(null);
     }
   };
 
-  // ── Edit fatura ──
   const handleEditFatura = (fatura: FaturaMes) => {
     setEditingFatura(fatura);
     setEditValor(fatura.valor_total.toString());
@@ -433,58 +349,28 @@ export default function AdminRecurrentExtras() {
 
   const handleSaveEdit = async () => {
     if (!editingFatura) return;
-    
     try {
       const novoValor = parseFloat(editValor);
       if (isNaN(novoValor) || novoValor <= 0) {
-        toast({ title: "Valor inválido", description: "Digite um valor maior que 0", variant: "destructive" });
+        toast({ title: "Valor inválido", variant: "destructive" });
         return;
       }
-
       const { error } = await (supabase as any).from("recurrent_billing_history").update({
-        valor_total: novoValor,
-        descricao: editDescricao,
-        updated_at: new Date().toISOString(),
+        valor_total: novoValor, descricao: editDescricao, updated_at: new Date().toISOString(),
       }).eq("id", editingFatura.id);
-      
-      if (error) {
-        console.error("Erro ao editar fatura recorrente");
-        throw error;
-      }
-      
-      // Atualizar financeiro se existir
+      if (error) throw error;
       if (editingFatura.financeiro_id) {
-        await supabase.from("financeiro").update({
-          valor: novoValor,
-          descricao: editDescricao || `Cobrança Recorrente — ${formatMes(editingFatura.mes)}`,
-        }).eq("id", editingFatura.financeiro_id);
+        await supabase.from("financeiro").update({ valor: novoValor, descricao: editDescricao || `Cobrança Recorrente — ${formatMes(editingFatura.mes)}` }).eq("id", editingFatura.financeiro_id);
       }
-      
-      // Atualizar estado local
-      setFaturasMes(prev => prev.map(f => f.id === editingFatura.id ? {
-        ...f, valor_total: novoValor, descricao: editDescricao,
-      } : f));
-      
+      setFaturasMes(prev => prev.map(f => f.id === editingFatura.id ? { ...f, valor_total: novoValor, descricao: editDescricao } : f));
       setShowEditDialog(false);
       setEditingFatura(null);
-      setEditValor("");
-      setEditDescricao("");
-      
-      toast({ 
-        title: "Fatura atualizada!", 
-        description: `Fatura de ${formatMes(editingFatura.mes)} foi atualizada com sucesso.` 
-      });
+      toast({ title: "Fatura atualizada!" });
     } catch (err: any) {
-      console.error("Erro ao editar fatura recorrente");
-      toast({ 
-        title: "Erro ao editar fatura", 
-        description: err?.message || "Tente novamente",
-        variant: "destructive" 
-      });
+      toast({ title: "Erro ao editar fatura", description: err?.message, variant: "destructive" });
     }
   };
 
-  // ── Computed ──
   const totalSelecionado = Array.from(selectedClientes).reduce((t, id) => {
     return t + (clientes.find(c => c.cliente_id === id)?.totalMensal || 0);
   }, 0);
@@ -492,11 +378,8 @@ export default function AdminRecurrentExtras() {
   const toggleCliente = (id: string) => {
     setSelectedClientes(prev => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -513,45 +396,25 @@ export default function AdminRecurrentExtras() {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg sm:text-2xl font-bold text-foreground">Extras Recorrentes</h1>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              Controle mensal • Gere faturas e envie ao financeiro manualmente
-            </p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Controle mensal • Gere faturas manualmente</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={loadClientes} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-1.5" /> Atualizar
           </Button>
-          <Button
-            onClick={() => setShowGerarDialog(true)}
-            disabled={selectedClientes.size === 0}
-            size="sm"
-          >
+          <Button onClick={() => setShowGerarDialog(true)} disabled={selectedClientes.size === 0} size="sm">
             <Plus className="w-4 h-4 mr-1.5" /> Gerar Fatura ({selectedClientes.size})
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        {[
-          { icon: Users, label: "Clientes", value: clientes.length, color: "text-blue-500" },
-          { icon: CheckCircle2, label: "Selecionados", value: selectedClientes.size, color: "text-emerald-500" },
-          { icon: DollarSign, label: "Total Sel.", value: `R$ ${Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, color: "text-amber-500" },
-        ].map((s, i) => (
-          <Card key={i}>
-            <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-              <s.icon className={`w-5 h-5 ${s.color} shrink-0`} />
-              <div className="min-w-0">
-                <p className="text-sm sm:text-lg font-bold text-foreground truncate">{s.value}</p>
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase font-bold truncate">{s.label}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <RecurrentBillingStats 
+        totalClientes={clientes.length} 
+        totalSelecionados={selectedClientes.size} 
+        totalSelecionadoValor={totalSelecionado} 
+      />
 
-      {/* Lista de clientes */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-xs sm:text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
@@ -579,337 +442,59 @@ export default function AdminRecurrentExtras() {
           ) : (
             <div className="space-y-2">
               {clientes.map((c) => (
-                <div
+                <ClienteRecorrenteCard 
                   key={c.cliente_id}
-                  className={`p-3 sm:p-4 rounded-lg border transition-all cursor-pointer ${
-                    selectedClientes.has(c.cliente_id) ? "bg-primary/5 border-primary/30" : "bg-secondary/30 border-border hover:bg-secondary/60"
-                  }`}
-                  onClick={() => toggleCliente(c.cliente_id)}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={selectedClientes.has(c.cliente_id)}
-                      onCheckedChange={() => toggleCliente(c.cliente_id)}
-                      className="mt-0.5 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
-                        <div className="min-w-0">
-                          <h3 className="text-sm font-bold text-foreground truncate">{c.cliente_nome}</h3>
-                          <p className="text-[10px] text-muted-foreground truncate">{c.cliente_email}</p>
-                        </div>
-                        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-foreground">
-                              R$ {c.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">{c.extras.length} extras</p>
-                          </div>
-                          <Button
-                            size="sm" variant="outline" className="h-7 text-xs shrink-0"
-                            onClick={(e) => { e.stopPropagation(); openClienteHistorico(c); }}
-                          >
-                            <CalendarDays className="w-3 h-3 mr-1" /> Meses
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {c.extras.map(e => (
-                          <span key={e.id} className="text-[9px] border border-border rounded-full px-1.5 py-0.5 text-muted-foreground">
-                            {e.nome} • R$ {e.preco_mensal.toFixed(2)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  cliente={c}
+                  isSelected={selectedClientes.has(c.cliente_id)}
+                  onToggle={toggleCliente}
+                  onOpenHistory={openClienteHistorico}
+                />
               ))}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Como funciona */}
-      <Card>
-        <CardContent className="p-4 space-y-2">
-          <h3 className="text-xs font-black text-foreground uppercase tracking-wider mb-3">Como funciona</h3>
-          {[
-            { color: "bg-blue-500", text: `Extras adicionados após o dia ${DIA_CORTE} vão para o mês seguinte` },
-            { color: "bg-emerald-500", text: "Selecione clientes → Gerar Fatura → escolha mês e vencimento" },
-            { color: "bg-amber-500", text: "A fatura fica como RASCUNHO até você clicar 'Enviar ao Financeiro'" },
-            { color: "bg-purple-500", text: "O Asaas é acionado automaticamente 3 dias antes do vencimento" },
-          ].map((item, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className={`w-1.5 h-1.5 rounded-full ${item.color} shrink-0 mt-1.5`} />
-              <p className="text-[11px] text-muted-foreground">{item.text}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <RecurrentBillingGuide diaCorte={DIA_CORTE} />
 
-      {/* ── Dialog: Gerar Fatura ── */}
-      <Dialog open={showGerarDialog} onOpenChange={setShowGerarDialog}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-foreground text-sm sm:text-base flex items-center gap-2">
-              <FileText className="w-4 h-4" /> Gerar Fatura Recorrente
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="p-3 rounded-lg bg-secondary">
-              <p className="text-xs text-muted-foreground mb-1">Clientes selecionados</p>
-              <p className="text-lg font-bold text-foreground">{selectedClientes.size}</p>
-              <p className="text-xs text-muted-foreground">
-                Total: R$ {Number(totalSelecionado).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </p>
-            </div>
+      <GerarFaturaDialog 
+        open={showGerarDialog} 
+        onOpenChange={setShowGerarDialog}
+        selectedCount={selectedClientes.size}
+        totalValor={totalSelecionado}
+        mesSelecionado={mesSelecionado}
+        onMesChange={setMesSelecionado}
+        diaVencimento={diaVencimento}
+        onDiaVencimentoChange={setDiaVencimento}
+        opcoesMeses={opcoesMeses}
+        onGerar={handleGerarFaturas}
+        gerando={gerando}
+      />
 
-            <div className="space-y-2">
-              <Label className="text-xs text-foreground">Mês de competência</Label>
-              <Select value={mesSelecionado} onValueChange={setMesSelecionado}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {opcoesMeses.map(o => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <ClienteHistoricoDialog 
+        open={showClienteDialog}
+        onOpenChange={setShowClienteDialog}
+        cliente={selectedCliente}
+        faturas={faturasMes}
+        enviandoFinanceiro={enviandoFinanceiro}
+        updatingStatus={updatingStatus}
+        deletingFatura={deletingFatura}
+        onEdit={handleEditFatura}
+        onDelete={handleDeleteFatura}
+        onSendFinanceiro={handleEnviarFinanceiro}
+        onUpdateStatus={handleUpdateStatus}
+      />
 
-            <div className="space-y-2">
-              <Label className="text-xs text-foreground">Dia de vencimento</Label>
-              <Input
-                type="number" min="1" max="28" value={diaVencimento}
-                onChange={e => setDiaVencimento(e.target.value)}
-                className="text-foreground"
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Vencimento: {diaVencimento.padStart(2, "0")}/{mesSelecionado.split("-")[1]}/{mesSelecionado.split("-")[0]}
-              </p>
-            </div>
-
-            <Button onClick={handleGerarFaturas} disabled={gerando} className="w-full">
-              {gerando ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
-              ) : (
-                <><FileText className="w-4 h-4 mr-2" /> Criar Faturas como Rascunho</>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Dialog: Histórico mensal do cliente ── */}
-      <Dialog open={showClienteDialog} onOpenChange={setShowClienteDialog}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center gap-2 text-sm sm:text-base">
-              <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
-              {selectedCliente?.cliente_nome} — Faturas Mensais
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedCliente && (
-            <div className="space-y-4">
-              {/* Resumo */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="p-2 sm:p-3 rounded-lg bg-secondary">
-                  <p className="text-[9px] sm:text-xs text-muted-foreground">Valor/mês</p>
-                  <p className="text-sm sm:text-lg font-bold text-foreground">
-                    R$ {selectedCliente.totalMensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <div className="p-2 sm:p-3 rounded-lg bg-secondary">
-                  <p className="text-[9px] sm:text-xs text-muted-foreground">Extras</p>
-                  <p className="text-sm sm:text-lg font-bold text-foreground">{selectedCliente.extras.length}</p>
-                </div>
-                <div className="p-2 sm:p-3 rounded-lg bg-secondary">
-                  <p className="text-[9px] sm:text-xs text-muted-foreground">Faturas</p>
-                  <p className="text-sm sm:text-lg font-bold text-foreground">{faturasMes.length}</p>
-                </div>
-              </div>
-
-              {/* Extras */}
-              <div className="flex flex-wrap gap-1">
-                {selectedCliente.extras.map(e => (
-                  <span key={e.id} className="text-[9px] sm:text-xs border border-border rounded-full px-2 py-0.5 text-muted-foreground">
-                    {e.nome} — R$ {e.preco_mensal.toFixed(2)}
-                  </span>
-                ))}
-              </div>
-
-              {/* Faturas por mês */}
-              {faturasMes.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-xs text-muted-foreground">Nenhuma fatura gerada ainda</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Selecione o cliente e clique em "Gerar Fatura"</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {faturasMes.map((f) => {
-                    const st = statusConfig[f.status] || statusConfig.pendente;
-                    const isRascunho = f.status === "rascunho";
-                    const isPendente = f.status === "pendente";
-                    const isPago = f.status.includes("pago");
-
-                    return (
-                      <Card key={f.id} className={isRascunho ? "border-dashed" : ""}>
-                        <CardContent className="p-3 sm:p-4 space-y-3">
-                          {/* Header */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm sm:text-base font-bold text-foreground">{formatMes(f.mes)}</span>
-                              <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
-                            </div>
-                            <span className="text-sm sm:text-base font-bold text-foreground">
-                              R$ {Number(f.valor_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </span>
-                          </div>
-
-                          {/* Info */}
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] sm:text-xs text-muted-foreground">
-                            <span>{f.extras_count} extras</span>
-                            {f.vencimento && <span>Venc: {new Date(f.vencimento + "T00:00:00").toLocaleDateString("pt-BR")}</span>}
-                            {f.forma_pagamento && <span>Via: {f.forma_pagamento === "asaas" ? "Asaas" : "Manual"}</span>}
-                            {f.data_pagamento && <span>Pago: {new Date(f.data_pagamento).toLocaleDateString("pt-BR")}</span>}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-wrap gap-2">
-                            {/* Editar - Apenas para rascunho e pendente */}
-                            {(isRascunho || isPendente) && (
-                              <Button
-                                size="sm" variant="outline" className="text-xs h-8"
-                                onClick={() => handleEditFatura(f)}
-                              >
-                                <Edit className="w-3 h-3 mr-1" /> Editar
-                              </Button>
-                            )}
-
-                            {/* Excluir - Apenas para rascunho */}
-                            {isRascunho && (
-                              <Button
-                                size="sm" variant="destructive" className="text-xs h-8"
-                                disabled={deletingFatura === f.id}
-                                onClick={() => handleDeleteFatura(f)}
-                              >
-                                {deletingFatura === f.id ? (
-                                  <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Excluindo...</>
-                                ) : (
-                                  <><Trash2 className="w-3 h-3 mr-1" /> Excluir</>
-                                )}
-                              </Button>
-                            )}
-
-                            {isRascunho && (
-                              <Button
-                                size="sm" className="text-xs h-8 flex-1 sm:flex-none"
-                                disabled={enviandoFinanceiro === f.id}
-                                onClick={() => handleEnviarFinanceiro(f)}
-                              >
-                                {enviandoFinanceiro === f.id ? (
-                                  <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Enviando...</>
-                                ) : (
-                                  <><Send className="w-3 h-3 mr-1" /> Enviar ao Financeiro</>
-                                )}
-                              </Button>
-                            )}
-
-                            {isPendente && (
-                              <>
-                                <Button size="sm" variant="outline" className="text-xs h-8 flex-1 sm:flex-none"
-                                  disabled={updatingStatus === f.id}
-                                  onClick={() => handleUpdateStatus(f, "pago_manualmente")}>
-                                  {updatingStatus === f.id ? "..." : "Pago Manual"}
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-xs h-8 flex-1 sm:flex-none"
-                                  disabled={updatingStatus === f.id}
-                                  onClick={() => handleUpdateStatus(f, "pago_asaas")}>
-                                  {updatingStatus === f.id ? "..." : "Pago Asaas"}
-                                </Button>
-                              </>
-                            )}
-
-                            {f.asaas_invoice_url && (
-                              <Button size="sm" variant="outline" className="text-xs h-8"
-                                onClick={() => window.open(f.asaas_invoice_url!, "_blank")}>
-                                <ExternalLink className="w-3 h-3 mr-1" /> Fatura Asaas
-                              </Button>
-                            )}
-
-                            {isPago && (
-                              <div className="flex items-center gap-1 text-emerald-500 text-xs">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Pago
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Dialog: Editar Fatura ── */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-foreground text-sm sm:text-base flex items-center gap-2">
-              <Edit className="w-4 h-4" /> Editar Fatura
-            </DialogTitle>
-          </DialogHeader>
-          {editingFatura && (
-            <div className="space-y-4">
-              <div className="p-3 rounded-lg bg-secondary">
-                <p className="text-xs text-muted-foreground mb-1">Mês</p>
-                <p className="text-lg font-bold text-foreground">{formatMes(editingFatura.mes)}</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-foreground">Valor Total</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={editValor}
-                  onChange={e => setEditValor(e.target.value)}
-                  className="text-foreground"
-                  placeholder="0,00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-foreground">Descrição</Label>
-                <textarea
-                  className="w-full p-2 border rounded-md text-sm text-foreground bg-background resize-none"
-                  rows={3}
-                  value={editDescricao}
-                  onChange={e => setEditDescricao(e.target.value)}
-                  placeholder="Descrição da fatura..."
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleSaveEdit} className="flex-1">
-                  <Edit className="w-4 h-4 mr-2" /> Salvar
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowEditDialog(false)} 
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <EditFaturaDialog 
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        fatura={editingFatura}
+        valor={editValor}
+        onValorChange={setEditValor}
+        descricao={editDescricao}
+        onDescricaoChange={setEditDescricao}
+        onSave={handleSaveEdit}
+      />
     </motion.div>
   );
 }
