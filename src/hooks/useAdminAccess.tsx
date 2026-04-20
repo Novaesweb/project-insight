@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,13 +34,13 @@ const ADMIN_ACCESS_TIMEOUT_MS = 8000;
 const MIN_REFRESH_INTERVAL_MS = 30000; // 30s throttle for background refreshes
 let lastGlobalRefreshAt = 0;
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs = ADMIN_ACCESS_TIMEOUT_MS) {
+function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs = ADMIN_ACCESS_TIMEOUT_MS) {
   return new Promise<T>((resolve, reject) => {
     const timeoutId = window.setTimeout(() => {
       reject(new Error("Admin permission check timed out."));
     }, timeoutMs);
 
-    promise
+    Promise.resolve(promise)
       .then((value) => {
         window.clearTimeout(timeoutId);
         resolve(value);
