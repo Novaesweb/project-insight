@@ -37,7 +37,17 @@ import {
 } from "@/features/contracts/services";
 import { hasSignedContractMaterialChanges } from "@/features/contracts/utils";
 import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, RESIGN_REASON_DEFAULT } from "@/features/contracts/types";
-import { mapClientExtraToSnapshot } from "@/lib/contract-builder-utils";
+
+const mapClientExtraToSnapshot = (item: any): ContractBuilderClientExtraSnapshot => ({
+  id: item.id,
+  label: item.label || item.nome || "",
+  setupPrice: Number(item.preco_setup || item.setupPrice || 0),
+  monthlyPrice: Number(item.preco_mensal || item.monthlyPrice || 0),
+  typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
+  category: item.category === "mensal" || item.category === "intermediario" || item.category === "fixo"
+    ? item.category
+    : "fixo",
+});
 
 const moneyDraftFieldPattern = /^(pricing):(.+):(discountValue|entryValue|negotiatedMonthly)$/;
 
@@ -517,6 +527,39 @@ export function useContractBuilder({
     workingBuilderPayload?.items.filter(i => i.selected).length || 0
   , [workingBuilderPayload]);
 
+  const getMoneyInputDisplayValue = (key: string, value: number): string =>
+    moneyDrafts[key] ?? formatMoneyInputValue(value);
+
+  const describeClientExtraPricing = (item: any): string => {
+    const monthly = item.preco_mensal || 0;
+    const setup = item.preco_setup || 0;
+    if (monthly > 0 && setup > 0) return `R$ ${monthly}/mês + R$ ${setup} setup`;
+    if (monthly > 0) return `R$ ${monthly}/mês`;
+    if (setup > 0) return `R$ ${setup} setup`;
+    return "Cortesia";
+  };
+
+  return {
+    builderPayload,
+    setBuilderPayload,
+    editingBuilderContract,
+    setEditingBuilderContract,
+    builderStep,
+    setBuilderStep,
+    mobileSummaryOpen,
+    setMobileSummaryOpen,
+    moneyDrafts,
+    setMoneyDraftValue,
+    clearMoneyDraftValue,
+    syncingClientExtras,
+    setSyncingClientExtras,
+    builderRecoveredLocally,
+    builderLastSavedSignature,
+    builderLastSavedAt,
+    builderRemoteAutosaveState,
+    workingBuilderPayload,
+    resetBuilder,
+    openBuilderContract,
     persistBuilderDraft,
     builderSummary,
     builderProgress,
@@ -534,16 +577,8 @@ export function useContractBuilder({
     onMoneyDraftBlur,
     onRefreshExtras,
     getBuilderStepError,
-    getMoneyInputDisplayValue: (key: string, value: number) => 
-      moneyDrafts[key] ?? formatMoneyInputValue(value),
+    getMoneyInputDisplayValue,
     buildPricingMoneyDraftKey,
-    describeClientExtraPricing: (item: any) => {
-      const monthly = item.preco_mensal || 0;
-      const setup = item.preco_setup || 0;
-      if (monthly > 0 && setup > 0) return `R$ ${monthly}/mês + R$ ${setup} setup`;
-      if (monthly > 0) return `R$ ${monthly}/mês`;
-      if (setup > 0) return `R$ ${setup} setup`;
-      return "Cortesia";
-    }
+    describeClientExtraPricing,
   };
 }

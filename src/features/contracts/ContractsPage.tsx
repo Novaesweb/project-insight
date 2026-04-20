@@ -37,7 +37,6 @@ import { useContractsRealtime } from "@/hooks/useContractsRealtime";
 import { useContractEventsRealtime } from "@/hooks/useContractEventsRealtime";
 import { 
   normalizeBuilderPayload, 
-  sortContractEvents,
   buildBuilderSavePayload,
   hasMeaningfulBuilderState
 } from "./utils";
