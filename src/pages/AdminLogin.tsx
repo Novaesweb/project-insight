@@ -35,22 +35,34 @@ export default function AdminLogin() {
     setLoading(true);
 
     const normalizedEmail = email.trim().toLowerCase();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
-      password: senha,
-    });
+    
+    try {
+      console.log("Starting authentication attempt...");
+      
+      // Use a timeout to prevent infinite hang if Supabase is slow/down
+      const authPromise = supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: senha,
+      });
 
-    if (error) {
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      if (newAttempts >= 3) {
-        setLockTime(30);
-        setFailedAttempts(0);
-        toast({ title: "Acesso bloqueado temporariamente", description: "Muitas tentativas falhas. Aguarde 30 segundos.", variant: "destructive" });
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("TIMEOUT")), 12000)
+      );
+
+      const { data, error } = await Promise.race([authPromise, timeoutPromise]) as any;
+
+      if (error) {
+        console.error("Auth error:", error);
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        if (newAttempts >= 3) {
+          setLockTime(30);
+          setFailedAttempts(0);
+          toast({ title: "Acesso bloqueado temporariamente", description: "Muitas tentativas falhas. Aguarde 30 segundos.", variant: "destructive" });
+        } else {
+          toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
+        }
       } else {
-        toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
-      }
-    } else {
       console.log("Login successful, checking admin status...");
       const { data: adminUser, error: adminUserCheckError } = await supabase
         .from("usuarios")
@@ -111,6 +123,22 @@ export default function AdminLogin() {
       toast({ title: "Sessão Iniciada!", description: "Bem-vindo à Cabine de Comando, Arquiteto." });
       console.log("Navigating to dashboard...", returnTo || "/admin");
       navigate(returnTo && returnTo.startsWith("/admin") ? returnTo : "/admin");
+    }
+    } catch (err: any) {
+      if (err.message === "TIMEOUT") {
+        toast({ 
+          title: "Erro de Conexão", 
+          description: "O servidor de autenticação demorou muito para responder. Verifique sua internet ou o status do Supabase.", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Erro inesperado", 
+          description: "Ocorreu uma falha ao tentar processar o login.", 
+          variant: "destructive" 
+        });
+      }
+      console.error("Login try/catch error:", err);
     }
     setLoading(false);
   };
