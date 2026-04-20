@@ -24,10 +24,14 @@ interface NotificationCenterProps {
   userId: string;
 }
 
+const NOTIFICATION_REFRESH_INTERVAL_MS = 60000; // 1 minute throttle
+let lastNotificationFetchAt = 0;
+
 export default function NotificationCenter({ userType, userId }: NotificationCenterProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fetchTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     audioRef.current = new Audio("/notification-sound.mp3");
@@ -36,7 +40,12 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async ({ force = false }: { force?: boolean } = {}) => {
+    const now = Date.now();
+    if (!force && now - lastNotificationFetchAt < NOTIFICATION_REFRESH_INTERVAL_MS) {
+      return;
+    }
+
     let query = supabase
       .from("notifications")
       .select("id, title, body, url, read, created_at, user_type, user_id")
@@ -49,15 +58,19 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
     }
 
     const { data } = await query;
-    if (data) setNotifications(data as Notification[]);
+    if (data) {
+      setNotifications(data as Notification[]);
+      lastNotificationFetchAt = Date.now();
+    }
   }, [userType, userId]);
 
   useEffect(() => {
     fetchNotifications();
 
-    // Realtime subscription for instant updates
+    // Realtime subscription with STABLE channel name
+    const channelName = `notifications-${userType}-${userType === "admin" ? "all" : userId}`;
     const channel = supabase
-      .channel(`notifications-${userType}-${userId}-${Date.now()}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -71,7 +84,8 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
           if (userType === "admin" || n.user_id === userId) {
             setNotifications(prev => {
               if (prev.some(existing => existing.id === n.id)) return prev;
-              return [n, ...prev].slice(0, 30);
+              const newList = [n, ...prev].slice(0, 30);
+              return newList;
             });
             // Play notification sound
             if (audioRef.current) {
@@ -84,9 +98,10 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
       .subscribe();
 
     return () => {
+      if (fetchTimeoutRef.current) window.clearTimeout(fetchTimeoutRef.current);
       void supabase.removeChannel(channel);
     };
-    }, [userType, userId, fetchNotifications]);
+  }, [userType, userId, fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     await supabase.from("notifications").update({ read: true } as any).eq("id", id);
@@ -118,7 +133,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => void fetchNotifications()}
+              onClick={() => void fetchNotifications({ force: true })}
               className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
             >
               <span className="inline-flex items-center gap-1">
@@ -169,6 +184,3 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
     </Popover>
   );
 }
-
-
-

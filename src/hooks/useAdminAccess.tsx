@@ -27,8 +27,11 @@ import {
   parseAdminUserMetadata,
   type AdminUserMetadataMap,
 } from "@/lib/admin-audit";
+import { getCachedAdminUser, setCachedAdminUser } from "@/lib/admin-cache";
 
 const ADMIN_ACCESS_TIMEOUT_MS = 8000;
+const MIN_REFRESH_INTERVAL_MS = 30000; // 30s throttle for background refreshes
+let lastGlobalRefreshAt = 0;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs = ADMIN_ACCESS_TIMEOUT_MS) {
   return new Promise<T>((resolve, reject) => {
@@ -81,8 +84,14 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
 
   const latestRunIdRef = useRef(0);
 
-  const refresh = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
+  const refresh = useCallback(async ({ showLoading = true, force = false }: { showLoading?: boolean; force?: boolean } = {}) => {
     const runId = ++latestRunIdRef.current;
+    const now = Date.now();
+
+    // Throttle background refreshes unless forced or showing loading
+    if (!force && !showLoading && now - lastGlobalRefreshAt < MIN_REFRESH_INTERVAL_MS) {
+      return;
+    }
 
     if (showLoading) {
       setLoading(true);
@@ -104,33 +113,39 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
       const email = session.user.email?.trim().toLowerCase() || null;
       setSessionEmail(email);
 
-      const [configResponse, userResponse] = await withTimeout(
-        Promise.all([
-          supabase
-            .from("app_config")
-            .select("key, value")
-            .in("key", ["admin_permissions", ADMIN_USER_METADATA_KEY]),
-          email
-            ? supabase.from("usuarios").select("*").eq("email", email).maybeSingle()
-            : Promise.resolve({ data: null, error: null }),
-        ]),
-      );
+      // Check cache for user info
+      const cachedUser = email ? getCachedAdminUser(email) : undefined;
+      let usuario: Tables<"usuarios"> | null = cachedUser ?? null;
+      let needsUserFetch = cachedUser === undefined || force;
+
+      const queries: Promise<any>[] = [
+        supabase
+          .from("app_config")
+          .select("key, value")
+          .in("key", ["admin_permissions", ADMIN_USER_METADATA_KEY]),
+      ];
+
+      if (needsUserFetch && email) {
+        queries.push(supabase.from("usuarios").select("*").eq("email", email).maybeSingle());
+      }
+
+      const [configResponse, userResponse] = await withTimeout(Promise.all(queries));
 
       if (!configResponse.error && configResponse.data) {
         const permissionRow = configResponse.data.find((row) => row.key === "admin_permissions");
         const userMetadataRow = configResponse.data.find((row) => row.key === ADMIN_USER_METADATA_KEY);
         setPermissions(parsePermissionsConfig(permissionRow?.value));
         setUserMetadata(parseAdminUserMetadata(userMetadataRow?.value));
-      } else {
-        setPermissions(DEFAULT_ADMIN_PERMISSIONS);
-        setUserMetadata({});
       }
 
-      if (userResponse?.error) {
-        throw userResponse.error;
+      if (needsUserFetch) {
+        if (userResponse?.error) throw userResponse.error;
+        usuario = userResponse?.data || null;
+        if (email) setCachedAdminUser(email, usuario);
       }
 
-      const usuario = userResponse?.data || null;
+      lastGlobalRefreshAt = Date.now();
+
       const activeInternalUser =
         usuario && usuario.status === "ativo" && !usuario.bloqueado ? usuario : null;
 

@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getCompatibleAdminSession } from "@/lib/admin-function-client";
+import { getCachedAdminUser, setCachedAdminUser, clearAdminCache } from "@/lib/admin-cache";
 
 const ACCESS_CHECK_TIMEOUT_MS = 8000;
+const MIN_RECHECK_INTERVAL_MS = 30000; // Only force re-fetch from DB every 30s max
+let lastCheckAt = 0;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs = ACCESS_CHECK_TIMEOUT_MS) {
   return new Promise<T>((resolve, reject) => {
@@ -37,10 +40,12 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       setAuthenticated(false);
       setAuthorized(false);
       setRedirectTo("/admin/login");
+      clearAdminCache();
     };
 
-    const checkAccess = async ({ showLoading = false }: { showLoading?: boolean } = {}) => {
+    const checkAccess = async ({ showLoading = false, force = false }: { showLoading?: boolean; force?: boolean } = {}) => {
       const runId = ++latestRunId;
+      const now = Date.now();
 
       if (active && showLoading) {
         setLoading(true);
@@ -61,26 +66,39 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           return;
         }
 
-        const sessionType = session.user.user_metadata?.tipo;
         const email = session.user.email?.trim().toLowerCase() || "";
-        const { data: adminUser, error: adminUserError } = await withTimeout(
-          supabase
-            .from("usuarios")
-            .select("id, status, bloqueado")
-            .eq("email", email)
-            .maybeSingle(),
-        );
+        const sessionType = session.user.user_metadata?.tipo;
+        
+        // Try cache first unless forced
+        const cachedUser = getCachedAdminUser(email);
+        let adminUser = cachedUser;
+        let isFromCache = cachedUser !== undefined;
 
-        if (!active || runId !== latestRunId) return;
+        if (!isFromCache || force || now - lastCheckAt > MIN_RECHECK_INTERVAL_MS) {
+          const { data, error: adminUserError } = await withTimeout(
+            supabase
+              .from("usuarios")
+              .select("id, status, bloqueado")
+              .eq("email", email)
+              .maybeSingle(),
+          );
 
-        if (adminUserError) {
-          throw adminUserError;
+          if (!active || runId !== latestRunId) return;
+
+          if (adminUserError) {
+            throw adminUserError;
+          }
+
+          adminUser = data as any;
+          setCachedAdminUser(email, adminUser as any);
+          lastCheckAt = Date.now();
         }
 
         const isBlocked = !!adminUser?.bloqueado || adminUser?.status === "inativo";
         const isAdmin = !!adminUser;
 
         if (isBlocked) {
+          clearAdminCache();
           await supabase.auth.signOut();
 
           if (!active || runId !== latestRunId) return;
@@ -120,7 +138,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         return;
       }
 
-      void checkAccess({ showLoading: false });
+      // On sign-in, force a re-check
+      void checkAccess({ showLoading: false, force: event === "SIGNED_IN" });
     });
 
     void checkAccess({ showLoading: true });
