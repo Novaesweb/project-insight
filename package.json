@@ -112,6 +112,7 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "globals": "^15.15.0",
     "jsdom": "^20.0.3",
+    "playwright": "^1.59.1",
     "postcss": "^8.4.32",
     "rollup-plugin-visualizer": "^7.0.1",
     "supabase": "^2.84.6",
