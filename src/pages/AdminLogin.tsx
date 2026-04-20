@@ -51,13 +51,19 @@ export default function AdminLogin() {
         toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
       }
     } else {
-      const { data: adminUser } = await supabase
+      console.log("Login successful, checking admin status...");
+      const { data: adminUser, error: adminUserCheckError } = await supabase
         .from("usuarios")
         .select("nome, email, bloqueado, status")
         .eq("email", normalizedEmail)
         .maybeSingle();
 
+      if (adminUserCheckError) {
+        console.error("Admin user check error:", adminUserCheckError);
+      }
+
       if (!adminUser) {
+        console.warn("User not found in 'usuarios' table");
         await supabase.auth.signOut();
         toast({
           title: "Acesso negado",
@@ -69,6 +75,7 @@ export default function AdminLogin() {
       }
 
       if (adminUser?.bloqueado || adminUser?.status === "inativo") {
+        console.warn("User is blocked or inactive");
         await supabase.auth.signOut();
         toast({
           title: "Acesso indisponível",
@@ -79,24 +86,30 @@ export default function AdminLogin() {
         return;
       }
 
+      console.log("Admin user validated, clearing failed attempts...");
       await supabase.from("usuarios").update({ tentativas_login: 0 }).eq("email", normalizedEmail);
 
-      try {
-        await updateAdminUserMetadata(normalizedEmail, {
-          lastLoginAt: new Date().toISOString(),
-          lastLoginBy: normalizedEmail,
-        });
-        await logAdminAudit(
-          "Login administrativo realizado",
-          `${adminUser?.nome || normalizedEmail} entrou no painel administrativo.`,
-          "/admin"
-        );
-      } catch {
-        void 0;
-      }
+      // Run audit in background to avoid blocking login
+      (async () => {
+        try {
+          console.log("Updating metadata and logging audit...");
+          await updateAdminUserMetadata(normalizedEmail, {
+            lastLoginAt: new Date().toISOString(),
+            lastLoginBy: normalizedEmail,
+          });
+          await logAdminAudit(
+            "Login administrativo realizado",
+            `${adminUser?.nome || normalizedEmail} entrou no painel administrativo.`,
+            "/admin"
+          );
+        } catch (auditError) {
+          console.warn("Non-blocking audit failed:", auditError);
+        }
+      })();
 
       const returnTo = consumeAdminReturnTo();
       toast({ title: "Sessão Iniciada!", description: "Bem-vindo à Cabine de Comando, Arquiteto." });
+      console.log("Navigating to dashboard...", returnTo || "/admin");
       navigate(returnTo && returnTo.startsWith("/admin") ? returnTo : "/admin");
     }
     setLoading(false);
