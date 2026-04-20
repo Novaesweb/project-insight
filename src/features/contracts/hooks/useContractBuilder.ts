@@ -10,6 +10,7 @@ import {
   createEmptyBuilderPayload,
   computeBuilderPricing,
   selectPrimaryPlan,
+  buildProposalSummary,
 } from "@/lib/contract-builder";
 import {
   ContractRecoveryOriginAction,
@@ -72,6 +73,7 @@ export function useContractBuilder({
   const [builderLastSavedSignature, setBuilderLastSavedSignature] = useState<string | null>(null);
   const [builderLastSavedAt, setBuilderLastSavedAt] = useState<string | null>(null);
   const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [builderClientExtras, setBuilderClientExtras] = useState<any[]>([]);
 
   const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
   const contractRemoteAutosaveSignatureRef = useRef<string | null>(null);
@@ -205,6 +207,149 @@ export function useContractBuilder({
 
     return currentPayload;
   }, [getWorkingBuilderPayload, moneyDrafts]);
+
+  const onUpdateTextField = useCallback((field: any, value: string) => {
+    setBuilderPayload(current => {
+      if (!current) return null;
+      return {
+        ...current,
+        [field]: value,
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, []);
+
+  const onUpdateContractante = useCallback((field: string, value: string) => {
+    setBuilderPayload(current => {
+      if (!current) return null;
+      return {
+        ...current,
+        contractante: { ...current.contractante, [field]: value },
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, []);
+
+  const onUpdateContratada = useCallback((field: string, value: string) => {
+    setBuilderPayload(current => {
+      if (!current) return null;
+      return {
+        ...current,
+        contratada: { ...current.contratada, [field]: value },
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, []);
+
+  const onPrimaryPlanChange = useCallback((planId: BuilderPrimaryPlanId) => {
+    setBuilderPayload(current => {
+      if (!current) return null;
+      return selectPrimaryPlan(current, planId, extrasCatalogo);
+    });
+  }, [extrasCatalogo]);
+
+  const onDiscountTypeChange = useCallback((type: ContractBuilderPricing["discountType"]) => {
+    setBuilderPayload(current => {
+      if (!current) return null;
+      const nextPricing = { ...current.pricing, discountType: type };
+      return {
+        ...current,
+        pricing: recalculateBuilderPricing(current.items, nextPricing, current.clientExtrasSnapshot),
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, [recalculateBuilderPricing]);
+
+  const onPricingChange = useCallback((field: any, value: string) => {
+    setMoneyDraftValue(buildPricingMoneyDraftKey(field), value);
+  }, [setMoneyDraftValue]);
+
+  const onMoneyDraftBlur = useCallback((key: string) => {
+    if (!(key in moneyDrafts)) return;
+    const currentPayload = getWorkingBuilderPayload();
+    if (!currentPayload) return;
+    setBuilderPayload(currentPayload);
+    clearMoneyDraftValue(key);
+  }, [clearMoneyDraftValue, getWorkingBuilderPayload, moneyDrafts]);
+
+  const onClientChange = useCallback(async (clienteId: string) => {
+    const cliente = clientes.find(c => c.id === clienteId);
+    if (!cliente) return;
+
+    setBuilderPayload(current => {
+      if (!current) return null;
+      return {
+        ...current,
+        clienteId,
+        contractante: {
+          ...current.contractante,
+          nome: cliente.nome,
+          documento: cliente.documento || "",
+          endereco: cliente.endereco || "",
+          email: cliente.email || ""
+        },
+        updatedAt: new Date().toISOString()
+      };
+    });
+
+    setSyncingClientExtras(true);
+    try {
+      const extras = await fetchActiveClientExtras(clienteId);
+      setBuilderClientExtras(extras);
+      setBuilderPayload(current => {
+        if (!current) return null;
+        const extrasSnapshot = extras.map(mapClientExtraToSnapshot);
+        return {
+          ...current,
+          clientExtrasSnapshot: extrasSnapshot,
+          pricing: recalculateBuilderPricing(current.items, current.pricing, extrasSnapshot),
+          updatedAt: new Date().toISOString()
+        };
+      });
+    } finally {
+      setSyncingClientExtras(false);
+    }
+  }, [clientes, recalculateBuilderPricing]);
+
+  const onRefreshExtras = useCallback(async () => {
+    if (!builderPayload?.clienteId) return;
+    setSyncingClientExtras(true);
+    try {
+      const extras = await fetchActiveClientExtras(builderPayload.clienteId);
+      setBuilderClientExtras(extras);
+      setBuilderPayload(current => {
+        if (!current) return null;
+        const extrasSnapshot = extras.map(mapClientExtraToSnapshot);
+        return {
+          ...current,
+          clientExtrasSnapshot: extrasSnapshot,
+          pricing: recalculateBuilderPricing(current.items, current.pricing, extrasSnapshot),
+          updatedAt: new Date().toISOString()
+        };
+      });
+    } finally {
+      setSyncingClientExtras(false);
+    }
+  }, [builderPayload?.clienteId, recalculateBuilderPricing]);
+
+  const getBuilderStepError = useCallback((step: number) => {
+    const current = getWorkingBuilderPayload();
+    if (!current) return "Aguarde o carregamento...";
+    
+    if (step === 0 && !current.clienteId) return "Selecione um cliente.";
+    if (step === 1) {
+      if (!current.contractante.nome.trim()) return "Nome do contratante obrigatório.";
+      if (!current.contratada.nome.trim()) return "Nome da contratada obrigatório.";
+      if (!current.contratada.representante.trim()) return "Representante obrigatório.";
+      if (!current.contratada.documento.trim()) return "Documento obrigatório.";
+      if (!current.contratada.endereco.trim()) return "Endereço obrigatório.";
+    }
+    if (step === 2) {
+       const hasLegacy = current.items.some(i => !i.isPrimaryPlan && i.selected);
+       if (current.primaryPlanId === 'none' && !hasLegacy) return "Selecione um plano.";
+    }
+    return null;
+  }, [getWorkingBuilderPayload]);
 
   const setMoneyDraftValue = useCallback((key: string, value: string) => {
     setMoneyDrafts((current) => ({
@@ -345,27 +490,60 @@ export function useContractBuilder({
     [builderStep, editingBuilderContract, extrasCatalogo, saveBuilderRecoveryLocally, setTab, syncBuilderSavedState, syncMoneyDraftsToState, toast, upsertContratoState],
   );
 
-  return {
-    builderPayload,
-    setBuilderPayload,
-    editingBuilderContract,
-    setEditingBuilderContract,
-    builderStep,
-    setBuilderStep,
-    mobileSummaryOpen,
-    setMobileSummaryOpen,
-    moneyDrafts,
-    setMoneyDraftValue,
-    clearMoneyDraftValue,
-    syncingClientExtras,
-    setSyncingClientExtras,
-    builderRecoveredLocally,
-    builderLastSavedSignature,
-    builderLastSavedAt,
-    builderRemoteAutosaveState,
-    workingBuilderPayload,
-    resetBuilder,
-    openBuilderContract,
+  const builderSummary = useMemo(() => 
+    workingBuilderPayload ? buildProposalSummary(workingBuilderPayload) : null
+  , [workingBuilderPayload]);
+
+  const builderProgress = useMemo(() => 
+    ((builderStep + 1) / 5) * 100
+  , [builderStep]);
+
+  const builderStatusLabel = useMemo(() => {
+    if (builderRemoteAutosaveState === "saving") return { title: "Salvando...", subtitle: "Sincronizando com a nuvem" };
+    if (builderRemoteAutosaveState === "saved" && builderLastSavedAt) {
+      return { 
+        title: "Salvo", 
+        subtitle: `Última alteração às ${formatContractClock(builderLastSavedAt)}` 
+      };
+    }
+    return { title: "Rascunho", subtitle: "As alterações são salvas automaticamente" };
+  }, [builderRemoteAutosaveState, builderLastSavedAt]);
+
+  const builderPrepared = useMemo(() => 
+    workingBuilderPayload ? buildBuilderSavePayload(workingBuilderPayload, builderStep) : null
+  , [workingBuilderPayload, builderStep]);
+
+  const selectedItemsCount = useMemo(() => 
+    workingBuilderPayload?.items.filter(i => i.selected).length || 0
+  , [workingBuilderPayload]);
+
     persistBuilderDraft,
+    builderSummary,
+    builderProgress,
+    builderStatusLabel,
+    builderPrepared,
+    selectedItemsCount,
+    builderClientExtras,
+    onClientChange,
+    onUpdateContractante,
+    onUpdateContratada,
+    onUpdateTextField,
+    onPrimaryPlanChange,
+    onDiscountTypeChange,
+    onPricingChange,
+    onMoneyDraftBlur,
+    onRefreshExtras,
+    getBuilderStepError,
+    getMoneyInputDisplayValue: (key: string, value: number) => 
+      moneyDrafts[key] ?? formatMoneyInputValue(value),
+    buildPricingMoneyDraftKey,
+    describeClientExtraPricing: (item: any) => {
+      const monthly = item.preco_mensal || 0;
+      const setup = item.preco_setup || 0;
+      if (monthly > 0 && setup > 0) return `R$ ${monthly}/mês + R$ ${setup} setup`;
+      if (monthly > 0) return `R$ ${monthly}/mês`;
+      if (setup > 0) return `R$ ${setup} setup`;
+      return "Cortesia";
+    }
   };
 }

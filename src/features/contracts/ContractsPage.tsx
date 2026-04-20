@@ -26,8 +26,31 @@ import { ContractBuilderWizard } from "./components/ContractBuilderWizard";
 
 import { 
   Contrato,
+  Cliente,
+  ExtraCatalogo,
+  ContratoVersion,
+  BUILDER_TEMPLATE_ID,
   fadeUp 
 } from "./types";
+import { useContractsCatalog } from "./hooks/useContractsCatalog";
+import { useContractsRealtime } from "@/hooks/useContractsRealtime";
+import { useContractEventsRealtime } from "@/hooks/useContractEventsRealtime";
+import { 
+  normalizeBuilderPayload, 
+  sortContractEvents,
+  buildBuilderSavePayload,
+  hasMeaningfulBuilderState
+} from "./utils";
+import { 
+  saveBuilderContractDirectly,
+  sendBuilderContractToClientRecord,
+  fetchContractVersions
+} from "./services";
+import {
+  createContractEvent
+} from "@/lib/contract-activity";
+import type { ContractEventRow } from "@/lib/contract-activity";
+import { PreviewState } from "./types";
 
 export default function Contratos() {
   const { toast } = useToast();
@@ -48,9 +71,200 @@ export default function Contratos() {
     else if (newTab === "montador") navigate("/admin/contratos/novo");
   };
 
-  // Hooks
-  const cofre = useContractCofre();
-  const builder = useContractBuilder();
+  // --- State Management ---
+  const [contratos, setContratos] = useState<Contrato[]>([]);
+  const [contratosLoaded, setContratosLoaded] = useState(false);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [extrasCatalogo, setExtrasCatalogo] = useState<ExtraCatalogo[]>([]);
+  const [extrasLoaded, setExtrasLoaded] = useState(false);
+  
+  // Preview & Versions state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewState, setPreviewState] = useState<PreviewState | null>(null);
+  const [previewContractEvents, setPreviewContractEvents] = useState<ContractEventRow[]>([]);
+  const [previewContractEventsLoading, setPreviewContractEventsLoading] = useState(false);
+  const [contractVersions, setContractVersions] = useState<ContratoVersion[]>([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [versionsContract, setVersionsContract] = useState<Contrato | null>(null);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+
+  // Helper functions for state updates
+  const decorateContrato = useCallback((c: any): Contrato => ({
+    ...c,
+    clientes: c.clientes || (clientes.find(cl => cl.id === c.cliente_id) ? { nome: clientes.find(cl => cl.id === c.cliente_id)!.nome } : null)
+  }), [clientes]);
+
+  const sortContratosByUpdatedAt = useCallback((items: Contrato[]) => {
+    return [...items].sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  }, []);
+
+  const upsertContratoState = useCallback((contrato: any) => {
+    const decorated = decorateContrato(contrato);
+    setContratos((current) => {
+      const next = current.filter((item) => item.id !== decorated.id);
+      next.unshift(decorated);
+      return sortContratosByUpdatedAt(next);
+    });
+  }, [decorateContrato, sortContratosByUpdatedAt]);
+
+  const removeContratoState = useCallback((contractId: string) => {
+    setContratos((current) => current.filter((item) => item.id !== contractId));
+  }, []);
+
+  // --- Data Orchestration ---
+  const { loadContratos, loadClientes, loadExtrasCatalogo } = useContractsCatalog({
+    decorateContrato,
+    sortContratosByUpdatedAt,
+    sortContractEvents,
+    setContratos,
+    setContratosLoaded,
+    setClientes,
+    setExtrasCatalogo,
+    setExtrasLoaded,
+    setPreviewContractEvents,
+    setPreviewContractEventsLoading,
+  });
+
+  useEffect(() => {
+    void loadContratos();
+    void loadClientes();
+    void loadExtrasCatalogo();
+  }, [loadContratos, loadClientes, loadExtrasCatalogo]);
+
+  // --- Realtime Updates ---
+  useContractsRealtime({
+    channelName: "contracts-admin-realtime",
+    filter: `modelo=eq.${BUILDER_TEMPLATE_ID}`,
+    enabled: contratosLoaded,
+    onUpsert: upsertContratoState,
+    onDelete: removeContratoState,
+  });
+
+  const handleOpenVersions = useCallback(async (contrato: Contrato) => {
+    setVersionsContract(contrato);
+    setVersionsOpen(true);
+    setVersionsLoading(true);
+    try {
+      const versions = await fetchContractVersions(contrato.id);
+      setContractVersions(versions);
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar versões",
+        description: "Não foi possível carregar o histórico de versões deste contrato.",
+        variant: "destructive"
+      });
+    } finally {
+      setVersionsLoading(false);
+    }
+  }, [toast]);
+
+  const handleDuplicateContract = useCallback(async (contrato: Contrato) => {
+    try {
+      if (!extrasLoaded) {
+        toast({
+          title: "Catálogo ainda carregando",
+          description: "Os extras ainda estão sendo sincronizados. Tente novamente em instantes.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const duplicatedPayloadBase = normalizeBuilderPayload(
+        contrato.builder_payload,
+        extrasCatalogo,
+        contrato.cliente_id,
+        4,
+      );
+      const duplicatedPayload = {
+        ...duplicatedPayloadBase,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastStep: duplicatedPayloadBase.lastStep,
+      };
+      const prepared = buildBuilderSavePayload(duplicatedPayload, duplicatedPayload.lastStep);
+
+      if (!prepared) {
+        throw new Error("Não foi possível preparar a duplicação da proposta.");
+      }
+
+      const duplicatedTitle = prepared.title.includes("Cópia")
+        ? prepared.title
+        : `${prepared.title} • Cópia`;
+        
+      const savedContrato = await saveBuilderContractDirectly({
+        contractId: null,
+        createVersionSnapshot: false,
+        payloadToPersist: {
+          cliente_id: prepared.normalizedPayload.clienteId || null,
+          titulo: duplicatedTitle,
+          descricao: prepared.description,
+          valor: prepared.value,
+          status: "rascunho",
+          corpo: prepared.body,
+          modelo: BUILDER_TEMPLATE_ID,
+          builder_payload: prepared.normalizedPayload as any,
+          updated_at: new Date().toISOString(),
+        },
+      });
+
+      upsertContratoState(savedContrato);
+      toast({ title: "Contrato duplicado com sucesso!" });
+    } catch (error) {
+      toast({
+        title: "Erro ao duplicar contrato",
+        description: "Ocorreu uma falha ao tentar criar a cópia do contrato.",
+        variant: "destructive"
+      });
+    }
+  }, [extrasCatalogo, extrasLoaded, toast, upsertContratoState]);
+
+  const handleSendToClient = useCallback(async (contrato: Contrato) => {
+    try {
+      const result = await sendBuilderContractToClientRecord(contrato);
+      upsertContratoState(result.contract);
+      
+      // Create activity event
+      await createContractEvent({
+        contrato_id: contrato.id,
+        tipo: "enviado",
+        titulo: result.isResignFlow ? "Versão atualizada enviada" : "Contrato enviado",
+        descricao: `O contrato foi enviado para o portal do cliente.`,
+        actor_type: "admin"
+      });
+
+      toast({ title: "Contrato enviado com sucesso!" });
+      return true;
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar contrato",
+        description: "Não foi possível enviar o contrato para o cliente.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [toast, upsertContratoState]);
+
+  // --- Hooks ---
+  const cofre = useContractCofre({
+    contratos,
+    setContratos,
+    upsertContratoState,
+    removeContratoState
+  });
+
+  const builder = useContractBuilder({
+    clientes,
+    extrasCatalogo,
+    extrasLoaded,
+    upsertContratoState,
+    setTab: handleTabChange,
+    setCofreFilter: cofre.setCofreFilter,
+    setSearchTerm: setSearchTerm
+  });
 
   // Local UI State
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,11 +272,10 @@ export default function Contratos() {
 
   // Success Celebration Trigger
   useEffect(() => {
-    if (builder.syncState === "saved" && builder.lastSavedAt) {
-      // Only show for explicit saves or completions
-      // For now, let's keep it simple
+    if (builder.builderRemoteAutosaveState === "saved" && builder.builderLastSavedAt) {
+      // Logic for celebration could be added here
     }
-  }, [builder.syncState, builder.lastSavedAt]);
+  }, [builder.builderRemoteAutosaveState, builder.builderLastSavedAt]);
 
   return (
     <div className="min-h-screen bg-[#0a0510] pb-20 pt-4 md:pt-8">
@@ -143,11 +356,11 @@ export default function Contratos() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => cofre.setFilter(cofre.filter === "ativos" ? "arquivados" : "ativos")}
+                  onClick={() => cofre.setCofreFilter(cofre.cofreFilter === "ativos" ? "arquivados" : "ativos")}
                   className="h-9 gap-2 text-xs text-white/60 hover:bg-white/5 hover:text-white"
                 >
                   <Filter className="h-3.5 w-3.5" />
-                  {cofre.filter === "ativos" ? "Ver Arquivados" : "Ver Ativos"}
+                  {cofre.cofreFilter === "ativos" ? "Ver Arquivados" : "Ver Ativos"}
                 </Button>
               </div>
             )}
@@ -163,22 +376,22 @@ export default function Contratos() {
                 transition={{ duration: 0.2 }}
               >
                 <ContractCofreList 
-                  contratos={cofre.contratos}
-                  loaded={cofre.loaded}
-                  filter={cofre.filter}
-                  statusFilter={cofre.statusFilter}
-                  setStatusFilter={cofre.setStatusFilter}
-                  searchTerm={searchTerm}
-                  onOpenPreview={(c) => cofre.openPreview(c)}
-                  onArchive={(c) => cofre.handleArchive(c)}
-                  onUnarchive={(c) => cofre.handleUnarchive(c)}
-                  onDuplicate={(c) => cofre.handleDuplicate(c)}
+                  contratos={cofre.filteredContratos}
+                  extrasCatalogo={extrasCatalogo}
+                  onView={(c) => {
+                    setPreviewState({ title: c.titulo, body: c.corpo as string, contract: c });
+                    setPreviewOpen(true);
+                  }}
+                  onArchive={(c) => cofre.handleArchiveContract(c)}
+                  onUnarchive={(c) => cofre.handleUnarchiveContract(c)}
+                  onDuplicate={(c) => handleDuplicateContract(c)}
                   onDelete={(c) => cofre.setDeleteTarget(c)}
-                  onOpenVersions={(c) => cofre.handleOpenVersions(c)}
+                  onVersions={(c) => handleOpenVersions(c)}
                   onEdit={(c) => {
-                    builder.startEditing(c);
+                    builder.openBuilderContract(c);
                     handleTabChange("montador");
                   }}
+                  onSend={(c) => handleSendToClient(c)}
                 />
               </motion.div>
             </TabsContent>
@@ -192,28 +405,23 @@ export default function Contratos() {
                 transition={{ duration: 0.2 }}
               >
                 <ContractBuilderWizard 
-                  payload={builder.payload}
-                  setPayload={builder.setPayload}
-                  step={builder.step}
-                  setStep={builder.setStep}
-                  editingContract={builder.editingContract}
-                  syncState={builder.syncState}
-                  lastSavedAt={builder.lastSavedAt}
-                  recoveredLocally={builder.recoveredLocally}
+                  {...builder}
                   onSave={async () => {
-                    const ok = await builder.handleSave();
+                    const ok = await builder.persistBuilderDraft({ requireCompleteValidation: true });
                     if (ok) setShowSuccess(true);
                   }}
-                  onSendToClient={async () => {
-                    const ok = await builder.handleSendToClient();
+                  onSaveAndExit={async () => {
+                    const ok = await builder.persistBuilderDraft({ requireCompleteValidation: true });
                     if (ok) {
-                      setShowSuccess(true);
-                      setTimeout(() => handleTabChange("lista"), 2000);
+                       setShowSuccess(true);
+                       setTimeout(() => handleTabChange("lista"), 1500);
                     }
                   }}
-                  onCancel={() => {
-                    builder.reset();
-                    handleTabChange("lista");
+                  onStepChange={builder.setBuilderStep}
+                  onReset={builder.resetBuilder}
+                  onPreview={(state) => {
+                    setPreviewState(state);
+                    setPreviewOpen(true);
                   }}
                 />
               </motion.div>
@@ -242,11 +450,11 @@ export default function Contratos() {
 
         {/* Global Components */}
         <ContractPreviewDrawer 
-          open={cofre.previewOpen}
-          onOpenChange={cofre.setPreviewOpen}
-          previewState={cofre.previewState}
-          events={cofre.previewEvents}
-          eventsLoading={cofre.previewEventsLoading}
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          previewState={previewState}
+          events={previewContractEvents}
+          eventsLoading={previewContractEventsLoading}
         />
 
         <AnimatePresence>
