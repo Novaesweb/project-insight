@@ -6,6 +6,7 @@ export interface AdminRouteMeta {
 }
 
 const RECENT_ADMIN_ROUTES_KEY = "novaesweb-admin-recent-routes";
+const DISABLED_ADMIN_ROUTE_PREFIXES = ["/admin/contratos"];
 
 export const adminRoutes: AdminRouteMeta[] = [
   { href: "/admin", label: "Dashboard", shortLabel: "Início", keywords: ["dashboard", "home", "inicio", "painel"] },
@@ -18,7 +19,6 @@ export const adminRoutes: AdminRouteMeta[] = [
   { href: "/admin/financeiro", label: "Financeiro", shortLabel: "Financeiro", keywords: ["financeiro", "receitas", "cobrancas"] },
   { href: "/admin/custos-sistema", label: "Custos do Sistema", shortLabel: "Custos", keywords: ["custos", "sistema", "operacao", "despesas"] },
   { href: "/admin/relatorios", label: "Relatórios", shortLabel: "Relatórios", keywords: ["relatorios", "metricas", "roi"] },
-  { href: "/admin/contratos", label: "Contratos", shortLabel: "Contratos", keywords: ["contratos", "juridico"] },
   { href: "/admin/briefings", label: "Briefings", shortLabel: "Briefings", keywords: ["briefings", "briefing", "dados site", "coleta"] },
   { href: "/admin/suporte", label: "Suporte", shortLabel: "Suporte", keywords: ["suporte", "tickets"] },
   { href: "/admin/usuarios", label: "Usuários", shortLabel: "Usuários", keywords: ["usuarios", "equipe"] },
@@ -59,7 +59,19 @@ function getStoredRecentRoutePaths() {
   try {
     const raw = window.localStorage.getItem(RECENT_ADMIN_ROUTES_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+    const next = Array.isArray(parsed)
+      ? parsed.filter(
+          (item) =>
+            typeof item === "string" &&
+            !DISABLED_ADMIN_ROUTE_PREFIXES.some((prefix) => item.startsWith(prefix)),
+        )
+      : [];
+
+    if (Array.isArray(parsed) && next.length !== parsed.length) {
+      window.localStorage.setItem(RECENT_ADMIN_ROUTES_KEY, JSON.stringify(next));
+    }
+
+    return next;
   } catch {
     return [];
   }

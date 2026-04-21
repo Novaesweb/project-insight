@@ -129,7 +129,6 @@ export const ROUTES = {
     dashboard: "/cliente/dashboard",
     projetos: "/cliente/projetos",
     extras: "/cliente/extras",
-    contratos: "/cliente/contratos",
     dados: "/cliente/dados",
     faturas: "/cliente/faturas",
     reunioes: "/cliente/reunioes",
@@ -154,7 +153,6 @@ export const ROUTES = {
     usuarios: "/admin/usuarios",
     configuracoes: "/admin/configuracoes",
     revenda: "/admin/revenda",
-    contratos: "/admin/contratos",
     briefings: "/admin/briefings",
     menu: "/admin/menu",
     depoimentos: "/admin/depoimentos",
@@ -243,7 +241,6 @@ export const pageInfo: Record<string, { titulo: string; subtitulo: string }> = {
   "/admin/configuracoes": { titulo: "Engenharia do Sistema", subtitulo: "Configurações avançadas e parâmetros" },
   "/admin/agenda": { titulo: "Agenda Estratégica", subtitulo: "Gestão de reuniões e alinhamentos de valor" },
   "/admin/leads": { titulo: "Máquina de Leads", subtitulo: "Acompanhe e qualifique novas oportunidades" },
-  "/admin/contratos": { titulo: "Blindagem de Ativos", subtitulo: "Gestão de ativos jurídicos e blindagem contratual" },
   "/admin/briefings": { titulo: "Dados do Site", subtitulo: "Biblioteca de perguntas, briefing por cliente e envio único" },
 };
 

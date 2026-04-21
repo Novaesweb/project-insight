@@ -36,11 +36,9 @@ export const clientService = {
   },
 
   async getClientStats(clientId: string) {
-    // Busca projetos, faturas e contratos em paralelo para performance
-    const [projects, invoices, contracts] = await Promise.all([
+    const [projects, invoices] = await Promise.all([
       supabase.from("projects").select("id, status").eq("client_id", clientId),
       supabase.from("invoices").select("id, status, amount").eq("client_id", clientId),
-      supabase.from("contracts").select("id, status").eq("client_id", clientId)
     ]);
 
     return {
@@ -48,7 +46,6 @@ export const clientService = {
       activeProjects: projects.data?.filter(p => p.status !== "concluido").length || 0,
       totalSpent: invoices.data?.reduce((acc, inv) => acc + (inv.amount || 0), 0) || 0,
       pendingInvoices: invoices.data?.filter(inv => inv.status === "pendente").length || 0,
-      contractsCount: contracts.data?.length || 0
     };
   },
 

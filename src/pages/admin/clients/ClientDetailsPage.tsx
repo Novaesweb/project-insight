@@ -83,7 +83,6 @@ export default function ClientDetailsPage() {
                <div className="flex flex-wrap justify-center md:justify-start gap-6 pt-6 border-t border-white/5">
                   <StatItem label="Projetos Ativos" value={stats?.activeProjects || 0} icon={FolderKanban} />
                   <StatItem label="Investimento Total" value={`R$ ${stats?.totalSpent?.toLocaleString() || "0"}`} icon={DollarSign} color="text-emerald-400" />
-                  <StatItem label="Contratos" value={stats?.contractsCount || 0} icon={ShieldCheck} />
                </div>
             </div>
          </div>

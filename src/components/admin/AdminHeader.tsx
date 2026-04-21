@@ -36,6 +36,13 @@ const extraPageInfo: Record<string, { titulo: string; subtitulo: string }> = {
 };
 
 function resolvePageInfoMatch(pathname: string) {
+  if (pathname.startsWith("/admin/contratos")) {
+    return {
+      titulo: "Modulo em Reconstrucao",
+      subtitulo: "Fluxo legado de contratos desligado do painel",
+    };
+  }
+
   const availablePageInfo = { ...pageInfo, ...extraPageInfo };
   const directMatch = availablePageInfo[pathname as keyof typeof availablePageInfo];
   if (directMatch) return directMatch;

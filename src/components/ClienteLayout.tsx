@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, FolderKanban, Plus, FileText, Receipt,
+  LayoutDashboard, FolderKanban, Plus, Receipt,
   CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart, ShieldCheck, Zap, Settings, ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,6 @@ const menuItems = [
   { label: "Painel de Ativos", icon: LayoutDashboard, path: "/cliente/dashboard" },
   { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
   { label: "Dados do Site", icon: ClipboardList, path: "/cliente/dados" },
-  { label: "Contratos", icon: FileText, path: "/cliente/contratos" },
   { label: "Meus Extras", icon: Zap, path: "/cliente/extras" },
   { label: "Financeiro", icon: Receipt, path: "/cliente/faturas" },
   { label: "Configurações", icon: Settings, path: "/cliente/configuracoes" },
@@ -34,11 +33,9 @@ const menuColors = [
   "from-purple-500 to-pink-500",
   "from-pink-500 to-red-500",
   "from-yellow-500 to-amber-500",
-  "from-purple-600 to-indigo-500",
   "from-red-500 to-pink-500",
   "from-amber-500 to-yellow-500",
   "from-pink-500 to-purple-500",
-  "from-indigo-500 to-purple-500",
 ];
 
 function ClienteSidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {

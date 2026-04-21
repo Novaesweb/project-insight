@@ -53,7 +53,7 @@ const LeadsDashboard = React.lazy(() => import("./pages/admin/leads/LeadsDashboa
 const LeadsList = React.lazy(() => import("./pages/admin/leads/LeadsList"));
 const LeadDetailsPage = React.lazy(() => import("./pages/admin/leads/LeadDetailsPage"));
 const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
-const Contratos = React.lazy(() => import("./pages/Contratos"));
+const AdminContractsRebuild = React.lazy(() => import("./pages/admin/AdminContractsRebuild"));
 const BriefingsDashboard = React.lazy(() => import("./pages/admin/briefings/BriefingsDashboard"));
 const InProgressList = React.lazy(() => import("./pages/admin/briefings/InProgressList"));
 const BriefingEditorPage = React.lazy(() => import("./pages/admin/briefings/BriefingEditorPage"));
@@ -68,7 +68,7 @@ const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
 const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
 const ClienteProjetos = React.lazy(() => import("./pages/cliente/ClienteProjetos"));
 const ClienteExtras = React.lazy(() => import("./pages/cliente/ClienteExtras"));
-const ClienteContratos = React.lazy(() => import("./pages/cliente/ClienteContratos"));
+const ClienteContractsRebuild = React.lazy(() => import("./pages/cliente/ClienteContractsRebuild"));
 const ClienteDados = React.lazy(() => import("./pages/cliente/ClienteDados"));
 const ClienteFaturas = React.lazy(() => import("./pages/cliente/ClienteFaturas"));
 const ClienteSuporte = React.lazy(() => import("./pages/cliente/ClienteSuporte"));
@@ -144,9 +144,9 @@ function AdminWithSplash() {
             <Route path="usuarios" element={<Usuarios />} />
             <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="revenda" element={<AdminRevenda />} />
-            <Route path="contratos" element={<Contratos />} />
-            <Route path="contratos/novo" element={<Contratos />} />
-            <Route path="contratos/modelos" element={<Contratos />} />
+            <Route path="contratos" element={<AdminContractsRebuild />} />
+            <Route path="contratos/novo" element={<AdminContractsRebuild />} />
+            <Route path="contratos/modelos" element={<AdminContractsRebuild />} />
             <Route path="briefings" element={<BriefingsDashboard />} />
             <Route path="briefings/em-andamento" element={<InProgressList />} />
             <Route path="briefings/em-andamento/novo" element={<BriefingEditorPage />} />
@@ -218,7 +218,7 @@ const DesktopNavigationHandler = () => {
                     <Route path="pedidos" element={<ClientePedidosFome />} />
                     <Route path="projetos" element={<ClienteProjetos />} />
                     <Route path="extras" element={<ClienteExtras />} />
-                    <Route path="contratos" element={<ClienteContratos />} />
+                    <Route path="contratos" element={<ClienteContractsRebuild />} />
                     <Route path="dados" element={<ClienteDados />} />
                     <Route path="faturas" element={<ClienteFaturas />} />
                     <Route path="suporte" element={<ClienteSuporte />} />

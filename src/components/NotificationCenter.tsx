@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+import { isVisibleNotification } from "@/lib/notification-visibility";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -59,7 +60,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
 
     const { data } = await query;
     if (data) {
-      setNotifications(data as Notification[]);
+      setNotifications((data as Notification[]).filter(isVisibleNotification));
       lastNotificationFetchAt = Date.now();
     }
   }, [userType, userId]);
@@ -81,7 +82,7 @@ export default function NotificationCenter({ userType, userId }: NotificationCen
         },
         (payload) => {
           const n = payload.new as Notification;
-          if (userType === "admin" || n.user_id === userId) {
+          if ((userType === "admin" || n.user_id === userId) && isVisibleNotification(n)) {
             setNotifications(prev => {
               if (prev.some(existing => existing.id === n.id)) return prev;
               const newList = [n, ...prev].slice(0, 30);

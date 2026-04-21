@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
+import { isVisibleNotification } from "@/lib/notification-visibility";
 import {
   getPushSupportDetails,
   isPushSupported,
@@ -32,6 +33,7 @@ type ClientNotificationRow = {
   id: string;
   title: string;
   body: string;
+  url: string | null;
   read: boolean;
   created_at: string;
 };
@@ -42,11 +44,11 @@ const fadeUp = {
 };
 
 const notificationScopes = [
-  "Contrato enviado, visualizado e reassinatura pendente",
-  "Briefing do site liberado, reaberto e concluído",
-  "Novo extra liberado e mudança relevante no escopo",
-  "Projeto criado, atualização publicada e link do site disponível",
-  "Nova cobrança ou movimentação importante no financeiro",
+  "Acesso liberado, onboarding atualizado e aviso critico do portal",
+  "Briefing do site liberado, reaberto e concluido",
+  "Novo extra liberado e mudanca relevante no escopo",
+  "Projeto criado, atualizacao publicada e link do site disponivel",
+  "Nova cobranca ou movimentacao importante no financeiro",
 ];
 
 export default function ClienteConfiguracoes() {
@@ -83,13 +85,13 @@ export default function ClienteConfiguracoes() {
 
     const { data } = await supabase
       .from("notifications")
-      .select("id, title, body, read, created_at")
+      .select("id, title, body, url, read, created_at")
       .eq("user_type", "cliente")
       .eq("user_id", cliente.id)
       .order("created_at", { ascending: false })
       .limit(20);
 
-    setNotifications((data as ClientNotificationRow[]) || []);
+    setNotifications(((data as ClientNotificationRow[]) || []).filter(isVisibleNotification));
   }, [cliente?.id]);
 
   useEffect(() => {
@@ -200,7 +202,7 @@ export default function ClienteConfiguracoes() {
         </div>
         <h1 className="text-2xl font-black tracking-tight text-white">Notificações do cliente</h1>
         <p className="max-w-2xl text-sm text-white/60">
-          Controle o push deste navegador e acompanhe os avisos mais recentes sobre contratos, extras, projetos e financeiro.
+          Controle o push deste navegador e acompanhe os avisos mais recentes sobre onboarding, extras, projetos e financeiro.
         </p>
       </motion.div>
 
