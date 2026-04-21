@@ -157,6 +157,7 @@ export function ContractTabs({
                 describeClientExtraPricing={builder.describeClientExtraPricing}
                 buildPricingMoneyDraftKey={builder.buildPricingMoneyDraftKey}
                 builderPrepared={builder.builderPrepared}
+                builderPreparedError={builder.builderPreparedError}
               />
             ) : (
               <div className="rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-10 text-center text-sm text-white/60">

@@ -58,6 +58,7 @@ interface ContractBuilderWizardProps {
   describeClientExtraPricing: (item: any) => string;
   buildPricingMoneyDraftKey: (field: string) => string;
   builderPrepared: any;
+  builderPreparedError?: string | null;
 }
 
 export function ContractBuilderWizard({
@@ -95,6 +96,7 @@ export function ContractBuilderWizard({
   describeClientExtraPricing,
   buildPricingMoneyDraftKey,
   builderPrepared,
+  builderPreparedError,
 }: ContractBuilderWizardProps) {
   const previewExplanations = workingBuilderPayload
     ? buildContractClauseExplanations(workingBuilderPayload)
@@ -316,6 +318,16 @@ export function ContractBuilderWizard({
                             explanations={previewExplanations}
                             signatureSummary={previewSignatureSummary}
                           />
+                        ) : builderPreparedError ? (
+                          <div className="rounded-3xl border border-amber-300/20 bg-amber-300/10 px-5 py-6">
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-100">
+                              Revisao necessaria
+                            </p>
+                            <p className="mt-2 text-sm text-white/75">{builderPreparedError}</p>
+                            <p className="mt-2 text-xs text-white/55">
+                              Revise as etapas anteriores e salve novamente para regenerar a visualizacao final.
+                            </p>
+                          </div>
                         ) : (
                           <p className="text-center text-white/40 py-10">Gerando visualização...</p>
                         )}
@@ -339,7 +351,11 @@ export function ContractBuilderWizard({
                   Avançar <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Button onClick={onSave} className="gradient-primary rounded-xl px-8 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
+                <Button
+                  onClick={onSave}
+                  disabled={!builderPrepared}
+                  className="gradient-primary rounded-xl px-8 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"
+                >
                   Finalizar e Salvar
                 </Button>
               )}

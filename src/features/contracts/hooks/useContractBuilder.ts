@@ -528,9 +528,26 @@ export function useContractBuilder({
     return { title: "Rascunho", subtitle: "As alterações são salvas automaticamente" };
   }, [builderRemoteAutosaveState, builderLastSavedAt]);
 
-  const builderPrepared = useMemo(() => 
-    workingBuilderPayload ? buildBuilderSavePayload(workingBuilderPayload, builderStep) : null
-  , [workingBuilderPayload, builderStep]);
+  const { builderPrepared, builderPreparedError } = useMemo(() => {
+    if (!workingBuilderPayload) {
+      return { builderPrepared: null, builderPreparedError: null };
+    }
+
+    try {
+      return {
+        builderPrepared: buildBuilderSavePayload(workingBuilderPayload, builderStep),
+        builderPreparedError: null,
+      };
+    } catch (error) {
+      return {
+        builderPrepared: null,
+        builderPreparedError: getContractErrorMessage(
+          error,
+          "Esse contrato precisa de revisao antes da visualizacao final.",
+        ),
+      };
+    }
+  }, [builderStep, workingBuilderPayload]);
 
   const selectedItemsCount = useMemo(() => 
     workingBuilderPayload?.items.filter(i => i.selected).length || 0
@@ -575,6 +592,7 @@ export function useContractBuilder({
     builderProgress,
     builderStatusLabel,
     builderPrepared,
+    builderPreparedError,
     selectedItemsCount,
     builderClientExtras,
     onClientChange,

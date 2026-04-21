@@ -39,6 +39,19 @@ function normalizeBuilderTypeLabel(value: unknown): "mensal" | "único" {
   return value === "mensal" ? "mensal" : "único";
 }
 
+function buildFallbackCustomScope(items: ContractBuilderPayload["items"]) {
+  const selectedServices = items
+    .filter((item) => item.selected)
+    .map((item) => item.name.trim())
+    .filter(Boolean);
+
+  if (selectedServices.length > 0) {
+    return `Escopo legado importado: ${selectedServices.join(", ")}. Revise antes de salvar.`;
+  }
+
+  return "Escopo sob medida importado de contrato legado. Revise antes de salvar.";
+}
+
 function normalizePrimaryPlanId(
   value: unknown,
   items: ContractBuilderPayload["items"],
@@ -200,6 +213,7 @@ export function normalizeBuilderPayload(
     entryValue: normalizeBuilderMoney(rawPricing.entryValue),
     negotiatedMonthly: normalizeBuilderMoney(rawPricing.negotiatedMonthly ?? rawPricing.monthlySubtotal ?? 0),
   });
+  const customScope = normalizeBuilderText(payload.customScope, base.customScope).trim();
 
   const normalizedPayload: ContractBuilderPayload = {
     ...base,
@@ -210,7 +224,8 @@ export function normalizeBuilderPayload(
     contratada: normalizeContratada(rawContratada, base.contratada),
     items,
     clientExtrasSnapshot,
-    customScope: normalizeBuilderText(payload.customScope, base.customScope),
+    customScope:
+      primaryPlanId === "sob-medida" ? customScope || buildFallbackCustomScope(items) : customScope,
     prazoDias: normalizeBuilderText(payload.prazoDias, base.prazoDias),
     formaPagamento: normalizeBuilderText(payload.formaPagamento, base.formaPagamento),
     numeroRevisoes: normalizeBuilderText(payload.numeroRevisoes, base.numeroRevisoes),

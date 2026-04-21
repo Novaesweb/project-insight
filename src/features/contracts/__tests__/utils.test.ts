@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeBuilderPayload } from "@/features/contracts/utils";
+import { buildBuilderSavePayload, normalizeBuilderPayload } from "@/features/contracts/utils";
 
 describe("normalizeBuilderPayload", () => {
   it("recovers malformed legacy payloads without throwing", () => {
@@ -80,5 +80,33 @@ describe("normalizeBuilderPayload", () => {
         monthlyPrice: 199.9,
       }),
     );
+  });
+
+  it("fills a fallback scope for legacy sob-medida payloads", () => {
+    const normalized = normalizeBuilderPayload(
+      {
+        primaryPlanId: "sob-medida",
+        items: [
+          {
+            id: "plan:sob-medida",
+            source: "plan",
+            sourceId: "sob-medida",
+            group: "planos",
+            name: "Sob Medida",
+            description: "",
+            selected: true,
+            setupPrice: 0,
+            monthlyPrice: 0,
+            isPrimaryPlan: true,
+          },
+        ],
+        customScope: "",
+      },
+      [],
+      "client-legacy",
+    );
+
+    expect(normalized.customScope).toMatch(/Escopo/i);
+    expect(buildBuilderSavePayload(normalized, normalized.lastStep)).not.toBeNull();
   });
 });
