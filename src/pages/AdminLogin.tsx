@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import logoImg from "@/assets/novaesweb-logo-admin.png";
 import { consumeAdminReturnTo } from "@/lib/admin-function-client";
 import { logAdminAudit, updateAdminUserMetadata } from "@/lib/admin-audit";
+import { setCachedAdminUser } from "@/lib/admin-cache";
+import { isOwnerAdminEmail } from "@/lib/admin-permissions";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -64,9 +66,10 @@ export default function AdminLogin() {
         }
       } else {
       console.log("Login successful, checking admin status...");
+      const ownerOverride = isOwnerAdminEmail(normalizedEmail);
       const { data: adminUser, error: adminUserCheckError } = await supabase
         .from("usuarios")
-        .select("nome, email, bloqueado, status")
+        .select("*")
         .eq("email", normalizedEmail)
         .maybeSingle();
 
@@ -74,7 +77,7 @@ export default function AdminLogin() {
         console.error("Admin user check error:", adminUserCheckError);
       }
 
-      if (!adminUser) {
+      if (!adminUser && !ownerOverride) {
         console.warn("User not found in 'usuarios' table");
         await supabase.auth.signOut();
         toast({
@@ -86,7 +89,7 @@ export default function AdminLogin() {
         return;
       }
 
-      if (adminUser?.bloqueado || adminUser?.status === "inativo") {
+      if ((adminUser?.bloqueado || adminUser?.status === "inativo") && !ownerOverride) {
         console.warn("User is blocked or inactive");
         await supabase.auth.signOut();
         toast({
@@ -99,6 +102,7 @@ export default function AdminLogin() {
       }
 
       console.log("Admin user validated, clearing failed attempts...");
+      setCachedAdminUser(normalizedEmail, adminUser as any);
       await supabase.from("usuarios").update({ tentativas_login: 0 }).eq("email", normalizedEmail);
 
       // Run audit in background to avoid blocking login

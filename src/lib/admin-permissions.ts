@@ -1,4 +1,5 @@
 export const ADMIN_PERMISSION_ROLES = ["admin", "editor", "visualizador"] as const;
+export const OWNER_ADMIN_EMAILS = ["novaesweb@gmail.com"] as const;
 
 export type AdminRole = (typeof ADMIN_PERMISSION_ROLES)[number];
 
@@ -24,6 +25,31 @@ export type AdminPermissionKey = (typeof ADMIN_PERMISSION_MODULES)[number]["key"
 export type AdminPermissionsConfig = Record<AdminPermissionKey, Record<AdminRole, boolean>>;
 
 const ROLE_FALLBACK: AdminRole = "visualizador";
+const ROLE_ALIASES: Record<string, AdminRole> = {
+  admin: "admin",
+  administrador: "admin",
+  administradora: "admin",
+  owner: "admin",
+  proprietario: "admin",
+  superadmin: "admin",
+  "super-admin": "admin",
+  root: "admin",
+  master: "admin",
+  editor: "editor",
+  editora: "editor",
+  gestor: "editor",
+  gerente: "editor",
+  operador: "editor",
+  operator: "editor",
+  visualizador: "visualizador",
+  viewer: "visualizador",
+  visualizer: "visualizador",
+  leitura: "visualizador",
+  consulta: "visualizador",
+  readonly: "visualizador",
+  "read-only": "visualizador",
+  "somente-leitura": "visualizador",
+};
 
 export const DEFAULT_ADMIN_PERMISSIONS: AdminPermissionsConfig = {
   dashboard: { admin: true, editor: true, visualizador: true },
@@ -46,12 +72,26 @@ const ROUTE_MODULE_LOOKUP = ADMIN_PERMISSION_MODULES.flatMap((module) =>
   module.hrefs.map((href) => ({ href, key: module.key })),
 ).sort((left, right) => right.href.length - left.href.length);
 
-export function normalizeAdminRole(value?: string | null): AdminRole {
-  if (value && ADMIN_PERMISSION_ROLES.includes(value as AdminRole)) {
-    return value as AdminRole;
-  }
+function normalizeRoleToken(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[_\s]+/g, "-");
+}
 
-  return ROLE_FALLBACK;
+export function isOwnerAdminEmail(email?: string | null) {
+  if (!email) return false;
+
+  const normalizedEmail = email.trim().toLowerCase();
+  return OWNER_ADMIN_EMAILS.includes(normalizedEmail as (typeof OWNER_ADMIN_EMAILS)[number]);
+}
+
+export function normalizeAdminRole(value?: string | null): AdminRole {
+  if (!value) return ROLE_FALLBACK;
+
+  return ROLE_ALIASES[normalizeRoleToken(value)] ?? ROLE_FALLBACK;
 }
 
 export function parsePermissionsConfig(value?: string | null): AdminPermissionsConfig {

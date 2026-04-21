@@ -17,6 +17,7 @@ import {
   DEFAULT_ADMIN_PERMISSIONS,
   canAccessPath,
   getModuleForPath,
+  isOwnerAdminEmail,
   normalizeAdminRole,
   parsePermissionsConfig,
   type AdminPermissionKey,
@@ -112,12 +113,23 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
       }
 
       const email = session.user.email?.trim().toLowerCase() || null;
+      const ownerOverride = isOwnerAdminEmail(email);
       setSessionEmail(email);
 
       // Check cache for user info
       const cachedUser = email ? getCachedAdminUser(email) : undefined;
       let usuario: Tables<"usuarios"> | null = cachedUser ?? null;
       let needsUserFetch = cachedUser === undefined || force;
+
+      const activeCachedUser =
+        cachedUser && cachedUser.status === "ativo" && !cachedUser.bloqueado ? cachedUser : null;
+      const cachedRole = activeCachedUser?.acesso ? normalizeAdminRole(activeCachedUser.acesso) : null;
+
+      if (showLoading && activeCachedUser && (cachedRole === "admin" || ownerOverride)) {
+        setCurrentUser(activeCachedUser);
+        setRole("admin");
+        setLoading(false);
+      }
 
       const queries: Promise<any>[] = [
         supabase
@@ -152,7 +164,9 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
 
       setCurrentUser(activeInternalUser);
 
-      if (activeInternalUser?.acesso) {
+      if (ownerOverride) {
+        setRole("admin");
+      } else if (activeInternalUser?.acesso) {
         setRole(normalizeAdminRole(activeInternalUser.acesso));
       } else {
         setRole("visualizador");
@@ -201,20 +215,22 @@ export function AdminAccessProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const value = useMemo<AdminAccessContextValue>(() => {
-    const canAccessRoute = (pathname: string) => canAccessPath(role, permissions, pathname);
+    const ownerOverride = isOwnerAdminEmail(sessionEmail);
+    const canAccessRoute = (pathname: string) =>
+      ownerOverride ? pathname.startsWith("/admin") : canAccessPath(role, permissions, pathname);
     const canAccessModuleKey = (moduleKey?: AdminPermissionKey | null) =>
-      moduleKey ? permissions[moduleKey]?.[role] ?? false : true;
+      ownerOverride ? true : moduleKey ? permissions[moduleKey]?.[role] ?? false : true;
 
     return {
       loading,
       currentUser,
       sessionEmail,
-      role,
+      role: ownerOverride ? "admin" : role,
       permissions,
       userMetadata,
       canAccessPath: canAccessRoute,
       canAccessModule: canAccessModuleKey,
-      allowedRoutes: adminRoutes.filter((route) => canAccessRoute(route.href)),
+      allowedRoutes: ownerOverride ? adminRoutes : adminRoutes.filter((route) => canAccessRoute(route.href)),
       refresh,
     };
   }, [currentUser, loading, permissions, refresh, role, sessionEmail, userMetadata]);

@@ -74,6 +74,33 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         let adminUser = cachedUser;
         let isFromCache = cachedUser !== undefined;
 
+        if (isFromCache && !force) {
+          const isBlocked = !!adminUser?.bloqueado || adminUser?.status === "inativo";
+          const isAdmin = !!adminUser;
+
+          if (isBlocked) {
+            clearAdminCache();
+            await supabase.auth.signOut();
+
+            if (!active || runId !== latestRunId) return;
+
+            resetToLogin();
+            return;
+          }
+
+          setAuthenticated(true);
+          setAuthorized(isAdmin);
+          setRedirectTo(sessionType === "cliente" ? "/cliente/dashboard" : "/admin/login");
+
+          if (now - lastCheckAt > MIN_RECHECK_INTERVAL_MS) {
+            window.setTimeout(() => {
+              void checkAccess({ showLoading: false, force: true });
+            }, 0);
+          }
+
+          return;
+        }
+
         if (!isFromCache || force || now - lastCheckAt > MIN_RECHECK_INTERVAL_MS) {
           const { data, error: adminUserError } = await withTimeout(
             supabase
