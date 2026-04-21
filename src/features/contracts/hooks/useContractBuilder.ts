@@ -36,18 +36,25 @@ import {
   fetchActiveClientExtras,
 } from "@/features/contracts/services";
 import { logContractAdminError } from "@/features/contracts/debug";
+import {
+  EMPTY_CLIENTES,
+  EMPTY_EXTRAS_CATALOGO,
+  ensureArray,
+  noopCofreFilterChange,
+  noopContractAction,
+  noopSearchChange,
+  noopTabChange,
+} from "@/features/contracts/runtime";
 import { hasSignedContractMaterialChanges } from "@/features/contracts/utils";
 import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, RESIGN_REASON_DEFAULT } from "@/features/contracts/types";
 
 const mapClientExtraToSnapshot = (item: any): ContractBuilderClientExtraSnapshot => {
   const safeItem = item && typeof item === "object" ? item : {};
-  item = safeItem;
-
   return {
-  id: safeItem.id || safeItem.extra_id || safeItem.extraId || "extra-sem-id",
-  extraId: safeItem.extra_id || safeItem.extraId || safeItem.id || "",
-  name: safeItem.label || safeItem.nome || safeItem.name || "",
-  description: safeItem.descricao || safeItem.description || "",
+    id: safeItem.id || safeItem.extra_id || safeItem.extraId || "extra-sem-id",
+    extraId: safeItem.extra_id || safeItem.extraId || safeItem.id || "",
+    name: safeItem.label || safeItem.nome || safeItem.name || "",
+    description: safeItem.descricao || safeItem.description || "",
   setupPrice: Number(safeItem.preco_setup || safeItem.setupPrice || 0),
   monthlyPrice: Number(safeItem.preco_mensal || safeItem.monthlyPrice || 0),
   typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
@@ -69,17 +76,24 @@ interface UseContractBuilderProps {
   setSearchTerm: (term: string) => void;
 }
 
+type UseContractBuilderInput = Partial<UseContractBuilderProps>;
+
 export function useContractBuilder({
-  clientes,
-  extrasCatalogo,
-  extrasLoaded,
-  upsertContratoState,
-  setTab,
-  setCofreFilter,
-  setSearchTerm,
-}: UseContractBuilderProps) {
+  clientes = EMPTY_CLIENTES,
+  extrasCatalogo = EMPTY_EXTRAS_CATALOGO,
+  extrasLoaded = false,
+  upsertContratoState = noopContractAction,
+  setTab = noopTabChange,
+  setCofreFilter = noopCofreFilterChange,
+  setSearchTerm = noopSearchChange,
+}: UseContractBuilderInput = {}) {
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
+  const safeClientes = useMemo(() => ensureArray(clientes), [clientes]);
+  const safeExtrasCatalogo = useMemo(() => ensureArray(extrasCatalogo), [extrasCatalogo]);
+
+  void setCofreFilter;
+  void setSearchTerm;
 
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
@@ -314,7 +328,7 @@ export function useContractBuilder({
   }, [clearMoneyDraftValue, getWorkingBuilderPayload, moneyDrafts]);
 
   const onClientChange = useCallback(async (clienteId: string) => {
-    const cliente = clientes.find(c => c.id === clienteId);
+    const cliente = safeClientes.find(c => c.id === clienteId);
     if (!cliente) return;
 
     setBuilderPayload(current => {
@@ -372,7 +386,7 @@ export function useContractBuilder({
     } finally {
       setSyncingClientExtras(false);
     }
-  }, [clientes, editingBuilderContract?.id, recalculateBuilderPricing, toast]);
+  }, [editingBuilderContract?.id, recalculateBuilderPricing, safeClientes, toast]);
 
   const onRefreshExtras = useCallback(async () => {
     if (!builderPayload?.clienteId) return;
@@ -427,7 +441,7 @@ export function useContractBuilder({
 
   const resetBuilder = useCallback(() => {
     if (!extrasLoaded) return;
-    const emptyPayload = createEmptyBuilderPayload(extrasCatalogo);
+    const emptyPayload = createEmptyBuilderPayload(safeExtrasCatalogo);
     setBuilderPayload(emptyPayload);
     setEditingBuilderContract(null);
     setBuilderStep(0);
@@ -438,12 +452,12 @@ export function useContractBuilder({
     syncBuilderSavedState(emptyPayload, 0, null);
     clearContractRecoverySnapshot();
     setTab("montador");
-  }, [extrasCatalogo, extrasLoaded, setTab, syncBuilderSavedState]);
+  }, [extrasLoaded, safeExtrasCatalogo, setTab, syncBuilderSavedState]);
 
   const openBuilderContract = useCallback(
     (contrato: Contrato) => {
       try {
-        const payload = normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id);
+        const payload = normalizeBuilderPayload(contrato.builder_payload, safeExtrasCatalogo, contrato.cliente_id);
         const restoredStep = normalizeBuilderStep(payload.lastStep, 4);
 
         setBuilderPayload(payload);
@@ -468,7 +482,7 @@ export function useContractBuilder({
         });
       }
     },
-    [extrasCatalogo, setTab, syncBuilderSavedState, toast],
+    [safeExtrasCatalogo, setTab, syncBuilderSavedState, toast],
   );
 
   const persistBuilderDraft = useCallback(
@@ -512,7 +526,7 @@ export function useContractBuilder({
             requireCompleteValidation &&
             !autosaveRemote &&
             (editingBuilderContract.status === "assinado" || isResignAlreadyPending) &&
-            hasSignedContractMaterialChanges(editingBuilderContract, prepared, extrasCatalogo),
+            hasSignedContractMaterialChanges(editingBuilderContract, prepared, safeExtrasCatalogo),
         );
 
         saveBuilderRecoveryLocally(prepared.normalizedPayload, prepared.normalizedPayload.lastStep, "save-draft");
@@ -539,7 +553,12 @@ export function useContractBuilder({
           createVersionSnapshot: !autosaveRemote,
         });
 
-        const savedPayload = normalizeBuilderPayload(savedContrato.builder_payload, extrasCatalogo, savedContrato.cliente_id, builderStep);
+        const savedPayload = normalizeBuilderPayload(
+          savedContrato.builder_payload,
+          safeExtrasCatalogo,
+          savedContrato.cliente_id,
+          builderStep,
+        );
         setBuilderPayload(savedPayload);
         setEditingBuilderContract(savedContrato);
         syncBuilderSavedState(savedPayload, builderStep, savedContrato.updated_at);
@@ -572,7 +591,17 @@ export function useContractBuilder({
         return false;
       }
     },
-    [builderStep, editingBuilderContract, extrasCatalogo, saveBuilderRecoveryLocally, setTab, syncBuilderSavedState, syncMoneyDraftsToState, toast, upsertContratoState],
+    [
+      builderStep,
+      editingBuilderContract,
+      safeExtrasCatalogo,
+      saveBuilderRecoveryLocally,
+      setTab,
+      syncBuilderSavedState,
+      syncMoneyDraftsToState,
+      toast,
+      upsertContratoState,
+    ],
   );
 
   const builderSummary = useMemo(() => 

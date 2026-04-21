@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ContractCofreList } from "./ContractCofreList";
 import { ContractBuilderWizard } from "./ContractBuilderWizard";
+import { ensureArray, noop, noopContractAction, noopTabChange } from "@/features/contracts/runtime";
 
 interface ContractTabsProps {
   activeTab: string;
@@ -19,25 +20,38 @@ interface ContractTabsProps {
   onSend: (contrato: any) => void;
 }
 
+type ContractTabsInput = Partial<ContractTabsProps>;
+
 export function ContractTabs({
-  activeTab,
-  onTabChange,
+  activeTab = "lista",
+  onTabChange = noopTabChange,
   cofre,
   builder,
-  clientes,
-  extrasCatalogo,
-  onPreview,
-  onDuplicate,
-  onVersions,
-  onSend
-}: ContractTabsProps) {
+  clientes = [],
+  extrasCatalogo = [],
+  onPreview = noopContractAction,
+  onDuplicate = noopContractAction,
+  onVersions = noopContractAction,
+  onSend = noopContractAction,
+}: ContractTabsInput = {}) {
+  const safeCofre = cofre ?? {};
+  const safeBuilder = builder ?? {};
+  const safeClientes = ensureArray(clientes);
+  const safeExtrasCatalogo = ensureArray(extrasCatalogo);
+  const filteredContratos = ensureArray(safeCofre.filteredContratos);
+  const builderPayload = safeBuilder.builderPayload ?? null;
+  const builderStatusLabel = safeBuilder.builderStatusLabel ?? {
+    title: "Rascunho",
+    subtitle: "Preparando montador",
+  };
+
   const handleSaveDraftAndExit = async () => {
-    const saved = await builder.persistBuilderDraft();
+    const saved = await safeBuilder.persistBuilderDraft?.();
     if (saved) onTabChange("lista");
   };
 
   const handleSaveCompletedContract = async () => {
-    await builder.persistBuilderDraft({ requireCompleteValidation: true });
+    await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
   };
 
   return (
@@ -72,11 +86,13 @@ export function ContractTabs({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => cofre.setCofreFilter(cofre.cofreFilter === "ativos" ? "arquivados" : "ativos")}
+              onClick={() =>
+                safeCofre.setCofreFilter?.(safeCofre.cofreFilter === "ativos" ? "arquivados" : "ativos")
+              }
               className="h-9 gap-2 text-xs text-white/60 hover:bg-white/5 hover:text-white"
             >
               <Filter className="h-3.5 w-3.5" />
-              {cofre.cofreFilter === "ativos" ? "Ver Arquivados" : "Ver Ativos"}
+              {safeCofre.cofreFilter === "arquivados" ? "Ver Ativos" : "Ver Arquivados"}
             </Button>
           </div>
         )}
@@ -92,16 +108,16 @@ export function ContractTabs({
             transition={{ duration: 0.2 }}
           >
             <ContractCofreList 
-              contratos={cofre.filteredContratos}
-              extrasCatalogo={extrasCatalogo}
+              contratos={filteredContratos}
+              extrasCatalogo={safeExtrasCatalogo}
               onView={onPreview}
-              onArchive={(c) => cofre.handleArchiveContract(c)}
-              onUnarchive={(c) => cofre.handleUnarchiveContract(c)}
+              onArchive={(c) => safeCofre.handleArchiveContract?.(c)}
+              onUnarchive={(c) => safeCofre.handleUnarchiveContract?.(c)}
               onDuplicate={onDuplicate}
-              onDelete={(c) => cofre.setDeleteTarget(c)}
+              onDelete={(c) => safeCofre.setDeleteTarget?.(c)}
               onVersions={onVersions}
               onEdit={(c) => {
-                builder.openBuilderContract(c);
+                safeBuilder.openBuilderContract?.(c);
                 onTabChange("montador");
               }}
               onSend={onSend}
@@ -117,47 +133,47 @@ export function ContractTabs({
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.3 }}
           >
-            {builder.builderPayload ? (
+            {builderPayload ? (
               <ContractBuilderWizard 
-                builderPayload={builder.builderPayload}
-                builderStep={builder.builderStep}
-                editingBuilderContract={builder.editingBuilderContract}
-                clientes={clientes}
-                builderSummary={builder.builderSummary}
-                builderProgress={builder.builderProgress}
-                builderStatusLabel={builder.builderStatusLabel}
-                builderRemoteAutosaveState={builder.builderRemoteAutosaveState}
-                workingBuilderPayload={builder.workingBuilderPayload}
-                mobileSummaryOpen={builder.mobileSummaryOpen}
-                selectedItemsCount={builder.selectedItemsCount}
-                builderClientExtras={builder.builderClientExtras}
-                syncingClientExtras={builder.syncingClientExtras}
-                shouldReduceMotion={builder.shouldReduceMotion}
-                onStepChange={builder.setBuilderStep}
-                onReset={builder.resetBuilder}
-                onMobileSummaryToggle={() => builder.setMobileSummaryOpen(!builder.mobileSummaryOpen)}
+                builderPayload={builderPayload}
+                builderStep={safeBuilder.builderStep ?? 0}
+                editingBuilderContract={safeBuilder.editingBuilderContract ?? null}
+                clientes={safeClientes}
+                builderSummary={safeBuilder.builderSummary ?? null}
+                builderProgress={safeBuilder.builderProgress ?? 0}
+                builderStatusLabel={builderStatusLabel}
+                builderRemoteAutosaveState={safeBuilder.builderRemoteAutosaveState ?? "idle"}
+                workingBuilderPayload={safeBuilder.workingBuilderPayload ?? builderPayload}
+                mobileSummaryOpen={Boolean(safeBuilder.mobileSummaryOpen)}
+                selectedItemsCount={safeBuilder.selectedItemsCount ?? 0}
+                builderClientExtras={ensureArray(safeBuilder.builderClientExtras)}
+                syncingClientExtras={Boolean(safeBuilder.syncingClientExtras)}
+                shouldReduceMotion={Boolean(safeBuilder.shouldReduceMotion)}
+                onStepChange={safeBuilder.setBuilderStep ?? noop}
+                onReset={safeBuilder.resetBuilder ?? noop}
+                onMobileSummaryToggle={() => safeBuilder.setMobileSummaryOpen?.(!safeBuilder.mobileSummaryOpen)}
                 onClientChange={(clientId) => {
-                  void builder.onClientChange(clientId);
+                  void safeBuilder.onClientChange?.(clientId);
                 }}
-                onUpdateContractante={builder.onUpdateContractante}
-                onUpdateContratada={builder.onUpdateContratada}
-                onUpdateTextField={builder.onUpdateTextField}
-                onPrimaryPlanChange={builder.onPrimaryPlanChange}
-                onDiscountTypeChange={builder.onDiscountTypeChange}
-                onPricingChange={builder.onPricingChange}
-                onMoneyDraftBlur={builder.onMoneyDraftBlur}
+                onUpdateContractante={safeBuilder.onUpdateContractante ?? noop}
+                onUpdateContratada={safeBuilder.onUpdateContratada ?? noop}
+                onUpdateTextField={safeBuilder.onUpdateTextField ?? noop}
+                onPrimaryPlanChange={safeBuilder.onPrimaryPlanChange ?? noop}
+                onDiscountTypeChange={safeBuilder.onDiscountTypeChange ?? noop}
+                onPricingChange={safeBuilder.onPricingChange ?? noop}
+                onMoneyDraftBlur={safeBuilder.onMoneyDraftBlur ?? noop}
                 onRefreshExtras={() => {
-                  void builder.onRefreshExtras();
+                  void safeBuilder.onRefreshExtras?.();
                 }}
                 onPreview={onPreview}
                 onSaveAndExit={handleSaveDraftAndExit}
                 onSave={handleSaveCompletedContract}
-                getStepError={builder.getBuilderStepError}
-                getMoneyInputDisplayValue={builder.getMoneyInputDisplayValue}
-                describeClientExtraPricing={builder.describeClientExtraPricing}
-                buildPricingMoneyDraftKey={builder.buildPricingMoneyDraftKey}
-                builderPrepared={builder.builderPrepared}
-                builderPreparedError={builder.builderPreparedError}
+                getStepError={safeBuilder.getBuilderStepError ?? (() => null)}
+                getMoneyInputDisplayValue={safeBuilder.getMoneyInputDisplayValue ?? (() => "0,00")}
+                describeClientExtraPricing={safeBuilder.describeClientExtraPricing ?? (() => "Cortesia")}
+                buildPricingMoneyDraftKey={safeBuilder.buildPricingMoneyDraftKey ?? ((field: string) => field)}
+                builderPrepared={safeBuilder.builderPrepared ?? null}
+                builderPreparedError={safeBuilder.builderPreparedError ?? null}
               />
             ) : (
               <div className="rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-10 text-center text-sm text-white/60">

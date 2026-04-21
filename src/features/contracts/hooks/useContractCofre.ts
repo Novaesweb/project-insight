@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { setContractArchived, deleteBuilderDraftContract } from "@/features/contracts/services";
 import { Contrato, CONTRACT_STATUS_ORDER } from "@/features/contracts/types";
+import { ensureArray, noopContractAction } from "@/features/contracts/runtime";
 import { getContractStatusLabel, getContractStatusBadgeClass } from "@/lib/contract-status";
 import { formatContratoValue } from "@/lib/contract-utils";
 
@@ -12,20 +13,23 @@ interface UseContractCofreProps {
   removeContratoState: (contractId: string) => void;
 }
 
-export function useContractCofre({ 
-  contratos, 
-  setContratos, 
-  upsertContratoState,
-  removeContratoState 
-}: UseContractCofreProps) {
+type UseContractCofreInput = Partial<UseContractCofreProps>;
+
+export function useContractCofre({
+  contratos = [],
+  setContratos,
+  upsertContratoState = noopContractAction,
+  removeContratoState = () => undefined,
+}: UseContractCofreInput = {}) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [cofreFilter, setCofreFilter] = useState<"ativos" | "arquivados">("ativos");
   const [cofreStatusFilter, setCofreStatusFilter] = useState<"todos" | "rascunho" | "enviado" | "visualizado" | "assinado" | "cancelado">("todos");
   const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
+  const safeContratos = useMemo(() => ensureArray(contratos), [contratos]);
 
   const filteredContratos = useMemo(() => {
-    return contratos.filter((contrato) => {
+    return safeContratos.filter((contrato) => {
       const isArchived = Boolean(contrato.archived_at);
       if (cofreFilter === "ativos" && isArchived) return false;
       if (cofreFilter === "arquivados" && !isArchived) return false;
@@ -39,25 +43,25 @@ export function useContractCofre({
         (contrato.clientes as any)?.nome?.toLowerCase().includes(term)
       );
     });
-  }, [cofreFilter, cofreStatusFilter, contratos, searchTerm]);
+  }, [cofreFilter, cofreStatusFilter, safeContratos, searchTerm]);
 
   const activeContractsCount = useMemo(
-    () => contratos.filter((contrato) => !contrato.archived_at).length,
-    [contratos],
+    () => safeContratos.filter((contrato) => !contrato.archived_at).length,
+    [safeContratos],
   );
 
   const archivedContractsCount = useMemo(
-    () => contratos.filter((contrato) => Boolean(contrato.archived_at)).length,
-    [contratos],
+    () => safeContratos.filter((contrato) => Boolean(contrato.archived_at)).length,
+    [safeContratos],
   );
 
   const contractStatusCounts = useMemo(
     () =>
-      contratos.reduce<Record<string, number>>((acc, contrato) => {
+      safeContratos.reduce<Record<string, number>>((acc, contrato) => {
         acc[contrato.status] = (acc[contrato.status] || 0) + 1;
         return acc;
       }, {}),
-    [contratos],
+    [safeContratos],
   );
 
   const handleArchiveContract = useCallback(

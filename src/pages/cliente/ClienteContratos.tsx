@@ -29,6 +29,7 @@ import {
   getContractStatusLabel,
 } from "@/lib/contract-status";
 import type { ContractEventRow } from "@/lib/contract-activity";
+import { ensureArray } from "@/features/contracts/runtime";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -205,6 +206,7 @@ export default function ClienteContratos() {
   const [signerName, setSignerName] = useState("");
   const [revisionMessage, setRevisionMessage] = useState("");
   const [portalActionLoading, setPortalActionLoading] = useState<"approve" | "revision" | null>(null);
+  const safeContratos = ensureArray(contratos);
 
   const sortEvents = useCallback((items: ContractEventRow[]) => {
     return [...items].sort((left, right) => {
@@ -246,8 +248,19 @@ export default function ClienteContratos() {
       .is("archived_at", null)
       .not("status", "eq", "rascunho")
       .order("updated_at", { ascending: false })
-      .then(({ data }) => setContratos(sortContracts((data as ContratoCliente[]) || [])));
-  }, [cliente?.id, sortContracts]);
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setContratos(sortContracts(ensureArray(data as ContratoCliente[])));
+      })
+      .catch(() => {
+        setContratos([]);
+        toast({
+          title: "Erro ao carregar contratos",
+          description: "Nao foi possivel carregar os contratos liberados no portal.",
+          variant: "destructive",
+        });
+      });
+  }, [cliente?.id, sortContracts, toast]);
 
   useEffect(() => {
     load();
@@ -440,19 +453,19 @@ export default function ClienteContratos() {
                 <div>
                   <p className="text-[11px] text-white/45">Enviados</p>
                   <p className="mt-1 text-lg font-semibold text-white">
-                    {contratos.filter((item) => item.status === "enviado").length}
+                    {safeContratos.filter((item) => item.status === "enviado").length}
                   </p>
                 </div>
                 <div>
                   <p className="text-[11px] text-white/45">Visualizados</p>
                   <p className="mt-1 text-lg font-semibold text-white">
-                    {contratos.filter((item) => item.status === "visualizado").length}
+                    {safeContratos.filter((item) => item.status === "visualizado").length}
                   </p>
                 </div>
                 <div>
                   <p className="text-[11px] text-white/45">Assinados</p>
                   <p className="mt-1 text-lg font-semibold text-white">
-                    {contratos.filter((item) => item.status === "assinado").length}
+                    {safeContratos.filter((item) => item.status === "assinado").length}
                   </p>
                 </div>
               </div>
@@ -462,7 +475,7 @@ export default function ClienteContratos() {
       </Card>
 
       <div className="space-y-4">
-        {contratos.map((contrato) => (
+        {safeContratos.map((contrato) => (
           (() => {
             const statusInsight = getContractStatusInsight({
               status: contrato.status,
@@ -558,7 +571,7 @@ export default function ClienteContratos() {
           })()
         ))}
 
-        {contratos.length === 0 && (
+        {safeContratos.length === 0 && (
           <Card className="border-white/10 bg-white/[0.03]">
             <CardContent className="py-12 text-center text-sm text-white/45">
               Nenhum contrato disponível no portal.

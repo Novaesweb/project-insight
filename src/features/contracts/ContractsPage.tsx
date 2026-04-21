@@ -364,7 +364,6 @@ export default function Contratos() {
     removeContratoState
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const builder = useContractBuilder({
@@ -374,7 +373,7 @@ export default function Contratos() {
     upsertContratoState,
     setTab: handleTabChange,
     setCofreFilter: cofre.setCofreFilter,
-    setSearchTerm: setSearchTerm
+    setSearchTerm: cofre.setSearchTerm
   });
   const { builderPayload, resetBuilder } = builder;
 
@@ -404,8 +403,8 @@ export default function Contratos() {
       <div className="container max-w-7xl px-4 md:px-6">
         
         <ContractHeader 
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          searchTerm={cofre.searchTerm}
+          setSearchTerm={cofre.setSearchTerm}
           onNewContract={handleNewContract}
         />
 

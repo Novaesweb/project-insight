@@ -8,6 +8,7 @@ import { getContractStatusLabel, getContractStatusBadgeClass, getContractStatusI
 import { formatContratoValue, formatContractDateTime, generateContractPDF, downloadWordDocument } from "@/lib/contract-utils";
 import { ContractLifecycleTimeline } from "@/components/contracts/ContractLifecycleTimeline";
 import { normalizeBuilderPayload } from "@/features/contracts/utils";
+import { ensureArray, noopContractAction } from "@/features/contracts/runtime";
 
 interface ContractCofreListProps {
   contratos: Contrato[];
@@ -23,20 +24,25 @@ interface ContractCofreListProps {
   shouldReduceMotion?: boolean;
 }
 
+type ContractCofreListInput = Partial<ContractCofreListProps>;
+
 export function ContractCofreList({
-  contratos,
-  extrasCatalogo,
-  onView,
-  onEdit,
-  onSend,
-  onDuplicate,
-  onVersions,
-  onArchive,
-  onUnarchive,
-  onDelete,
+  contratos = [],
+  extrasCatalogo = [],
+  onView = noopContractAction,
+  onEdit = noopContractAction,
+  onSend = noopContractAction,
+  onDuplicate = noopContractAction,
+  onVersions = noopContractAction,
+  onArchive = noopContractAction,
+  onUnarchive = noopContractAction,
+  onDelete = noopContractAction,
   shouldReduceMotion = false,
-}: ContractCofreListProps) {
-  if (contratos.length === 0) {
+}: ContractCofreListInput = {}) {
+  const safeContratos = ensureArray(contratos);
+  const safeExtrasCatalogo = ensureArray(extrasCatalogo);
+
+  if (safeContratos.length === 0) {
     return (
       <div className="py-20 text-center">
         <p className="text-white/40 text-sm">Nenhum contrato encontrado nesta categoria.</p>
@@ -46,7 +52,9 @@ export function ContractCofreList({
 
   return (
     <div className="space-y-4">
-      {contratos.map((contrato) => {
+      {safeContratos.map((contrato) => {
+        if (!contrato?.id) return null;
+
         const statusInsight = getContractStatusInsight({
           status: contrato.status,
           dataEnvio: contrato.data_envio,
@@ -147,7 +155,7 @@ export function ContractCofreList({
                       <History className="w-4 h-4 mr-2" /> Histórico
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => generateContractPDF(contrato.titulo, (contrato as any).corpo, { proposal: normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id) })}
+                      onClick={() => generateContractPDF(contrato.titulo, (contrato as any).corpo, { proposal: normalizeBuilderPayload(contrato.builder_payload, safeExtrasCatalogo, contrato.cliente_id) })}
                       className="rounded-xl focus:bg-primary/20"
                     >
                       <Download className="w-4 h-4 mr-2" /> Baixar PDF
