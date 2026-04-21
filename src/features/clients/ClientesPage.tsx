@@ -1194,7 +1194,7 @@ export default function Clientes() {
         ? form.gerar_fatura && valor > 0
           ? "Seu acesso está ativo com pedido inicial e cobrança disponível no portal."
           : "Seu acesso está ativo com pedido inicial configurado no portal."
-        : "Seu acesso está ativo. Você já pode acompanhar contratos, projetos e financeiro.",
+        : "Seu acesso está ativo. Você já pode acompanhar o portal, projetos e financeiro.",
       url: form.gerar_fatura && valor > 0 ? "/cliente/faturas" : "/cliente/dashboard",
     });
     markNewClientDraftSaved({ ...INITIAL_NEW_CLIENT_DRAFT });
