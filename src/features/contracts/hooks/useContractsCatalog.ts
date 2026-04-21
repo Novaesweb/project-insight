@@ -33,23 +33,39 @@ export function useContractsCatalog({
   const loadContratos = useCallback(async () => {
     try {
       const data = await fetchBuilderContracts();
-      setContratos(sortContratosByUpdatedAt((data || []).map((item) => decorateContrato(item))));
+      const nextContratos = sortContratosByUpdatedAt((data || []).map((item) => decorateContrato(item)));
+      setContratos(nextContratos);
+      return nextContratos;
+    } catch (error) {
+      setContratos([]);
+      throw error;
     } finally {
       setContratosLoaded(true);
     }
   }, [decorateContrato, setContratos, setContratosLoaded, sortContratosByUpdatedAt]);
 
   const loadClientes = useCallback(async () => {
-    const data = await fetchActiveClientes();
-    setClientes(data);
-    return data;
+    try {
+      const data = await fetchActiveClientes();
+      setClientes(data);
+      return data;
+    } catch (error) {
+      setClientes([]);
+      throw error;
+    }
   }, [setClientes]);
 
   const loadExtrasCatalogo = useCallback(async () => {
-    const extras = await fetchActiveExtrasCatalog();
-    setExtrasCatalogo(extras);
-    setExtrasLoaded(true);
-    return extras;
+    try {
+      const extras = await fetchActiveExtrasCatalog();
+      setExtrasCatalogo(extras);
+      return extras;
+    } catch (error) {
+      setExtrasCatalogo([]);
+      throw error;
+    } finally {
+      setExtrasLoaded(true);
+    }
   }, [setExtrasCatalogo, setExtrasLoaded]);
 
   const loadPreviewContractEvents = useCallback(

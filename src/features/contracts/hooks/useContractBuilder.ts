@@ -35,21 +35,27 @@ import {
   saveBuilderContractDirectly,
   fetchActiveClientExtras,
 } from "@/features/contracts/services";
+import { logContractAdminError } from "@/features/contracts/debug";
 import { hasSignedContractMaterialChanges } from "@/features/contracts/utils";
 import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, RESIGN_REASON_DEFAULT } from "@/features/contracts/types";
 
-const mapClientExtraToSnapshot = (item: any): ContractBuilderClientExtraSnapshot => ({
-  id: item.id,
-  extraId: item.extra_id || item.extraId || item.id,
-  name: item.label || item.nome || item.name || "",
-  description: item.descricao || item.description || "",
-  setupPrice: Number(item.preco_setup || item.setupPrice || 0),
-  monthlyPrice: Number(item.preco_mensal || item.monthlyPrice || 0),
+const mapClientExtraToSnapshot = (item: any): ContractBuilderClientExtraSnapshot => {
+  const safeItem = item && typeof item === "object" ? item : {};
+  item = safeItem;
+
+  return {
+  id: safeItem.id || safeItem.extra_id || safeItem.extraId || "extra-sem-id",
+  extraId: safeItem.extra_id || safeItem.extraId || safeItem.id || "",
+  name: safeItem.label || safeItem.nome || safeItem.name || "",
+  description: safeItem.descricao || safeItem.description || "",
+  setupPrice: Number(safeItem.preco_setup || safeItem.setupPrice || 0),
+  monthlyPrice: Number(safeItem.preco_mensal || safeItem.monthlyPrice || 0),
   typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
-  category: item.category === "mensal" || item.category === "intermediario" || item.category === "fixo"
-    ? item.category
+  category: safeItem.category === "mensal" || safeItem.category === "intermediario" || safeItem.category === "fixo"
+    ? safeItem.category
     : "fixo",
-});
+  };
+};
 
 const moneyDraftFieldPattern = /^(pricing):(.+):(discountValue|entryValue|negotiatedMonthly)$/;
 
@@ -341,10 +347,32 @@ export function useContractBuilder({
           updatedAt: new Date().toISOString()
         };
       });
+    } catch (error) {
+      const debugEntry = logContractAdminError("builder-client-change", error, {
+        clienteId,
+        contractId: editingBuilderContract?.id || null,
+      });
+
+      setBuilderClientExtras([]);
+      setBuilderPayload(current => {
+        if (!current) return null;
+        return {
+          ...current,
+          clientExtrasSnapshot: [],
+          pricing: recalculateBuilderPricing(current.items, current.pricing, []),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+
+      toast({
+        title: "Extras do cliente indisponiveis",
+        description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
+        variant: "destructive",
+      });
     } finally {
       setSyncingClientExtras(false);
     }
-  }, [clientes, recalculateBuilderPricing]);
+  }, [clientes, editingBuilderContract?.id, recalculateBuilderPricing, toast]);
 
   const onRefreshExtras = useCallback(async () => {
     if (!builderPayload?.clienteId) return;
@@ -362,10 +390,21 @@ export function useContractBuilder({
           updatedAt: new Date().toISOString()
         };
       });
+    } catch (error) {
+      const debugEntry = logContractAdminError("builder-refresh-extras", error, {
+        clienteId: builderPayload.clienteId,
+        contractId: editingBuilderContract?.id || null,
+      });
+
+      toast({
+        title: "Nao foi possivel atualizar os extras",
+        description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
+        variant: "destructive",
+      });
     } finally {
       setSyncingClientExtras(false);
     }
-  }, [builderPayload?.clienteId, recalculateBuilderPricing]);
+  }, [builderPayload?.clienteId, editingBuilderContract?.id, recalculateBuilderPricing, toast]);
 
   const getBuilderStepError = useCallback((step: number) => {
     const current = getWorkingBuilderPayload();
@@ -403,19 +442,33 @@ export function useContractBuilder({
 
   const openBuilderContract = useCallback(
     (contrato: Contrato) => {
-      const payload = normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id);
-      const restoredStep = normalizeBuilderStep(payload.lastStep, 4);
+      try {
+        const payload = normalizeBuilderPayload(contrato.builder_payload, extrasCatalogo, contrato.cliente_id);
+        const restoredStep = normalizeBuilderStep(payload.lastStep, 4);
 
-      setBuilderPayload(payload);
-      setEditingBuilderContract(contrato);
-      setBuilderStep(restoredStep);
-      setMobileSummaryOpen(false);
-      setMoneyDrafts({});
-      setBuilderRemoteAutosaveState("saved");
-      syncBuilderSavedState(payload, restoredStep, contrato.updated_at || contrato.created_at);
-      setTab("montador");
+        setBuilderPayload(payload);
+        setEditingBuilderContract(contrato);
+        setBuilderStep(restoredStep);
+        setMobileSummaryOpen(false);
+        setMoneyDrafts({});
+        setBuilderRemoteAutosaveState("saved");
+        syncBuilderSavedState(payload, restoredStep, contrato.updated_at || contrato.created_at);
+        setTab("montador");
+      } catch (error) {
+        const debugEntry = logContractAdminError("builder-open-contract", error, {
+          contractId: contrato.id,
+          clientId: contrato.cliente_id || null,
+          status: contrato.status,
+        });
+
+        toast({
+          title: "Contrato com revisao necessaria",
+          description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
+          variant: "destructive",
+        });
+      }
     },
-    [extrasCatalogo, setTab, syncBuilderSavedState],
+    [extrasCatalogo, setTab, syncBuilderSavedState, toast],
   );
 
   const persistBuilderDraft = useCallback(
@@ -501,8 +554,21 @@ export function useContractBuilder({
 
         return true;
       } catch (error) {
+        const debugEntry = logContractAdminError("builder-save-contract", error, {
+          contractId: editingBuilderContract?.id || null,
+          clientId: currentPayload.clienteId || null,
+          autosaveRemote,
+          requireCompleteValidation,
+        });
+
         if (autosaveRemote) setBuilderRemoteAutosaveState("error");
-        if (!silent) toast({ title: "Erro ao salvar", variant: "destructive" });
+        if (!silent) {
+          toast({
+            title: "Erro ao salvar",
+            description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
+            variant: "destructive",
+          });
+        }
         return false;
       }
     },

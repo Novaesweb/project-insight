@@ -32,7 +32,7 @@ export async function fetchBuilderContracts() {
 }
 
 export async function fetchActiveClientes() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("clientes")
     .select(
       "id, nome, nome_empresa, email, documento, whatsapp, telefone, endereco, numero_endereco, complemento, bairro, cidade, estado, cep, instagram, site_url, status",
@@ -40,16 +40,24 @@ export async function fetchActiveClientes() {
     .eq("status", "ativo")
     .order("nome", { ascending: true });
 
+  if (error) {
+    throw error;
+  }
+
   return (data as Cliente[]) || [];
 }
 
 export async function fetchActiveExtrasCatalog() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("extras_catalogo")
     .select("id, nome, descricao, categoria, preco_ativacao, preco_mensal, status, subcategoria")
     .eq("status", "ativo")
     .order("categoria", { ascending: true })
     .order("nome", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
 
   return (data as ExtraCatalogo[]) || [];
 }
@@ -57,12 +65,16 @@ export async function fetchActiveExtrasCatalog() {
 export async function fetchActiveClientExtras(clientId: string) {
   if (!clientId) return [];
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("extras_clientes")
     .select("*, extras_catalogo(*)")
     .eq("cliente_id", clientId)
     .eq("status", "ativo")
     .order("data_ativacao", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
 
   return (data as ExtraCliente[]) || [];
 }
