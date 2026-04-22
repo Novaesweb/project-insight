@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowRight, RefreshCw, Search, Sparkles, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, RefreshCw, Search, Sparkles, UserRound, Wand2 } from "lucide-react";
+import { ContractAiAssistant } from "./ContractAiAssistant";
 
 import { BuilderLiveSummary } from "@/components/contracts/BuilderLiveSummary";
 import { BuilderPreviewDocument } from "@/components/contracts/BuilderPreviewDocument";
@@ -287,6 +288,27 @@ export function ContractStepDados({
   error?: string | null;
   onUpdateTextField: (field: string, value: string) => void;
 }) {
+  const [aiState, setAiState] = useState<{
+    isOpen: boolean;
+    context: string;
+    field: string;
+    currentText: string;
+  }>({
+    isOpen: false,
+    context: "",
+    field: "",
+    currentText: "",
+  });
+
+  const openAi = (field: string, label: string, currentText: string) => {
+    setAiState({
+      isOpen: true,
+      context: label,
+      field,
+      currentText,
+    });
+  };
+
   return (
     <StepPanel
       title="Dados do contrato"
@@ -368,13 +390,38 @@ export function ContractStepDados({
           />
         </FieldShell>
         <FieldShell label="Prazo de suporte" full>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Prazo de suporte</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              onClick={() => openAi("prazoSuporte", "Prazo de Suporte", payload.prazoSuporte)}
+            >
+              <Wand2 className="mr-1 h-3 w-3" />
+              IA
+            </Button>
+          </div>
           <Textarea
             value={payload.prazoSuporte}
             onChange={(event) => onUpdateTextField("prazoSuporte", event.target.value)}
             className="min-h-[96px] border-white/10 bg-black/30 text-white"
           />
         </FieldShell>
+
         <FieldShell label="Escopo principal" full>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Escopo principal</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              onClick={() => openAi("customScope", "Escopo Principal", payload.customScope)}
+            >
+              <Wand2 className="mr-1 h-3 w-3" />
+              IA
+            </Button>
+          </div>
           <Textarea
             value={payload.customScope}
             onChange={(event) => onUpdateTextField("customScope", event.target.value)}
@@ -382,21 +429,60 @@ export function ContractStepDados({
             placeholder="Descreva o escopo principal do contrato."
           />
         </FieldShell>
-        <FieldShell label="Observacoes comerciais" full>
+
+        <FieldShell label="Observações comerciais" full>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Observações comerciais</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              onClick={() => openAi("observacoesComerciais", "Observações Comerciais", payload.observacoesComerciais)}
+            >
+              <Wand2 className="mr-1 h-3 w-3" />
+              IA
+            </Button>
+          </div>
           <Textarea
             value={payload.observacoesComerciais}
             onChange={(event) => onUpdateTextField("observacoesComerciais", event.target.value)}
             className="min-h-[120px] border-white/10 bg-black/30 text-white"
           />
         </FieldShell>
-        <FieldShell label="Escopo e exclusoes" full>
+
+        <FieldShell label="Escopo e exclusões" full>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Escopo e exclusões</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              onClick={() => openAi("escopoExclusoes", "Escopo e Exclusões", payload.escopoExclusoes)}
+            >
+              <Wand2 className="mr-1 h-3 w-3" />
+              IA
+            </Button>
+          </div>
           <Textarea
             value={payload.escopoExclusoes}
             onChange={(event) => onUpdateTextField("escopoExclusoes", event.target.value)}
             className="min-h-[120px] border-white/10 bg-black/30 text-white"
           />
         </FieldShell>
-        <FieldShell label="Clausulas customizadas" full>
+
+        <FieldShell label="Cláusulas customizadas" full>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Cláusulas customizadas</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              onClick={() => openAi("customClauses", "Cláusulas Customizadas", payload.customClauses)}
+            >
+              <Wand2 className="mr-1 h-3 w-3" />
+              IA
+            </Button>
+          </div>
           <Textarea
             value={payload.customClauses}
             onChange={(event) => onUpdateTextField("customClauses", event.target.value)}
@@ -404,6 +490,14 @@ export function ContractStepDados({
             placeholder="Adicione cláusulas extras que serão incluídas ao final do contrato."
           />
         </FieldShell>
+
+        <ContractAiAssistant 
+          isOpen={aiState.isOpen}
+          onClose={() => setAiState(prev => ({ ...prev, isOpen: false }))}
+          context={aiState.context}
+          currentText={aiState.currentText}
+          onApply={(text) => onUpdateTextField(aiState.field, text)}
+        />
       </FieldGrid>
     </StepPanel>
   );
@@ -522,6 +616,27 @@ export function ContractStepExtras({
   ) => void;
   onToggleExtra: (extraId: string, active: boolean) => void;
 }) {
+  const [aiState, setAiState] = useState<{
+    isOpen: boolean;
+    context: string;
+    extraId: string;
+    currentText: string;
+  }>({
+    isOpen: false,
+    context: "",
+    extraId: "",
+    currentText: "",
+  });
+
+  const openAi = (extraId: string, label: string, currentText: string) => {
+    setAiState({
+      isOpen: true,
+      context: `Extra: ${label}`,
+      extraId,
+      currentText,
+    });
+  };
+
   return (
     <StepPanel
       title="Extras vinculados"
@@ -617,6 +732,18 @@ export function ContractStepExtras({
                   />
                 </FieldShell>
                 <FieldShell label="Clausula personalizada" full>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">Cláusula personalizada</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+                      onClick={() => openAi(extra.id, extra.name, extra.clause)}
+                    >
+                      <Wand2 className="mr-1 h-3 w-3" />
+                      IA
+                    </Button>
+                  </div>
                   <Textarea
                     value={extra.clause}
                     onChange={(event) => onExtraFieldChange(extra.id, "clause", event.target.value)}
@@ -627,6 +754,14 @@ export function ContractStepExtras({
             </div>
           ))
         )}
+
+        <ContractAiAssistant 
+          isOpen={aiState.isOpen}
+          onClose={() => setAiState(prev => ({ ...prev, isOpen: false }))}
+          context={aiState.context}
+          currentText={aiState.currentText}
+          onApply={(text) => onExtraFieldChange(aiState.extraId, "clause", text)}
+        />
       </div>
     </StepPanel>
   );
