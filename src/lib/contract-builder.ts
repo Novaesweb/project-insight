@@ -103,6 +103,7 @@ export interface ContractBuilderPayload {
   prazoSuporte: string;
   observacoesComerciais: string;
   escopoExclusoes: string;
+  customClauses: string;
   pricing: ContractBuilderPricing;
   createdAt: string;
   updatedAt: string;
@@ -368,6 +369,7 @@ export function createEmptyBuilderPayload(
     prazoSuporte: "Atendimento em dias úteis durante o horário comercial.",
     observacoesComerciais: DEFAULT_COMMERCIAL_NOTES,
     escopoExclusoes: DEFAULT_SCOPE_EXCLUSIONS,
+    customClauses: "",
     pricing: computeBuilderPricing(items),
     createdAt: now,
     updatedAt: now,
@@ -432,6 +434,7 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
     valor_extras: formatCurrencyBRL(payload.pricing.extrasTotal),
     valor_total: formatCurrencyBRL(payload.pricing.totalValue),
     observacoes: payload.observacoesComerciais || "Sem observações adicionais.",
+    clausulas_adicionais: payload.customClauses || "",
     nome_contratada: payload.contratada.nome,
     documento_contratada: payload.contratada.documento,
     endereco_contratada: `${payload.contratada.endereco}, ${payload.contratada.cidade}/${payload.contratada.estado}`,

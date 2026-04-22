@@ -49,6 +49,7 @@ const baseVariables: ContractVariable[] = [
   { key: "lista_extras", label: "Lista de extras", type: "textarea" },
   { key: "valor_extras", label: "Valor dos extras", type: "text" },
   { key: "valor_total", label: "Valor total", type: "text" },
+  { key: "clausulas_adicionais", label: "Cláusulas Adicionais", type: "textarea" },
   { key: "observacoes", label: "Observações", type: "textarea" },
   { key: "nome_contratada", label: "Nome da contratada", type: "text" },
   { key: "documento_contratada", label: "Documento da contratada", type: "text" },
@@ -109,6 +110,8 @@ Após revisão e aprovação, o contrato poderá ser enviado ao portal do client
 
 CLAUSULA 6 - DAS DISPOSICOES GERAIS
 Qualquer ajuste estrutural, item não previsto, mudança de escopo ou necessidade técnica adicional poderá gerar novo orçamento, revisão contratual ou aditivo.
+
+{{clausulas_adicionais}}
 
 Canoas/RS, {{data_emissao}}.
 `,

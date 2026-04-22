@@ -396,6 +396,14 @@ export function ContractStepDados({
             className="min-h-[120px] border-white/10 bg-black/30 text-white"
           />
         </FieldShell>
+        <FieldShell label="Clausulas customizadas" full>
+          <Textarea
+            value={payload.customClauses}
+            onChange={(event) => onUpdateTextField("customClauses", event.target.value)}
+            className="min-h-[120px] border-white/10 bg-black/30 text-white"
+            placeholder="Adicione cláusulas extras que serão incluídas ao final do contrato."
+          />
+        </FieldShell>
       </FieldGrid>
     </StepPanel>
   );

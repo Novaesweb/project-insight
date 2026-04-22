@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ContractBuilderWizard } from "./ContractBuilderWizard";
 import { ContractCofreList } from "./ContractCofreList";
 import { ensureArray, noop, noopContractAction, noopTabChange } from "@/features/contracts/runtime";
+import { contractTemplates } from "@/lib/contract-templates";
 
 interface ContractTabsProps {
   activeTab: string;
@@ -113,6 +114,18 @@ export function ContractTabs({
 
         {activeTab === "lista" ? (
           <div className="flex items-center gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => {
+                safeBuilder.resetBuilder?.();
+                onTabChange("montador", { step: 0 });
+              }}
+              className="h-9 gap-2 bg-primary text-xs text-white hover:bg-primary/90"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Novo Contrato
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -223,15 +236,35 @@ export function ContractTabs({
         <TabsContent value="modelos" className="m-0 outline-none">
           <motion.div
             key="templates-view"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-20 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
           >
-            <div className="mb-4 rounded-full bg-white/5 p-4">
-              <Layers className="h-8 w-8 text-white/20" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {contractTemplates.map((template: any) => (
+                <Card key={template.id} className="border-white/10 bg-white/[0.02] transition-all hover:bg-white/[0.05]">
+                  <CardHeader>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-3">
+                      <Layers className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg text-white">{template.nome}</CardTitle>
+                    <CardDescription className="text-white/40">Template padrão para serviços digitais.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                      onClick={() => {
+                        safeBuilder.resetBuilder?.();
+                        onTabChange("montador", { step: 0 });
+                      }}
+                    >
+                      Usar este modelo
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <h3 className="text-lg font-medium text-white">Catalogo de Modelos</h3>
-            <p className="text-sm text-white/40">Modelos pre-configurados estarao disponiveis em breve.</p>
           </motion.div>
         </TabsContent>
       </AnimatePresence>

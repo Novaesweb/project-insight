@@ -263,6 +263,7 @@ export function normalizeBuilderPayload(
       base.observacoesComerciais,
     ),
     escopoExclusoes: normalizeText(payload.escopoExclusoes, base.escopoExclusoes),
+    customClauses: normalizeText(payload.customClauses, base.customClauses),
     pricing,
     createdAt: normalizeText(payload.createdAt, base.createdAt) || base.createdAt,
     updatedAt: new Date().toISOString(),

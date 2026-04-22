@@ -58,26 +58,7 @@ export default function BriefingsDashboard() {
         ]}
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <BriefingsQuickQuestionCard
-          title="O que precisa de atencao?"
-          description="Abra a fila de briefings em construcao e destrave o que esta sendo montado agora."
-          icon="draft"
-          to={ADMIN_BRIEFINGS_DRAFTS}
-        />
-        <BriefingsQuickQuestionCard
-          title="Quais respostas chegaram?"
-          description="Entre na fila de enviados para acompanhar respostas, anexos e proximos passos."
-          icon="sent"
-          to={ADMIN_BRIEFINGS_SENT}
-        />
-        <BriefingsQuickQuestionCard
-          title="Quais perguntas modelo eu gerencio?"
-          description="Gerencie a biblioteca separadamente, sem misturar CRUD com a montagem do briefing."
-          icon="library"
-          to={ADMIN_BRIEFINGS_LIBRARY}
-        />
-      </div>
+
 
       <div className="grid gap-6 xl:grid-cols-2">
         <BriefingsQueueList
