@@ -12,6 +12,7 @@ import {
   ADMIN_BRIEFINGS_DRAFT_NEW,
   ADMIN_BRIEFINGS_DRAFTS,
   ADMIN_BRIEFINGS_LIBRARY,
+  ADMIN_BRIEFINGS_QUICK,
   ADMIN_BRIEFINGS_SENT,
   getAdminBriefingDraftDetailPath,
   getAdminBriefingSentDetailPath,
@@ -45,6 +46,7 @@ export default function BriefingsDashboard() {
         description="Painel do modulo para montar, enviar, acompanhar respostas e manter a biblioteca de perguntas."
         actions={[
           { label: "Novo briefing", to: ADMIN_BRIEFINGS_DRAFT_NEW, variant: "default" },
+          { label: "Envio rápido", to: ADMIN_BRIEFINGS_QUICK, variant: "secondary" },
           { label: "Acompanhar respostas", to: ADMIN_BRIEFINGS_SENT },
         ]}
       />

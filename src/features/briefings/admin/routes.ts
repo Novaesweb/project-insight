@@ -5,6 +5,7 @@ export const ADMIN_BRIEFINGS_DRAFTS = "/admin/briefings/em-andamento";
 export const ADMIN_BRIEFINGS_DRAFT_NEW = "/admin/briefings/em-andamento/novo";
 export const ADMIN_BRIEFINGS_SENT = "/admin/briefings/enviados";
 export const ADMIN_BRIEFINGS_LIBRARY = "/admin/briefings/biblioteca";
+export const ADMIN_BRIEFINGS_QUICK = "/admin/briefings/rapido";
 
 export function getAdminBriefingDraftDetailPath(id: string) {
   return `${ADMIN_BRIEFINGS_DRAFTS}/${id}`;

@@ -58,6 +58,7 @@ const BriefingEditorPage = React.lazy(() => import("./pages/admin/briefings/Brie
 const SentBriefingsList = React.lazy(() => import("./pages/admin/briefings/SentBriefingsList"));
 const SentBriefingDetailPage = React.lazy(() => import("./pages/admin/briefings/SentBriefingDetailPage"));
 const BriefingLibraryPage = React.lazy(() => import("./pages/admin/briefings/BriefingLibraryPage"));
+const QuickBriefingPage = React.lazy(() => import("./pages/admin/briefings/QuickBriefingPage"));
 const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
 const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
@@ -153,6 +154,7 @@ function AdminWithSplash() {
             <Route path="briefings/enviados" element={<SentBriefingsList />} />
             <Route path="briefings/enviados/:id" element={<SentBriefingDetailPage />} />
             <Route path="briefings/biblioteca" element={<BriefingLibraryPage />} />
+            <Route path="briefings/rapido" element={<QuickBriefingPage />} />
             <Route path="menu" element={<AdminMenu />} />
             <Route path="configuracoes-legado" element={<AdminConfig />} />
             <Route path="recurrent-billing" element={<Navigate to="/admin/recurrent-extras" replace />} />
