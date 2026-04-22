@@ -468,7 +468,7 @@ export const extraService = {
     await notifyAdminPanel({
       title: "Extra atribuído",
       body: `${item.nome} foi liberado para ${client.nome}.`,
-      url: "/admin/extras/lista",
+      url: "/admin/extras",
     });
 
     await notifyClientPanel(clientId, {

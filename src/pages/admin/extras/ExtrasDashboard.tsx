@@ -95,7 +95,7 @@ export default function ExtrasDashboard() {
 
         <div className="flex flex-wrap gap-3">
           <Button asChild variant="outline" className="h-12 border-white/10 bg-white/5 text-white hover:bg-white/10 px-6 rounded-2xl">
-            <Link to="/admin/extras/lista">
+            <Link to="/admin/extras">
               <Package className="mr-2 h-4 w-4" />
               Catálogo Completo
             </Link>

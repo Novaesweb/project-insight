@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { clientService, Client } from "../services/client-service";
+import { clientService, type Client, type CreateClientInput } from "../services/client-service";
 import { useToast } from "@/hooks/use-toast";
 
 export function useClients() {
@@ -31,9 +31,22 @@ export function useClients() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: (input: CreateClientInput) => clientService.create(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" });
+    },
+  });
+
   return {
     clients: clientsQuery.data || [],
     loading: clientsQuery.isLoading,
+    createClient: createMutation.mutate,
+    createClientAsync: createMutation.mutateAsync,
+    creating: createMutation.isPending,
     updateClient: updateMutation.mutate,
     deleteClient: deleteMutation.mutate,
     refresh: () => queryClient.invalidateQueries({ queryKey: ["clients"] })

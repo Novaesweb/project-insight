@@ -184,6 +184,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
 
             <div className="space-y-0.5">
               {group.items
+                .filter((item) => item.href !== "/admin/extras/lista")
                 .filter((item) => canAccessPath(item.href))
                 .filter((item) => !isCollapsed || !item.isSubItem)
                 .map((item) => {

@@ -21,6 +21,7 @@ import { invokeAdminFunction } from "@/lib/admin-function-client";
 import { cn } from "@/lib/utils";
 import { DeleteConfirmDialog, useDeleteConfirm } from "@/components/DeleteConfirmDialog";
 import InternalNotes from "@/components/InternalNotes";
+import { clientService } from "@/features/clients/services/client-service";
 
 // --- Variantes de Animação ---
 const container = {
@@ -57,6 +58,32 @@ const savedViews = [
 
 type SavedViewKey = (typeof savedViews)[number]["key"];
 
+type ConvertFormState = {
+  senha: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  cidade: string;
+  estado: string;
+  documento: string;
+  endereco: string;
+  site_url: string;
+};
+
+function createEmptyConvertForm(lead?: Lead | null): ConvertFormState {
+  return {
+    senha: "",
+    nome: lead?.nome || "",
+    email: lead?.email || "",
+    telefone: lead?.whatsapp || "",
+    cidade: lead?.cidade || "",
+    estado: lead?.estado || "",
+    documento: lead?.documento || "",
+    endereco: "",
+    site_url: "",
+  };
+}
+
 function matchesSavedView(lead: Lead, view: SavedViewKey) {
   if (view === "todos") return true;
   if (view === "novos") {
@@ -83,10 +110,7 @@ export default function Leads() {
   const [savedView, setSavedView] = useState<SavedViewKey>((searchParams.get("preset") as SavedViewKey) || "todos");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [convertModal, setConvertModal] = useState<Lead | null>(null);
-  const [convertForm, setConvertForm] = useState({
-    senha: "", nome: "", email: "", telefone: "", cidade: "", estado: "",
-    documento: "", endereco: "", site_url: ""
-  });
+  const [convertForm, setConvertForm] = useState<ConvertFormState>(createEmptyConvertForm());
   const [criarAcesso, setCriarAcesso] = useState(true);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [perdaModal, setPerdaModal] = useState<Lead | null>(null);
@@ -152,6 +176,18 @@ export default function Leads() {
   const handleConvert = async () => {
     if (!convertModal) return;
 
+    const nome = convertForm.nome.trim();
+    const email = convertForm.email.trim().toLowerCase();
+
+    if (!nome || !email) {
+      toast({
+        title: "Preencha nome e e-mail",
+        description: "Esses dados sao obrigatorios para converter o lead em cliente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (criarAcesso && convertForm.senha.length < 6) {
       toast({
         title: "Defina uma senha inicial segura",
@@ -163,16 +199,14 @@ export default function Leads() {
 
     setConverting(true);
     try {
-      const avatar = convertForm.nome.split(" ").map(w => w[0]).join("").toUpperCase();
-      const normalizedEmail = convertForm.email.trim().toLowerCase();
       let authUserId: string | null = null;
 
       if (criarAcesso) {
         const accountData = await invokeAdminFunction<{ user?: { id?: string } }>("create-account", {
           body: {
-            email: normalizedEmail,
+            email,
             password: convertForm.senha,
-            nome: convertForm.nome,
+            nome,
             tipo: "cliente",
           },
           returnTo: "/admin/leads",
@@ -187,34 +221,37 @@ export default function Leads() {
         authUserId = accountData.user.id;
       }
 
-      const { data: cliente, error: cliError } = await supabase.from("clientes").insert({
-        nome: convertForm.nome,
-        email: normalizedEmail,
+      const cliente = await clientService.create({
+        nome,
+        email,
+        whatsapp: convertForm.telefone,
         telefone: convertForm.telefone,
         cidade: convertForm.cidade || null,
         estado: convertForm.estado || null,
         documento: convertForm.documento || null,
+        nome_empresa: convertModal.nome_negocio || null,
         endereco: convertForm.endereco || null,
         site_url: convertForm.site_url || null,
         status: "ativo",
-        avatar: avatar.slice(0, 2),
         auth_user_id: authUserId,
-        senha: null
-      }).select().single();
+      });
 
-      if (cliError) throw cliError;
+      const { error: leadError } = await supabase
+        .from("leads")
+        .update({ status: "convertido", visualizado: true })
+        .eq("id", convertModal.id);
 
-      await updateStatus(convertModal, "convertido");
+      if (leadError) throw leadError;
+
+      await fetchLeads();
+      setSelectedLead(null);
       
       toast({ title: "💎 Cliente Criado!", description: "Redirecionando para o perfil..." });
       
-      setTimeout(() => {
-        navigate("/admin/clientes", { state: { selectedId: cliente.id } });
-      }, 1500);
-
       setConvertModal(null);
       setCriarAcesso(true);
-      setConvertForm({ senha: "" });
+      setConvertForm(createEmptyConvertForm());
+      navigate(`/admin/clientes/${cliente.id}`);
     } catch (error: any) {
       toast({ title: "Erro na conversão", description: error.message, variant: "destructive" });
     } finally {
@@ -512,12 +549,7 @@ export default function Leads() {
                 <Button
                   onClick={() => {
                     setCriarAcesso(true);
-                    setConvertForm({
-                      senha: "", nome: selectedLead.nome, email: selectedLead.email,
-                      telefone: selectedLead.whatsapp, cidade: selectedLead.cidade || "",
-                      estado: selectedLead.estado || "", documento: selectedLead.documento || "",
-                      endereco: "", site_url: ""
-                    });
+                    setConvertForm(createEmptyConvertForm(selectedLead));
                     setConvertModal(selectedLead); setSelectedLead(null);
                   }}
                   className="gradient-primary text-white font-black uppercase tracking-widest text-[10px] h-12 rounded-xl"
@@ -596,7 +628,12 @@ export default function Leads() {
       </Sheet>
 
       {/* Convert Dialog - Estilo Premium */}
-      <Dialog open={!!convertModal} onOpenChange={() => setConvertModal(null)}>
+      <Dialog open={!!convertModal} onOpenChange={(open) => {
+        if (open) return;
+        setConvertModal(null);
+        setCriarAcesso(true);
+        setConvertForm(createEmptyConvertForm());
+      }}>
         <DialogContent className="glass-card border-white/5 rounded-[3rem] p-10 max-w-lg overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
             <Sparkles className="w-40 h-40 text-primary animate-pulse" />
