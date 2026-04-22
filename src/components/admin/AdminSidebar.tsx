@@ -155,11 +155,11 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
           <div className="relative">
             <div
               className="absolute -inset-2 rounded-xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
-              style={{ background: "linear-gradient(135deg, #7C3AED, #DC2626)" }}
+              style={{ background: "var(--admin-gradient)" }}
             />
             <div
               className="rounded-xl flex items-center justify-center relative w-10 h-10 border border-white/10"
-              style={{ background: "linear-gradient(135deg, #7C3AED, #DC2626)", boxShadow: "inset 0 2px 10px rgba(255,255,255,0.2)" }}
+              style={{ background: "var(--admin-gradient)", boxShadow: "inset 0 2px 10px rgba(255,255,255,0.2)" }}
             >
               <Sparkles className="w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
             </div>
@@ -219,9 +219,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                         layoutId="activeNavBackground"
                         className="absolute inset-x-2 inset-y-1 rounded-xl -z-10"
                         style={{ 
-                          background: "rgba(255, 51, 102, 0.08)",
-                          border: "1px solid rgba(255, 51, 102, 0.15)",
-                          boxShadow: "0 0 20px -5px rgba(255, 51, 102, 0.2)"
+                          background: "rgba(124, 58, 237, 0.08)",
+                          border: "1px solid rgba(124, 58, 237, 0.15)",
+                          boxShadow: "0 0 20px -5px rgba(124, 58, 237, 0.2)"
                         }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
@@ -233,7 +233,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           "absolute w-[2px] rounded-r-full left-0",
                           item.isSubItem ? "h-3" : "h-5"
                         )}
-                        style={{ background: "linear-gradient(180deg, #7C3AED, #DC2626)" }}
+                        style={{ background: "var(--admin-gradient)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}

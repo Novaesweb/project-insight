@@ -164,7 +164,7 @@ export default function QuickBriefingPage() {
           <Card className="border-white/10 bg-white/[0.02] overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between bg-white/[0.02] border-b border-white/5">
               <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/10 text-fuchsia-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--admin-accent-purple)]/10 text-[var(--admin-accent-purple)]">
                   <LayoutList className="h-5 w-5" />
                 </div>
                 <div>
@@ -190,7 +190,7 @@ export default function QuickBriefingPage() {
                     className={`
                       flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all group
                       ${selectedTemplateIds.includes(template.id) 
-                        ? "border-fuchsia-500/50 bg-fuchsia-500/10 shadow-[0_0_20px_-10px_rgba(217,70,239,0.3)]" 
+                        ? "border-[var(--admin-accent-purple)]/50 bg-[var(--admin-accent-purple)]/10 shadow-[0_0_20px_-10px_rgba(124,58,237,0.3)]" 
                         : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20"
                       }
                     `}
@@ -199,11 +199,11 @@ export default function QuickBriefingPage() {
                       <Checkbox
                         checked={selectedTemplateIds.includes(template.id)}
                         onCheckedChange={() => handleToggleTemplate(template.id)}
-                        className="h-5 w-5 border-white/20 data-[state=checked]:bg-fuchsia-500 data-[state=checked]:border-fuchsia-500"
+                        className="h-5 w-5 border-white/20 data-[state=checked]:bg-[var(--admin-accent-purple)] data-[state=checked]:border-[var(--admin-accent-purple)]"
                       />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-bold text-white group-hover:text-fuchsia-200 transition-colors">{template.label}</p>
+                      <p className="text-sm font-bold text-white group-hover:text-[var(--admin-accent-purple)] transition-colors">{template.label}</p>
                       <p className="text-xs text-white/40 line-clamp-1">{template.help_text}</p>
                       <div className="mt-2 inline-flex rounded-md bg-white/5 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white/30 border border-white/5">
                         {template.section_name}
@@ -219,7 +219,7 @@ export default function QuickBriefingPage() {
         {/* Sidebar de Ação */}
         <div className="space-y-6">
           <Card className="sticky top-6 overflow-hidden border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-fuchsia-500 to-primary shadow-[0_0_15px_rgba(217,70,239,0.5)]" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-[var(--admin-gradient)] shadow-[0_0_15px_rgba(124,58,237,0.5)]" />
             <CardHeader className="pb-4">
               <CardTitle className="text-xl text-white">Resumo do Envio</CardTitle>
             </CardHeader>
@@ -234,7 +234,7 @@ export default function QuickBriefingPage() {
                 <div className="h-px bg-white/5" />
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Total de Perguntas</span>
-                  <span className={`text-sm font-bold ${selectedTemplateIds.length > 0 ? 'text-fuchsia-400' : 'text-white/20 italic'}`}>
+                  <span className={`text-sm font-bold ${selectedTemplateIds.length > 0 ? 'text-[var(--admin-accent-purple)]' : 'text-white/20 italic'}`}>
                     {selectedTemplateIds.length > 0 ? `${selectedTemplateIds.length} perguntas selecionadas` : "Nenhuma selecionada"}
                   </span>
                 </div>
@@ -242,7 +242,7 @@ export default function QuickBriefingPage() {
 
               <Button
                 size="lg"
-                className="w-full h-16 bg-gradient-to-r from-primary to-fuchsia-600 font-black text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:grayscale"
+                className="w-full h-16 bg-[var(--admin-gradient)] font-black text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:grayscale"
                 disabled={!selectedClientId || selectedTemplateIds.length === 0 || isSending}
                 onClick={handleSend}
               >
@@ -275,8 +275,8 @@ export default function QuickBriefingPage() {
             animate={{ opacity: 1 }}
             className="rounded-2xl border border-white/5 bg-black/40 p-6 space-y-4"
           >
-             <div className="flex items-center gap-3 text-fuchsia-400">
-               <div className="p-2 rounded-lg bg-fuchsia-500/10">
+             <div className="flex items-center gap-3 text-[var(--admin-accent-purple)]">
+               <div className="p-2 rounded-lg bg-[var(--admin-accent-purple)]/10">
                  <CheckCircle2 className="h-4 w-4" />
                </div>
                <span className="text-xs font-black uppercase tracking-widest">Atenção</span>

@@ -372,7 +372,7 @@ export function ContractBuilderWizard({
             <Button
               type="button"
               className="border-0 text-white"
-              style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
+              style={{ background: "var(--admin-gradient)" }}
               onClick={handleNext}
               disabled={!canAdvance}
             >
@@ -425,7 +425,7 @@ export function ContractBuilderWizard({
               <Button
                 type="button"
                 className="border-0 text-white"
-                style={{ background: "linear-gradient(135deg, #7b1fa2, #e8334a, #c2185b)" }}
+                style={{ background: "var(--admin-gradient)" }}
                 onClick={() => void onSave()}
                 disabled={isPersisting || !builderPrepared}
               >

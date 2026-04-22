@@ -7,20 +7,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractBuilderWizard } from "./ContractBuilderWizard";
 import { ContractCofreList } from "./ContractCofreList";
-import { ensureArray, noop, noopContractAction, noopTabChange } from "@/features/contracts/runtime";
+import { 
+  ensureArray, 
+  noopContractAction, 
+  noopTabChange 
+} from "@/features/contracts/runtime";
 import { contractTemplates } from "@/lib/contract-templates";
+import type { 
+  Cliente, 
+  ExtraCatalogo, 
+  Contrato, 
+  ContractCofreState, 
+  ContractBuilderState 
+} from "@/features/contracts/types";
 
 interface ContractTabsProps {
   activeTab: string;
   onTabChange: (tab: string, options?: { step?: number }) => void;
-  cofre: any;
-  builder: any;
-  clientes: any[];
-  extrasCatalogo: any[];
-  onPreview: (contrato: any) => void;
-  onDuplicate: (contrato: any) => void;
-  onVersions: (contrato: any) => void;
-  onSend: (contrato: any) => Promise<boolean> | boolean;
+  cofre: ContractCofreState;
+  builder: ContractBuilderState;
+  clientes: Cliente[];
+  extrasCatalogo: ExtraCatalogo[];
+  onPreview: (contrato: Contrato) => void;
+  onDuplicate: (contrato: Contrato) => void;
+  onVersions: (contrato: Contrato) => void;
+  onSend: (contrato: Contrato) => Promise<boolean> | boolean;
 }
 
 type ContractTabsInput = Partial<ContractTabsProps>;
@@ -37,37 +48,37 @@ export function ContractTabs({
   onVersions = noopContractAction,
   onSend = noopContractAction,
 }: ContractTabsInput = {}) {
-  const safeCofre = cofre ?? {};
-  const safeBuilder = builder ?? {};
+  // Defensive checks are still good for inputs, but now we know the shape
   const safeClientes = ensureArray(clientes);
   const safeExtrasCatalogo = ensureArray(extrasCatalogo);
-  const filteredContratos = ensureArray(safeCofre.filteredContratos);
-  const builderPayload = safeBuilder.builderPayload ?? null;
-  const builderStatusLabel = safeBuilder.builderStatusLabel ?? {
-    title: "Rascunho",
-    subtitle: "Preparando montador",
+  
+  const filteredContratos = ensureArray(cofre?.filteredContratos);
+  const builderPayload = builder?.builderPayload ?? null;
+  const builderStatusLabel = builder?.builderStatusLabel ?? {
+    title: "Carregando",
+    subtitle: "Preparando montador...",
   };
 
   const handleBuilderStepChange = (step: number) => {
-    safeBuilder.setBuilderStep?.(step);
+    builder?.setBuilderStep?.(step as any);
     onTabChange("montador", { step });
   };
 
   const handleSaveDraft = async () => {
-    await safeBuilder.persistBuilderDraft?.();
+    await builder?.persistBuilderDraft?.();
   };
 
   const handleSaveDraftAndExit = async () => {
-    const saved = await safeBuilder.persistBuilderDraft?.();
+    const saved = await builder?.persistBuilderDraft?.();
     if (saved) onTabChange("lista");
   };
 
   const handleSaveCompletedContract = async () => {
-    await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true, stepOverride: 4 });
+    await builder?.persistBuilderDraft?.({ requireCompleteValidation: true, stepOverride: 4 });
   };
 
   const handleSendCurrent = async () => {
-    const saved = await safeBuilder.persistBuilderDraft?.({
+    const saved = await builder?.persistBuilderDraft?.({
       requireCompleteValidation: true,
       stepOverride: 4,
     });
@@ -77,12 +88,12 @@ export function ContractTabs({
   };
 
   const handleMarkAsSigned = async () => {
-    const saved = await safeBuilder.persistBuilderDraft?.({
+    const saved = await builder?.persistBuilderDraft?.({
       requireCompleteValidation: true,
       stepOverride: 4,
     });
     if (saved) {
-      await safeBuilder.changeContractStatus?.("assinado");
+      await builder?.changeContractStatus?.("assinado");
     }
   };
 

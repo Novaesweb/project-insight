@@ -27,6 +27,60 @@ export interface PreviewState {
   contract?: Contrato | null;
 }
 
+export interface ContractCofreState {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  cofreFilter: "ativos" | "arquivados";
+  setCofreFilter: (filter: "ativos" | "arquivados") => void;
+  cofreStatusFilter: "todos" | ContractStatus;
+  setCofreStatusFilter: (status: "todos" | ContractStatus) => void;
+  deleteTarget: Contrato | null;
+  setDeleteTarget: (target: Contrato | null) => void;
+  filteredContratos: Contrato[];
+  activeContractsCount: number;
+  archivedContractsCount: number;
+  contractStatusCounts: Record<string, number>;
+  handleArchiveContract: (target: Contrato) => Promise<void>;
+  handleUnarchiveContract: (target: Contrato) => Promise<void>;
+  handleDeleteDraft: () => Promise<void>;
+}
+
+export interface ContractBuilderState {
+  builderPayload: ContractBuilderPayload | null;
+  editingBuilderContract: Contrato | null;
+  builderStep: ContractBuilderStepIndex;
+  setBuilderStep: (step: ContractBuilderStepIndex) => void;
+  builderStatusLabel: { title: string; subtitle: string };
+  builderProgress: number;
+  selectedItemsCount: number;
+  resetBuilder: () => void;
+  onClientChange: (clientId: string) => Promise<void>;
+  onRefreshExtras: () => Promise<void>;
+  onUpdateContractante: (field: string, value: string) => void;
+  onUpdateContratada: (field: string, value: string) => void;
+  onUpdateTextField: (field: string, value: string) => void;
+  onPrimaryPlanChange: (planId: any) => void; // Using any for planId to avoid circular dependency or missing import if not careful, but better than full any
+  onPricingChange: (field: string, value: string) => void;
+  onExtraFieldChange: (extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => void;
+  onToggleExtra: (extraId: string, active: boolean) => void;
+  openBuilderContract: (contrato: Contrato) => void;
+  persistBuilderDraft: (options?: {
+    requireCompleteValidation?: boolean;
+    silent?: boolean;
+    autosaveRemote?: boolean;
+    stepOverride?: ContractBuilderStepIndex;
+  }) => Promise<Contrato | null | false>;
+  changeContractStatus: (status: ContractStatus) => Promise<boolean>;
+  handleGeneratePdf: () => void;
+  handleDownloadWord: () => void;
+  handlePrint: () => void;
+  syncingClientExtras: boolean;
+  builderRemoteAutosaveState: "idle" | "saving" | "saved" | "error";
+  builderLastSavedAt: string | null;
+  mobileSummaryOpen: boolean;
+  setMobileSummaryOpen: (open: boolean) => void;
+}
+
 export type ContractDraftStatus = ContractStatus;
 export type ContractDraft = AdminContractDraft;
 

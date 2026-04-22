@@ -110,9 +110,17 @@ section {
     --gradient-admin: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899, #FF6B6B);
     --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
     --gradient-admin-subtle: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(107, 33, 168, 0.08), rgba(236, 72, 153, 0.08));
+    /* High-End Dark Command Theme Tokens */
     --admin-bg: #08000F;
     --admin-surface: #0F0018;
     --admin-border: 240 10% 20% / 0.4;
+    --admin-accent-purple: #7C3AED;
+    --admin-accent-red: #DC2626;
+    --admin-accent-green: #10B981;
+    --admin-accent-yellow: #F59E0B;
+    --admin-gradient: linear-gradient(135deg, var(--admin-accent-purple), var(--admin-accent-red));
+    --admin-glow: rgba(124, 58, 237, 0.15);
+    
     --glow-primary: rgba(124, 58, 237, 0.15);
     --glow-secondary: rgba(220, 38, 38, 0.15);
     --glow-accent: rgba(124, 58, 237, 0.10);
@@ -389,22 +397,26 @@ section {
   }
 
   .gradient-text-purple-red {
-    background: linear-gradient(135deg, #7C3AED, #DC2626);
+    background: var(--admin-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  
+  .bg-admin-gradient {
+    background: var(--admin-gradient);
+  }
 
   .border-l-financial {
-    border-left: 4px solid #7C3AED !important;
+    border-left: 4px solid var(--admin-accent-purple) !important;
   }
 
   .border-l-projects {
-    border-left: 4px solid #10B981 !important;
+    border-left: 4px solid var(--admin-accent-green) !important;
   }
 
   .border-l-alerts {
-    border-left: 4px solid #F59E0B !important;
+    border-left: 4px solid var(--admin-accent-yellow) !important;
   }
 
   .glass-card {
