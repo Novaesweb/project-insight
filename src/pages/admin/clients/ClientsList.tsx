@@ -8,6 +8,10 @@ import {
   Search,
   Users,
   UserPlus,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -17,8 +21,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useClients } from "@/features/clients/hooks/useClients";
+import { type Client } from "@/features/clients/services/client-service";
 import { cn } from "@/lib/utils";
 
 type ClientFormState = {
@@ -50,9 +72,11 @@ const emptyForm: ClientFormState = {
 export default function ClientsList() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { clients, loading, createClientAsync, creating } = useClients();
+  const { clients, loading, createClientAsync, updateClient, deleteClient, creating } = useClients();
   const [busca, setBusca] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [form, setForm] = useState<ClientFormState>(emptyForm);
 
   const filtrados = useMemo(() => {
@@ -69,53 +93,67 @@ export default function ClientsList() {
 
   const resetForm = () => setForm(emptyForm);
 
-  const handleCreateClient = async () => {
+  const handleSaveClient = async () => {
     const nome = form.nome.trim();
     const email = form.email.trim().toLowerCase();
 
-    if (!nome) {
+    if (!nome || !email) {
       toast({
-        title: "Informe o nome do cliente",
-        description: "O nome e obrigatorio para cadastrar um novo cliente.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!email) {
-      toast({
-        title: "Informe o e-mail do cliente",
-        description: "O e-mail e obrigatorio para salvar o cadastro.",
+        title: "Campos obrigatorios",
+        description: "Nome e e-mail sao obrigatorios.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const created = await createClientAsync({
-        nome,
-        nome_empresa: form.nome_empresa,
-        email,
-        whatsapp: form.whatsapp,
-        telefone: form.telefone,
-        documento: form.documento,
-        cidade: form.cidade,
-        estado: form.estado,
-        endereco: form.endereco,
-        site_url: form.site_url,
-        status: "ativo",
-      });
+      if (editingClient) {
+        updateClient({
+          id: editingClient.id,
+          updates: { ...form }
+        });
+        setEditingClient(null);
+      } else {
+        const created = await createClientAsync({
+          ...form,
+          status: "ativo",
+        });
 
-      toast({
-        title: "Cliente criado com sucesso",
-        description: `${created.nome} ja esta disponivel na base de clientes.`,
-      });
+        toast({
+          title: "Cliente criado com sucesso",
+          description: `${created.nome} ja esta disponivel na base de clientes.`,
+        });
+        navigate(`/admin/clientes/${created.id}`);
+      }
 
       setCreateOpen(false);
       resetForm();
-      navigate(`/admin/clientes/${created.id}`);
     } catch {
       void 0;
+    }
+  };
+
+  const handleEdit = (client: Client) => {
+    setEditingClient(client);
+    setForm({
+      nome: client.nome,
+      nome_empresa: client.nome_empresa || "",
+      email: client.email,
+      whatsapp: client.whatsapp || "",
+      telefone: client.telefone || "",
+      documento: client.documento || "",
+      cidade: client.cidade || "",
+      estado: client.estado || "",
+      endereco: client.endereco || "",
+      site_url: client.site_url || "",
+    });
+    setCreateOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (deleteConfirmId) {
+      deleteClient(deleteConfirmId);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -172,19 +210,42 @@ export default function ClientsList() {
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-2xl font-black text-primary shadow-xl shadow-primary/5 transition-all group-hover:bg-primary/20">
                       {client.avatar || client.nome[0]}
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "rounded-full px-3 py-1 text-[9px] font-black uppercase",
-                        client.status === "ativo"
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                          : client.status === "bloqueado"
-                            ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
-                            : "border-amber-500/30 bg-amber-500/10 text-amber-300",
-                      )}
-                    >
-                      {client.status}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "rounded-full px-3 py-1 text-[9px] font-black uppercase",
+                          client.status === "ativo"
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                            : client.status === "bloqueado"
+                              ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                              : "border-amber-500/30 bg-amber-500/10 text-amber-300",
+                        )}
+                      >
+                        {client.status}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" className="h-8 w-8 p-0 text-white/20 hover:text-white">
+                            <MoreVertical size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl border-white/10 bg-[#1a1421] text-white">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }} className="gap-2 focus:bg-white/5 focus:text-white cursor-pointer">
+                            <Pencil size={14} className="text-primary" /> Editar Dados
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clientes/${client.id}`); }} className="gap-2 focus:bg-white/5 focus:text-white cursor-pointer">
+                            <ExternalLink size={14} /> Ver Perfil Completo
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(client.id); }} 
+                            className="gap-2 focus:bg-rose-500/10 focus:text-rose-400 text-rose-400/80 cursor-pointer"
+                          >
+                            <Trash2 size={14} /> Remover Cliente
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
 
                   <div className="mb-6 space-y-1">
@@ -252,124 +313,151 @@ export default function ClientsList() {
         open={createOpen}
         onOpenChange={(open) => {
           setCreateOpen(open);
-          if (!open) resetForm();
+          if (!open) {
+            resetForm();
+            setEditingClient(null);
+          }
         }}
       >
-        <DialogContent className="max-w-2xl rounded-[2rem] border-white/10 bg-[#120d18] text-white">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black">Novo Cliente</DialogTitle>
+        <DialogContent className="max-w-lg rounded-[2rem] border-white/10 bg-[#120d18] p-0 text-white overflow-hidden">
+          <DialogHeader className="p-8 pb-0">
+            <DialogTitle className="text-2xl font-black">
+              {editingClient ? "Editar Cliente" : "Novo Cliente"}
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Nome</Label>
-              <Input
-                value={form.nome}
-                onChange={(event) => setForm((current) => ({ ...current, nome: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
+          <ScrollArea className="max-h-[70vh] px-8 py-6">
+            <div className="grid gap-4 md:grid-cols-2 pb-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Nome Completo</Label>
+                <Input
+                  value={form.nome}
+                  onChange={(event) => setForm((current) => ({ ...current, nome: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  placeholder="Ex: Joao Silva"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Empresa / Negocio</Label>
+                <Input
+                  value={form.nome_empresa}
+                  onChange={(event) => setForm((current) => ({ ...current, nome_empresa: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">CPF / CNPJ</Label>
+                <Input
+                  value={form.documento}
+                  onChange={(event) => setForm((current) => ({ ...current, documento: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">E-mail</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">WhatsApp</Label>
+                <Input
+                  value={form.whatsapp}
+                  onChange={(event) => setForm((current) => ({ ...current, whatsapp: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Telefone</Label>
+                <Input
+                  value={form.telefone}
+                  onChange={(event) => setForm((current) => ({ ...current, telefone: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Site URL</Label>
+                <Input
+                  value={form.site_url}
+                  onChange={(event) => setForm((current) => ({ ...current, site_url: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  placeholder="https://"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Cidade</Label>
+                <Input
+                  value={form.cidade}
+                  onChange={(event) => setForm((current) => ({ ...current, cidade: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Estado</Label>
+                <Input
+                  value={form.estado}
+                  onChange={(event) => setForm((current) => ({ ...current, estado: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-xs uppercase tracking-widest text-white/40">Endereco</Label>
+                <Input
+                  value={form.endereco}
+                  onChange={(event) => setForm((current) => ({ ...current, endereco: event.target.value }))}
+                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Empresa</Label>
-              <Input
-                value={form.nome_empresa}
-                onChange={(event) => setForm((current) => ({ ...current, nome_empresa: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">CPF / CNPJ</Label>
-              <Input
-                value={form.documento}
-                onChange={(event) => setForm((current) => ({ ...current, documento: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">E-mail</Label>
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">WhatsApp</Label>
-              <Input
-                value={form.whatsapp}
-                onChange={(event) => setForm((current) => ({ ...current, whatsapp: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Telefone</Label>
-              <Input
-                value={form.telefone}
-                onChange={(event) => setForm((current) => ({ ...current, telefone: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Cidade</Label>
-              <Input
-                value={form.cidade}
-                onChange={(event) => setForm((current) => ({ ...current, cidade: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Estado</Label>
-              <Input
-                value={form.estado}
-                onChange={(event) => setForm((current) => ({ ...current, estado: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Endereco</Label>
-              <Input
-                value={form.endereco}
-                onChange={(event) => setForm((current) => ({ ...current, endereco: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Site</Label>
-              <Input
-                value={form.site_url}
-                onChange={(event) => setForm((current) => ({ ...current, site_url: event.target.value }))}
-                className="border-white/10 bg-black/30 text-white"
-                placeholder="https://"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-white/40">Status inicial</Label>
-              <Input value="Ativo" disabled className="border-white/10 bg-black/20 text-white/60" />
-            </div>
-          </div>
+          </ScrollArea>
 
-          <div className="flex flex-wrap justify-end gap-3">
+          <div className="flex justify-end gap-3 p-8 pt-4 border-t border-white/5 bg-black/20">
             <Button
               variant="ghost"
               className="text-white/60 hover:text-white"
               onClick={() => {
                 setCreateOpen(false);
                 resetForm();
+                setEditingClient(null);
               }}
             >
               Cancelar
             </Button>
             <Button
-              className="gradient-primary border-0 text-white"
-              onClick={() => void handleCreateClient()}
+              className="gradient-primary border-0 text-white px-8 rounded-xl font-black uppercase tracking-widest text-[10px]"
+              onClick={() => void handleSaveClient()}
               disabled={creating}
             >
-              {creating ? "Salvando..." : "Salvar Cliente"}
+              {creating ? "Salvando..." : (editingClient ? "Atualizar Dados" : "Criar Cliente")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent className="rounded-3xl border-white/10 bg-[#120d18] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-black">Remover Cliente?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/50">
+              Esta acao nao pode ser desfeita. O cliente sera removido permanentemente da base de dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="rounded-xl bg-rose-500 text-white hover:bg-rose-600 font-bold"
+            >
+              Confirmar Exclusao
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

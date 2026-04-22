@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { leadService, Lead, LeadStatus } from "@/features/leads/services/lead-service";
 import { useLeads } from "@/features/leads/hooks/useLeads";
+import { useClients } from "@/features/clients/hooks/useClients";
 import InternalNotes from "@/components/InternalNotes";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +41,9 @@ export default function LeadDetailsPage() {
   const { toast } = useToast();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isConverting, setIsConverting] = useState(false);
   const { updateStatus } = useLeads();
+  const { createClientAsync } = useClients();
 
   useEffect(() => {
     const loadLead = async () => {
@@ -66,6 +69,49 @@ export default function LeadDetailsPage() {
 
   const sc = statusConfig[lead.status] || statusConfig.novo;
 
+  const handleConvertToClient = async () => {
+    if (!lead || isConverting) return;
+    
+    setIsConverting(true);
+    try {
+      // 1. Create client from lead data
+      const created = await createClientAsync({
+        nome: lead.nome,
+        email: lead.email,
+        whatsapp: lead.whatsapp,
+        telefone: lead.whatsapp,
+        documento: lead.documento,
+        nome_empresa: lead.nome_negocio,
+        cidade: lead.cidade,
+        estado: lead.estado,
+        status: "ativo"
+      });
+
+      // 2. Update lead status to converted
+      await updateStatus({ 
+        id: lead.id, 
+        status: "convertido",
+        extra: { visualizado: true }
+      });
+
+      toast({
+        title: "Lead convertido com sucesso!",
+        description: `${lead.nome} agora e um cliente oficial.`
+      });
+
+      // 3. Redirect to the new client profile
+      navigate(`/admin/clientes/${created.id}`);
+    } catch (error: any) {
+      toast({
+        title: "Erro na conversao",
+        description: error.message || "Nao foi possivel converter o lead.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
   return (
     <div className="space-y-8 pb-20">
       {/* Navigation Header */}
@@ -81,9 +127,13 @@ export default function LeadDetailsPage() {
               <Trash2 className="mr-2 h-4 w-4" />
               Excluir
            </Button>
-           <Button className="gradient-primary text-white font-black uppercase tracking-widest text-[10px] px-6">
+           <Button 
+             className="gradient-primary text-white font-black uppercase tracking-widest text-[10px] px-6"
+             onClick={() => void handleConvertToClient()}
+             disabled={isConverting || lead.status === "convertido"}
+           >
               <UserPlus className="mr-2 h-4 w-4" />
-              Converter Cliente
+              {isConverting ? "Convertendo..." : lead.status === "convertido" ? "Lead Convertido" : "Converter Cliente"}
            </Button>
         </div>
       </div>
