@@ -2,18 +2,27 @@ import type { Tables } from "@/integrations/supabase/types";
 import { PUBLIC_PLAN_CATALOG, type PublicPlanCatalogItem } from "@/lib/public-plans";
 
 export type BuilderPrimaryPlanId = PublicPlanCatalogItem["id"] | "none";
-export type BuilderItemGroup = "planos" | "fixo" | "intermediario" | "mensal";
+export type BuilderItemGroup = "planos" | "extras";
 export type ContractBuilderStepIndex = 0 | 1 | 2 | 3 | 4;
+export type ContractStatus =
+  | "rascunho"
+  | "em_revisao"
+  | "aprovado"
+  | "enviado"
+  | "assinado"
+  | "ativo"
+  | "cancelado"
+  | "encerrado";
 
 export interface ContractBuilderParty {
   nome: string;
   nomeEmpresa?: string;
   documento: string;
+  rg?: string;
   email?: string;
   whatsapp?: string;
   telefone?: string;
-  instagram?: string;
-  siteUrl?: string;
+  dataNascimento?: string;
   endereco: string;
   cep?: string;
   cidade?: string;
@@ -25,12 +34,14 @@ export interface ContractBuilderContractor {
   representante: string;
   documento: string;
   endereco: string;
+  cidade: string;
+  estado: string;
   observacaoRecebimento: string;
 }
 
 export interface ContractBuilderItem {
   id: string;
-  source: "plan" | "extra";
+  source: "plan";
   sourceId?: string;
   group: BuilderItemGroup;
   name: string;
@@ -46,13 +57,17 @@ export interface ContractBuilderClientExtraSnapshot {
   extraId: string;
   name: string;
   description: string;
-  category: BuilderItemGroup;
-  typeLabel: "mensal" | "único";
+  clause: string;
+  active: boolean;
+  order: number;
   setupPrice: number;
   monthlyPrice: number;
 }
 
 export interface ContractBuilderPricing {
+  baseValue: number;
+  extrasTotal: number;
+  totalValue: number;
   setupSubtotal: number;
   monthlySubtotal: number;
   negotiatedSetup: number;
@@ -67,9 +82,15 @@ export interface ContractBuilderPricing {
 }
 
 export interface ContractBuilderPayload {
+  version: "v2";
   clienteId: string;
   lastStep: ContractBuilderStepIndex;
+  status: ContractStatus;
   primaryPlanId: BuilderPrimaryPlanId;
+  contractNumber: string;
+  issueDate: string;
+  startDate: string;
+  dueDate: string;
   contractante: ContractBuilderParty;
   contratada: ContractBuilderContractor;
   items: ContractBuilderItem[];
@@ -86,6 +107,8 @@ export interface ContractBuilderPayload {
   createdAt: string;
   updatedAt: string;
 }
+
+export type AdminContractDraft = ContractBuilderPayload;
 
 export interface ContractProposalSummarySection {
   eyebrow: string;
@@ -131,13 +154,34 @@ export interface ContractSignatureOptions {
   signedAt?: string | null;
 }
 
-function normalizeBuilderGroup(value: string | null | undefined): BuilderItemGroup {
-  if (value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal") {
-    return value;
-  }
+export const DEFAULT_CONTRACTOR_DATA: ContractBuilderContractor = {
+  nome: "NovaesWeb",
+  representante: "Lucas Rodrigo Ferreira dos Santos",
+  documento: "503.328.838-50",
+  endereco: "Estrada da Prainha, 630 - Mato Grande",
+  cidade: "Canoas",
+  estado: "RS",
+  observacaoRecebimento:
+    "A NovaesWeb atua com formalização contratual centralizada e mantém registro administrativo interno deste aceite.",
+};
 
-  return "fixo";
-}
+export const DEFAULT_SCOPE_EXCLUSIONS =
+  "Nao fazem parte do escopo campanhas de trafego pago, gestao de redes sociais, producao de conteudo, novas funcionalidades nao descritas e custos externos de plataformas terceiras.";
+
+export const DEFAULT_COMMERCIAL_NOTES =
+  "A contratacao considera apenas o escopo aprovado nesta proposta. Ajustes estruturais, mudancas de escopo e novas entregas podem gerar aditivo ou cobranca complementar.";
+
+export const DEFAULT_PAYMENT_METHOD = "PIX, boleto, cartao ou link de pagamento";
+
+const CONTRACT_SCOPE_NOTICE_TITLE = "Escopo de atuação";
+
+const CONTRACT_SCOPE_NOTICE_LINES = [
+  "A NovaesWeb responde pela estrutura digital, pelo documento contratual e pelo fluxo operacional descrito na proposta.",
+  "Serviços de marketing, campanhas, produção de conteúdo e metas comerciais dependem de contratação e operação separadas.",
+  "Tudo o que não estiver descrito no escopo principal ou nos extras vinculados fica fora da entrega padrão deste contrato.",
+];
+
+const LEGACY_SIGNATURE_LINES_REGEX = /\n{0,2}(CONTRATANTE|CONTRATADA):\s*_+\s*(?=\n|$)/gi;
 
 function escapeHtml(value: string) {
   return value
@@ -148,74 +192,16 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-const LEGACY_SIGNATURE_LINES_REGEX =
-  /\n{0,2}(CONTRATANTE|CONTRATADA):\s*_+\s*(?=\n|$)/gi;
+function normalizeBuilderGroup(): BuilderItemGroup {
+  return "extras";
+}
 
-export const DEFAULT_CONTRACTOR_DATA: ContractBuilderContractor = {
-  nome: "NovaesWeb",
-  representante: "Lucas Rodrigo Ferreira dos Santos",
-  documento: "503.328.838-50",
-  endereco: "Estrada da Prainha, 630 – Mato Grande, Canoas – RS",
-  observacaoRecebimento:
-    "A NovaesWeb está no início da operação e utiliza CPF como forma de recebimento neste momento.",
-};
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
 
-export const DEFAULT_SCOPE_EXCLUSIONS =
-  "Licenças, integrações não previstas, campanhas pagas, textos, fotos, artes, hospedagem, domínio ou novas funcionalidades não descritas na proposta aprovada.";
-
-export const DEFAULT_COMMERCIAL_NOTES =
-  "Serviços recorrentes, extras, integrações, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do CONTRATANTE.";
-
-export const DEFAULT_PAYMENT_METHOD =
-  "PIX, boleto, cartão ou link de pagamento";
-
-const CONTRACT_SCOPE_NOTICE_TITLE = "Escopo de atuação - importante";
-
-const CONTRACT_SCOPE_NOTICE_LINES = [
-  "AVISO: A NovaesWeb atua exclusivamente na criação, desenvolvimento e manutenção do site e das estruturas digitais contratadas.",
-  "Serviços de marketing digital, gestão de tráfego pago, produção de conteúdo, gerenciamento de redes sociais, campanhas publicitárias e estratégias comerciais não estão incluídos no escopo da NovaesWeb.",
-  "A NovaesWeb não oferece nem se responsabiliza por resultados de marketing, captação de clientes ou performance comercial.",
-];
-
-export function createEmptyBuilderPayload(
-  extras: Tables<"extras_catalogo">[] = [],
-): ContractBuilderPayload {
-  const now = new Date().toISOString();
-  const items = buildContractBuilderItems(extras);
-
-  return {
-    clienteId: "",
-    lastStep: 0,
-    primaryPlanId: "none",
-    contractante: {
-      nome: "",
-      nomeEmpresa: "",
-      documento: "",
-      email: "",
-      whatsapp: "",
-      telefone: "",
-      instagram: "",
-      siteUrl: "",
-      endereco: "",
-      cep: "",
-      cidade: "",
-      estado: "",
-    },
-    contratada: { ...DEFAULT_CONTRACTOR_DATA },
-    items,
-    clientExtrasSnapshot: [],
-    customScope: "",
-    prazoDias: "15",
-    formaPagamento: DEFAULT_PAYMENT_METHOD,
-    numeroRevisoes: "2",
-    valorRevisao: "150,00",
-    prazoSuporte: "30 dias após a entrega",
-    observacoesComerciais: DEFAULT_COMMERCIAL_NOTES,
-    escopoExclusoes: DEFAULT_SCOPE_EXCLUSIONS,
-    pricing: computeBuilderPricing(items),
-    createdAt: now,
-    updatedAt: now,
-  };
+function buildContractNumber() {
+  return `CTR-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
 
 export function formatCurrencyBRL(value: number) {
@@ -223,13 +209,6 @@ export function formatCurrencyBRL(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
-}
-
-export function stripLegacySignaturePlaceholders(body: string) {
-  return String(body || "")
-    .replace(LEGACY_SIGNATURE_LINES_REGEX, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
 }
 
 export function parseMoneyInput(value: string | number | null | undefined) {
@@ -242,22 +221,27 @@ export function parseMoneyInput(value: string | number | null | undefined) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function composeClientAddress(
-  cliente: Partial<Tables<"clientes">> | ContractBuilderParty,
-) {
-  const enderecoBase = cliente.endereco?.trim() || "";
-  const numero = "numero_endereco" in cliente ? cliente.numero_endereco?.trim() || "" : "";
-  const complemento = cliente.complemento?.trim() || "";
-  const bairro = cliente.bairro?.trim() || "";
-  const cidade = cliente.cidade?.trim() || "";
-  const estado = cliente.estado?.trim() || "";
+export function stripLegacySignaturePlaceholders(body: string) {
+  return String(body || "")
+    .replace(LEGACY_SIGNATURE_LINES_REGEX, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function composeClientAddress(cliente: Partial<Tables<"clientes">> | ContractBuilderParty) {
+  const address = cliente.endereco?.trim() || "";
+  const number = "numero_endereco" in cliente ? cliente.numero_endereco?.trim() || "" : "";
+  const complement = "complemento" in cliente ? cliente.complemento?.trim() || "" : "";
+  const district = "bairro" in cliente ? cliente.bairro?.trim() || "" : "";
+  const city = cliente.cidade?.trim() || "";
+  const state = cliente.estado?.trim() || "";
   const cep = cliente.cep?.trim() || "";
 
-  const primeiraLinha = [enderecoBase, numero].filter(Boolean).join(", ");
-  const segundaLinha = [complemento, bairro].filter(Boolean).join(" — ");
-  const terceiraLinha = [cidade, estado].filter(Boolean).join(" / ");
+  const firstLine = [address, number].filter(Boolean).join(", ");
+  const secondLine = [complement, district].filter(Boolean).join(" - ");
+  const thirdLine = [city, state].filter(Boolean).join(" / ");
 
-  return [primeiraLinha, segundaLinha, terceiraLinha, cep].filter(Boolean).join(" | ");
+  return [firstLine, secondLine, thirdLine, cep].filter(Boolean).join(" | ");
 }
 
 export function buildContractanteFromClient(cliente: Tables<"clientes">): ContractBuilderParty {
@@ -268,18 +252,31 @@ export function buildContractanteFromClient(cliente: Tables<"clientes">): Contra
     email: cliente.email || "",
     whatsapp: cliente.whatsapp || "",
     telefone: cliente.telefone || "",
-    instagram: cliente.instagram || "",
-    siteUrl: cliente.site_url || "",
     endereco: composeClientAddress(cliente),
     cep: cliente.cep || "",
     cidade: cliente.cidade || "",
     estado: cliente.estado || "",
+    rg: "",
+    dataNascimento: "",
   };
 }
 
-export function buildContractBuilderItems(
-  _extras: Tables<"extras_catalogo">[],
-): ContractBuilderItem[] {
+export function buildDefaultExtraClause(extra: {
+  name?: string;
+  description?: string;
+  monthlyPrice?: number;
+  setupPrice?: number;
+}) {
+  const label = extra.name?.trim() || "Extra contratado";
+  const detail = extra.description?.trim() || "Entrega complementar vinculada ao contrato principal.";
+  const price = extra.monthlyPrice && extra.monthlyPrice > 0
+    ? `${formatCurrencyBRL(extra.monthlyPrice)} por mes`
+    : `${formatCurrencyBRL(extra.setupPrice || 0)} em valor unico`;
+
+  return `${label}: ${detail} O valor deste extra foi definido em ${price}.`;
+}
+
+export function buildContractBuilderItems(_extras: Tables<"extras_catalogo">[] = []): ContractBuilderItem[] {
   return PUBLIC_PLAN_CATALOG.map((plan) => ({
     id: `plan:${plan.id}`,
     source: "plan",
@@ -288,73 +285,10 @@ export function buildContractBuilderItems(
     name: plan.title,
     description: plan.description,
     selected: false,
-    setupPrice: plan.setupPrice,
-    monthlyPrice: plan.monthlyPrice,
+    setupPrice: Number(plan.setupPrice || 0),
+    monthlyPrice: Number(plan.monthlyPrice || 0),
     isPrimaryPlan: true,
   }));
-}
-
-function getSelectedPlanItem(items: ContractBuilderItem[]) {
-  return items.find((item) => item.isPrimaryPlan && item.selected) || null;
-}
-
-export function getContractExtraSnapshots(payload: ContractBuilderPayload) {
-  if (payload.clientExtrasSnapshot.length > 0) {
-    return payload.clientExtrasSnapshot;
-  }
-
-  return payload.items
-    .filter((item) => item.selected && !item.isPrimaryPlan)
-    .map((item) => ({
-      id: item.id,
-      extraId: item.sourceId || item.id,
-      name: item.name,
-      description: item.description,
-      category: item.group,
-      typeLabel: item.monthlyPrice > 0 ? "mensal" : "único",
-      setupPrice: item.setupPrice,
-      monthlyPrice: item.monthlyPrice,
-    }));
-}
-
-export function selectPrimaryPlan(
-  items: ContractBuilderItem[],
-  planId: BuilderPrimaryPlanId,
-) {
-  return items.map((item) => {
-    if (!item.isPrimaryPlan) return item;
-    if (planId === "none") return { ...item, selected: false };
-    return {
-      ...item,
-      selected: item.id === `plan:${planId}`,
-    };
-  });
-}
-
-export function toggleBuilderItem(
-  items: ContractBuilderItem[],
-  itemId: string,
-  selected: boolean,
-) {
-  return items.map((item) =>
-    item.id === itemId ? { ...item, selected } : item,
-  );
-}
-
-export function updateBuilderItemPrice(
-  items: ContractBuilderItem[],
-  itemId: string,
-  field: "setupPrice" | "monthlyPrice",
-  value: number,
-) {
-  return items.map((item) =>
-    item.id === itemId
-      ? {
-          ...item,
-          [field]: Number.isFinite(value) ? value : 0,
-        }
-      : item,
-  );
 }
 
 export function computeBuilderPricing(
@@ -362,286 +296,209 @@ export function computeBuilderPricing(
   clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[] = [],
   overrides?: Partial<ContractBuilderPricing>,
 ): ContractBuilderPricing {
-  const selectedPlan = getSelectedPlanItem(items);
-  const pricedExtras =
-    clientExtrasSnapshot.length > 0
-      ? clientExtrasSnapshot
-      : items.filter((item) => item.selected && !item.isPrimaryPlan).map((item) => ({
-          setupPrice: item.setupPrice,
-          monthlyPrice: item.monthlyPrice,
-        }));
-
-  const setupSubtotal =
-    Number(selectedPlan?.setupPrice || 0) +
-    pricedExtras.reduce((sum, item) => sum + Number(item.setupPrice || 0), 0);
-
-  const monthlySubtotal =
-    Number(selectedPlan?.monthlyPrice || 0) +
-    pricedExtras.reduce((sum, item) => sum + Number(item.monthlyPrice || 0), 0);
-
-  const negotiatedSetup = overrides?.negotiatedSetup ?? setupSubtotal;
-  const negotiatedMonthly = overrides?.negotiatedMonthly ?? monthlySubtotal;
-  const discountType = overrides?.discountType === "percentage" ? "percentage" : "fixed";
-  const discountValue = Math.max(Number(overrides?.discountValue || 0), 0);
-  const discountAmount =
-    discountType === "percentage"
-      ? Math.min((negotiatedSetup * discountValue) / 100, negotiatedSetup)
-      : Math.min(discountValue, negotiatedSetup);
-  const finalSetupTotal = Math.max(negotiatedSetup - discountAmount, 0);
-  const entryValue = Math.min(overrides?.entryValue ?? 0, finalSetupTotal);
-  const balanceValue = Math.max(finalSetupTotal - entryValue, 0);
-  const finalMonthlyTotal = negotiatedMonthly;
+  const selectedPlan = items.find((item) => item.isPrimaryPlan && item.selected) || null;
+  const baseValue = Number(overrides?.baseValue ?? selectedPlan?.setupPrice ?? 0);
+  const extrasTotal = Number(
+    overrides?.extrasTotal ??
+      clientExtrasSnapshot
+        .filter((item) => item.active !== false)
+        .reduce((sum, item) => sum + Number(item.setupPrice || 0), 0),
+  );
+  const totalValue = Number(overrides?.totalValue ?? baseValue + extrasTotal);
+  const entryValue = Math.min(Number(overrides?.entryValue ?? 0), totalValue);
+  const balanceValue = Math.max(totalValue - entryValue, 0);
 
   return {
-    setupSubtotal,
-    monthlySubtotal,
-    negotiatedSetup,
-    discountType,
-    discountValue,
-    discountAmount,
-    finalSetupTotal,
+    baseValue,
+    extrasTotal,
+    totalValue,
+    setupSubtotal: baseValue,
+    monthlySubtotal: 0,
+    negotiatedSetup: baseValue,
+    discountType: "fixed",
+    discountValue: 0,
+    discountAmount: 0,
+    finalSetupTotal: totalValue,
     entryValue,
     balanceValue,
-    negotiatedMonthly,
-    finalMonthlyTotal,
+    negotiatedMonthly: 0,
+    finalMonthlyTotal: 0,
   };
 }
 
+export function createEmptyBuilderPayload(
+  extras: Tables<"extras_catalogo">[] = [],
+): ContractBuilderPayload {
+  const now = new Date().toISOString();
+  const items = buildContractBuilderItems(extras);
+  const issueDate = todayISO();
+
+  return {
+    version: "v2",
+    clienteId: "",
+    lastStep: 4,
+    status: "rascunho",
+    primaryPlanId: "none",
+    contractNumber: buildContractNumber(),
+    issueDate,
+    startDate: issueDate,
+    dueDate: issueDate,
+    contractante: {
+      nome: "",
+      nomeEmpresa: "",
+      documento: "",
+      rg: "",
+      email: "",
+      whatsapp: "",
+      telefone: "",
+      dataNascimento: "",
+      endereco: "",
+      cep: "",
+      cidade: "",
+      estado: "",
+    },
+    contratada: { ...DEFAULT_CONTRACTOR_DATA },
+    items,
+    clientExtrasSnapshot: [],
+    customScope: "",
+    prazoDias: "15",
+    formaPagamento: DEFAULT_PAYMENT_METHOD,
+    numeroRevisoes: "2",
+    valorRevisao: "0,00",
+    prazoSuporte: "Atendimento em dias úteis durante o horário comercial.",
+    observacoesComerciais: DEFAULT_COMMERCIAL_NOTES,
+    escopoExclusoes: DEFAULT_SCOPE_EXCLUSIONS,
+    pricing: computeBuilderPricing(items),
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function selectPrimaryPlan(items: ContractBuilderItem[], planId: BuilderPrimaryPlanId) {
+  return items.map((item) => ({
+    ...item,
+    selected: item.isPrimaryPlan ? planId !== "none" && item.sourceId === planId : item.selected,
+  }));
+}
+
 export function getSelectedPrimaryPlanId(items: ContractBuilderItem[]): BuilderPrimaryPlanId {
-  const selectedPlan = items.find((item) => item.isPrimaryPlan && item.selected);
-  return (selectedPlan?.sourceId as BuilderPrimaryPlanId) || "none";
+  return (items.find((item) => item.isPrimaryPlan && item.selected)?.sourceId as BuilderPrimaryPlanId) || "none";
 }
 
-export function buildContractedServicesSummary(
-  payload: ContractBuilderPayload,
-) {
-  const selectedPlan = getSelectedPlanItem(payload.items);
-  const selectedExtras = getContractExtraSnapshots(payload);
-
-  if (payload.primaryPlanId === "sob-medida" && payload.customScope.trim()) {
-    return [
-      payload.customScope.trim(),
-      selectedPlan?.name ? `Plano base: ${selectedPlan.name}` : null,
-      selectedExtras.length
-        ? `Itens adicionais contratados: ${selectedExtras.map((item) => item.name).join(", ")}`
-        : null,
-    ]
-      .filter(Boolean)
-      .join(" | ");
-  }
-
-  return [selectedPlan?.name || null, ...selectedExtras.map((item) => item.name)]
-    .filter(Boolean)
-    .join(", ");
+export function getContractExtraSnapshots(payload: ContractBuilderPayload) {
+  return payload.clientExtrasSnapshot
+    .filter((item) => item.active !== false)
+    .sort((left, right) => left.order - right.order);
 }
 
-export function describeBuilderItemPricing(item: ContractBuilderItem) {
-  if (!item.selected) return "(Não incluso neste pacote)";
-
-  const setupText = item.setupPrice > 0 ? formatCurrencyBRL(item.setupPrice) : "Incluso";
-  const monthlyText = item.monthlyPrice > 0 ? formatCurrencyBRL(item.monthlyPrice) : "Incluso";
-
-  if (item.group === "mensal" && item.setupPrice <= 0) {
-    return `${monthlyText}/mês`;
-  }
-
-  if (item.monthlyPrice > 0) {
-    return `${setupText} (Setup) / ${monthlyText} (Mensal)`;
-  }
-
-  return `${setupText} (Setup)`;
+function formatContractDate(value?: string | null) {
+  if (!value) return "Não definido";
+  return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
 }
 
-export function describeClientExtraPricing(item: ContractBuilderClientExtraSnapshot) {
-  const setupText = item.setupPrice > 0 ? formatCurrencyBRL(item.setupPrice) : "Incluso";
-  const monthlyText = item.monthlyPrice > 0 ? `${formatCurrencyBRL(item.monthlyPrice)}/mês` : "Sem recorrência";
-
-  if (item.monthlyPrice > 0 && item.setupPrice > 0) {
-    return `${setupText} + ${monthlyText}`;
-  }
-
-  if (item.monthlyPrice > 0) {
-    return monthlyText;
-  }
-
-  return setupText;
-}
-
-export function buildServicesTableText(
-  payload: ContractBuilderPayload,
-) {
-  const selectedPlan = getSelectedPlanItem(payload.items);
-  const selectedExtras = getContractExtraSnapshots(payload);
-  const lines = ["CONDIÇÕES COMERCIAIS:", ""];
-
-  lines.push(`• Total ativação (setup único): ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`);
-  lines.push(
-    `• Total mensal: ${
-      payload.pricing.finalMonthlyTotal > 0
-        ? `${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)} / mês`
-        : "Sem recorrência"
-    }`,
-  );
-  lines.push(
-    `• Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)} | Saldo na entrega: ${formatCurrencyBRL(
-      payload.pricing.balanceValue,
-    )}`,
-  );
-  lines.push(`• Prazo estimado: ${payload.prazoDias} dias úteis | Pagamento: ${payload.formaPagamento}`);
-  lines.push("");
-
-  if (selectedPlan) {
-    lines.push("PLANO E SERVIÇOS CONTRATADOS:");
-    lines.push("Plano principal");
-    lines.push(`• ${selectedPlan.name} — ${describeBuilderItemPricing(selectedPlan)}`);
-    lines.push("");
-  }
-
-  if (payload.primaryPlanId === "sob-medida" && payload.customScope.trim()) {
-    lines.push("Escopo customizado:");
-    lines.push(payload.customScope.trim());
-    lines.push("");
-  }
-
-  if (selectedExtras.length) {
-    lines.push("Extras contratados:");
-    selectedExtras.forEach((item) => {
-      lines.push(`• ${item.name} — ${describeClientExtraPricing(item)} — Tipo: ${item.typeLabel}`);
-    });
-    lines.push("");
-  }
-
-  lines.push("FECHAMENTO FINANCEIRO:");
-  lines.push(`• Subtotal da implantação: ${formatCurrencyBRL(payload.pricing.setupSubtotal)}`);
-  lines.push(`• Desconto aplicado: ${formatCurrencyBRL(payload.pricing.discountAmount)}`);
-  lines.push(`• Valor final da implantação: ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`);
-  lines.push(`• Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)}`);
-  lines.push(`• Saldo na entrega: ${formatCurrencyBRL(payload.pricing.balanceValue)}`);
-  if (payload.pricing.finalMonthlyTotal > 0) {
-    lines.push(`• Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}`);
-  }
-  lines.push("");
-  lines.push(CONTRACT_SCOPE_NOTICE_TITLE.toUpperCase() + ":");
-  CONTRACT_SCOPE_NOTICE_LINES.forEach((line) => {
-    lines.push(line);
-  });
-
-  return lines.join("\n");
-}
-
-export function buildContratadaLegalText(contratada: ContractBuilderContractor) {
-  return `${contratada.nome}, representada por seu fundador e CEO ${contratada.representante}, CPF ${contratada.documento}, ${contratada.endereco}, doravante denominada simplesmente CONTRATADA. ${contratada.observacaoRecebimento}`;
+function buildCidadeEstado(payload: ContractBuilderPayload) {
+  return [payload.contractante.cidade, payload.contractante.estado].filter(Boolean).join(" / ");
 }
 
 export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
+  const extras = getContractExtraSnapshots(payload);
+
   return {
     nome_cliente: payload.contractante.nome,
-    cpf_cnpj: payload.contractante.documento,
-    endereco: payload.contractante.endereco,
-    nome_contratada: `${payload.contratada.nome}, representada por seu fundador e CEO ${payload.contratada.representante}`,
-    cpf_cnpj_contratada: payload.contratada.documento,
-    endereco_contratada: payload.contratada.endereco,
-    cidade_foro: "Canoas",
-    estado_foro: "RS",
-    lista_servicos: buildContractedServicesSummary(payload),
-    tabela_servicos: buildServicesTableText(payload),
-    escopo_exclusoes: payload.escopoExclusoes,
-    valor_subtotal_implantacao: payload.pricing.setupSubtotal.toFixed(2).replace(".", ","),
-    valor_desconto: payload.pricing.discountAmount.toFixed(2).replace(".", ","),
-    valor_ativacao_total: payload.pricing.finalSetupTotal.toFixed(2).replace(".", ","),
-    prazo_dias: payload.prazoDias,
-    valor_entrada: payload.pricing.entryValue.toFixed(2).replace(".", ","),
-    valor_saldo: payload.pricing.balanceValue.toFixed(2).replace(".", ","),
-    valor_mensal: payload.pricing.finalMonthlyTotal.toFixed(2).replace(".", ","),
-    dia_vencimento: "10",
-    forma_pagamento: payload.formaPagamento,
-    numero_revisoes: payload.numeroRevisoes,
-    valor_revisao: payload.valorRevisao,
-    prazo_suporte: payload.prazoSuporte,
-    observacoes_comerciais: payload.observacoesComerciais,
-    data: new Date().toISOString().slice(0, 10),
+    cpf_cliente: payload.contractante.documento,
+    rg_cliente: payload.contractante.rg || "",
+    telefone_cliente: payload.contractante.telefone || payload.contractante.whatsapp || "",
+    email_cliente: payload.contractante.email || "",
+    endereco_cliente: payload.contractante.endereco,
+    cidade_estado: buildCidadeEstado(payload),
+    data_nascimento_cliente: payload.contractante.dataNascimento || "",
+    numero_contrato: payload.contractNumber,
+    data_emissao: formatContractDate(payload.issueDate),
+    data_inicio: formatContractDate(payload.startDate),
+    vencimento: formatContractDate(payload.dueDate),
+    plano:
+      payload.items.find((item) => item.isPrimaryPlan && item.selected)?.name ||
+      (payload.customScope.trim() ? "Sob medida" : "Plano não definido"),
+    valor_base: formatCurrencyBRL(payload.pricing.baseValue),
+    lista_extras:
+      extras.length > 0
+        ? extras
+            .map(
+              (extra, index) =>
+                `${index + 1}. ${extra.name} - ${extra.description}\nValor: ${formatCurrencyBRL(extra.setupPrice)}\nCláusula: ${extra.clause}`,
+            )
+            .join("\n\n")
+        : "Nenhum extra vinculado a este contrato.",
+    valor_extras: formatCurrencyBRL(payload.pricing.extrasTotal),
+    valor_total: formatCurrencyBRL(payload.pricing.totalValue),
+    observacoes: payload.observacoesComerciais || "Sem observações adicionais.",
+    nome_contratada: payload.contratada.nome,
+    documento_contratada: payload.contratada.documento,
+    endereco_contratada: `${payload.contratada.endereco}, ${payload.contratada.cidade}/${payload.contratada.estado}`,
   };
 }
 
 export function buildProposalSummary(payload: ContractBuilderPayload): ContractProposalSummary {
-  const selectedPlan = getSelectedPlanItem(payload.items);
-  const selectedServices = getContractExtraSnapshots(payload).map((item) => ({
-    name: item.name,
-    description: item.description,
-    pricing: describeClientExtraPricing(item),
-    highlight: item.typeLabel === "mensal" ? "Extra mensal" : "Extra único",
-  }));
-
-  const contractanteLines = [
-    payload.contractante.nomeEmpresa?.trim() ? `Empresa: ${payload.contractante.nomeEmpresa.trim()}` : null,
-    payload.contractante.documento?.trim() ? `CPF/CNPJ: ${payload.contractante.documento.trim()}` : null,
-    payload.contractante.email?.trim() ? `E-mail: ${payload.contractante.email.trim()}` : null,
-    payload.contractante.whatsapp?.trim() ? `WhatsApp: ${payload.contractante.whatsapp.trim()}` : null,
-    payload.contractante.telefone?.trim() ? `Telefone: ${payload.contractante.telefone.trim()}` : null,
-    payload.contractante.endereco?.trim() ? `Endereço: ${payload.contractante.endereco.trim()}` : null,
-  ].filter(Boolean) as string[];
-
-  const contratadaLines = [
-    `Representante: ${payload.contratada.representante}`,
-    `CPF/CNPJ: ${payload.contratada.documento}`,
-    `Endereço: ${payload.contratada.endereco}`,
-    payload.contratada.observacaoRecebimento.trim(),
-  ].filter(Boolean);
-
-  const comercialLines = [
-    `Total Ativação (Setup Único): ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`,
-    `Total Mensal: ${
-      payload.pricing.finalMonthlyTotal > 0
-        ? `${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)} / mês`
-        : "Sem recorrência"
-    }`,
-    `Entrada / sinal: ${formatCurrencyBRL(payload.pricing.entryValue)} | Saldo na entrega: ${formatCurrencyBRL(
-      payload.pricing.balanceValue,
-    )}`,
-    `Prazo estimado: ${payload.prazoDias} dias úteis | Pagamento: ${payload.formaPagamento}`,
-  ].filter(Boolean) as string[];
-
-  const pricingBreakdown = [
-    `Subtotal da implantação: ${formatCurrencyBRL(payload.pricing.setupSubtotal)}`,
-    `Desconto aplicado: ${formatCurrencyBRL(payload.pricing.discountAmount)}`,
-    `Valor final da implantação: ${formatCurrencyBRL(payload.pricing.finalSetupTotal)}`,
-    payload.pricing.finalMonthlyTotal > 0
-      ? `Mensalidade contratada: ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}`
-      : null,
-  ].filter(Boolean) as string[];
+  const extras = getContractExtraSnapshots(payload);
+  const selectedPlan = payload.items.find((item) => item.isPrimaryPlan && item.selected) || null;
 
   return {
     contractante: {
-      eyebrow: "Contratante",
-      title: payload.contractante.nome.trim() || "Contratante",
-      lines: contractanteLines,
+      eyebrow: "Cliente",
+      title: payload.contractante.nome.trim() || "Cliente não definido",
+      lines: [
+        payload.contractante.nomeEmpresa?.trim() ? `Empresa: ${payload.contractante.nomeEmpresa.trim()}` : null,
+        payload.contractante.documento?.trim() ? `Documento: ${payload.contractante.documento.trim()}` : null,
+        payload.contractante.rg?.trim() ? `RG: ${payload.contractante.rg.trim()}` : null,
+        payload.contractante.telefone?.trim() ? `Telefone: ${payload.contractante.telefone.trim()}` : null,
+        payload.contractante.email?.trim() ? `E-mail: ${payload.contractante.email.trim()}` : null,
+        payload.contractante.endereco?.trim() ? `Endereço: ${payload.contractante.endereco.trim()}` : null,
+      ].filter(Boolean) as string[],
     },
     contratada: {
       eyebrow: "Contratada",
-      title: payload.contratada.nome.trim() || "Contratada",
-      lines: contratadaLines,
+      title: payload.contratada.nome.trim() || "NovaesWeb",
+      lines: [
+        `Representante: ${payload.contratada.representante}`,
+        `Documento: ${payload.contratada.documento}`,
+        `Endereço: ${payload.contratada.endereco}, ${payload.contratada.cidade}/${payload.contratada.estado}`,
+      ],
     },
     comercial: {
-      eyebrow: "Comercial",
-      title: "Condições comerciais",
-      lines: comercialLines,
+      eyebrow: "Condições",
+      title: "Resumo comercial",
+      lines: [
+        `Número do contrato: ${payload.contractNumber}`,
+        `Emissão: ${formatContractDate(payload.issueDate)} | Início: ${formatContractDate(payload.startDate)}`,
+        `Plano: ${selectedPlan?.name || "Não definido"}`,
+        `Status: ${payload.status.replace(/_/g, " ")}`,
+      ],
     },
-    pricingBreakdown,
+    pricingBreakdown: [
+      `Valor base: ${formatCurrencyBRL(payload.pricing.baseValue)}`,
+      `Extras: ${formatCurrencyBRL(payload.pricing.extrasTotal)}`,
+      `Total do contrato: ${formatCurrencyBRL(payload.pricing.totalValue)}`,
+    ],
     scopeNotice: {
       eyebrow: "Escopo",
       title: CONTRACT_SCOPE_NOTICE_TITLE,
-      lines: [...CONTRACT_SCOPE_NOTICE_LINES],
+      lines: CONTRACT_SCOPE_NOTICE_LINES,
     },
     selectedPlan: selectedPlan
       ? {
           name: selectedPlan.name,
           description: selectedPlan.description,
-          pricing: describeBuilderItemPricing(selectedPlan),
-          highlight: "Plano principal",
+          pricing: formatCurrencyBRL(payload.pricing.baseValue),
+          highlight: "Plano base",
         }
       : null,
-    selectedServices,
-    customScope: payload.primaryPlanId === "sob-medida" ? payload.customScope.trim() : "",
+    selectedServices: extras.map((item) => ({
+      name: item.name,
+      description: item.clause,
+      pricing: formatCurrencyBRL(item.setupPrice),
+      highlight: "Extra vinculado",
+    })),
+    customScope: payload.customScope.trim(),
   };
 }
 
@@ -652,135 +509,68 @@ export function buildContractSignatureSummary(
   if (!payload) return null;
 
   const signatureDate = options?.signedAt ? new Date(options.signedAt) : new Date();
-  const locationAndDate = `Canoas/RS, ${signatureDate.toLocaleDateString("pt-BR")}`;
-  const contractanteName =
-    options?.contractanteSignedName?.trim() || payload.contractante.nome.trim() || "Contratante";
 
   return {
-    locationAndDate,
-    contractanteName,
+    locationAndDate: `Canoas/RS, ${signatureDate.toLocaleDateString("pt-BR")}`,
+    contractanteName:
+      options?.contractanteSignedName?.trim() || payload.contractante.nome.trim() || "Contratante",
     contractanteCaption: options?.signedAt
-      ? "Aceite eletrônico registrado no portal"
-      : "Nome do responsável pelo contratante",
+      ? "Aceite eletrônico registrado no portal do cliente"
+      : "Responsável pelo contratante",
     contratadaName: payload.contratada.nome.trim() || "NovaesWeb",
     contratadaCaption: payload.contratada.representante?.trim()
       ? `Representada por ${payload.contratada.representante.trim()}`
       : "Parte contratada",
     note: options?.signedAt
-      ? "Assinatura eletrônica simples confirmada com nome do responsável no portal do cliente."
-      : "Espaço visual preparado para aceite final e impressão da proposta.",
+      ? "A assinatura eletrônica registra o nome informado pelo cliente e a data do aceite."
+      : "Estrutura visual preparada para assinatura, impressão e PDF.",
   };
 }
 
-export function buildContractClauseExplanations(
-  payload: ContractBuilderPayload,
-): ContractClauseExplanation[] {
-  const selectedPlan = getSelectedPlanItem(payload.items)?.name || "sem plano principal";
-  const selectedExtras = getContractExtraSnapshots(payload);
-  const selectedExtrasLabel = selectedExtras.length
-    ? "e foram incluídos os extras listados acima."
-    : "sem extras adicionais vinculados nesta proposta.";
-  const customScopeText =
-    payload.primaryPlanId === "sob-medida" && payload.customScope.trim()
-      ? ` O escopo customizado desta proposta é: ${payload.customScope.trim()}.`
-      : "";
-  const reviewPrice =
-    payload.valorRevisao?.trim() ? ` por pelo menos R$ ${payload.valorRevisao.trim()}` : "";
+export function buildContractClauseExplanations(payload: ContractBuilderPayload): ContractClauseExplanation[] {
+  const extras = getContractExtraSnapshots(payload);
+  const extrasLabel = extras.length > 0
+    ? `Foram vinculados ${extras.length} extra(s) ao plano principal, todos renderizados automaticamente no documento.`
+    : "Nenhum extra foi vinculado a este contrato até o momento.";
 
   return [
     {
       number: "1",
-      title: "O que está sendo contratado",
-      explanation: `Este contrato cobre a estrutura digital contratada dentro do ecossistema NovaesWeb, podendo abranger site institucional, landing page, sistema interno, painel administrativo, gestão de pedidos, manutenção recorrente, módulos adicionais, integrações e extras, conforme detalhado nas condições comerciais. Nesta venda, o plano principal é ${selectedPlan} e ${selectedExtrasLabel}${customScopeText}`,
+      title: "Objeto do contrato",
+      explanation:
+        "Este contrato formaliza a entrega principal da NovaesWeb e o conjunto de soluções digitais aprovadas para o cliente.",
     },
     {
       number: "2",
-      title: "Escopo e exclusões",
+      title: "Dados automáticos do cliente",
       explanation:
-        "Tudo o que está descrito no resumo comercial faz parte da entrega. Serviços de marketing digital, gestão de tráfego pago, produção de conteúdo e gerenciamento de redes sociais NÃO fazem parte do escopo da NovaesWeb. O cliente deve fornecer materiais (logo, textos, fotos) em tempo ágil para não comprometer o prazo.",
+        "Os dados do cliente são puxados do cadastro ativo e podem receber complementos pontuais, como RG e data de nascimento, antes do envio final.",
     },
     {
       number: "3",
-      title: "Materiais e briefing",
-      explanation:
-        "O CONTRATANTE deverá fornecer todos os materiais e informações necessários. O atraso no envio suspende automaticamente a contagem dos prazos. A CONTRATADA não se responsabiliza por atrasos decorrentes de material incompleto ou enviado fora do prazo.",
+      title: "Plano e composição comercial",
+      explanation: `O valor base do contrato foi configurado em ${formatCurrencyBRL(
+        payload.pricing.baseValue,
+      )}, servindo como referência principal da proposta.`,
     },
     {
       number: "4",
-      title: "Prazos e execução",
-      explanation: `Prazo estimado de ${payload.prazoDias} dias úteis. O prazo começa quando briefing, materiais e pagamento inicial estiverem em ordem. Havendo paralisação por mais de 15 dias, a CONTRATADA poderá reprogramar a fila de produção.`,
+      title: "Extras vinculados",
+      explanation: extrasLabel,
     },
     {
       number: "5",
-      title: "Valores e pagamento",
-      explanation: `A implantação negociada ficou em ${formatCurrencyBRL(
-        payload.pricing.finalSetupTotal,
-      )}${
-        payload.pricing.discountAmount > 0
-          ? `, já considerando desconto de ${formatCurrencyBRL(payload.pricing.discountAmount)} sobre o subtotal de ${formatCurrencyBRL(
-              payload.pricing.setupSubtotal,
-            )}`
-          : ""
-      }, com entrada de ${formatCurrencyBRL(payload.pricing.entryValue)} e saldo de ${formatCurrencyBRL(
-        payload.pricing.balanceValue,
-      )}.${
-        payload.pricing.finalMonthlyTotal > 0
-          ? ` A mensalidade contratada ficou em ${formatCurrencyBRL(payload.pricing.finalMonthlyTotal)}.`
-          : ""
-      } A forma de pagamento combinada é ${payload.formaPagamento}. Custos externos com licenças, APIs ou domínio são de responsabilidade do CONTRATANTE.`,
+      title: "Cálculo automático",
+      explanation: `O total do contrato é calculado automaticamente pela fórmula valor base + soma dos extras, resultando em ${formatCurrencyBRL(
+        payload.pricing.totalValue,
+      )}.`,
     },
     {
       number: "6",
-      title: "Atrasos e inadimplência",
-      explanation:
-        "Em caso de atraso no pagamento, a CONTRATADA poderá suspender serviços, atendimento, manutenção, publicações, entregas e liberações até a regularização financeira. Se houver saldo em aberto durante o projeto, a execução poderá ser congelada até a quitação integral.",
-    },
-    {
-      number: "7",
-      title: "Revisões e alterações",
-      explanation: `Estão incluídas até ${payload.numeroRevisoes} rodadas de revisão dentro do escopo aprovado. Revisões, refações, alterações estruturais, mudanças de direção ou novos pedidos fora do escopo poderão ser cobrados adicionalmente no valor mínimo de R$ ${payload.valorRevisao} por demanda.`,
-    },
-    {
-      number: "8",
-      title: "Propriedade intelectual",
-      explanation:
-        "Até a quitação integral, a estrutura, arquivos editáveis, painel, páginas, sistemas, automações, layouts, códigos e ativos digitais permanecem sob titularidade da CONTRATADA. A cessão definitiva ocorre somente após pagamento total.",
-    },
-    {
-      number: "9",
-      title: "Marketing e resultados",
-      explanation:
-        "A NovaesWeb garante trabalho técnico de ponta e estratégia digital moderna, mas não garante resultado absoluto de vendas, leads ou faturamento, pois isso depende da operação e mercado do cliente. Serviços de marketing (anúncios, redes sociais) não estão inclusos nesta contratação técnica.",
-    },
-    {
-      number: "10",
-      title: "Suporte e manutenção",
-      explanation: `Serviços de suporte, manutenção, acompanhamento ou operação recorrente só valem se contratados expressamente. Quando existentes, serão prestados dentro da janela: ${payload.prazoSuporte}. Não se incluem automaticamente: criação de novas páginas, novos módulos, mudanças profundas de layout, integrações não previstas ou demandas fora do escopo.`,
-    },
-    {
-      number: "11",
-      title: "Cancelamento e rescisão",
-      explanation:
-        "Você pode cancelar mesmo após o início dos trabalhos, mas os valores já pagos para ativação e estruturação do projeto não serão devolvidos, pois cobrem as horas de produção técnica já utilizadas. Em caso de cancelamento, a estrutura permanece ativa apenas até o fim do período já pago.",
-    },
-    {
-      number: "12",
-      title: "Sigilo e dados",
-      explanation:
-        "As partes mantêm sigilo sobre informações estratégicas, comerciais, operacionais, dados e documentos. Os dados serão utilizados apenas para execução do serviço, atendimento, suporte e obrigações correlatas. O CONTRATANTE é responsável pela veracidade das informações fornecidas.",
-    },
-    {
-      number: "13",
-      title: "Observações comerciais",
+      title: "Escopo e observações",
       explanation:
         payload.observacoesComerciais.trim() ||
-        "Serviços recorrentes, extras, integrações, domínio, hospedagem e demandas fora do escopo poderão ser contratados e cobrados à parte mediante aprovação do CONTRATANTE.",
-    },
-    {
-      number: "14",
-      title: "Foro e jurisdição",
-      explanation:
-        "Fica eleito o foro da Comarca de Canoas/RS para dirimir quaisquer controvérsias oriundas deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.",
+        "As observações comerciais ficam registradas no contrato e acompanham o PDF, a impressão e a experiência do portal do cliente.",
     },
   ];
 }
@@ -794,42 +584,53 @@ export function buildContractWordHtml(
   const safeTitle = escapeHtml(title);
   const safeBody = escapeHtml(stripLegacySignaturePlaceholders(body)).replace(/\n/g, "<br />");
   const summary = proposal ? buildProposalSummary(proposal) : null;
-  const explanations = proposal ? buildContractClauseExplanations(proposal) : [];
   const signatureSummary = buildContractSignatureSummary(proposal, signatureOptions);
 
-  const renderInfoCard = (section: ContractProposalSummarySection) => `
-    <td class="info-card">
-      <div class="info-kicker">${escapeHtml(section.eyebrow)}</div>
-      <div class="info-title">${escapeHtml(section.title)}</div>
-      <div class="info-lines">
-        ${section.lines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}
+  const renderLines = (lines: string[]) =>
+    lines.map((line) => `<div class="line">${escapeHtml(line)}</div>`).join("");
+
+  const renderInfoCard = (title: string, lines: string[]) => `
+    <div class="info-card">
+      <div class="info-title">${escapeHtml(title)}</div>
+      <div class="info-lines">${renderLines(lines)}</div>
+    </div>
+  `;
+
+  const renderExtraCards = summary?.selectedServices.length
+    ? summary.selectedServices
+        .map(
+          (service) => `
+            <div class="service-card">
+              <div class="service-name">${escapeHtml(service.name)}</div>
+              <div class="service-pricing">${escapeHtml(service.pricing)}</div>
+              <div class="service-copy">${escapeHtml(service.description)}</div>
+            </div>
+          `,
+        )
+        .join("")
+    : `<div class="empty-card">Nenhum extra vinculado ao contrato.</div>`;
+
+  const signatureHtml = signatureSummary
+    ? `
+      <div class="signature-panel">
+        <div class="signature-kicker">Aceite e assinatura</div>
+        <div class="signature-date">${escapeHtml(signatureSummary.locationAndDate)}</div>
+        <div class="signature-grid">
+          <div class="signature-card">
+            <div class="signature-line"></div>
+            <div class="signature-name">${escapeHtml(signatureSummary.contractanteName)}</div>
+            <div class="signature-caption">${escapeHtml(signatureSummary.contractanteCaption)}</div>
+          </div>
+          <div class="signature-card">
+            <div class="signature-line"></div>
+            <div class="signature-name">${escapeHtml(signatureSummary.contratadaName)}</div>
+            <div class="signature-caption">${escapeHtml(signatureSummary.contratadaCaption)}</div>
+          </div>
+        </div>
+        <div class="signature-note">${escapeHtml(signatureSummary.note)}</div>
       </div>
-    </td>
-  `;
-
-  const renderServiceCard = (service: ContractProposalSummaryService, featured = false) => `
-    <div class="${featured ? "service-card service-card-featured" : "service-card"}">
-      ${service.highlight ? `<div class="service-tag">${escapeHtml(service.highlight)}</div>` : ""}
-      <div class="service-name">${escapeHtml(service.name)}</div>
-      <div class="service-pricing">${escapeHtml(service.pricing)}</div>
-      ${service.description ? `<div class="service-description">${escapeHtml(service.description)}</div>` : ""}
-    </div>
-  `;
-
-  const renderScopeBox = (title: string, lines: string[]) => `
-    <div class="scope-box">
-      <strong>${escapeHtml(title)}</strong><br />
-      ${lines.map((line) => escapeHtml(line)).join("<br />")}
-    </div>
-  `;
-
-  const renderExplanationCard = (item: ContractClauseExplanation) => `
-    <div class="explanation-card">
-      <div class="explanation-kicker">Cláusula ${escapeHtml(item.number)}</div>
-      <div class="explanation-title">${escapeHtml(item.title)}</div>
-      <div class="explanation-copy">${escapeHtml(item.explanation)}</div>
-    </div>
-  `;
+    `
+    : "";
 
   return `<!DOCTYPE html>
   <html lang="pt-BR">
@@ -839,19 +640,20 @@ export function buildContractWordHtml(
       <style>
         body {
           font-family: Arial, Helvetica, sans-serif;
-          color: #16121f;
+          background: #f7f1fb;
+          color: #1d1324;
           margin: 0;
-          background: #f7f4fb;
+          padding: 0;
         }
         .sheet {
-          padding: 34px 34px 48px;
+          padding: 34px;
         }
         .hero {
-          background: linear-gradient(135deg, #261135, #5d1f7a 48%, #e8334a 100%);
+          background: linear-gradient(135deg, #1e0a2c 0%, #6d28d9 48%, #e11d48 100%);
           color: white;
-          padding: 24px 26px;
-          border-radius: 24px;
-          box-shadow: 0 18px 40px rgba(35, 11, 44, 0.18);
+          padding: 28px;
+          border-radius: 26px;
+          box-shadow: 0 20px 40px rgba(29, 19, 36, 0.18);
         }
         .hero-kicker {
           font-size: 11px;
@@ -859,284 +661,144 @@ export function buildContractWordHtml(
           letter-spacing: 0.18em;
           opacity: 0.72;
           font-weight: 700;
-          margin-bottom: 10px;
         }
-        .title {
-          margin: 0;
-          font-size: 28px;
+        .hero-title {
+          font-size: 30px;
           font-weight: 800;
-          color: #fff;
+          margin-top: 10px;
         }
         .hero-copy {
           margin-top: 12px;
-          font-size: 13px;
           line-height: 1.7;
-          max-width: 640px;
           color: rgba(255,255,255,0.84);
         }
-        .summary-table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0 14px;
-          margin-top: 20px;
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 14px;
+          margin-top: 22px;
         }
-        .info-card {
-          width: 33.33%;
-          vertical-align: top;
-          background: #ffffff;
-          border: 1px solid #ecdff4;
+        .info-card,
+        .service-card,
+        .empty-card {
+          background: white;
+          border: 1px solid #eadff5;
           border-radius: 20px;
-          padding: 18px 18px 16px;
+          padding: 18px;
         }
-        .info-kicker {
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.18em;
-          color: #7f668f;
+        .info-title,
+        .service-name {
+          font-size: 16px;
           font-weight: 700;
-          margin-bottom: 8px;
+          color: #241631;
         }
-        .info-title {
-          font-size: 17px;
-          font-weight: 700;
-          color: #1b1323;
-          margin-bottom: 10px;
-        }
-        .info-lines {
+        .info-lines,
+        .service-copy {
+          margin-top: 10px;
           font-size: 12px;
           line-height: 1.7;
-          color: #54495d;
+          color: #5c4d68;
+        }
+        .service-pricing {
+          margin-top: 8px;
+          font-size: 14px;
+          font-weight: 700;
+          color: #7c3aed;
         }
         .section-title {
-          margin: 26px 0 12px;
-          font-size: 12px;
+          font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 0.22em;
           color: #8d3cb0;
           font-weight: 800;
+          margin: 30px 0 12px;
         }
-        .service-card {
-          background: #ffffff;
-          border: 1px solid #ecdff4;
-          border-radius: 20px;
-          padding: 18px 18px 16px;
-          margin-bottom: 12px;
-        }
-        .service-card-featured {
-          background: linear-gradient(180deg, #fff, #fff7fb);
-          border-color: #e6b9d4;
-        }
-        .service-tag {
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.18em;
-          color: #7f668f;
-          font-weight: 700;
-          margin-bottom: 8px;
-        }
-        .service-name {
-          font-size: 16px;
-          font-weight: 800;
-          color: #1b1323;
-        }
-        .service-pricing {
-          margin-top: 6px;
-          font-size: 13px;
-          color: #a32161;
-          font-weight: 700;
-        }
-        .service-description {
-          margin-top: 8px;
-          font-size: 12px;
-          line-height: 1.7;
-          color: #54495d;
-        }
-        .scope-box {
-          margin-top: 12px;
-          background: #ffffff;
-          border: 1px solid #ecdff4;
-          border-radius: 20px;
-          padding: 18px;
-          font-size: 12px;
-          line-height: 1.7;
-          color: #54495d;
-        }
-        .explanation-card {
-          background: #ffffff;
-          border: 1px solid #ecdff4;
-          border-radius: 20px;
-          padding: 18px;
-          margin-bottom: 12px;
-        }
-        .explanation-kicker {
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.18em;
-          color: #7f668f;
-          font-weight: 700;
-          margin-bottom: 8px;
-        }
-        .explanation-title {
-          font-size: 15px;
-          font-weight: 800;
-          color: #1b1323;
-          margin-bottom: 8px;
-        }
-        .explanation-copy {
-          font-size: 12px;
-          line-height: 1.7;
-          color: #54495d;
-        }
-        .copy {
-          margin-top: 26px;
-          background: #ffffff;
-          border: 1px solid #ecdff4;
+        .body-card {
+          background: white;
           border-radius: 24px;
-          padding: 26px;
-          white-space: pre-wrap;
-          line-height: 1.7;
-          font-size: 12px;
+          padding: 24px;
+          border: 1px solid #eadff5;
+          line-height: 1.8;
+          font-size: 13px;
+          white-space: normal;
         }
-        .signature-section {
-          margin-top: 24px;
-          padding: 26px 24px;
-          border-radius: 28px;
-          background:
-            radial-gradient(circle at top left, rgba(123,31,162,0.14), transparent 34%),
-            radial-gradient(circle at top right, rgba(232,51,74,0.12), transparent 36%),
-            linear-gradient(135deg, rgba(123,31,162,0.12), rgba(232,51,74,0.08), rgba(194,24,91,0.14));
-          border: 1px solid #ecdff4;
+        .signature-panel {
+          margin-top: 28px;
+          border: 1px solid #eadff5;
+          border-radius: 24px;
+          background: white;
+          padding: 24px;
           text-align: center;
         }
         .signature-kicker {
           font-size: 10px;
           text-transform: uppercase;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.22em;
           color: #8d3cb0;
           font-weight: 800;
         }
         .signature-date {
           margin-top: 8px;
-          font-size: 12px;
-          color: #6f5b7d;
+          color: #6d5f77;
+          font-size: 13px;
         }
         .signature-grid {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 14px 0;
-          margin-top: 18px;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 14px;
+          margin-top: 20px;
         }
         .signature-card {
-          width: 50%;
-          background: rgba(255,255,255,0.9);
-          border: 1px solid #ecdff4;
-          border-radius: 22px;
-          padding: 16px 16px 18px;
-          vertical-align: top;
-          box-shadow: 0 18px 36px rgba(33, 18, 49, 0.08);
-        }
-        .signature-role {
-          font-size: 9px;
-          text-transform: uppercase;
-          letter-spacing: 0.2em;
-          color: #8b7998;
-          font-weight: 800;
+          border: 1px solid #eadff5;
+          border-radius: 18px;
+          padding: 18px;
+          background: #fff;
         }
         .signature-line {
-          width: 100%;
           height: 1px;
-          background: linear-gradient(90deg, #7b1fa2, #e8334a, #c2185b);
-          margin: 14px 0 12px;
+          background: linear-gradient(90deg, rgba(124,58,237,0.35), rgba(225,29,72,0.75), rgba(124,58,237,0.35));
+          margin-bottom: 16px;
         }
         .signature-name {
-          font-size: 16px;
-          font-weight: 800;
-          color: #1b1323;
+          font-weight: 700;
         }
-        .signature-caption {
-          margin-top: 6px;
-          font-size: 11px;
-          color: #6d5f77;
-        }
+        .signature-caption,
         .signature-note {
-          margin-top: 14px;
-          font-size: 11px;
+          font-size: 12px;
           color: #6d5f77;
-        }
-        .footer {
-          margin-top: 40px;
-          padding-top: 18px;
-          border-top: 2px solid #f0d8ea;
-          font-size: 11px;
-          color: #6d5f77;
-          text-align: center;
+          margin-top: 8px;
         }
       </style>
     </head>
     <body>
       <div class="sheet">
         <div class="hero">
-          <div class="hero-kicker">NovaesWeb • Proposta comercial premium</div>
-          <div class="title">${safeTitle}</div>
-          <div class="hero-copy">Documento comercial gerado no montador da NovaesWeb, com escopo selecionado, condições financeiras e cláusulas contratuais organizadas para negociação e fechamento.</div>
+          <div class="hero-kicker">NovaesWeb • Contrato dinâmico</div>
+          <div class="hero-title">${safeTitle}</div>
+          <div class="hero-copy">
+            Documento comercial renderizado com dados automáticos do cliente, extras vinculados e total calculado em tempo real.
+          </div>
         </div>
+
         ${
           summary
             ? `
-        <table class="summary-table">
-          <tr>
-            ${renderInfoCard(summary.contractante)}
-            ${renderInfoCard(summary.contratada)}
-            ${renderInfoCard(summary.comercial)}
-          </tr>
-        </table>
-        <div class="section-title">Plano e serviços contratados</div>
-        ${summary.selectedPlan ? renderServiceCard(summary.selectedPlan, true) : ""}
-        ${summary.customScope ? `<div class="scope-box"><strong>Escopo customizado</strong><br />${escapeHtml(summary.customScope)}</div>` : ""}
-        ${summary.selectedServices.map((service) => renderServiceCard(service)).join("")}
-        ${summary.pricingBreakdown.length ? renderScopeBox("Fechamento financeiro", summary.pricingBreakdown) : ""}
-        <div class="section-title">${escapeHtml(summary.scopeNotice.title)}</div>
-        ${renderScopeBox(summary.scopeNotice.title, summary.scopeNotice.lines)}
+          <div class="section-title">Resumo executivo</div>
+          <div class="grid">
+            ${renderInfoCard(summary.contractante.title, summary.contractante.lines)}
+            ${renderInfoCard(summary.contratada.title, summary.contratada.lines)}
+            ${renderInfoCard(summary.comercial.title, summary.comercial.lines)}
+            ${renderInfoCard("Fechamento financeiro", summary.pricingBreakdown)}
+          </div>
+          <div class="section-title">Extras vinculados</div>
+          <div class="grid">${renderExtraCards}</div>
         `
             : ""
         }
-        ${
-          explanations.length
-            ? `
-        <div class="section-title">Contrato explicado em linguagem simples</div>
-        ${explanations.map((item) => renderExplanationCard(item)).join("")}
-        `
-            : ""
-        }
-        <div class="copy">${safeBody}</div>
-        ${
-          signatureSummary
-            ? `
-        <div class="signature-section">
-          <div class="signature-kicker">Aceite e assinatura</div>
-          <div class="signature-date">${escapeHtml(signatureSummary.locationAndDate)}</div>
-          <table class="signature-grid">
-            <tr>
-              <td class="signature-card">
-                <div class="signature-role">Contratante</div>
-                <div class="signature-line"></div>
-                <div class="signature-name">${escapeHtml(signatureSummary.contractanteName)}</div>
-                <div class="signature-caption">${escapeHtml(signatureSummary.contractanteCaption)}</div>
-              </td>
-              <td class="signature-card">
-                <div class="signature-role">Contratada</div>
-                <div class="signature-line"></div>
-                <div class="signature-name">${escapeHtml(signatureSummary.contratadaName)}</div>
-                <div class="signature-caption">${escapeHtml(signatureSummary.contratadaCaption)}</div>
-              </td>
-            </tr>
-          </table>
-          <div class="signature-note">${escapeHtml(signatureSummary.note)}</div>
-        </div>
-        `
-            : ""
-        }
-        <div class="footer">NovaesWeb • Estrutura digital premium • Documento gerado no painel administrativo</div>
+
+        <div class="section-title">Documento final</div>
+        <div class="body-card">${safeBody}</div>
+        ${signatureHtml}
       </div>
     </body>
   </html>`;

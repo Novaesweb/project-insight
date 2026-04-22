@@ -1,5 +1,10 @@
 import type { Tables } from "@/integrations/supabase/types";
-import type { ContractBuilderPayload, ContractBuilderStepIndex } from "@/lib/contract-builder";
+import type {
+  AdminContractDraft,
+  ContractBuilderPayload,
+  ContractBuilderStepIndex,
+  ContractStatus,
+} from "@/lib/contract-builder";
 
 export type Cliente = Tables<"clientes">;
 export type ExtraCatalogo = Tables<"extras_catalogo">;
@@ -22,38 +27,37 @@ export interface PreviewState {
   contract?: Contrato | null;
 }
 
+export type ContractDraftStatus = ContractStatus;
+export type ContractDraft = AdminContractDraft;
+
 export const BUILDER_TEMPLATE_ID = "novaesweb-contrato-mestre";
-export const RESIGN_REASON_DEFAULT = "Assinatura pendente por atualização de extra e melhoria do sistema.";
+export const RESIGN_REASON_DEFAULT =
+  "Uma nova revisão do contrato foi publicada e depende de aceite atualizado do cliente.";
 
 export const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-export const builderGroupTitles: Record<string, string> = {
-  fixo: "Extras Únicos",
-  intermediario: "Extras Pro",
-  mensal: "Extras Mensais",
-};
-
-export const moneyDraftFieldPattern =
-  /^(item|pricing):(.+):(setupPrice|monthlyPrice|negotiatedSetup|entryValue|negotiatedMonthly)$/;
-
-export type MoneyDraftField =
-  | "setupPrice"
-  | "monthlyPrice"
-  | "negotiatedSetup"
-  | "entryValue"
-  | "negotiatedMonthly";
+export const CONTRACT_STATUS_OPTIONS: Array<{ value: ContractStatus; label: string }> = [
+  { value: "rascunho", label: "Rascunho" },
+  { value: "em_revisao", label: "Em revisão" },
+  { value: "aprovado", label: "Aprovado" },
+  { value: "enviado", label: "Enviado" },
+  { value: "assinado", label: "Assinado" },
+  { value: "ativo", label: "Ativo" },
+  { value: "cancelado", label: "Cancelado" },
+  { value: "encerrado", label: "Encerrado" },
+];
 
 export const BUILDER_STEPS: Array<{
   id: ContractBuilderStepIndex;
   label: string;
   description: string;
 }> = [
-  { id: 0, label: "Cliente", description: "Selecione o cadastro base da proposta." },
-  { id: 1, label: "Partes", description: "Revise contratante e contratada." },
-  { id: 2, label: "Plano e extras", description: "Monte o escopo comercial contratado." },
-  { id: 3, label: "Totais", description: "Ajuste valores, prazo e observações." },
-  { id: 4, label: "Preview final", description: "Confira a proposta premium antes de salvar ou exportar." },
+  { id: 0, label: "Cliente", description: "Selecione o cliente e carregue os dados automáticos." },
+  { id: 1, label: "Contrato", description: "Ajuste campos complementares, datas e status do documento." },
+  { id: 2, label: "Plano", description: "Defina o plano base e o valor principal do contrato." },
+  { id: 3, label: "Extras", description: "Revise extras vinculados ao cliente e personalize cláusulas." },
+  { id: 4, label: "Preview", description: "Confira o contrato renderizado em tempo real antes de salvar." },
 ];

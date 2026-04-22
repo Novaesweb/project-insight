@@ -40,9 +40,7 @@ export async function fetchActiveClientes() {
     .eq("status", "ativo")
     .order("nome", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return (data as Cliente[]) || [];
 }
@@ -55,9 +53,7 @@ export async function fetchActiveExtrasCatalog() {
     .order("categoria", { ascending: true })
     .order("nome", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return (data as ExtraCatalogo[]) || [];
 }
@@ -72,9 +68,7 @@ export async function fetchActiveClientExtras(clientId: string) {
     .eq("status", "ativo")
     .order("data_ativacao", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return (data as ExtraCliente[]) || [];
 }
@@ -86,9 +80,7 @@ export async function fetchContractEvents(contractId: string) {
     .eq("contrato_id", contractId)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return (data as ContractEventRow[]) || [];
 }
@@ -107,10 +99,6 @@ export async function saveBuilderContractRecord({
   await refreshAdminSessionSilently({ force: false });
 
   const existingRecord = contractId ? currentContracts.find((item) => item.id === contractId) ?? null : null;
-
-  if (contractId && createVersionSnapshot && !existingRecord) {
-    throw new Error("Contrato não encontrado para atualização.");
-  }
 
   const saveOptions = {
     client: supabase,
@@ -163,13 +151,8 @@ export async function saveBuilderContractDirectly({
       .eq("modelo", BUILDER_TEMPLATE_ID)
       .single();
 
-    if (error) {
-      throw error;
-    }
-
-    if (data) {
-      currentContracts = [data as Contrato];
-    }
+    if (error) throw error;
+    if (data) currentContracts = [data as Contrato];
   }
 
   return saveBuilderContractRecord({
@@ -193,15 +176,33 @@ export async function sendBuilderContractToClientRecord(contract: Contrato) {
     .select("*, clientes(nome)")
     .single();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return {
     contract: data as Contrato,
     sentAt,
     isResignFlow,
   };
+}
+
+export async function updateBuilderContractStatus(contractId: string, status: string, patch?: Record<string, unknown>) {
+  await refreshAdminSessionSilently({ force: false });
+
+  const { data, error } = await supabase
+    .from("contratos")
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+      ...patch,
+    } as any)
+    .eq("id", contractId)
+    .eq("modelo", BUILDER_TEMPLATE_ID)
+    .select("*, clientes(nome)")
+    .single();
+
+  if (error) throw error;
+
+  return data as Contrato;
 }
 
 export async function fetchContractVersions(contractId: string) {
@@ -211,9 +212,7 @@ export async function fetchContractVersions(contractId: string) {
     .eq("contrato_id", contractId)
     .order("version_number", { ascending: false });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return (data as ContratoVersion[]) || [];
 }
@@ -229,9 +228,7 @@ export async function setContractArchived(contractId: string, archived: boolean)
     .select("*, clientes(nome)")
     .single();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return data as Contrato;
 }
@@ -246,7 +243,5 @@ export async function deleteBuilderDraftContract(contractId: string) {
     .eq("modelo", BUILDER_TEMPLATE_ID)
     .eq("status", "rascunho");
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 }

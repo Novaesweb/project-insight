@@ -19,6 +19,7 @@ import {
   CalendarDays,
   ServerCog,
   ClipboardList,
+  FileSignature,
 } from "lucide-react";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
       { href: "/admin/projetos/lista", label: "Lista de Projetos", isSubItem: true },
       { href: "/admin/projetos/kanban", label: "Quadro Kanban", isSubItem: true },
+      { href: "/admin/contratos", label: "Contratos", icon: FileSignature },
     ],
   },
   {

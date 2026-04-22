@@ -1,17 +1,21 @@
 import {
   buildBuilderTemplateValues,
+  buildDefaultExtraClause,
   computeBuilderPricing,
   createEmptyBuilderPayload,
-  getContractExtraSnapshots,
+  formatCurrencyBRL,
   parseMoneyInput,
-  stripLegacySignaturePlaceholders,
+  selectPrimaryPlan,
   type BuilderPrimaryPlanId,
+  type ContractBuilderClientExtraSnapshot,
   type ContractBuilderPayload,
   type ContractBuilderStepIndex,
+  type ContractStatus,
 } from "@/lib/contract-builder";
 import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
-import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 import { contractTemplates, fillTemplate } from "@/lib/contract-templates";
+import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
+import { normalizeContractStatus } from "@/lib/contract-status";
 
 import { BUILDER_TEMPLATE_ID, type Contrato, type ExtraCatalogo } from "./types";
 
@@ -19,48 +23,31 @@ function isRecord(value: unknown): value is Record<string, any> {
   return typeof value === "object" && value !== null;
 }
 
-function normalizeBuilderGroup(value: unknown): "planos" | "fixo" | "intermediario" | "mensal" {
-  return value === "planos" || value === "fixo" || value === "intermediario" || value === "mensal"
-    ? value
-    : "fixo";
-}
-
-function normalizeBuilderText(value: unknown, fallback = "") {
+function normalizeText(value: unknown, fallback = "") {
   if (typeof value === "string") return value;
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return fallback;
 }
 
-function normalizeBuilderMoney(value: unknown) {
-  return parseMoneyInput(value as string | number | null | undefined);
+function normalizeBoolean(value: unknown, fallback = false) {
+  return typeof value === "boolean" ? value : fallback;
 }
 
-function normalizeBuilderTypeLabel(value: unknown): "mensal" | "único" {
-  return value === "mensal" ? "mensal" : "único";
+function normalizeContractStatusToken(value: unknown): ContractStatus {
+  return normalizeContractStatus(typeof value === "string" ? value : null);
 }
 
-function buildFallbackCustomScope(items: ContractBuilderPayload["items"]) {
-  const selectedServices = items
-    .filter((item) => item.selected)
-    .map((item) => item.name.trim())
-    .filter(Boolean);
-
-  if (selectedServices.length > 0) {
-    return `Escopo legado importado: ${selectedServices.join(", ")}. Revise antes de salvar.`;
-  }
-
-  return "Escopo sob medida importado de contrato legado. Revise antes de salvar.";
-}
-
-function normalizePrimaryPlanId(
+function normalizeBuilderStep(
   value: unknown,
-  items: ContractBuilderPayload["items"],
-): BuilderPrimaryPlanId {
-  if (value === "express" || value === "pro" || value === "sob-medida" || value === "none") {
-    return value;
-  }
+  fallback: ContractBuilderStepIndex,
+): ContractBuilderStepIndex {
+  return value === 0 || value === 1 || value === 2 || value === 3 || value === 4 ? value : fallback;
+}
 
-  return (items.find((item) => item.isPrimaryPlan && item.selected)?.sourceId as BuilderPrimaryPlanId) || "none";
+function normalizePrimaryPlanId(value: unknown): BuilderPrimaryPlanId {
+  return value === "express" || value === "pro" || value === "sob-medida" || value === "none"
+    ? value
+    : "none";
 }
 
 function normalizeContractante(
@@ -69,18 +56,18 @@ function normalizeContractante(
 ): ContractBuilderPayload["contractante"] {
   return {
     ...fallback,
-    nome: normalizeBuilderText(value.nome, fallback.nome),
-    nomeEmpresa: normalizeBuilderText(value.nomeEmpresa, fallback.nomeEmpresa),
-    documento: normalizeBuilderText(value.documento, fallback.documento),
-    email: normalizeBuilderText(value.email, fallback.email),
-    whatsapp: normalizeBuilderText(value.whatsapp, fallback.whatsapp),
-    telefone: normalizeBuilderText(value.telefone, fallback.telefone),
-    instagram: normalizeBuilderText(value.instagram, fallback.instagram),
-    siteUrl: normalizeBuilderText(value.siteUrl, fallback.siteUrl),
-    endereco: normalizeBuilderText(value.endereco, fallback.endereco),
-    cep: normalizeBuilderText(value.cep, fallback.cep),
-    cidade: normalizeBuilderText(value.cidade, fallback.cidade),
-    estado: normalizeBuilderText(value.estado, fallback.estado),
+    nome: normalizeText(value.nome, fallback.nome),
+    nomeEmpresa: normalizeText(value.nomeEmpresa ?? value.nome_empresa, fallback.nomeEmpresa),
+    documento: normalizeText(value.documento ?? value.cpfCnpj ?? value.cpf_cnpj, fallback.documento),
+    rg: normalizeText(value.rg, fallback.rg),
+    email: normalizeText(value.email, fallback.email),
+    whatsapp: normalizeText(value.whatsapp, fallback.whatsapp),
+    telefone: normalizeText(value.telefone, fallback.telefone),
+    dataNascimento: normalizeText(value.dataNascimento ?? value.data_nascimento, fallback.dataNascimento),
+    endereco: normalizeText(value.endereco, fallback.endereco),
+    cep: normalizeText(value.cep, fallback.cep),
+    cidade: normalizeText(value.cidade, fallback.cidade),
+    estado: normalizeText(value.estado, fallback.estado),
   };
 }
 
@@ -90,12 +77,67 @@ function normalizeContratada(
 ): ContractBuilderPayload["contratada"] {
   return {
     ...fallback,
-    nome: normalizeBuilderText(value.nome, fallback.nome),
-    representante: normalizeBuilderText(value.representante, fallback.representante),
-    documento: normalizeBuilderText(value.documento, fallback.documento),
-    endereco: normalizeBuilderText(value.endereco, fallback.endereco),
-    observacaoRecebimento: normalizeBuilderText(value.observacaoRecebimento, fallback.observacaoRecebimento),
+    nome: normalizeText(value.nome, fallback.nome),
+    representante: normalizeText(value.representante, fallback.representante),
+    documento: normalizeText(value.documento, fallback.documento),
+    endereco: normalizeText(value.endereco, fallback.endereco),
+    cidade: normalizeText(value.cidade, fallback.cidade),
+    estado: normalizeText(value.estado, fallback.estado),
+    observacaoRecebimento: normalizeText(value.observacaoRecebimento, fallback.observacaoRecebimento),
   };
+}
+
+function normalizeExtrasSnapshot(
+  rawExtras: unknown,
+  fallback: ContractBuilderPayload["clientExtrasSnapshot"],
+): ContractBuilderClientExtraSnapshot[] {
+  const items = Array.isArray(rawExtras) ? rawExtras.filter(isRecord) : [];
+
+  return items.map((item, index) => {
+    const name =
+      normalizeText(item.name).trim() ||
+      normalizeText(item.nome).trim() ||
+      normalizeText(item.label).trim() ||
+      `Extra ${index + 1}`;
+    const description = normalizeText(item.description ?? item.descricao);
+    const setupPrice = parseMoneyInput(item.setupPrice ?? item.preco_setup ?? item.preco_ativacao ?? item.valor);
+    const monthlyPrice = parseMoneyInput(item.monthlyPrice ?? item.preco_mensal ?? 0);
+
+    return {
+      id: normalizeText(item.id, `extra-${index}`),
+      extraId: normalizeText(item.extraId ?? item.extra_id ?? item.id, `extra-${index}`),
+      name,
+      description,
+      clause: normalizeText(item.clause ?? item.clausula, buildDefaultExtraClause({
+        name,
+        description,
+        setupPrice,
+        monthlyPrice,
+      })),
+      active: normalizeBoolean(item.active, true),
+      order: Number.isFinite(Number(item.order ?? item.ordem)) ? Number(item.order ?? item.ordem) : index,
+      setupPrice,
+      monthlyPrice,
+    };
+  });
+}
+
+function hydrateLegacyPlanSelection(
+  items: ContractBuilderPayload["items"],
+  rawPayload: Record<string, any>,
+): ContractBuilderPayload["items"] {
+  const requestedPrimaryPlan = normalizePrimaryPlanId(rawPayload.primaryPlanId);
+  const selectedByLegacyId =
+    normalizeText(rawPayload.plano).trim().toLowerCase() ||
+    normalizeText(rawPayload.plan).trim().toLowerCase() ||
+    "";
+
+  const selectedPlan =
+    PUBLIC_PLAN_CATALOG.find((plan) => plan.id === requestedPrimaryPlan) ||
+    PUBLIC_PLAN_CATALOG.find((plan) => plan.title.toLowerCase() === selectedByLegacyId) ||
+    null;
+
+  return selectPrimaryPlan(items, selectedPlan?.id || "none");
 }
 
 export function formatMoneyInputValue(value: number) {
@@ -109,7 +151,7 @@ export function buildItemMoneyDraftKey(itemId: string, field: "setupPrice" | "mo
   return `item:${itemId}:${field}`;
 }
 
-export function buildPricingMoneyDraftKey(field: "discountValue" | "entryValue" | "negotiatedMonthly") {
+export function buildPricingMoneyDraftKey(field: string) {
   return `pricing:root:${field}`;
 }
 
@@ -123,12 +165,7 @@ export function getContractErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-export function normalizeBuilderStep(
-  value: unknown,
-  fallback: ContractBuilderStepIndex,
-): ContractBuilderStepIndex {
-  return value === 0 || value === 1 || value === 2 || value === 3 || value === 4 ? value : fallback;
-}
+export { normalizeBuilderStep };
 
 export function normalizeBuilderPayload(
   rawPayload: unknown,
@@ -142,99 +179,92 @@ export function normalizeBuilderPayload(
     return {
       ...base,
       clienteId: fallbackClientId,
+      lastStep: fallbackStep,
     };
   }
 
-  const payload = rawPayload as Partial<ContractBuilderPayload>;
-  const rawContractante = isRecord(payload.contractante) ? payload.contractante : {};
-  const rawContratada = isRecord(payload.contratada) ? payload.contratada : {};
-  const rawPricing = isRecord(payload.pricing) ? payload.pricing : {};
-  const savedItems = Array.isArray(payload.items) ? payload.items.filter(isRecord) : [];
-  const baseById = new Map(base.items.map((item) => [item.id, item]));
-  const mergedItems = base.items.map((item) => {
-    const saved = savedItems.find((entry) => entry.id === item.id);
-    if (!saved) return item;
+  const payload = rawPayload as Record<string, any>;
+  const items = hydrateLegacyPlanSelection(base.items, payload).map((item) => {
+    const legacySelected = Array.isArray(payload.items)
+      ? payload.items.find((entry: Record<string, any>) => entry?.id === item.id)
+      : null;
 
-    return {
-      ...item,
-      name: normalizeBuilderText(saved.name, item.name),
-      description: normalizeBuilderText(saved.description, item.description),
-      selected: Boolean(saved.selected),
-      setupPrice: normalizeBuilderMoney(saved.setupPrice ?? item.setupPrice ?? 0),
-      monthlyPrice: normalizeBuilderMoney(saved.monthlyPrice ?? item.monthlyPrice ?? 0),
-    };
+    return legacySelected
+      ? {
+          ...item,
+          name: normalizeText(legacySelected.name, item.name),
+          description: normalizeText(legacySelected.description, item.description),
+          setupPrice: parseMoneyInput(legacySelected.setupPrice ?? item.setupPrice),
+          monthlyPrice: parseMoneyInput(legacySelected.monthlyPrice ?? item.monthlyPrice),
+          selected: normalizeBoolean(legacySelected.selected, item.selected),
+        }
+      : item;
   });
 
-  const legacyItems = savedItems
-    .filter((item) => typeof item.id === "string" && !baseById.has(item.id))
-    .map((item) => ({
-      id: String(item.id),
-      source: item.source === "plan" || item.source === "extra" ? item.source : "extra",
-      sourceId: typeof item.sourceId === "string" ? item.sourceId : undefined,
-      group: normalizeBuilderGroup(item.group),
-      name: normalizeBuilderText(item.name, "Extra legado").trim() || "Extra legado",
-      description: normalizeBuilderText(item.description),
-      selected: Boolean(item.selected),
-      setupPrice: normalizeBuilderMoney(item.setupPrice),
-      monthlyPrice: normalizeBuilderMoney(item.monthlyPrice),
-      isPrimaryPlan: Boolean(item.isPrimaryPlan),
-    }));
-  const items = [...mergedItems, ...legacyItems];
-  const primaryPlanId = normalizePrimaryPlanId(payload.primaryPlanId, items);
+  const primaryPlanId =
+    normalizePrimaryPlanId(payload.primaryPlanId) !== "none"
+      ? normalizePrimaryPlanId(payload.primaryPlanId)
+      : (items.find((item) => item.selected)?.sourceId as BuilderPrimaryPlanId) || "none";
 
-  const clientExtrasSnapshot = Array.isArray(payload.clientExtrasSnapshot)
-    ? payload.clientExtrasSnapshot
-        .filter(isRecord)
-        .map((item, index) => ({
-          id:
-            normalizeBuilderText(item.id).trim() ||
-            normalizeBuilderText(item.extraId).trim() ||
-            `legacy-extra-${index}`,
-          extraId:
-            normalizeBuilderText(item.extraId).trim() ||
-            normalizeBuilderText(item.id).trim() ||
-            `legacy-extra-${index}`,
-          name:
-            normalizeBuilderText(item.name).trim() ||
-            normalizeBuilderText(item.label).trim() ||
-            "Extra legado",
-          description: normalizeBuilderText(item.description),
-          setupPrice: normalizeBuilderMoney(item.setupPrice),
-          monthlyPrice: normalizeBuilderMoney(item.monthlyPrice),
-          typeLabel: normalizeBuilderTypeLabel(item.typeLabel),
-          category: normalizeBuilderGroup(item.category ?? item.group),
-        }))
-    : [];
-
-  const pricing = computeBuilderPricing(items, clientExtrasSnapshot, {
-    negotiatedSetup: normalizeBuilderMoney(rawPricing.negotiatedSetup ?? rawPricing.setupSubtotal ?? 0),
-    discountType: rawPricing.discountType === "percentage" ? "percentage" : "fixed",
-    discountValue: normalizeBuilderMoney(rawPricing.discountValue),
-    entryValue: normalizeBuilderMoney(rawPricing.entryValue),
-    negotiatedMonthly: normalizeBuilderMoney(rawPricing.negotiatedMonthly ?? rawPricing.monthlySubtotal ?? 0),
+  const extrasSnapshot = normalizeExtrasSnapshot(payload.clientExtrasSnapshot ?? payload.extras, base.clientExtrasSnapshot);
+  const selectedPlan = items.find((item) => item.selected) || null;
+  const pricing = computeBuilderPricing(items, extrasSnapshot, {
+    baseValue: parseMoneyInput(
+      payload.pricing?.baseValue ??
+        payload.pricing?.negotiatedSetup ??
+        payload.pricing?.setupSubtotal ??
+        payload.comercial?.ativacao ??
+        selectedPlan?.setupPrice ??
+        0,
+    ),
+    entryValue: parseMoneyInput(payload.pricing?.entryValue ?? 0),
   });
-  const customScope = normalizeBuilderText(payload.customScope, base.customScope).trim();
 
   const normalizedPayload: ContractBuilderPayload = {
     ...base,
-    clienteId: typeof payload.clienteId === "string" ? payload.clienteId : fallbackClientId,
+    version: "v2",
+    clienteId:
+      typeof payload.clienteId === "string"
+        ? payload.clienteId
+        : typeof payload.clientId === "string"
+          ? payload.clientId
+          : fallbackClientId,
     lastStep: normalizeBuilderStep(payload.lastStep, fallbackStep),
+    status: normalizeContractStatusToken(payload.status),
     primaryPlanId,
-    contractante: normalizeContractante(rawContractante, base.contractante),
-    contratada: normalizeContratada(rawContratada, base.contratada),
-    items,
-    clientExtrasSnapshot,
-    customScope:
-      primaryPlanId === "sob-medida" ? customScope || buildFallbackCustomScope(items) : customScope,
-    prazoDias: normalizeBuilderText(payload.prazoDias, base.prazoDias),
-    formaPagamento: normalizeBuilderText(payload.formaPagamento, base.formaPagamento),
-    numeroRevisoes: normalizeBuilderText(payload.numeroRevisoes, base.numeroRevisoes),
-    valorRevisao: normalizeBuilderText(payload.valorRevisao, base.valorRevisao),
-    prazoSuporte: normalizeBuilderText(payload.prazoSuporte, base.prazoSuporte),
-    observacoesComerciais: normalizeBuilderText(payload.observacoesComerciais, base.observacoesComerciais),
-    escopoExclusoes: normalizeBuilderText(payload.escopoExclusoes, base.escopoExclusoes),
+    contractNumber: normalizeText(payload.contractNumber ?? payload.numeroContrato ?? payload.numero, base.contractNumber),
+    issueDate: normalizeText(payload.issueDate ?? payload.dataEmissao ?? payload.createdAt, base.issueDate).slice(0, 10) || base.issueDate,
+    startDate: normalizeText(payload.startDate ?? payload.dataInicio ?? base.startDate).slice(0, 10) || base.startDate,
+    dueDate: normalizeText(payload.dueDate ?? payload.vencimento ?? base.dueDate).slice(0, 10) || base.dueDate,
+    contractante: normalizeContractante(
+      isRecord(payload.contractante) ? payload.contractante : {},
+      base.contractante,
+    ),
+    contratada: normalizeContratada(
+      isRecord(payload.contratada) ? payload.contratada : {},
+      base.contratada,
+    ),
+    items: selectPrimaryPlan(items, primaryPlanId),
+    clientExtrasSnapshot: extrasSnapshot,
+    customScope: (() => {
+      const explicitScope = normalizeText(payload.customScope, base.customScope).trim();
+      if (explicitScope) return explicitScope;
+      return primaryPlanId === "sob-medida"
+        ? "Escopo sob medida em definição. Revise os objetivos, módulos e entregas específicas deste contrato antes do envio."
+        : base.customScope;
+    })(),
+    prazoDias: normalizeText(payload.prazoDias, base.prazoDias),
+    formaPagamento: normalizeText(payload.formaPagamento, base.formaPagamento),
+    numeroRevisoes: normalizeText(payload.numeroRevisoes, base.numeroRevisoes),
+    valorRevisao: normalizeText(payload.valorRevisao, base.valorRevisao),
+    prazoSuporte: normalizeText(payload.prazoSuporte, base.prazoSuporte),
+    observacoesComerciais: normalizeText(
+      payload.observacoesComerciais ?? payload.observacoes,
+      base.observacoesComerciais,
+    ),
+    escopoExclusoes: normalizeText(payload.escopoExclusoes, base.escopoExclusoes),
     pricing,
-    createdAt: typeof payload.createdAt === "string" ? payload.createdAt : base.createdAt,
+    createdAt: normalizeText(payload.createdAt, base.createdAt) || base.createdAt,
     updatedAt: new Date().toISOString(),
   };
 
@@ -259,35 +289,32 @@ export function buildBuilderSavePayload(
   });
 
   const templateValues = buildBuilderTemplateValues(normalizedPayload);
-  const selectedCount =
-    (normalizedPayload.primaryPlanId !== "none" ? 1 : 0) + getContractExtraSnapshots(normalizedPayload).length;
   const selectedPlan =
-    PUBLIC_PLAN_CATALOG.find((plan) => plan.id === normalizedPayload.primaryPlanId)?.title || "Sem plano principal";
+    normalizedPayload.items.find((item) => item.isPrimaryPlan && item.selected)?.name || "Plano não definido";
   const clientLabel =
     normalizedPayload.contractante.nomeEmpresa?.trim() || normalizedPayload.contractante.nome.trim() || "Cliente";
 
   return {
     normalizedPayload,
-    title: `Contrato Mestre NovaesWeb — ${clientLabel}`,
+    title: `Contrato NovaesWeb - ${clientLabel}`,
     body: fillTemplate(template.corpo, templateValues),
-    description: `Montador Comercial • ${selectedPlan} • ${selectedCount} item(ns) contratado(s)`,
-    value: normalizedPayload.pricing.finalSetupTotal,
+    description: `${selectedPlan} • ${normalizedPayload.clientExtrasSnapshot.filter((item) => item.active !== false).length} extra(s) • ${formatCurrencyBRL(
+      normalizedPayload.pricing.totalValue,
+    )}`,
+    value: normalizedPayload.pricing.totalValue,
   };
 }
 
 export function hasMeaningfulBuilderState(payload: ContractBuilderPayload) {
   return Boolean(
     payload.clienteId ||
+      payload.contractante.nome.trim() ||
+      payload.contractante.documento.trim() ||
       payload.primaryPlanId !== "none" ||
       payload.clientExtrasSnapshot.length > 0 ||
-      payload.items.some(
-        (item) => item.selected || Number(item.setupPrice || 0) > 0 || Number(item.monthlyPrice || 0) > 0,
-      ) ||
-      payload.customScope.trim() ||
+      payload.pricing.baseValue > 0 ||
       payload.observacoesComerciais.trim() ||
-      payload.escopoExclusoes.trim() ||
-      Number(payload.pricing.negotiatedSetup || 0) > 0 ||
-      Number(payload.pricing.negotiatedMonthly || 0) > 0
+      payload.contractNumber.trim(),
   );
 }
 
@@ -326,6 +353,7 @@ export function buildBuilderDirtySignature(
   return JSON.stringify({
     ...payload,
     lastStep: currentStep,
+    createdAt: "",
     updatedAt: "",
   });
 }
@@ -350,7 +378,7 @@ export function buildContractMaterialSignature(input: {
     title: input.title.trim(),
     description: input.description.trim(),
     value: Number(input.value || 0),
-    body: stripLegacySignaturePlaceholders(input.body).replace(/\s+/g, " ").trim(),
+    body: input.body.replace(/\s+/g, " ").trim(),
     payload: buildComparableContractPayload(input.payload),
   });
 }
@@ -395,10 +423,9 @@ export function parseComercialSummaryLines(lines: string[]) {
     const normalized = line.toLowerCase();
     const numericValue = parseMoneyInput(line);
 
-    if (normalized.includes("ativação total")) acc.setup = numericValue;
-    if (normalized.includes("entrada / sinal")) acc.entry = numericValue;
-    if (normalized.includes("saldo na entrega")) acc.balance = numericValue;
-    if (normalized.includes("mensalidade contratada")) acc.monthly = numericValue;
+    if (normalized.includes("valor base")) acc.baseValue = numericValue;
+    if (normalized.includes("extras")) acc.extrasTotal = numericValue;
+    if (normalized.includes("total do contrato")) acc.totalValue = numericValue;
     return acc;
   }, {});
 }

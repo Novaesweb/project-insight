@@ -6,13 +6,14 @@ export interface AdminRouteMeta {
 }
 
 const RECENT_ADMIN_ROUTES_KEY = "novaesweb-admin-recent-routes";
-const DISABLED_ADMIN_ROUTE_PREFIXES = ["/admin/contratos"];
+const DISABLED_ADMIN_ROUTE_PREFIXES: string[] = [];
 
 export const adminRoutes: AdminRouteMeta[] = [
   { href: "/admin", label: "Dashboard", shortLabel: "Início", keywords: ["dashboard", "home", "inicio", "painel"] },
   { href: "/admin/clientes", label: "Clientes", shortLabel: "Clientes", keywords: ["clientes", "ecossistemas"] },
   { href: "/admin/leads", label: "Leads", shortLabel: "Leads", keywords: ["leads", "pipeline", "oportunidades"] },
   { href: "/admin/projetos", label: "Projetos", shortLabel: "Projetos", keywords: ["projetos", "entregas", "execucao"] },
+  { href: "/admin/contratos", label: "Contratos", shortLabel: "Contratos", keywords: ["contratos", "cofre", "assinatura", "propostas"] },
   { href: "/admin/pedidos", label: "Pedidos", shortLabel: "Pedidos", keywords: ["pedidos", "vendas", "faturas"] },
   { href: "/admin/extras", label: "Extras", shortLabel: "Extras", keywords: ["extras", "upgrades", "modulos"] },
   { href: "/admin/recurrent-extras", label: "Extras Recorrentes", shortLabel: "Recorrentes", keywords: ["recorrentes", "assinaturas"] },
@@ -31,7 +32,7 @@ export function findAdminRoute(href: string) {
 }
 
 export function getFavoriteAdminRoutes() {
-  return ["/admin", "/admin/leads", "/admin/financeiro", "/admin/projetos"]
+  return ["/admin", "/admin/leads", "/admin/contratos", "/admin/financeiro", "/admin/projetos"]
     .map((href) => findAdminRoute(href))
     .filter(Boolean) as AdminRouteMeta[];
 }

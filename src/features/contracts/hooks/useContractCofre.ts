@@ -1,10 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { setContractArchived, deleteBuilderDraftContract } from "@/features/contracts/services";
-import { Contrato, CONTRACT_STATUS_ORDER } from "@/features/contracts/types";
+import { Contrato, CONTRACT_STATUS_OPTIONS } from "@/features/contracts/types";
 import { ensureArray, noopContractAction } from "@/features/contracts/runtime";
-import { getContractStatusLabel, getContractStatusBadgeClass } from "@/lib/contract-status";
-import { formatContratoValue } from "@/lib/contract-utils";
+import { normalizeContractStatus } from "@/lib/contract-status";
 
 interface UseContractCofreProps {
   contratos: Contrato[];
@@ -24,7 +23,7 @@ export function useContractCofre({
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [cofreFilter, setCofreFilter] = useState<"ativos" | "arquivados">("ativos");
-  const [cofreStatusFilter, setCofreStatusFilter] = useState<"todos" | "rascunho" | "enviado" | "visualizado" | "assinado" | "cancelado">("todos");
+  const [cofreStatusFilter, setCofreStatusFilter] = useState<"todos" | (typeof CONTRACT_STATUS_OPTIONS)[number]["value"]>("todos");
   const [deleteTarget, setDeleteTarget] = useState<Contrato | null>(null);
   const safeContratos = useMemo(() => ensureArray(contratos), [contratos]);
 
@@ -33,7 +32,7 @@ export function useContractCofre({
       const isArchived = Boolean(contrato.archived_at);
       if (cofreFilter === "ativos" && isArchived) return false;
       if (cofreFilter === "arquivados" && !isArchived) return false;
-      if (cofreStatusFilter !== "todos" && contrato.status !== cofreStatusFilter) return false;
+      if (cofreStatusFilter !== "todos" && normalizeContractStatus(contrato.status) !== cofreStatusFilter) return false;
 
       const term = searchTerm.trim().toLowerCase();
       if (!term) return true;
@@ -58,7 +57,8 @@ export function useContractCofre({
   const contractStatusCounts = useMemo(
     () =>
       safeContratos.reduce<Record<string, number>>((acc, contrato) => {
-        acc[contrato.status] = (acc[contrato.status] || 0) + 1;
+        const key = normalizeContractStatus(contrato.status);
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {}),
     [safeContratos],

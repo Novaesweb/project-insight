@@ -46,6 +46,10 @@ export type ContractPdfOptions = {
   signedAt?: string | null;
 };
 
+export type ContractWordOptions = ContractPdfOptions & {
+  returnHtml?: boolean;
+};
+
 export function generateContractPDF(
   titulo: string,
   corpo: string,
@@ -372,13 +376,18 @@ export function generateContractPDF(
 export function downloadWordDocument(
   title: string,
   body: string,
-  proposal?: ContractBuilderPayload | null,
-  signatureOptions?: {
-    contractanteSignedName?: string | null;
-    signedAt?: string | null;
-  },
+  options?: ContractWordOptions,
 ) {
-  const blob = new Blob([buildContractWordHtml(title, body, proposal, signatureOptions)], {
+  const html = buildContractWordHtml(title, body, options?.proposal, {
+    contractanteSignedName: options?.contractanteSignedName,
+    signedAt: options?.signedAt,
+  });
+
+  if (options?.returnHtml) {
+    return html;
+  }
+
+  const blob = new Blob([html], {
     type: "application/msword;charset=utf-8",
   });
   const url = window.URL.createObjectURL(blob);
@@ -389,4 +398,6 @@ export function downloadWordDocument(
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
+
+  return html;
 }

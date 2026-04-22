@@ -15,7 +15,7 @@ import { getFavoriteAdminRoutes, getRecentAdminRoutes, trackAdminRoute } from "@
 import {
   Menu, LayoutDashboard, Users, FolderKanban, ShoppingCart,
   BarChart3, DollarSign, Headphones, UserCog, Settings,
-  LogOut, CalendarDays, Puzzle, Sparkles, ArrowLeft, LockKeyhole, ServerCog, ClipboardList
+  LogOut, CalendarDays, Puzzle, Sparkles, ArrowLeft, LockKeyhole, ServerCog, ClipboardList, FileSignature
 } from "lucide-react";
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminHeader from "./admin/AdminHeader";
@@ -31,6 +31,7 @@ const mobileNavGroups = [
       { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
       { href: "/admin/projetos/lista", label: "Lista de Projetos", isSubItem: true },
       { href: "/admin/projetos/kanban", label: "Quadro Kanban", isSubItem: true },
+      { href: "/admin/contratos", label: "Contratos", icon: FileSignature },
     ],
   },
   {
@@ -64,6 +65,7 @@ const mobileNavGroups = [
 const mobileDockItems = [
   { href: "/admin", label: "Início", icon: LayoutDashboard },
   { href: "/admin/leads", label: "Leads", icon: Headphones },
+  { href: "/admin/contratos", label: "Contratos", icon: FileSignature },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { href: "/admin/projetos", label: "Projetos", icon: FolderKanban },
 ];

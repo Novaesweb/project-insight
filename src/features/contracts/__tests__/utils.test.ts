@@ -67,12 +67,11 @@ describe("normalizeBuilderPayload", () => {
     expect(normalized.clientExtrasSnapshot).toEqual([
       expect.objectContaining({
         name: "Pixel Meta",
-        category: "fixo",
         setupPrice: 99.9,
         monthlyPrice: 0,
+        clause: expect.stringContaining("Pixel Meta"),
       }),
     ]);
-    expect(normalized.clientExtrasSnapshot[0]?.typeLabel).not.toBe("mensal");
     expect(expressPlan).toEqual(
       expect.objectContaining({
         selected: true,

@@ -1,4 +1,4 @@
-export const DISABLED_NOTIFICATION_URL_PREFIXES = ["/admin/contratos", "/cliente/contratos"] as const;
+export const DISABLED_NOTIFICATION_URL_PREFIXES: string[] = [];
 
 type NotificationWithOptionalUrl = {
   url?: string | null;

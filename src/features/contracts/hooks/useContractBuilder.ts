@@ -1,41 +1,37 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useCallback, useMemo, useState } from "react";
 import { useReducedMotion } from "framer-motion";
+
+import { useToast } from "@/hooks/use-toast";
 import {
-  ContractBuilderPayload,
-  ContractBuilderStepIndex,
-  ContractBuilderPricing,
-  ContractBuilderClientExtraSnapshot,
-  BuilderPrimaryPlanId,
-  createEmptyBuilderPayload,
-  computeBuilderPricing,
-  selectPrimaryPlan,
+  buildDefaultExtraClause,
   buildProposalSummary,
+  computeBuilderPricing,
+  createEmptyBuilderPayload,
+  formatCurrencyBRL,
+  selectPrimaryPlan,
+  type BuilderPrimaryPlanId,
+  type ContractBuilderClientExtraSnapshot,
+  type ContractBuilderPayload,
+  type ContractStatus,
 } from "@/lib/contract-builder";
 import {
-  ContractRecoveryOriginAction,
-  clearContractRecoverySnapshot,
-  saveContractRecoverySnapshot,
-} from "@/lib/contract-recovery";
-import {
-  buildPricingMoneyDraftKey,
-  buildBuilderDirtySignature,
   buildBuilderSavePayload,
-  getContractErrorMessage,
-  downloadWordDocument,
-  formatMoneyInputValue,
+  buildPricingMoneyDraftKey,
   formatContractClock,
-  generateContractPDF,
-  hasMeaningfulBuilderState,
+  getContractErrorMessage,
   normalizeBuilderPayload,
-  normalizeBuilderStep,
-  parseMoneyInput,
 } from "@/lib/contract-utils";
+import { createContractEvent } from "@/lib/contract-activity";
 import {
-  saveBuilderContractDirectly,
-  fetchActiveClientExtras,
-} from "@/features/contracts/services";
+  downloadWordDocument,
+  generateContractPDF,
+} from "@/features/contracts/documents";
 import { logContractAdminError } from "@/features/contracts/debug";
+import {
+  fetchActiveClientExtras,
+  saveBuilderContractDirectly,
+  updateBuilderContractStatus,
+} from "@/features/contracts/services";
 import {
   EMPTY_CLIENTES,
   EMPTY_EXTRAS_CATALOGO,
@@ -45,26 +41,12 @@ import {
   noopSearchChange,
   noopTabChange,
 } from "@/features/contracts/runtime";
-import { hasSignedContractMaterialChanges } from "@/features/contracts/utils";
-import { BUILDER_STEPS, BUILDER_TEMPLATE_ID, Contrato, ExtraCatalogo, Cliente, RESIGN_REASON_DEFAULT } from "@/features/contracts/types";
-
-const mapClientExtraToSnapshot = (item: any): ContractBuilderClientExtraSnapshot => {
-  const safeItem = item && typeof item === "object" ? item : {};
-  return {
-    id: safeItem.id || safeItem.extra_id || safeItem.extraId || "extra-sem-id",
-    extraId: safeItem.extra_id || safeItem.extraId || safeItem.id || "",
-    name: safeItem.label || safeItem.nome || safeItem.name || "",
-    description: safeItem.descricao || safeItem.description || "",
-  setupPrice: Number(safeItem.preco_setup || safeItem.setupPrice || 0),
-  monthlyPrice: Number(safeItem.preco_mensal || safeItem.monthlyPrice || 0),
-  typeLabel: item.typeLabel === "mensal" ? "mensal" : "único",
-  category: safeItem.category === "mensal" || safeItem.category === "intermediario" || safeItem.category === "fixo"
-    ? safeItem.category
-    : "fixo",
-  };
-};
-
-const moneyDraftFieldPattern = /^(pricing):(.+):(discountValue|entryValue|negotiatedMonthly)$/;
+import {
+  BUILDER_TEMPLATE_ID,
+  type Cliente,
+  type Contrato,
+  type ExtraCatalogo,
+} from "@/features/contracts/types";
 
 interface UseContractBuilderProps {
   clientes: Cliente[];
@@ -77,6 +59,57 @@ interface UseContractBuilderProps {
 }
 
 type UseContractBuilderInput = Partial<UseContractBuilderProps>;
+
+function mapClientExtraToSnapshot(item: any, index: number): ContractBuilderClientExtraSnapshot {
+  const safeItem = item && typeof item === "object" ? item : {};
+  const name =
+    safeItem.extras_catalogo?.nome ||
+    safeItem.nome ||
+    safeItem.label ||
+    safeItem.name ||
+    `Extra ${index + 1}`;
+  const description =
+    safeItem.extras_catalogo?.descricao ||
+    safeItem.descricao ||
+    safeItem.description ||
+    "";
+  const setupPrice = Number(
+    safeItem.preco_ativacao ?? safeItem.preco_setup ?? safeItem.setupPrice ?? safeItem.valor ?? 0,
+  );
+  const monthlyPrice = Number(safeItem.preco_mensal ?? safeItem.monthlyPrice ?? 0);
+
+  return {
+    id: safeItem.id || safeItem.extra_id || safeItem.extraId || `extra-${index}`,
+    extraId: safeItem.extra_id || safeItem.extraId || safeItem.id || `extra-${index}`,
+    name,
+    description,
+    clause:
+      safeItem.clausula ||
+      safeItem.clause ||
+      buildDefaultExtraClause({ name, description, setupPrice, monthlyPrice }),
+    active: safeItem.status !== "cancelado",
+    order: index,
+    setupPrice,
+    monthlyPrice,
+  };
+}
+
+function buildPricingFromPayload(payload: ContractBuilderPayload) {
+  return computeBuilderPricing(payload.items, payload.clientExtrasSnapshot, {
+    baseValue: payload.pricing.baseValue,
+    entryValue: payload.pricing.entryValue,
+  });
+}
+
+function createEventLabel(status: ContractStatus) {
+  if (status === "aprovado") return "Contrato aprovado internamente";
+  if (status === "ativo") return "Contrato ativado";
+  if (status === "cancelado") return "Contrato cancelado";
+  if (status === "encerrado") return "Contrato encerrado";
+  if (status === "assinado") return "Contrato marcado como assinado";
+  if (status === "em_revisao") return "Contrato em revisão";
+  return "Status do contrato atualizado";
+}
 
 export function useContractBuilder({
   clientes = EMPTY_CLIENTES,
@@ -97,376 +130,360 @@ export function useContractBuilder({
 
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
-  const [builderStep, setBuilderStep] = useState<ContractBuilderStepIndex>(0);
+  const [builderStep, setBuilderStep] = useState(4);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
-  const [moneyDrafts, setMoneyDrafts] = useState<Record<string, string>>({});
   const [syncingClientExtras, setSyncingClientExtras] = useState(false);
-  const [builderRecoveredLocally, setBuilderRecoveredLocally] = useState(false);
-  const [builderLastSavedSignature, setBuilderLastSavedSignature] = useState<string | null>(null);
-  const [builderLastSavedAt, setBuilderLastSavedAt] = useState<string | null>(null);
   const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [builderClientExtras, setBuilderClientExtras] = useState<any[]>([]);
+  const [builderLastSavedAt, setBuilderLastSavedAt] = useState<string | null>(null);
 
-  const contractRecoveryAutosaveSignatureRef = useRef<string | null>(null);
-  const contractRemoteAutosaveSignatureRef = useRef<string | null>(null);
+  const workingBuilderPayload = useMemo(() => {
+    if (!builderPayload) return null;
+    return {
+      ...builderPayload,
+      pricing: buildPricingFromPayload(builderPayload),
+    };
+  }, [builderPayload]);
 
-  const syncBuilderSavedState = useCallback(
-    (payload: ContractBuilderPayload, step: ContractBuilderStepIndex, savedAt?: string | null) => {
-      const sig = buildBuilderDirtySignature(payload, step);
-      setBuilderLastSavedSignature(sig);
-      setBuilderLastSavedAt(savedAt || null);
-      setBuilderRecoveredLocally(false);
-      setBuilderRemoteAutosaveState(savedAt ? "saved" : "idle");
-      contractRecoveryAutosaveSignatureRef.current = sig;
-      contractRemoteAutosaveSignatureRef.current = sig;
-    },
-    [],
+  const builderSummary = useMemo(
+    () => (workingBuilderPayload ? buildProposalSummary(workingBuilderPayload) : null),
+    [workingBuilderPayload],
   );
 
-  const saveBuilderRecoveryLocally = useCallback(
-    (
-      payload: ContractBuilderPayload,
-      step: ContractBuilderStepIndex,
-      originAction: ContractRecoveryOriginAction,
-      options?: { markPendingRestore?: boolean },
-    ) => {
-      if (!hasMeaningfulBuilderState(payload) && !editingBuilderContract?.id) {
-        return;
-      }
+  const builderPrepared = useMemo(() => {
+    if (!workingBuilderPayload) return null;
 
-      saveContractRecoverySnapshot(
-        {
-          contractId: editingBuilderContract?.id ?? null,
-          builderPayload: payload,
-          lastStep: step,
-          savedAt: new Date().toISOString(),
-          originAction,
-          payloadSignature: buildBuilderDirtySignature(payload, step),
-        },
-        options,
-      );
-    },
-    [editingBuilderContract?.id],
-  );
+    try {
+      return buildBuilderSavePayload(workingBuilderPayload, 4);
+    } catch {
+      return null;
+    }
+  }, [workingBuilderPayload]);
 
-  const recalculateBuilderPricing = useCallback(
-    (
-      items: ContractBuilderPayload["items"],
-      previousPricing: ContractBuilderPricing,
-      clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[] = [],
-    ) => {
-      const basePricing = computeBuilderPricing(items, clientExtrasSnapshot);
-      const negotiatedMonthly =
-        previousPricing.negotiatedMonthly === previousPricing.monthlySubtotal
-          ? basePricing.monthlySubtotal
-          : previousPricing.negotiatedMonthly;
+  const builderPreparedError = useMemo(() => {
+    if (!workingBuilderPayload || builderPrepared) return null;
 
-      return computeBuilderPricing(items, clientExtrasSnapshot, {
-        negotiatedSetup: basePricing.setupSubtotal,
-        discountType: previousPricing.discountType === "percentage" ? "percentage" : "fixed",
-        discountValue: previousPricing.discountValue,
-        entryValue: previousPricing.entryValue,
-        negotiatedMonthly,
-      });
-    },
-    [],
-  );
+    try {
+      buildBuilderSavePayload(workingBuilderPayload, 4);
+      return null;
+    } catch (error) {
+      return getContractErrorMessage(error, "Esse contrato precisa de revisão antes de ser salvo.");
+    }
+  }, [builderPrepared, workingBuilderPayload]);
 
-  const applyMoneyDraftsToPayload = useCallback(
-    (payload: ContractBuilderPayload) => {
-      const draftEntries = Object.entries(moneyDrafts);
-      if (draftEntries.length === 0) return payload;
+  const builderProgress = builderPayload ? 100 : 0;
+  const selectedItemsCount = (workingBuilderPayload?.clientExtrasSnapshot.filter((item) => item.active !== false).length || 0) +
+    (workingBuilderPayload?.primaryPlanId !== "none" ? 1 : 0);
 
-      let nextPayload: ContractBuilderPayload = {
-        ...payload,
-        pricing: { ...payload.pricing },
-      };
-
-      for (const [key, draftValue] of draftEntries) {
-        const matched = key.match(moneyDraftFieldPattern);
-        if (!matched) continue;
-
-        const [, target, , fieldName] = matched;
-        const numericValue = Math.max(parseMoneyInput(draftValue), 0);
-
-        if (
-          target === "pricing" &&
-          (fieldName === "discountValue" || fieldName === "entryValue" || fieldName === "negotiatedMonthly")
-        ) {
-          const nextPricing = { ...nextPayload.pricing };
-
-          if (fieldName === "discountValue") nextPricing.discountValue = numericValue;
-          if (fieldName === "entryValue") nextPricing.entryValue = numericValue;
-          if (fieldName === "negotiatedMonthly") nextPricing.negotiatedMonthly = numericValue;
-
-          nextPayload = {
-            ...nextPayload,
-            pricing: recalculateBuilderPricing(
-              nextPayload.items,
-              nextPricing,
-              nextPayload.clientExtrasSnapshot,
-            ),
-          };
-        }
-      }
-
-      return {
-        ...nextPayload,
-        updatedAt: new Date().toISOString(),
-      };
-    },
-    [moneyDrafts, recalculateBuilderPricing],
-  );
-
-  const getWorkingBuilderPayload = useCallback(
-    () => (builderPayload ? applyMoneyDraftsToPayload(builderPayload) : null),
-    [applyMoneyDraftsToPayload, builderPayload],
-  );
-
-  const workingBuilderPayload = useMemo(
-    () => (builderPayload ? applyMoneyDraftsToPayload(builderPayload) : null),
-    [applyMoneyDraftsToPayload, builderPayload],
-  );
-
-  const syncMoneyDraftsToState = useCallback(() => {
-    const currentPayload = getWorkingBuilderPayload();
-    if (!currentPayload) return null;
-
-    if (Object.keys(moneyDrafts).length > 0) {
-      setBuilderPayload(currentPayload);
-      setMoneyDrafts({});
+  const builderStatusLabel = useMemo(() => {
+    if (builderRemoteAutosaveState === "saving") {
+      return { title: "Salvando", subtitle: "Sincronizando contrato com o cofre." };
     }
 
-    return currentPayload;
-  }, [getWorkingBuilderPayload, moneyDrafts]);
+    if (builderRemoteAutosaveState === "saved" && builderLastSavedAt) {
+      return {
+        title: "Sincronizado",
+        subtitle: `Última atualização às ${formatContractClock(builderLastSavedAt)}`,
+      };
+    }
 
-  const onUpdateTextField = useCallback((field: any, value: string) => {
-    setBuilderPayload(current => {
-      if (!current) return null;
+    if (editingBuilderContract) {
+      return {
+        title: "Em edição",
+        subtitle: "Este contrato já existe no cofre e pode ser atualizado sem sair da tela.",
+      };
+    }
+
+    return {
+      title: "Novo contrato",
+      subtitle: "Monte o documento à esquerda e acompanhe a prévia em tempo real.",
+    };
+  }, [builderLastSavedAt, builderRemoteAutosaveState, editingBuilderContract]);
+
+  const getBuilderStepError = useCallback(
+    (_step: number) => {
+      const current = workingBuilderPayload;
+      if (!current) return "Aguarde o carregamento do contrato.";
+      if (!current.clienteId) return "Selecione um cliente para iniciar o contrato.";
+      if (!current.contractante.nome.trim()) return "O nome do cliente é obrigatório.";
+      if (!current.contractante.documento.trim()) return "O documento do cliente é obrigatório.";
+      if (current.primaryPlanId === "none") return "Escolha um plano principal para o contrato.";
+      if (current.pricing.baseValue <= 0) return "Defina um valor base maior que zero.";
+      if (!current.contractNumber.trim()) return "Informe o número do contrato.";
+      return null;
+    },
+    [workingBuilderPayload],
+  );
+
+  const resetBuilder = useCallback(() => {
+    if (!extrasLoaded) return;
+
+    const nextPayload = createEmptyBuilderPayload(safeExtrasCatalogo);
+    setBuilderPayload(nextPayload);
+    setEditingBuilderContract(null);
+    setBuilderStep(0);
+    setMobileSummaryOpen(false);
+    setBuilderRemoteAutosaveState("idle");
+    setBuilderClientExtras([]);
+    setBuilderLastSavedAt(null);
+    setTab("montador");
+  }, [extrasLoaded, safeExtrasCatalogo, setTab]);
+
+  const hydrateClientExtras = useCallback(async (clienteId: string) => {
+    const extras = await fetchActiveClientExtras(clienteId);
+    setBuilderClientExtras(extras);
+
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      const extrasSnapshot = extras.map((item, index) => mapClientExtraToSnapshot(item, index));
       return {
         ...current,
-        [field]: value,
-        updatedAt: new Date().toISOString()
+        clientExtrasSnapshot: extrasSnapshot,
+        pricing: computeBuilderPricing(current.items, extrasSnapshot, {
+          baseValue: current.pricing.baseValue,
+          entryValue: current.pricing.entryValue,
+        }),
+        updatedAt: new Date().toISOString(),
       };
     });
   }, []);
 
-  const onUpdateContractante = useCallback((field: string, value: string) => {
-    setBuilderPayload(current => {
-      if (!current) return null;
-      return {
-        ...current,
-        contractante: { ...current.contractante, [field]: value },
-        updatedAt: new Date().toISOString()
-      };
-    });
-  }, []);
+  const onClientChange = useCallback(
+    async (clienteId: string) => {
+      const cliente = safeClientes.find((entry) => entry.id === clienteId);
+      if (!cliente) return;
 
-  const onUpdateContratada = useCallback((field: string, value: string) => {
-    setBuilderPayload(current => {
-      if (!current) return null;
-      return {
-        ...current,
-        contratada: { ...current.contratada, [field]: value },
-        updatedAt: new Date().toISOString()
-      };
-    });
-  }, []);
+      setBuilderPayload((current) => {
+        if (!current) return current;
 
-  const onPrimaryPlanChange = useCallback((planId: BuilderPrimaryPlanId) => {
-    setBuilderPayload(current => {
-      if (!current) return null;
-      const nextItems = selectPrimaryPlan(current.items, planId);
-      return {
-        ...current,
-        primaryPlanId: planId,
-        items: nextItems,
-        pricing: recalculateBuilderPricing(nextItems, current.pricing, current.clientExtrasSnapshot),
-        updatedAt: new Date().toISOString()
-      };
-    });
-  }, [recalculateBuilderPricing]);
-
-  const onDiscountTypeChange = useCallback((type: ContractBuilderPricing["discountType"]) => {
-    setBuilderPayload(current => {
-      if (!current) return null;
-      const nextPricing = { ...current.pricing, discountType: type };
-      return {
-        ...current,
-        pricing: recalculateBuilderPricing(current.items, nextPricing, current.clientExtrasSnapshot),
-        updatedAt: new Date().toISOString()
-      };
-    });
-  }, [recalculateBuilderPricing]);
-
-  const setMoneyDraftValue = useCallback((key: string, value: string) => {
-    setMoneyDrafts((current) => ({
-      ...current,
-      [key]: value,
-    }));
-  }, []);
-
-  const clearMoneyDraftValue = useCallback((key: string) => {
-    setMoneyDrafts((current) => {
-      if (!(key in current)) return current;
-      const nextDrafts = { ...current };
-      delete nextDrafts[key];
-      return nextDrafts;
-    });
-  }, []);
-
-  const onPricingChange = useCallback((field: any, value: string) => {
-    setMoneyDraftValue(buildPricingMoneyDraftKey(field), value);
-  }, [setMoneyDraftValue]);
-
-  const onMoneyDraftBlur = useCallback((key: string) => {
-    if (!(key in moneyDrafts)) return;
-    const currentPayload = getWorkingBuilderPayload();
-    if (!currentPayload) return;
-    setBuilderPayload(currentPayload);
-    clearMoneyDraftValue(key);
-  }, [clearMoneyDraftValue, getWorkingBuilderPayload, moneyDrafts]);
-
-  const onClientChange = useCallback(async (clienteId: string) => {
-    const cliente = safeClientes.find(c => c.id === clienteId);
-    if (!cliente) return;
-
-    setBuilderPayload(current => {
-      if (!current) return null;
-      return {
-        ...current,
-        clienteId,
-        contractante: {
-          ...current.contractante,
-          nome: cliente.nome,
-          documento: cliente.documento || "",
-          endereco: cliente.endereco || "",
-          email: cliente.email || ""
-        },
-        updatedAt: new Date().toISOString()
-      };
-    });
-
-    setSyncingClientExtras(true);
-    try {
-      const extras = await fetchActiveClientExtras(clienteId);
-      setBuilderClientExtras(extras);
-      setBuilderPayload(current => {
-        if (!current) return null;
-        const extrasSnapshot = extras.map(mapClientExtraToSnapshot);
         return {
           ...current,
-          clientExtrasSnapshot: extrasSnapshot,
-          pricing: recalculateBuilderPricing(current.items, current.pricing, extrasSnapshot),
-          updatedAt: new Date().toISOString()
-        };
-      });
-    } catch (error) {
-      const debugEntry = logContractAdminError("builder-client-change", error, {
-        clienteId,
-        contractId: editingBuilderContract?.id || null,
-      });
-
-      setBuilderClientExtras([]);
-      setBuilderPayload(current => {
-        if (!current) return null;
-        return {
-          ...current,
-          clientExtrasSnapshot: [],
-          pricing: recalculateBuilderPricing(current.items, current.pricing, []),
+          clienteId,
+          contractante: {
+            ...current.contractante,
+            nome: cliente.nome || "",
+            nomeEmpresa: cliente.nome_empresa || "",
+            documento: cliente.documento || "",
+            email: cliente.email || "",
+            whatsapp: cliente.whatsapp || "",
+            telefone: cliente.telefone || "",
+            endereco: [
+              cliente.endereco,
+              cliente.numero_endereco,
+              cliente.complemento,
+              cliente.bairro,
+            ]
+              .filter(Boolean)
+              .join(", "),
+            cep: cliente.cep || "",
+            cidade: cliente.cidade || "",
+            estado: cliente.estado || "",
+          },
           updatedAt: new Date().toISOString(),
         };
       });
 
-      toast({
-        title: "Extras do cliente indisponiveis",
-        description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
-        variant: "destructive",
-      });
-    } finally {
-      setSyncingClientExtras(false);
-    }
-  }, [editingBuilderContract?.id, recalculateBuilderPricing, safeClientes, toast]);
+      setSyncingClientExtras(true);
+      try {
+        await hydrateClientExtras(clienteId);
+      } catch (error) {
+        const debugEntry = logContractAdminError("builder-client-change", error, {
+          clienteId,
+          contractId: editingBuilderContract?.id || null,
+        });
+
+        setBuilderClientExtras([]);
+        toast({
+          title: "Extras do cliente indisponíveis",
+          description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
+          variant: "destructive",
+        });
+      } finally {
+        setSyncingClientExtras(false);
+      }
+    },
+    [editingBuilderContract?.id, hydrateClientExtras, safeClientes, toast],
+  );
 
   const onRefreshExtras = useCallback(async () => {
     if (!builderPayload?.clienteId) return;
+
     setSyncingClientExtras(true);
     try {
-      const extras = await fetchActiveClientExtras(builderPayload.clienteId);
-      setBuilderClientExtras(extras);
-      setBuilderPayload(current => {
-        if (!current) return null;
-        const extrasSnapshot = extras.map(mapClientExtraToSnapshot);
-        return {
-          ...current,
-          clientExtrasSnapshot: extrasSnapshot,
-          pricing: recalculateBuilderPricing(current.items, current.pricing, extrasSnapshot),
-          updatedAt: new Date().toISOString()
-        };
-      });
+      await hydrateClientExtras(builderPayload.clienteId);
+      toast({ title: "Extras sincronizados", description: "Os extras do cliente foram recarregados." });
     } catch (error) {
       const debugEntry = logContractAdminError("builder-refresh-extras", error, {
         clienteId: builderPayload.clienteId,
         contractId: editingBuilderContract?.id || null,
       });
-
       toast({
-        title: "Nao foi possivel atualizar os extras",
+        title: "Não foi possível atualizar os extras",
         description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
         variant: "destructive",
       });
     } finally {
       setSyncingClientExtras(false);
     }
-  }, [builderPayload?.clienteId, editingBuilderContract?.id, recalculateBuilderPricing, toast]);
+  }, [builderPayload?.clienteId, editingBuilderContract?.id, hydrateClientExtras, toast]);
 
-  const getBuilderStepError = useCallback((step: number) => {
-    const current = getWorkingBuilderPayload();
-    if (!current) return "Aguarde o carregamento...";
-    
-    if (step === 0 && !current.clienteId) return "Selecione um cliente.";
-    if (step === 1) {
-      if (!current.contractante.nome.trim()) return "Nome do contratante obrigatório.";
-      if (!current.contratada.nome.trim()) return "Nome da contratada obrigatório.";
-      if (!current.contratada.representante.trim()) return "Representante obrigatório.";
-      if (!current.contratada.documento.trim()) return "Documento obrigatório.";
-      if (!current.contratada.endereco.trim()) return "Endereço obrigatório.";
-    }
-    if (step === 2) {
-       const hasLegacy = current.items.some(i => !i.isPrimaryPlan && i.selected);
-       if (current.primaryPlanId === 'none' && !hasLegacy) return "Selecione um plano.";
-    }
-    return null;
-  }, [getWorkingBuilderPayload]);
+  const onUpdateContractante = useCallback((field: string, value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        contractante: {
+          ...current.contractante,
+          [field]: value,
+        },
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
 
-  const resetBuilder = useCallback(() => {
-    if (!extrasLoaded) return;
-    const emptyPayload = createEmptyBuilderPayload(safeExtrasCatalogo);
-    setBuilderPayload(emptyPayload);
-    setEditingBuilderContract(null);
-    setBuilderStep(0);
-    setMobileSummaryOpen(false);
-    setMoneyDrafts({});
-    setBuilderRemoteAutosaveState("idle");
-    contractRemoteAutosaveSignatureRef.current = null;
-    syncBuilderSavedState(emptyPayload, 0, null);
-    clearContractRecoverySnapshot();
-    setTab("montador");
-  }, [extrasLoaded, safeExtrasCatalogo, setTab, syncBuilderSavedState]);
+  const onUpdateContratada = useCallback((field: string, value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        contratada: {
+          ...current.contratada,
+          [field]: value,
+        },
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  const onUpdateTextField = useCallback((field: string, value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      if (field === "contractNumber" || field === "issueDate" || field === "startDate" || field === "dueDate") {
+        return {
+          ...current,
+          [field]: value,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      if (field === "status") {
+        return {
+          ...current,
+          status: value as ContractStatus,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      return {
+        ...current,
+        [field]: value,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  const onPrimaryPlanChange = useCallback((planId: BuilderPrimaryPlanId) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      const nextItems = selectPrimaryPlan(current.items, planId);
+      const selectedPlan = nextItems.find((item) => item.selected) || null;
+      return {
+        ...current,
+        primaryPlanId: planId,
+        items: nextItems,
+        pricing: computeBuilderPricing(nextItems, current.clientExtrasSnapshot, {
+          baseValue: selectedPlan?.setupPrice ?? current.pricing.baseValue,
+          entryValue: current.pricing.entryValue,
+        }),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  const onPricingChange = useCallback((field: string, value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      const numeric = Math.max(Number.isFinite(Number(value)) ? Number(value) : 0, 0);
+      const nextPricing = {
+        ...current.pricing,
+        ...(field === "baseValue" ? { baseValue: numeric } : {}),
+        ...(field === "entryValue" ? { entryValue: numeric } : {}),
+      };
+
+      return {
+        ...current,
+        pricing: computeBuilderPricing(current.items, current.clientExtrasSnapshot, {
+          baseValue: nextPricing.baseValue,
+          entryValue: nextPricing.entryValue,
+        }),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  const onDiscountTypeChange = useCallback(() => undefined, []);
+  const onMoneyDraftBlur = useCallback(() => undefined, []);
+
+  const onExtraFieldChange = useCallback((extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      const nextExtras = current.clientExtrasSnapshot.map((item) =>
+        item.id === extraId
+          ? {
+              ...item,
+              [field]: field === "setupPrice" ? Math.max(Number(value || 0), 0) : value,
+            }
+          : item,
+      );
+
+      return {
+        ...current,
+        clientExtrasSnapshot: nextExtras,
+        pricing: computeBuilderPricing(current.items, nextExtras, {
+          baseValue: current.pricing.baseValue,
+          entryValue: current.pricing.entryValue,
+        }),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  const onToggleExtra = useCallback((extraId: string, active: boolean) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      const nextExtras = current.clientExtrasSnapshot.map((item) =>
+        item.id === extraId ? { ...item, active } : item,
+      );
+
+      return {
+        ...current,
+        clientExtrasSnapshot: nextExtras,
+        pricing: computeBuilderPricing(current.items, nextExtras, {
+          baseValue: current.pricing.baseValue,
+          entryValue: current.pricing.entryValue,
+        }),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
 
   const openBuilderContract = useCallback(
     (contrato: Contrato) => {
       try {
-        const payload = normalizeBuilderPayload(contrato.builder_payload, safeExtrasCatalogo, contrato.cliente_id);
-        const restoredStep = normalizeBuilderStep(payload.lastStep, 4);
-
+        const payload = normalizeBuilderPayload(contrato.builder_payload, safeExtrasCatalogo, contrato.cliente_id || "");
         setBuilderPayload(payload);
         setEditingBuilderContract(contrato);
-        setBuilderStep(restoredStep);
+        setBuilderStep(payload.lastStep ?? 4);
         setMobileSummaryOpen(false);
-        setMoneyDrafts({});
         setBuilderRemoteAutosaveState("saved");
-        syncBuilderSavedState(payload, restoredStep, contrato.updated_at || contrato.created_at);
+        setBuilderLastSavedAt(contrato.updated_at || contrato.created_at);
+        setBuilderClientExtras(payload.clientExtrasSnapshot);
         setTab("montador");
       } catch (error) {
         const debugEntry = logContractAdminError("builder-open-contract", error, {
@@ -474,20 +491,18 @@ export function useContractBuilder({
           clientId: contrato.cliente_id || null,
           status: contrato.status,
         });
-
         toast({
-          title: "Contrato com revisao necessaria",
+          title: "Contrato com revisão necessária",
           description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
           variant: "destructive",
         });
       }
     },
-    [safeExtrasCatalogo, setTab, syncBuilderSavedState, toast],
+    [safeExtrasCatalogo, setTab, toast],
   );
 
   const persistBuilderDraft = useCallback(
     async ({
-      exitAfterSave = false,
       requireCompleteValidation = false,
       silent = false,
       autosaveRemote = false,
@@ -497,55 +512,38 @@ export function useContractBuilder({
       silent?: boolean;
       autosaveRemote?: boolean;
     } = {}) => {
-      const currentPayload = syncMoneyDraftsToState();
+      const currentPayload = workingBuilderPayload;
       if (!currentPayload) return false;
-      
-      // Basic validation logic moved from ContractsPage
-      const getBuilderStepError = (step: number) => {
-        if (step === 0 && !currentPayload.clienteId) return "Selecione um cliente para iniciar a proposta.";
-        if (step === 1) {
-            if (!currentPayload.contractante.nome.trim()) return "Preencha o nome do contratante.";
-            if (!currentPayload.contratada.nome.trim()) return "Preencha o nome da contratada.";
-        }
-        return null;
-      };
 
-      const validateAll = () => [0, 1, 2, 3].every(s => !getBuilderStepError(s));
-      if (requireCompleteValidation && !validateAll()) {
-         if (!silent) toast({ title: "Revise os dados da proposta", variant: "destructive" });
-         return false;
+      const validationMessage = getBuilderStepError(4);
+      if (requireCompleteValidation && validationMessage) {
+        if (!silent) {
+          toast({
+            title: "Revise os dados do contrato",
+            description: validationMessage,
+            variant: "destructive",
+          });
+        }
+        return false;
       }
 
       try {
-        const prepared = buildBuilderSavePayload(currentPayload, builderStep);
+        const prepared = buildBuilderSavePayload(currentPayload, 4);
         if (!prepared) return false;
 
-        const isResignAlreadyPending = Boolean((editingBuilderContract as any)?.requer_reassinatura);
-        const shouldRequireResignature = Boolean(
-          editingBuilderContract &&
-            requireCompleteValidation &&
-            !autosaveRemote &&
-            (editingBuilderContract.status === "assinado" || isResignAlreadyPending) &&
-            hasSignedContractMaterialChanges(editingBuilderContract, prepared, safeExtrasCatalogo),
-        );
+        if (autosaveRemote) setBuilderRemoteAutosaveState("saving");
 
-        saveBuilderRecoveryLocally(prepared.normalizedPayload, prepared.normalizedPayload.lastStep, "save-draft");
-
-        const nowIso = new Date().toISOString();
         const payloadToPersist = {
           cliente_id: prepared.normalizedPayload.clienteId || null,
           titulo: prepared.title,
           descricao: prepared.description,
           valor: prepared.value,
-          status: shouldRequireResignature ? "enviado" : editingBuilderContract?.status || "rascunho",
+          status: prepared.normalizedPayload.status,
           corpo: prepared.body,
           modelo: BUILDER_TEMPLATE_ID,
           builder_payload: prepared.normalizedPayload as any,
-          updated_at: nowIso,
-          requer_reassinatura: shouldRequireResignature ? true : isResignAlreadyPending,
+          updated_at: new Date().toISOString(),
         };
-
-        if (autosaveRemote) setBuilderRemoteAutosaveState("saving");
 
         const savedContrato = await saveBuilderContractDirectly({
           contractId: editingBuilderContract?.id ?? null,
@@ -556,109 +554,147 @@ export function useContractBuilder({
         const savedPayload = normalizeBuilderPayload(
           savedContrato.builder_payload,
           safeExtrasCatalogo,
-          savedContrato.cliente_id,
-          builderStep,
+          savedContrato.cliente_id || "",
+          4,
         );
+
         setBuilderPayload(savedPayload);
         setEditingBuilderContract(savedContrato);
-        syncBuilderSavedState(savedPayload, builderStep, savedContrato.updated_at);
+        setBuilderLastSavedAt(savedContrato.updated_at || savedContrato.created_at);
+        setBuilderRemoteAutosaveState("saved");
         upsertContratoState(savedContrato);
 
-        if (autosaveRemote) setBuilderRemoteAutosaveState("saved");
-
-        if (requireCompleteValidation && !silent) {
-           toast({ title: "Contrato salvo no cofre!" });
-           setTab("lista");
+        if (!silent && !autosaveRemote) {
+          toast({
+            title: editingBuilderContract ? "Contrato atualizado" : "Contrato salvo",
+            description: "O contrato foi salvo no cofre com a prévia atual.",
+          });
         }
 
-        return true;
+        return savedContrato;
       } catch (error) {
         const debugEntry = logContractAdminError("builder-save-contract", error, {
           contractId: editingBuilderContract?.id || null,
           clientId: currentPayload.clienteId || null,
           autosaveRemote,
-          requireCompleteValidation,
         });
 
-        if (autosaveRemote) setBuilderRemoteAutosaveState("error");
+        setBuilderRemoteAutosaveState("error");
+
         if (!silent) {
           toast({
-            title: "Erro ao salvar",
+            title: "Erro ao salvar contrato",
             description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
             variant: "destructive",
           });
         }
+
+        return null;
+      }
+    },
+    [editingBuilderContract, getBuilderStepError, safeExtrasCatalogo, toast, upsertContratoState, workingBuilderPayload],
+  );
+
+  const changeContractStatus = useCallback(
+    async (status: ContractStatus) => {
+      if (!editingBuilderContract) {
+        setBuilderPayload((current) => (current ? { ...current, status } : current));
+        return false;
+      }
+
+      try {
+        const patch =
+          status === "ativo"
+            ? { onboarding_started_at: editingBuilderContract.onboarding_started_at || new Date().toISOString() }
+            : status === "assinado"
+              ? { data_assinatura: editingBuilderContract.data_assinatura || new Date().toISOString() }
+              : {};
+
+        const updated = await updateBuilderContractStatus(editingBuilderContract.id, status, patch);
+        upsertContratoState(updated);
+        setEditingBuilderContract(updated);
+        setBuilderPayload((current) => (current ? { ...current, status } : current));
+
+        await createContractEvent({
+          contratoId: updated.id,
+          tipo: status,
+          titulo: createEventLabel(status),
+          descricao: `O status do contrato foi atualizado para ${status.replace(/_/g, " ")}.`,
+          actorType: "admin",
+        });
+
+        toast({
+          title: "Status atualizado",
+          description: `O contrato agora está como ${status.replace(/_/g, " ")}.`,
+        });
+        return true;
+      } catch (error) {
+        const debugEntry = logContractAdminError("builder-status-change", error, {
+          contractId: editingBuilderContract.id,
+          status,
+        });
+        toast({
+          title: "Não foi possível atualizar o status",
+          description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
+          variant: "destructive",
+        });
         return false;
       }
     },
-    [
-      builderStep,
-      editingBuilderContract,
-      safeExtrasCatalogo,
-      saveBuilderRecoveryLocally,
-      setTab,
-      syncBuilderSavedState,
-      syncMoneyDraftsToState,
-      toast,
-      upsertContratoState,
-    ],
+    [editingBuilderContract, toast, upsertContratoState],
   );
 
-  const builderSummary = useMemo(() => 
-    workingBuilderPayload ? buildProposalSummary(workingBuilderPayload) : null
-  , [workingBuilderPayload]);
+  const handleGeneratePdf = useCallback(() => {
+    if (!builderPrepared) return;
+    generateContractPDF(builderPrepared.title, builderPrepared.body, {
+      proposal: builderPrepared.normalizedPayload,
+      contractanteSignedName: editingBuilderContract?.assinatura_cliente_nome,
+      signedAt: editingBuilderContract?.data_assinatura,
+    });
+  }, [builderPrepared, editingBuilderContract?.assinatura_cliente_nome, editingBuilderContract?.data_assinatura]);
 
-  const builderProgress = useMemo(() => 
-    ((builderStep + 1) / 5) * 100
-  , [builderStep]);
+  const handleDownloadWord = useCallback(() => {
+    if (!builderPrepared) return;
+    downloadWordDocument(builderPrepared.title, builderPrepared.body, {
+      proposal: builderPrepared.normalizedPayload,
+      contractanteSignedName: editingBuilderContract?.assinatura_cliente_nome,
+      signedAt: editingBuilderContract?.data_assinatura,
+    });
+  }, [builderPrepared, editingBuilderContract?.assinatura_cliente_nome, editingBuilderContract?.data_assinatura]);
 
-  const builderStatusLabel = useMemo(() => {
-    if (builderRemoteAutosaveState === "saving") return { title: "Salvando...", subtitle: "Sincronizando com a nuvem" };
-    if (builderRemoteAutosaveState === "saved" && builderLastSavedAt) {
-      return { 
-        title: "Salvo", 
-        subtitle: `Última alteração às ${formatContractClock(builderLastSavedAt)}` 
-      };
+  const handlePrint = useCallback(() => {
+    if (!builderPrepared) return;
+
+    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=980,height=900");
+    if (!printWindow) {
+      toast({
+        title: "Não foi possível abrir a impressão",
+        description: "O navegador bloqueou a janela de impressão deste contrato.",
+        variant: "destructive",
+      });
+      return;
     }
-    return { title: "Rascunho", subtitle: "As alterações são salvas automaticamente" };
-  }, [builderRemoteAutosaveState, builderLastSavedAt]);
 
-  const { builderPrepared, builderPreparedError } = useMemo(() => {
-    if (!workingBuilderPayload) {
-      return { builderPrepared: null, builderPreparedError: null };
-    }
+    const html = downloadWordDocument(builderPrepared.title, builderPrepared.body, {
+      proposal: builderPrepared.normalizedPayload,
+      contractanteSignedName: editingBuilderContract?.assinatura_cliente_nome,
+      signedAt: editingBuilderContract?.data_assinatura,
+      returnHtml: true,
+    }) as string;
 
-    try {
-      return {
-        builderPrepared: buildBuilderSavePayload(workingBuilderPayload, builderStep),
-        builderPreparedError: null,
-      };
-    } catch (error) {
-      return {
-        builderPrepared: null,
-        builderPreparedError: getContractErrorMessage(
-          error,
-          "Esse contrato precisa de revisao antes da visualizacao final.",
-        ),
-      };
-    }
-  }, [builderStep, workingBuilderPayload]);
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  }, [builderPrepared, editingBuilderContract?.assinatura_cliente_nome, editingBuilderContract?.data_assinatura, toast]);
 
-  const selectedItemsCount = useMemo(() => 
-    workingBuilderPayload?.items.filter(i => i.selected).length || 0
-  , [workingBuilderPayload]);
+  const getMoneyInputDisplayValue = useCallback((_key: string, value: number) => `${value}`, []);
 
-  const getMoneyInputDisplayValue = (key: string, value: number): string =>
-    moneyDrafts[key] ?? formatMoneyInputValue(value);
-
-  const describeClientExtraPricing = (item: any): string => {
-    const monthly = item.preco_mensal || 0;
-    const setup = item.preco_setup || 0;
-    if (monthly > 0 && setup > 0) return `R$ ${monthly}/mês + R$ ${setup} setup`;
-    if (monthly > 0) return `R$ ${monthly}/mês`;
-    if (setup > 0) return `R$ ${setup} setup`;
-    return "Cortesia";
-  };
+  const describeClientExtraPricing = useCallback((item: any) => {
+    const price = Number(item.setupPrice ?? item.preco_ativacao ?? item.valor ?? 0);
+    return formatCurrencyBRL(price);
+  }, []);
 
   return {
     builderPayload,
@@ -669,13 +705,10 @@ export function useContractBuilder({
     setBuilderStep,
     mobileSummaryOpen,
     setMobileSummaryOpen,
-    moneyDrafts,
-    setMoneyDraftValue,
-    clearMoneyDraftValue,
     syncingClientExtras,
     setSyncingClientExtras,
-    builderRecoveredLocally,
-    builderLastSavedSignature,
+    builderRecoveredLocally: false,
+    builderLastSavedSignature: null,
     builderLastSavedAt,
     builderRemoteAutosaveState,
     shouldReduceMotion,
@@ -703,5 +736,11 @@ export function useContractBuilder({
     getMoneyInputDisplayValue,
     buildPricingMoneyDraftKey,
     describeClientExtraPricing,
+    onExtraFieldChange,
+    onToggleExtra,
+    changeContractStatus,
+    handleGeneratePdf,
+    handleDownloadWord,
+    handlePrint,
   };
 }

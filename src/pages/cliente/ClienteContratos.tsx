@@ -23,10 +23,10 @@ import {
 import { normalizeBuilderPayload } from "@/features/contracts/utils";
 import { getStoredClientProfile } from "@/lib/client-portal-auth";
 import {
-  CONTRACT_STATUS_ORDER,
   getContractStatusBadgeClass,
   getContractStatusInsight,
   getContractStatusLabel,
+  normalizeContractStatus,
 } from "@/lib/contract-status";
 import type { ContractEventRow } from "@/lib/contract-activity";
 import { ensureArray } from "@/features/contracts/runtime";
@@ -156,19 +156,28 @@ function ContractPortalTimeline({
   dataVisualizacao?: string | null;
   dataAssinatura?: string | null;
 }) {
+  const normalizedStatus = normalizeContractStatus(status);
   const steps = [
     { id: "rascunho", label: "Preparado", date: null },
     { id: "enviado", label: "Enviado", date: dataEnvio },
-    { id: "visualizado", label: "Visualizado", date: dataVisualizacao },
+    { id: "em_revisao", label: "Em revisão", date: dataVisualizacao || dataEnvio },
     { id: "assinado", label: "Assinado", date: dataAssinatura },
+    { id: "ativo", label: "Ativo", date: dataAssinatura || dataVisualizacao },
   ];
-  const activeIndex = Math.min(
-    Math.max(CONTRACT_STATUS_ORDER.indexOf(status as (typeof CONTRACT_STATUS_ORDER)[number]), 0),
-    steps.length - 1,
-  );
+  const activeIndexMap: Record<string, number> = {
+    rascunho: 0,
+    enviado: 1,
+    em_revisao: 2,
+    aprovado: 1,
+    assinado: 3,
+    ativo: 4,
+    cancelado: 1,
+    encerrado: 4,
+  };
+  const activeIndex = activeIndexMap[normalizedStatus] ?? 0;
 
   return (
-    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
       {steps.map((step, index) => {
         const isActive = index <= activeIndex;
         const isCurrent = steps[activeIndex]?.id === step.id;
@@ -423,6 +432,13 @@ export default function ClienteContratos() {
       })
     : null;
 
+  const viewNormalizedStatus = viewContrato ? normalizeContractStatus(viewContrato.status) : null;
+  const canActOnCurrentContract = viewContrato
+    ? !["cancelado", "encerrado"].includes(viewNormalizedStatus || "") &&
+      ((viewNormalizedStatus !== "assinado" && viewNormalizedStatus !== "ativo") ||
+        Boolean((viewContrato as any).requer_reassinatura))
+    : false;
+
   const viewSignatureSummary = viewContrato
     ? buildContractSignatureSummary(getNormalizedContractBuilderPayload(viewContrato), {
         contractanteSignedName: viewContrato.assinatura_cliente_nome,
@@ -449,26 +465,29 @@ export default function ClienteContratos() {
             </div>
             <div className="rounded-[24px] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Resumo do fluxo</p>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <div>
-                  <p className="text-[11px] text-white/45">Enviados</p>
-                  <p className="mt-1 text-lg font-semibold text-white">
-                    {safeContratos.filter((item) => item.status === "enviado").length}
-                  </p>
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[11px] text-white/45">Enviados</p>
+                    <p className="mt-1 text-lg font-semibold text-white">
+                      {safeContratos.filter((item) => item.status === "enviado").length}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-white/45">Em revisão</p>
+                    <p className="mt-1 text-lg font-semibold text-white">
+                      {safeContratos.filter((item) => normalizeContractStatus(item.status) === "em_revisao").length}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-white/45">Assinados / ativos</p>
+                    <p className="mt-1 text-lg font-semibold text-white">
+                      {safeContratos.filter((item) => {
+                        const status = normalizeContractStatus(item.status);
+                        return status === "assinado" || status === "ativo";
+                      }).length}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[11px] text-white/45">Visualizados</p>
-                  <p className="mt-1 text-lg font-semibold text-white">
-                    {safeContratos.filter((item) => item.status === "visualizado").length}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-white/45">Assinados</p>
-                  <p className="mt-1 text-lg font-semibold text-white">
-                    {safeContratos.filter((item) => item.status === "assinado").length}
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </CardContent>
@@ -500,10 +519,12 @@ export default function ClienteContratos() {
                   onClick={() => handleView(contrato)}
                 >
                   <div className="mt-1 rounded-2xl border border-white/10 bg-white/[0.05] p-2">
-                    {contrato.status === "assinado" || contrato.status === "visualizado" ? (
+                    {["assinado", "ativo"].includes(normalizeContractStatus(contrato.status)) ? (
                       <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    ) : contrato.status === "enviado" ? (
+                    ) : normalizeContractStatus(contrato.status) === "enviado" ? (
                       <Eye className="w-4 h-4 text-emerald-300 shrink-0" />
+                    ) : normalizeContractStatus(contrato.status) === "em_revisao" ? (
+                      <PenSquare className="w-4 h-4 text-amber-300 shrink-0" />
                     ) : (
                       <Lock className="w-4 h-4 text-amber-400 shrink-0" />
                     )}
@@ -658,7 +679,7 @@ export default function ClienteContratos() {
                     </div>
                   )}
 
-                  {viewContrato.status !== "assinado" && viewContrato.status !== "cancelado" && (
+                  {canActOnCurrentContract && (
                     <div className="rounded-[28px] border border-rose-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.18),rgba(232,51,74,0.12),rgba(194,24,91,0.14))] p-5 space-y-4">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/45">Ações do cliente</p>

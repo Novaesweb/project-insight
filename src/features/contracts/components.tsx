@@ -417,9 +417,10 @@ export function ContractLifecycleTimeline({
 }) {
   const steps = [
     { id: "rascunho", label: "Rascunho", date: null },
+    { id: "aprovado", label: "Aprovado", date: null },
     { id: "enviado", label: "Enviado", date: dataEnvio },
-    { id: "visualizado", label: "Visualizado", date: dataVisualizacao },
     { id: "assinado", label: "Assinado", date: dataAssinatura },
+    { id: "ativo", label: "Ativo", date: dataAssinatura || dataVisualizacao },
   ];
   const activeIndex = Math.min(
     Math.max(CONTRACT_STATUS_ORDER.indexOf(status as (typeof CONTRACT_STATUS_ORDER)[number]), 0),
@@ -434,7 +435,7 @@ export function ContractLifecycleTimeline({
           {getContractStatusLabel(status)}
         </Badge>
       </div>
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
         {steps.map((step, index) => {
           const isActive = index <= activeIndex;
           const isCurrent = steps[activeIndex]?.id === step.id;
@@ -467,15 +468,15 @@ function parseComercialSummaryLines(lines: string[]): Partial<Record<keyof Contr
     const normalized = line.toLowerCase();
     const numericValue = parseMoneyInput(line);
 
-    if (normalized.includes("subtotal da implantação")) acc.setupSubtotal = numericValue;
-    if (normalized.includes("valor final da implantação") || normalized.includes("ativação total") || normalized.includes("total ativação")) {
-      acc.finalSetupTotal = numericValue;
+    if (normalized.includes("valor base")) {
+      acc.baseValue = numericValue;
       acc.setupSubtotal = numericValue;
     }
-    if (normalized.includes("desconto aplicado")) acc.discountAmount = numericValue;
-    if (normalized.includes("entrada / sinal")) acc.entryValue = numericValue;
-    if (normalized.includes("saldo na entrega")) acc.balanceValue = numericValue;
-    if (normalized.includes("mensalidade contratada") || normalized.includes("total mensal")) acc.negotiatedMonthly = numericValue;
+    if (normalized.includes("extras")) acc.extrasTotal = numericValue;
+    if (normalized.includes("total do contrato")) {
+      acc.totalValue = numericValue;
+      acc.finalSetupTotal = numericValue;
+    }
     return acc;
   }, {});
 }
@@ -557,10 +558,10 @@ export function BuilderLiveSummary({
       </CardHeader>
       <CardContent className="space-y-5 p-5">
         <div className="grid grid-cols-2 gap-3">
-          <SummaryMetric label="Implantação" value={comercialMap.setupSubtotal || 0} />
-          <SummaryMetric label="Mensalidade" value={comercialMap.negotiatedMonthly || 0} />
-          <SummaryMetric label="Entrada" value={comercialMap.entryValue || 0} />
-          <SummaryMetric label="Saldo" value={comercialMap.balanceValue || 0} />
+          <SummaryMetric label="Valor Base" value={comercialMap.baseValue || 0} />
+          <SummaryMetric label="Extras" value={comercialMap.extrasTotal || 0} />
+          <SummaryMetric label="Total" value={comercialMap.totalValue || 0} />
+          <SummaryMetric label="Itens" value={selectedCount} />
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">

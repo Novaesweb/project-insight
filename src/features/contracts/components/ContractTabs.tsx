@@ -54,6 +54,20 @@ export function ContractTabs({
     await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
   };
 
+  const handleSendCurrent = async () => {
+    const saved = await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
+    if (saved) {
+      await onSend(saved);
+    }
+  };
+
+  const handleMarkAsSigned = async () => {
+    const saved = await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
+    if (saved) {
+      await safeBuilder.changeContractStatus?.("assinado");
+    }
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-8">
       <div className="flex items-center justify-between">
@@ -165,9 +179,15 @@ export function ContractTabs({
                 onRefreshExtras={() => {
                   void safeBuilder.onRefreshExtras?.();
                 }}
+                onExtraFieldChange={safeBuilder.onExtraFieldChange ?? noop}
+                onToggleExtra={safeBuilder.onToggleExtra ?? noop}
                 onPreview={onPreview}
                 onSaveAndExit={handleSaveDraftAndExit}
                 onSave={handleSaveCompletedContract}
+                onSendCurrent={handleSendCurrent}
+                onMarkAsSigned={handleMarkAsSigned}
+                onGeneratePdf={safeBuilder.handleGeneratePdf}
+                onPrint={safeBuilder.handlePrint}
                 getStepError={safeBuilder.getBuilderStepError ?? (() => null)}
                 getMoneyInputDisplayValue={safeBuilder.getMoneyInputDisplayValue ?? (() => "0,00")}
                 describeClientExtraPricing={safeBuilder.describeClientExtraPricing ?? (() => "Cortesia")}

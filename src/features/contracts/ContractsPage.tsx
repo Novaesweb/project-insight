@@ -332,11 +332,11 @@ export default function Contratos() {
       upsertContratoState(result.contract);
 
       await createContractEvent({
-        contrato_id: contrato.id,
+        contratoId: contrato.id,
         tipo: "enviado",
         titulo: result.isResignFlow ? "Versao atualizada enviada" : "Contrato enviado",
         descricao: "O contrato foi enviado para o portal do cliente.",
-        actor_type: "admin"
+        actorType: "admin"
       });
 
       toast({ title: "Contrato enviado com sucesso!" });

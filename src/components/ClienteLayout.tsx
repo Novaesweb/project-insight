@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, FolderKanban, Plus, Receipt,
-  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart, ShieldCheck, Zap, Settings, ClipboardList
+  CalendarDays, Headphones, User, LogOut, Bell, Menu, Share2, ShoppingCart, ShieldCheck, Zap, Settings, ClipboardList, FileSignature
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ const menuItems = [
   { label: "Meus Projetos", icon: FolderKanban, path: "/cliente/projetos" },
   { label: "Dados do Site", icon: ClipboardList, path: "/cliente/dados" },
   { label: "Meus Extras", icon: Zap, path: "/cliente/extras" },
+  { label: "Contratos", icon: FileSignature, path: "/cliente/contratos" },
   { label: "Financeiro", icon: Receipt, path: "/cliente/faturas" },
   { label: "Configurações", icon: Settings, path: "/cliente/configuracoes" },
 ];
@@ -34,6 +35,7 @@ const menuColors = [
   "from-pink-500 to-red-500",
   "from-yellow-500 to-amber-500",
   "from-red-500 to-pink-500",
+  "from-fuchsia-500 to-rose-500",
   "from-amber-500 to-yellow-500",
   "from-pink-500 to-purple-500",
 ];

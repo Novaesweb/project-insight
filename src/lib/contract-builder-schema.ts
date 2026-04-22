@@ -92,21 +92,6 @@ export function sanitizeDocument(value: unknown) {
     .slice(0, 32);
 }
 
-export function sanitizeUrl(value: unknown) {
-  const candidate = sanitizePlainText(value, { maxLength: 320 });
-  if (!candidate) return "";
-
-  try {
-    const url = new URL(candidate.startsWith("http") ? candidate : `https://${candidate}`);
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return "";
-    }
-    return url.toString();
-  } catch {
-    return "";
-  }
-}
-
 function sanitizeMoney(value: unknown) {
   return clampMoney(parseMoneyInput(value as string | number | null | undefined));
 }
@@ -120,16 +105,26 @@ const builderStepSchema = z.union([
 ]);
 
 const builderPrimaryPlanSchema = z.enum(["express", "pro", "sob-medida", "none"]);
+const builderStatusSchema = z.enum([
+  "rascunho",
+  "em_revisao",
+  "aprovado",
+  "enviado",
+  "assinado",
+  "ativo",
+  "cancelado",
+  "encerrado",
+]);
 
 const contractanteSchema = z.object({
   nome: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
   nomeEmpresa: z.any().optional().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
   documento: z.any().transform(sanitizeDocument),
+  rg: z.any().optional().transform((value) => sanitizePlainText(value, { maxLength: 32 })),
   email: z.any().optional().transform(sanitizeEmail),
   whatsapp: z.any().optional().transform(sanitizePhone),
   telefone: z.any().optional().transform(sanitizePhone),
-  instagram: z.any().optional().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
-  siteUrl: z.any().optional().transform(sanitizeUrl),
+  dataNascimento: z.any().optional().transform((value) => sanitizePlainText(value, { maxLength: 20 })),
   endereco: z.any().transform((value) => sanitizePlainText(value, { maxLength: 320, preserveLineBreaks: true })),
   cep: z.any().optional().transform((value) => sanitizePlainText(value, { maxLength: 16 })),
   cidade: z.any().optional().transform((value) => sanitizePlainText(value, { maxLength: 120 })),
@@ -140,7 +135,9 @@ const contratadaSchema = z.object({
   nome: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
   representante: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
   documento: z.any().transform(sanitizeDocument),
-  endereco: z.any().transform((value) => sanitizePlainText(value, { maxLength: 320, preserveLineBreaks: true })),
+  endereco: z.any().transform((value) => sanitizePlainText(value, { maxLength: 320 })),
+  cidade: z.any().transform((value) => sanitizePlainText(value, { maxLength: 120 })),
+  estado: z.any().transform((value) => sanitizePlainText(value, { maxLength: 8 })),
   observacaoRecebimento: z
     .any()
     .transform((value) => sanitizePlainText(value, { maxLength: 600, preserveLineBreaks: true })),
@@ -148,9 +145,9 @@ const contratadaSchema = z.object({
 
 const itemSchema = z.object({
   id: z.string().min(1).max(200),
-  source: z.enum(["plan", "extra"]),
+  source: z.literal("plan"),
   sourceId: z.string().max(200).optional(),
-  group: z.enum(["planos", "fixo", "intermediario", "mensal"]),
+  group: z.enum(["planos", "extras"]),
   name: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
   description: z.any().transform((value) => sanitizePlainText(value, { maxLength: 800, preserveLineBreaks: true })),
   selected: z.boolean(),
@@ -164,13 +161,17 @@ const clientExtraSnapshotSchema = z.object({
   extraId: z.string().min(1).max(200),
   name: z.any().transform((value) => sanitizePlainText(value, { maxLength: 160 })),
   description: z.any().transform((value) => sanitizePlainText(value, { maxLength: 800, preserveLineBreaks: true })),
-  category: z.enum(["planos", "fixo", "intermediario", "mensal"]),
-  typeLabel: z.enum(["mensal", "único"]),
+  clause: z.any().transform((value) => sanitizePlainText(value, { maxLength: 1800, preserveLineBreaks: true })),
+  active: z.boolean().default(true),
+  order: z.number().int().nonnegative(),
   setupPrice: z.any().transform(sanitizeMoney),
   monthlyPrice: z.any().transform(sanitizeMoney),
 });
 
 const pricingSchema = z.object({
+  baseValue: z.any().transform(sanitizeMoney),
+  extrasTotal: z.any().transform(sanitizeMoney),
+  totalValue: z.any().transform(sanitizeMoney),
   setupSubtotal: z.any().transform(sanitizeMoney),
   monthlySubtotal: z.any().transform(sanitizeMoney),
   negotiatedSetup: z.any().transform(sanitizeMoney),
@@ -185,9 +186,15 @@ const pricingSchema = z.object({
 });
 
 export const contractBuilderPayloadSchema = z.object({
+  version: z.literal("v2").default("v2"),
   clienteId: z.any().transform((value) => sanitizePlainText(value, { maxLength: 80 })),
   lastStep: builderStepSchema,
+  status: builderStatusSchema,
   primaryPlanId: builderPrimaryPlanSchema,
+  contractNumber: z.any().transform((value) => sanitizePlainText(value, { maxLength: 64 })),
+  issueDate: z.any().transform((value) => sanitizePlainText(value, { maxLength: 20 })),
+  startDate: z.any().transform((value) => sanitizePlainText(value, { maxLength: 20 })),
+  dueDate: z.any().transform((value) => sanitizePlainText(value, { maxLength: 20 })),
   contractante: contractanteSchema,
   contratada: contratadaSchema,
   items: z.array(itemSchema),
@@ -214,17 +221,9 @@ function normalizePricing(
   clientExtrasSnapshot: ContractBuilderClientExtraSnapshot[],
   previousPricing: ContractBuilderPricing,
 ) {
-  const setupBase = computeBuilderPricing(items, clientExtrasSnapshot).setupSubtotal;
-  const monthlyBase = computeBuilderPricing(items, clientExtrasSnapshot).monthlySubtotal;
-  const negotiatedSetup = Math.max(previousPricing.negotiatedSetup, 0);
-  const entryValue = Math.max(previousPricing.entryValue, 0);
-
   return computeBuilderPricing(items, clientExtrasSnapshot, {
-    negotiatedSetup: negotiatedSetup || setupBase,
-    discountType: previousPricing.discountType || "fixed",
-    discountValue: previousPricing.discountValue || 0,
-    entryValue,
-    negotiatedMonthly: previousPricing.negotiatedMonthly || monthlyBase,
+    baseValue: previousPricing.baseValue,
+    entryValue: previousPricing.entryValue,
   });
 }
 
@@ -232,52 +231,40 @@ export function validateAndSanitizeBuilderPayload(input: unknown) {
   const parsed = contractBuilderPayloadSchema.parse(input);
   const primaryPlanId = parsed.primaryPlanId as BuilderPrimaryPlanId;
   const step = parsed.lastStep as ContractBuilderStepIndex;
-  const requestedEntryValue = Math.max(parsed.pricing.entryValue, 0);
 
   const normalizedItems = selectPrimaryPlan(parsed.items, primaryPlanId).map((item) => ({
     ...item,
-    name: item.name || (item.source === "plan" ? "Plano" : "Extra"),
+    name: item.name || "Plano",
   }));
 
   const reconciledPrimaryPlan = getSelectedPrimaryPlanId(normalizedItems);
   const normalizedPricing = normalizePricing(normalizedItems, parsed.clientExtrasSnapshot, parsed.pricing);
-
-  if (requestedEntryValue > normalizedPricing.finalSetupTotal) {
-    throw new z.ZodError([
-      {
-        code: "custom",
-        path: ["pricing", "entryValue"],
-        message: "A entrada não pode ser maior que o valor final da implantação.",
-      },
-    ]);
-  }
 
   const nextPayload: ContractBuilderPayload = {
     ...parsed,
     lastStep: step,
     primaryPlanId: reconciledPrimaryPlan,
     items: normalizedItems,
-    clientExtrasSnapshot: parsed.clientExtrasSnapshot,
     pricing: normalizedPricing,
     updatedAt: new Date().toISOString(),
   };
 
-  if (reconciledPrimaryPlan === "sob-medida" && !nextPayload.customScope.trim()) {
+  if (!nextPayload.contractNumber.trim()) {
     throw new z.ZodError([
       {
         code: "custom",
-        path: ["customScope"],
-        message: "Escopo customizado é obrigatório para propostas Sob Medida.",
+        path: ["contractNumber"],
+        message: "Numero do contrato e obrigatorio.",
       },
     ]);
   }
 
-  if (nextPayload.pricing.entryValue > nextPayload.pricing.finalSetupTotal) {
+  if (nextPayload.pricing.totalValue < nextPayload.pricing.baseValue) {
     throw new z.ZodError([
       {
         code: "custom",
-        path: ["pricing", "entryValue"],
-        message: "A entrada não pode ser maior que o valor final da implantação.",
+        path: ["pricing", "totalValue"],
+        message: "O total do contrato nao pode ser menor que o valor base.",
       },
     ]);
   }
