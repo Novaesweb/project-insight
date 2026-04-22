@@ -32,7 +32,7 @@ export type ContractDraft = AdminContractDraft;
 
 export const BUILDER_TEMPLATE_ID = "novaesweb-contrato-mestre";
 export const RESIGN_REASON_DEFAULT =
-  "Uma nova revisão do contrato foi publicada e depende de aceite atualizado do cliente.";
+  "Uma nova revisao do contrato foi publicada e depende de aceite atualizado do cliente.";
 
 export const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -41,7 +41,7 @@ export const fadeUp = {
 
 export const CONTRACT_STATUS_OPTIONS: Array<{ value: ContractStatus; label: string }> = [
   { value: "rascunho", label: "Rascunho" },
-  { value: "em_revisao", label: "Em revisão" },
+  { value: "em_revisao", label: "Em revisao" },
   { value: "aprovado", label: "Aprovado" },
   { value: "enviado", label: "Enviado" },
   { value: "assinado", label: "Assinado" },
@@ -50,14 +50,33 @@ export const CONTRACT_STATUS_OPTIONS: Array<{ value: ContractStatus; label: stri
   { value: "encerrado", label: "Encerrado" },
 ];
 
+export type ContractBuilderStepSlug = "cliente" | "dados" | "plano" | "extras" | "preview";
+
 export const BUILDER_STEPS: Array<{
   id: ContractBuilderStepIndex;
+  slug: ContractBuilderStepSlug;
   label: string;
   description: string;
 }> = [
-  { id: 0, label: "Cliente", description: "Selecione o cliente e carregue os dados automáticos." },
-  { id: 1, label: "Contrato", description: "Ajuste campos complementares, datas e status do documento." },
-  { id: 2, label: "Plano", description: "Defina o plano base e o valor principal do contrato." },
-  { id: 3, label: "Extras", description: "Revise extras vinculados ao cliente e personalize cláusulas." },
-  { id: 4, label: "Preview", description: "Confira o contrato renderizado em tempo real antes de salvar." },
+  { id: 0, slug: "cliente", label: "Cliente", description: "Selecione o cliente e carregue os dados automaticos." },
+  { id: 1, slug: "dados", label: "Contrato", description: "Ajuste campos complementares, datas e status do documento." },
+  { id: 2, slug: "plano", label: "Plano", description: "Defina o plano base e o valor principal do contrato." },
+  { id: 3, slug: "extras", label: "Extras", description: "Revise extras vinculados ao cliente e personalize clausulas." },
+  { id: 4, slug: "preview", label: "Preview", description: "Confira o contrato renderizado em tempo real antes de salvar." },
 ];
+
+export function getContractBuilderStepSlug(step: ContractBuilderStepIndex): ContractBuilderStepSlug {
+  return BUILDER_STEPS.find((item) => item.id === step)?.slug || "cliente";
+}
+
+export function getContractBuilderStepFromSlug(slug: string | null | undefined): ContractBuilderStepIndex {
+  return BUILDER_STEPS.find((item) => item.slug === slug)?.id ?? 0;
+}
+
+export function getContractBuilderStepMeta(step: ContractBuilderStepIndex) {
+  return BUILDER_STEPS.find((item) => item.id === step) || BUILDER_STEPS[0];
+}
+
+export function getContractBuilderStepPath(step: ContractBuilderStepIndex) {
+  return `/admin/contratos/novo/${getContractBuilderStepSlug(step)}`;
+}

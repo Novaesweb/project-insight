@@ -12,6 +12,7 @@ import {
   type BuilderPrimaryPlanId,
   type ContractBuilderClientExtraSnapshot,
   type ContractBuilderPayload,
+  type ContractBuilderStepIndex,
   type ContractStatus,
 } from "@/lib/contract-builder";
 import {
@@ -22,10 +23,7 @@ import {
   normalizeBuilderPayload,
 } from "@/lib/contract-utils";
 import { createContractEvent } from "@/lib/contract-activity";
-import {
-  downloadWordDocument,
-  generateContractPDF,
-} from "@/features/contracts/documents";
+import { downloadWordDocument, generateContractPDF } from "@/features/contracts/documents";
 import { logContractAdminError } from "@/features/contracts/debug";
 import {
   fetchActiveClientExtras,
@@ -42,6 +40,7 @@ import {
   noopTabChange,
 } from "@/features/contracts/runtime";
 import {
+  BUILDER_STEPS,
   BUILDER_TEMPLATE_ID,
   type Cliente,
   type Contrato,
@@ -53,7 +52,7 @@ interface UseContractBuilderProps {
   extrasCatalogo: ExtraCatalogo[];
   extrasLoaded: boolean;
   upsertContratoState: (contrato: Contrato) => void;
-  setTab: (tab: string) => void;
+  setTab: (tab: string, options?: { step?: ContractBuilderStepIndex }) => void;
   setCofreFilter: (filter: "ativos" | "arquivados") => void;
   setSearchTerm: (term: string) => void;
 }
@@ -107,8 +106,24 @@ function createEventLabel(status: ContractStatus) {
   if (status === "cancelado") return "Contrato cancelado";
   if (status === "encerrado") return "Contrato encerrado";
   if (status === "assinado") return "Contrato marcado como assinado";
-  if (status === "em_revisao") return "Contrato em revisão";
+  if (status === "em_revisao") return "Contrato em revisao";
   return "Status do contrato atualizado";
+}
+
+function buildEmptyContractantePatch(current: ContractBuilderPayload["contractante"]) {
+  return {
+    ...current,
+    nome: "",
+    nomeEmpresa: "",
+    documento: "",
+    email: "",
+    whatsapp: "",
+    telefone: "",
+    endereco: "",
+    cep: "",
+    cidade: "",
+    estado: "",
+  };
 }
 
 export function useContractBuilder({
@@ -130,7 +145,7 @@ export function useContractBuilder({
 
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
-  const [builderStep, setBuilderStep] = useState(4);
+  const [builderStep, setBuilderStepState] = useState<ContractBuilderStepIndex>(0);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [syncingClientExtras, setSyncingClientExtras] = useState(false);
   const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -167,12 +182,29 @@ export function useContractBuilder({
       buildBuilderSavePayload(workingBuilderPayload, 4);
       return null;
     } catch (error) {
-      return getContractErrorMessage(error, "Esse contrato precisa de revisão antes de ser salvo.");
+      return getContractErrorMessage(error, "Esse contrato precisa de revisao antes de ser salvo.");
     }
   }, [builderPrepared, workingBuilderPayload]);
 
-  const builderProgress = builderPayload ? 100 : 0;
-  const selectedItemsCount = (workingBuilderPayload?.clientExtrasSnapshot.filter((item) => item.active !== false).length || 0) +
+  const setBuilderStep = useCallback((nextStep: ContractBuilderStepIndex) => {
+    setBuilderStepState(nextStep);
+    setBuilderPayload((current) =>
+      current
+        ? {
+            ...current,
+            lastStep: nextStep,
+            updatedAt: new Date().toISOString(),
+          }
+        : current,
+    );
+  }, []);
+
+  const builderProgress = builderPayload
+    ? Math.round(((builderStep + 1) / BUILDER_STEPS.length) * 100)
+    : 0;
+
+  const selectedItemsCount =
+    (workingBuilderPayload?.clientExtrasSnapshot.filter((item) => item.active !== false).length || 0) +
     (workingBuilderPayload?.primaryPlanId !== "none" ? 1 : 0);
 
   const builderStatusLabel = useMemo(() => {
@@ -183,54 +215,83 @@ export function useContractBuilder({
     if (builderRemoteAutosaveState === "saved" && builderLastSavedAt) {
       return {
         title: "Sincronizado",
-        subtitle: `Última atualização às ${formatContractClock(builderLastSavedAt)}`,
+        subtitle: `Ultima atualizacao as ${formatContractClock(builderLastSavedAt)}`,
       };
     }
 
     if (editingBuilderContract) {
       return {
-        title: "Em edição",
-        subtitle: "Este contrato já existe no cofre e pode ser atualizado sem sair da tela.",
+        title: "Em edicao",
+        subtitle: "Continue o fluxo por etapas e finalize o documento na revisao final.",
       };
     }
 
     return {
       title: "Novo contrato",
-      subtitle: "Monte o documento à esquerda e acompanhe a prévia em tempo real.",
+      subtitle: "Preencha cada etapa, revise o resumo no topo e finalize a previa no ultimo passo.",
     };
   }, [builderLastSavedAt, builderRemoteAutosaveState, editingBuilderContract]);
 
   const getBuilderStepError = useCallback(
-    (_step: number) => {
+    (step: number) => {
       const current = workingBuilderPayload;
       if (!current) return "Aguarde o carregamento do contrato.";
-      if (!current.clienteId) return "Selecione um cliente para iniciar o contrato.";
-      if (!current.contractante.nome.trim()) return "O nome do cliente é obrigatório.";
-      if (!current.contractante.documento.trim()) return "O documento do cliente é obrigatório.";
-      if (current.primaryPlanId === "none") return "Escolha um plano principal para o contrato.";
-      if (current.pricing.baseValue <= 0) return "Defina um valor base maior que zero.";
-      if (!current.contractNumber.trim()) return "Informe o número do contrato.";
-      return null;
+
+      const clientError = !current.clienteId
+        ? "Selecione um cliente para iniciar o contrato."
+        : !current.contractante.nome.trim()
+          ? "O nome do cliente e obrigatorio."
+          : !current.contractante.documento.trim()
+            ? "O documento do cliente e obrigatorio."
+            : null;
+
+      const contractError = !current.contractNumber.trim()
+        ? "Informe o numero do contrato."
+        : !current.issueDate
+          ? "Defina a data de emissao."
+          : !current.startDate
+            ? "Defina a data de inicio."
+            : !current.dueDate
+              ? "Defina a data de vencimento."
+              : !current.formaPagamento.trim()
+                ? "Informe a forma de pagamento."
+                : null;
+
+      const planError = current.primaryPlanId === "none"
+        ? "Escolha um plano principal para o contrato."
+        : current.pricing.baseValue <= 0
+          ? "Defina um valor base maior que zero."
+          : null;
+
+      const previewError = clientError || contractError || planError || builderPreparedError;
+
+      if (step === 0) return clientError;
+      if (step === 1) return contractError;
+      if (step === 2) return planError;
+      if (step === 3) return null;
+      return previewError;
     },
-    [workingBuilderPayload],
+    [builderPreparedError, workingBuilderPayload],
   );
 
   const resetBuilder = useCallback(() => {
     if (!extrasLoaded) return;
 
     const nextPayload = createEmptyBuilderPayload(safeExtrasCatalogo);
+    nextPayload.lastStep = 0;
+
     setBuilderPayload(nextPayload);
     setEditingBuilderContract(null);
-    setBuilderStep(0);
+    setBuilderStepState(0);
     setMobileSummaryOpen(false);
     setBuilderRemoteAutosaveState("idle");
     setBuilderClientExtras([]);
     setBuilderLastSavedAt(null);
-    setTab("montador");
+    setTab("montador", { step: 0 });
   }, [extrasLoaded, safeExtrasCatalogo, setTab]);
 
   const hydrateClientExtras = useCallback(async (clienteId: string) => {
-    const extras = await fetchActiveClientExtras(clienteId);
+    const extras = clienteId ? await fetchActiveClientExtras(clienteId) : [];
     setBuilderClientExtras(extras);
 
     setBuilderPayload((current) => {
@@ -252,7 +313,39 @@ export function useContractBuilder({
   const onClientChange = useCallback(
     async (clienteId: string) => {
       const cliente = safeClientes.find((entry) => entry.id === clienteId);
-      if (!cliente) return;
+
+      if (!clienteId) {
+        setBuilderPayload((current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            clienteId: "",
+            contractante: buildEmptyContractantePatch(current.contractante),
+            clientExtrasSnapshot: [],
+            pricing: computeBuilderPricing(current.items, [], {
+              baseValue: current.pricing.baseValue,
+              entryValue: current.pricing.entryValue,
+            }),
+            updatedAt: new Date().toISOString(),
+          };
+        });
+        setBuilderClientExtras([]);
+        return;
+      }
+
+      if (!cliente) {
+        setBuilderPayload((current) =>
+          current
+            ? {
+                ...current,
+                clienteId,
+                updatedAt: new Date().toISOString(),
+              }
+            : current,
+        );
+        setBuilderClientExtras([]);
+        return;
+      }
 
       setBuilderPayload((current) => {
         if (!current) return current;
@@ -295,7 +388,7 @@ export function useContractBuilder({
 
         setBuilderClientExtras([]);
         toast({
-          title: "Extras do cliente indisponíveis",
+          title: "Extras do cliente indisponiveis",
           description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
           variant: "destructive",
         });
@@ -319,7 +412,7 @@ export function useContractBuilder({
         contractId: editingBuilderContract?.id || null,
       });
       toast({
-        title: "Não foi possível atualizar os extras",
+        title: "Nao foi possivel atualizar os extras",
         description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
         variant: "destructive",
       });
@@ -428,30 +521,33 @@ export function useContractBuilder({
   const onDiscountTypeChange = useCallback(() => undefined, []);
   const onMoneyDraftBlur = useCallback(() => undefined, []);
 
-  const onExtraFieldChange = useCallback((extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => {
-    setBuilderPayload((current) => {
-      if (!current) return current;
+  const onExtraFieldChange = useCallback(
+    (extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => {
+      setBuilderPayload((current) => {
+        if (!current) return current;
 
-      const nextExtras = current.clientExtrasSnapshot.map((item) =>
-        item.id === extraId
-          ? {
-              ...item,
-              [field]: field === "setupPrice" ? Math.max(Number(value || 0), 0) : value,
-            }
-          : item,
-      );
+        const nextExtras = current.clientExtrasSnapshot.map((item) =>
+          item.id === extraId
+            ? {
+                ...item,
+                [field]: field === "setupPrice" ? Math.max(Number(value || 0), 0) : value,
+              }
+            : item,
+        );
 
-      return {
-        ...current,
-        clientExtrasSnapshot: nextExtras,
-        pricing: computeBuilderPricing(current.items, nextExtras, {
-          baseValue: current.pricing.baseValue,
-          entryValue: current.pricing.entryValue,
-        }),
-        updatedAt: new Date().toISOString(),
-      };
-    });
-  }, []);
+        return {
+          ...current,
+          clientExtrasSnapshot: nextExtras,
+          pricing: computeBuilderPricing(current.items, nextExtras, {
+            baseValue: current.pricing.baseValue,
+            entryValue: current.pricing.entryValue,
+          }),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+    },
+    [],
+  );
 
   const onToggleExtra = useCallback((extraId: string, active: boolean) => {
     setBuilderPayload((current) => {
@@ -477,14 +573,16 @@ export function useContractBuilder({
     (contrato: Contrato) => {
       try {
         const payload = normalizeBuilderPayload(contrato.builder_payload, safeExtrasCatalogo, contrato.cliente_id || "");
+        const nextStep = payload.lastStep ?? 4;
+
         setBuilderPayload(payload);
         setEditingBuilderContract(contrato);
-        setBuilderStep(payload.lastStep ?? 4);
+        setBuilderStepState(nextStep);
         setMobileSummaryOpen(false);
         setBuilderRemoteAutosaveState("saved");
         setBuilderLastSavedAt(contrato.updated_at || contrato.created_at);
         setBuilderClientExtras(payload.clientExtrasSnapshot);
-        setTab("montador");
+        setTab("montador", { step: nextStep });
       } catch (error) {
         const debugEntry = logContractAdminError("builder-open-contract", error, {
           contractId: contrato.id,
@@ -492,7 +590,7 @@ export function useContractBuilder({
           status: contrato.status,
         });
         toast({
-          title: "Contrato com revisão necessária",
+          title: "Contrato com revisao necessaria",
           description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
           variant: "destructive",
         });
@@ -506,16 +604,18 @@ export function useContractBuilder({
       requireCompleteValidation = false,
       silent = false,
       autosaveRemote = false,
+      stepOverride,
     }: {
-      exitAfterSave?: boolean;
       requireCompleteValidation?: boolean;
       silent?: boolean;
       autosaveRemote?: boolean;
+      stepOverride?: ContractBuilderStepIndex;
     } = {}) => {
       const currentPayload = workingBuilderPayload;
       if (!currentPayload) return false;
 
-      const validationMessage = getBuilderStepError(4);
+      const targetStep = stepOverride ?? builderStep;
+      const validationMessage = getBuilderStepError(requireCompleteValidation ? 4 : targetStep);
       if (requireCompleteValidation && validationMessage) {
         if (!silent) {
           toast({
@@ -528,7 +628,7 @@ export function useContractBuilder({
       }
 
       try {
-        const prepared = buildBuilderSavePayload(currentPayload, 4);
+        const prepared = buildBuilderSavePayload(currentPayload, targetStep);
         if (!prepared) return false;
 
         if (autosaveRemote) setBuilderRemoteAutosaveState("saving");
@@ -555,11 +655,12 @@ export function useContractBuilder({
           savedContrato.builder_payload,
           safeExtrasCatalogo,
           savedContrato.cliente_id || "",
-          4,
+          targetStep,
         );
 
         setBuilderPayload(savedPayload);
         setEditingBuilderContract(savedContrato);
+        setBuilderStepState(savedPayload.lastStep ?? targetStep);
         setBuilderLastSavedAt(savedContrato.updated_at || savedContrato.created_at);
         setBuilderRemoteAutosaveState("saved");
         upsertContratoState(savedContrato);
@@ -567,7 +668,7 @@ export function useContractBuilder({
         if (!silent && !autosaveRemote) {
           toast({
             title: editingBuilderContract ? "Contrato atualizado" : "Contrato salvo",
-            description: "O contrato foi salvo no cofre com a prévia atual.",
+            description: "O contrato foi salvo no cofre com a etapa atual preservada.",
           });
         }
 
@@ -592,13 +693,21 @@ export function useContractBuilder({
         return null;
       }
     },
-    [editingBuilderContract, getBuilderStepError, safeExtrasCatalogo, toast, upsertContratoState, workingBuilderPayload],
+    [builderStep, editingBuilderContract, getBuilderStepError, safeExtrasCatalogo, toast, upsertContratoState, workingBuilderPayload],
   );
 
   const changeContractStatus = useCallback(
     async (status: ContractStatus) => {
       if (!editingBuilderContract) {
-        setBuilderPayload((current) => (current ? { ...current, status } : current));
+        setBuilderPayload((current) =>
+          current
+            ? {
+                ...current,
+                status,
+                updatedAt: new Date().toISOString(),
+              }
+            : current,
+        );
         return false;
       }
 
@@ -613,7 +722,15 @@ export function useContractBuilder({
         const updated = await updateBuilderContractStatus(editingBuilderContract.id, status, patch);
         upsertContratoState(updated);
         setEditingBuilderContract(updated);
-        setBuilderPayload((current) => (current ? { ...current, status } : current));
+        setBuilderPayload((current) =>
+          current
+            ? {
+                ...current,
+                status,
+                updatedAt: new Date().toISOString(),
+              }
+            : current,
+        );
 
         await createContractEvent({
           contratoId: updated.id,
@@ -625,7 +742,7 @@ export function useContractBuilder({
 
         toast({
           title: "Status atualizado",
-          description: `O contrato agora está como ${status.replace(/_/g, " ")}.`,
+          description: `O contrato agora esta como ${status.replace(/_/g, " ")}.`,
         });
         return true;
       } catch (error) {
@@ -634,7 +751,7 @@ export function useContractBuilder({
           status,
         });
         toast({
-          title: "Não foi possível atualizar o status",
+          title: "Nao foi possivel atualizar o status",
           description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
           variant: "destructive",
         });
@@ -668,8 +785,8 @@ export function useContractBuilder({
     const printWindow = window.open("", "_blank", "noopener,noreferrer,width=980,height=900");
     if (!printWindow) {
       toast({
-        title: "Não foi possível abrir a impressão",
-        description: "O navegador bloqueou a janela de impressão deste contrato.",
+        title: "Nao foi possivel abrir a impressao",
+        description: "O navegador bloqueou a janela de impressao deste contrato.",
         variant: "destructive",
       });
       return;

@@ -1,15 +1,16 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, Sparkles, Layers, Filter } from "lucide-react";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ContractCofreList } from "./ContractCofreList";
 import { ContractBuilderWizard } from "./ContractBuilderWizard";
+import { ContractCofreList } from "./ContractCofreList";
 import { ensureArray, noop, noopContractAction, noopTabChange } from "@/features/contracts/runtime";
 
 interface ContractTabsProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: string, options?: { step?: number }) => void;
   cofre: any;
   builder: any;
   clientes: any[];
@@ -17,7 +18,7 @@ interface ContractTabsProps {
   onPreview: (contrato: any) => void;
   onDuplicate: (contrato: any) => void;
   onVersions: (contrato: any) => void;
-  onSend: (contrato: any) => void;
+  onSend: (contrato: any) => Promise<boolean> | boolean;
 }
 
 type ContractTabsInput = Partial<ContractTabsProps>;
@@ -45,61 +46,76 @@ export function ContractTabs({
     subtitle: "Preparando montador",
   };
 
+  const handleBuilderStepChange = (step: number) => {
+    safeBuilder.setBuilderStep?.(step);
+    onTabChange("montador", { step });
+  };
+
+  const handleSaveDraft = async () => {
+    await safeBuilder.persistBuilderDraft?.();
+  };
+
   const handleSaveDraftAndExit = async () => {
     const saved = await safeBuilder.persistBuilderDraft?.();
     if (saved) onTabChange("lista");
   };
 
   const handleSaveCompletedContract = async () => {
-    await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
+    await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true, stepOverride: 4 });
   };
 
   const handleSendCurrent = async () => {
-    const saved = await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
+    const saved = await safeBuilder.persistBuilderDraft?.({
+      requireCompleteValidation: true,
+      stepOverride: 4,
+    });
     if (saved) {
       await onSend(saved);
     }
   };
 
   const handleMarkAsSigned = async () => {
-    const saved = await safeBuilder.persistBuilderDraft?.({ requireCompleteValidation: true });
+    const saved = await safeBuilder.persistBuilderDraft?.({
+      requireCompleteValidation: true,
+      stepOverride: 4,
+    });
     if (saved) {
       await safeBuilder.changeContractStatus?.("assinado");
     }
   };
 
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-8">
+    <Tabs value={activeTab} onValueChange={(value) => onTabChange(value)} className="space-y-8">
       <div className="flex items-center justify-between">
         <TabsList className="h-12 border border-white/5 bg-white/5 p-1 backdrop-blur-sm">
-          <TabsTrigger 
-            value="lista" 
+          <TabsTrigger
+            value="lista"
             className="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white"
           >
             <FileText className="h-4 w-4" />
             <span>Cofre Ativo</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="montador" 
+          <TabsTrigger
+            value="montador"
             className="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white"
           >
             <Sparkles className="h-4 w-4" />
             <span>Montador Smart</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="modelos" 
+          <TabsTrigger
+            value="modelos"
             className="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white"
           >
             <Layers className="h-4 w-4" />
             <span>Modelos</span>
           </TabsTrigger>
         </TabsList>
-        
-        {activeTab === "lista" && (
+
+        {activeTab === "lista" ? (
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() =>
                 safeCofre.setCofreFilter?.(safeCofre.cofreFilter === "ativos" ? "arquivados" : "ativos")
               }
@@ -109,7 +125,7 @@ export function ContractTabs({
               {safeCofre.cofreFilter === "arquivados" ? "Ver Ativos" : "Ver Arquivados"}
             </Button>
           </div>
-        )}
+        ) : null}
       </div>
 
       <AnimatePresence mode="wait">
@@ -121,7 +137,7 @@ export function ContractTabs({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <ContractCofreList 
+            <ContractCofreList
               contratos={filteredContratos}
               extrasCatalogo={safeExtrasCatalogo}
               onView={onPreview}
@@ -132,7 +148,6 @@ export function ContractTabs({
               onVersions={onVersions}
               onEdit={(c) => {
                 safeBuilder.openBuilderContract?.(c);
-                onTabChange("montador");
               }}
               onSend={onSend}
             />
@@ -148,7 +163,7 @@ export function ContractTabs({
             transition={{ duration: 0.3 }}
           >
             {builderPayload ? (
-              <ContractBuilderWizard 
+              <ContractBuilderWizard
                 builderPayload={builderPayload}
                 builderStep={safeBuilder.builderStep ?? 0}
                 editingBuilderContract={safeBuilder.editingBuilderContract ?? null}
@@ -163,8 +178,9 @@ export function ContractTabs({
                 builderClientExtras={ensureArray(safeBuilder.builderClientExtras)}
                 syncingClientExtras={Boolean(safeBuilder.syncingClientExtras)}
                 shouldReduceMotion={Boolean(safeBuilder.shouldReduceMotion)}
-                onStepChange={safeBuilder.setBuilderStep ?? noop}
+                onStepChange={handleBuilderStepChange}
                 onReset={safeBuilder.resetBuilder ?? noop}
+                onBackToList={() => onTabChange("lista")}
                 onMobileSummaryToggle={() => safeBuilder.setMobileSummaryOpen?.(!safeBuilder.mobileSummaryOpen)}
                 onClientChange={(clientId) => {
                   void safeBuilder.onClientChange?.(clientId);
@@ -182,6 +198,7 @@ export function ContractTabs({
                 onExtraFieldChange={safeBuilder.onExtraFieldChange ?? noop}
                 onToggleExtra={safeBuilder.onToggleExtra ?? noop}
                 onPreview={onPreview}
+                onSaveDraft={handleSaveDraft}
                 onSaveAndExit={handleSaveDraftAndExit}
                 onSave={handleSaveCompletedContract}
                 onSendCurrent={handleSendCurrent}
@@ -213,8 +230,8 @@ export function ContractTabs({
             <div className="mb-4 rounded-full bg-white/5 p-4">
               <Layers className="h-8 w-8 text-white/20" />
             </div>
-            <h3 className="text-lg font-medium text-white">Catálogo de Modelos</h3>
-            <p className="text-sm text-white/40">Modelos pré-configurados estarão disponíveis em breve.</p>
+            <h3 className="text-lg font-medium text-white">Catalogo de Modelos</h3>
+            <p className="text-sm text-white/40">Modelos pre-configurados estarao disponiveis em breve.</p>
           </motion.div>
         </TabsContent>
       </AnimatePresence>

@@ -145,7 +145,7 @@ function AdminWithSplash() {
             <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="revenda" element={<AdminRevenda />} />
             <Route path="contratos" element={<Contratos />} />
-            <Route path="contratos/novo" element={<Contratos />} />
+            <Route path="contratos/novo/*" element={<Contratos />} />
             <Route path="contratos/modelos" element={<Contratos />} />
             <Route path="briefings" element={<BriefingsDashboard />} />
             <Route path="briefings/em-andamento" element={<InProgressList />} />

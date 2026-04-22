@@ -1,43 +1,34 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
+import { useToast } from "@/hooks/use-toast";
 import { SuccessCelebration } from "@/components/SuccessCelebration";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ContractHeader } from "./components/ContractHeader";
-import { ContractTabs } from "./components/ContractTabs";
-import { ContractPreviewDrawer } from "./components/ContractPreviewDrawer";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-
-import { 
-  Contrato,
-  Cliente,
-  ExtraCatalogo,
-  ContratoVersion,
-  BUILDER_TEMPLATE_ID,
-  PreviewState
-} from "./types";
-import { useContractsCatalog } from "./hooks/useContractsCatalog";
-import { useContractsRealtime } from "@/hooks/useContractsRealtime";
-import { useContractCofre } from "./hooks/useContractCofre";
-import { useContractBuilder } from "./hooks/useContractBuilder";
-import { logContractAdminError } from "./debug";
-import { 
-  normalizeBuilderPayload, 
-  buildBuilderSavePayload
-} from "./utils";
-import { 
-  saveBuilderContractDirectly,
-  sendBuilderContractToClientRecord,
-  fetchContractVersions
-} from "./services";
+import { ContractHeader } from "./components/ContractHeader";
+import { ContractPreviewDrawer } from "./components/ContractPreviewDrawer";
+import { ContractTabs } from "./components/ContractTabs";
 import {
-  createContractEvent
-} from "@/lib/contract-activity";
-import type { ContractEventRow } from "@/lib/contract-activity";
+  BUILDER_STEPS,
+  BUILDER_TEMPLATE_ID,
+  getContractBuilderStepFromSlug,
+  getContractBuilderStepPath,
+  type Contrato,
+  type Cliente,
+  type ExtraCatalogo,
+  type ContratoVersion,
+  type PreviewState,
+} from "./types";
+import { logContractAdminError } from "./debug";
+import { useContractBuilder } from "./hooks/useContractBuilder";
+import { useContractsCatalog } from "./hooks/useContractsCatalog";
+import { useContractCofre } from "./hooks/useContractCofre";
+import { useContractsRealtime } from "@/hooks/useContractsRealtime";
+import { buildBuilderSavePayload, normalizeBuilderPayload } from "./utils";
+import { fetchContractVersions, saveBuilderContractDirectly, sendBuilderContractToClientRecord } from "./services";
+import { createContractEvent, type ContractEventRow } from "@/lib/contract-activity";
 
 type ContractsCatalogIssueArea = "contratos" | "clientes" | "extras";
 
@@ -52,22 +43,38 @@ export default function Contratos() {
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
-  const currentPath = location.pathname.split("/").pop() || "contratos";
-  
-  // Tab Management
-  const activeTab = currentPath === "modelos" 
-    ? "modelos" 
-    : (currentPath === "novo" || currentPath === "montador") 
-      ? "montador" 
-      : "lista";
-      
-  const handleTabChange = (newTab: string) => {
-    if (newTab === "lista") navigate("/admin/contratos");
-    else if (newTab === "modelos") navigate("/admin/contratos/modelos");
-    else if (newTab === "montador") navigate("/admin/contratos/novo");
-  };
+  const pathname = location.pathname;
+  const isBuilderRoute = pathname === "/admin/contratos/novo" || pathname.startsWith("/admin/contratos/novo/");
+  const builderSlug = isBuilderRoute
+    ? pathname.replace("/admin/contratos/novo", "").replace(/^\/+/, "")
+    : "";
+  const builderStepMeta = BUILDER_STEPS.find((step) => step.slug === builderSlug) || null;
+  const routeBuilderStep = getContractBuilderStepFromSlug(builderSlug || "cliente");
 
-  // --- State Management ---
+  const activeTab = pathname === "/admin/contratos/modelos"
+    ? "modelos"
+    : isBuilderRoute
+      ? "montador"
+      : "lista";
+
+  const handleTabChange = useCallback(
+    (newTab: string, options?: { step?: number }) => {
+      if (newTab === "lista") {
+        navigate("/admin/contratos");
+        return;
+      }
+
+      if (newTab === "modelos") {
+        navigate("/admin/contratos/modelos");
+        return;
+      }
+
+      const targetStep = BUILDER_STEPS.find((step) => step.id === options?.step)?.id ?? 0;
+      navigate(getContractBuilderStepPath(targetStep));
+    },
+    [navigate],
+  );
+
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [contratosLoaded, setContratosLoaded] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -75,8 +82,7 @@ export default function Contratos() {
   const [extrasCatalogo, setExtrasCatalogo] = useState<ExtraCatalogo[]>([]);
   const [extrasLoaded, setExtrasLoaded] = useState(false);
   const [catalogIssues, setCatalogIssues] = useState<ContractsCatalogIssue[]>([]);
-  
-  // Preview & Versions state
+
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewState, setPreviewState] = useState<PreviewState | null>(null);
   const [previewContractEvents, setPreviewContractEvents] = useState<ContractEventRow[]>([]);
@@ -90,10 +96,13 @@ export default function Contratos() {
     clientesLookupRef.current = new Map(clientes.map((cliente) => [cliente.id, cliente.nome]));
   }, [clientes]);
 
-  // Helper functions for state updates
   const decorateContrato = useCallback((c: any): Contrato => ({
     ...c,
-    clientes: c.clientes || (clientesLookupRef.current.get(c.cliente_id) ? { nome: clientesLookupRef.current.get(c.cliente_id)! } : null)
+    clientes:
+      c.clientes ||
+      (clientesLookupRef.current.get(c.cliente_id)
+        ? { nome: clientesLookupRef.current.get(c.cliente_id)! }
+        : null),
   }), []);
 
   const sortContratosByUpdatedAt = useCallback((items: Contrato[]) => {
@@ -125,7 +134,6 @@ export default function Contratos() {
     setContratos((current) => current.filter((item) => item.id !== contractId));
   }, []);
 
-  // --- Data Orchestration ---
   const { loadContratos, loadClientes, loadExtrasCatalogo, loadPreviewContractEvents } = useContractsCatalog({
     decorateContrato,
     sortContratosByUpdatedAt,
@@ -145,21 +153,9 @@ export default function Contratos() {
       title: string;
       run: () => Promise<unknown>;
     }> = [
-      {
-        area: "contratos",
-        title: "Nao foi possivel carregar os contratos",
-        run: loadContratos,
-      },
-      {
-        area: "clientes",
-        title: "Nao foi possivel carregar os clientes",
-        run: loadClientes,
-      },
-      {
-        area: "extras",
-        title: "Nao foi possivel carregar o catalogo de extras",
-        run: loadExtrasCatalogo,
-      },
+      { area: "contratos", title: "Nao foi possivel carregar os contratos", run: loadContratos },
+      { area: "clientes", title: "Nao foi possivel carregar os clientes", run: loadClientes },
+      { area: "extras", title: "Nao foi possivel carregar o catalogo de extras", run: loadExtrasCatalogo },
     ];
 
     const results = await Promise.allSettled(loaders.map((loader) => loader.run()));
@@ -202,7 +198,6 @@ export default function Contratos() {
     });
   }, [loadInitialCatalog, toast]);
 
-  // --- Realtime Updates ---
   useContractsRealtime({
     channelName: "contracts-admin-realtime",
     filter: `modelo=eq.${BUILDER_TEMPLATE_ID}`,
@@ -227,7 +222,7 @@ export default function Contratos() {
       toast({
         title: "Erro ao carregar versoes",
         description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setVersionsLoading(false);
@@ -294,7 +289,7 @@ export default function Contratos() {
       toast({
         title: "Erro ao duplicar contrato",
         description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   }, [extrasCatalogo, extrasLoaded, toast, upsertContratoState]);
@@ -336,7 +331,7 @@ export default function Contratos() {
         tipo: "enviado",
         titulo: result.isResignFlow ? "Versao atualizada enviada" : "Contrato enviado",
         descricao: "O contrato foi enviado para o portal do cliente.",
-        actorType: "admin"
+        actorType: "admin",
       });
 
       toast({ title: "Contrato enviado com sucesso!" });
@@ -350,18 +345,17 @@ export default function Contratos() {
       toast({
         title: "Erro ao enviar contrato",
         description: `${debugEntry.safeMessage} Ref ${debugEntry.reference}.`,
-        variant: "destructive"
+        variant: "destructive",
       });
       return false;
     }
   }, [toast, upsertContratoState]);
 
-  // --- Hooks ---
   const cofre = useContractCofre({
     contratos,
     setContratos,
     upsertContratoState,
-    removeContratoState
+    removeContratoState,
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -373,7 +367,7 @@ export default function Contratos() {
     upsertContratoState,
     setTab: handleTabChange,
     setCofreFilter: cofre.setCofreFilter,
-    setSearchTerm: cofre.setSearchTerm
+    setSearchTerm: cofre.setSearchTerm,
   });
   const { builderPayload, resetBuilder } = builder;
 
@@ -394,6 +388,25 @@ export default function Contratos() {
   }, [extrasLoaded, resetBuilder, toast]);
 
   useEffect(() => {
+    if (activeTab !== "montador") return;
+
+    if (pathname === "/admin/contratos/novo") {
+      navigate(getContractBuilderStepPath(builder.builderStep ?? 0), { replace: true });
+      return;
+    }
+
+    if (!builderStepMeta) {
+      navigate(getContractBuilderStepPath(builder.builderStep ?? 0), { replace: true });
+    }
+  }, [activeTab, builder.builderStep, builderStepMeta, navigate, pathname]);
+
+  useEffect(() => {
+    if (activeTab !== "montador" || !builderStepMeta) return;
+    if (builder.builderStep === routeBuilderStep) return;
+    builder.setBuilderStep?.(routeBuilderStep);
+  }, [activeTab, builder, builderStepMeta, routeBuilderStep]);
+
+  useEffect(() => {
     if (activeTab !== "montador" || !extrasLoaded || builderPayload) return;
     resetBuilder();
   }, [activeTab, builderPayload, extrasLoaded, resetBuilder]);
@@ -401,14 +414,13 @@ export default function Contratos() {
   return (
     <div className="min-h-screen bg-[#0a0510] pb-20 pt-4 md:pt-8">
       <div className="container max-w-7xl px-4 md:px-6">
-        
-        <ContractHeader 
+        <ContractHeader
           searchTerm={cofre.searchTerm}
           setSearchTerm={cofre.setSearchTerm}
           onNewContract={handleNewContract}
         />
 
-        {catalogIssues.length > 0 && (
+        {catalogIssues.length > 0 ? (
           <Alert className="mb-6 border-amber-500/30 bg-amber-500/10 text-white [&>svg]:text-amber-300">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Painel carregado com avisos</AlertTitle>
@@ -437,9 +449,9 @@ export default function Contratos() {
               </div>
             </AlertDescription>
           </Alert>
-        )}
+        ) : null}
 
-        <ContractTabs 
+        <ContractTabs
           activeTab={activeTab}
           onTabChange={handleTabChange}
           cofre={cofre}
@@ -460,15 +472,15 @@ export default function Contratos() {
           eventsLoading={previewContractEventsLoading}
         />
 
-        <SuccessCelebration 
-          show={showSuccess} 
+        <SuccessCelebration
+          show={showSuccess}
           onComplete={() => setShowSuccess(false)}
           title="Contrato Finalizado!"
           subtitle="Seu documento foi gerado e salvo com sucesso no cofre premium."
         />
 
         <AnimatePresence>
-          {cofre.deleteTarget && (
+          {cofre.deleteTarget ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0 }}
@@ -485,11 +497,15 @@ export default function Contratos() {
               >
                 <h3 className="mb-2 text-xl font-bold text-white">Confirmar exclusao</h3>
                 <p className="mb-6 text-sm text-white/60">
-                  Voce tem certeza que deseja excluir o rascunho <strong>{cofre.deleteTarget.titulo}</strong>? 
+                  Voce tem certeza que deseja excluir o rascunho <strong>{cofre.deleteTarget.titulo}</strong>?
                   Esta acao nao pode ser desfeita.
                 </p>
                 <div className="flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => cofre.setDeleteTarget(null)} className="text-white/60 hover:text-white">
+                  <Button
+                    variant="ghost"
+                    onClick={() => cofre.setDeleteTarget(null)}
+                    className="text-white/60 hover:text-white"
+                  >
                     Cancelar
                   </Button>
                   <Button variant="destructive" onClick={() => cofre.handleDeleteDraft()}>
@@ -498,7 +514,7 @@ export default function Contratos() {
                 </div>
               </motion.div>
             </div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
     </div>
