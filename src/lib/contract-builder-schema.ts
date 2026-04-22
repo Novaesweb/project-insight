@@ -211,6 +211,9 @@ export const contractBuilderPayloadSchema = z.object({
   escopoExclusoes: z
     .any()
     .transform((value) => sanitizePlainText(value, { maxLength: 2400, preserveLineBreaks: true })),
+  customClauses: z
+    .any()
+    .transform((value) => sanitizePlainText(value, { maxLength: 8000, preserveLineBreaks: true })),
   pricing: pricingSchema,
   createdAt: z.string(),
   updatedAt: z.string(),

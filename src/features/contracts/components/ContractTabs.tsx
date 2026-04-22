@@ -4,6 +4,7 @@ import { FileText, Sparkles, Layers, Filter } from "lucide-react";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractBuilderWizard } from "./ContractBuilderWizard";
 import { ContractCofreList } from "./ContractCofreList";
 import { ensureArray, noop, noopContractAction, noopTabChange } from "@/features/contracts/runtime";
