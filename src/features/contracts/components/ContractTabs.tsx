@@ -9,6 +9,7 @@ import { ContractBuilderWizard } from "./ContractBuilderWizard";
 import { ContractCofreList } from "./ContractCofreList";
 import { 
   ensureArray, 
+  noop,
   noopContractAction, 
   noopTabChange 
 } from "@/features/contracts/runtime";
@@ -48,9 +49,11 @@ export function ContractTabs({
   onVersions = noopContractAction,
   onSend = noopContractAction,
 }: ContractTabsInput = {}) {
-  // Defensive checks are still good for inputs, but now we know the shape
   const safeClientes = ensureArray(clientes);
   const safeExtrasCatalogo = ensureArray(extrasCatalogo);
+  
+  const safeBuilder = builder || ({} as Partial<ContractBuilderState>);
+  const safeCofre = cofre || ({} as Partial<ContractCofreState>);
   
   const filteredContratos = ensureArray(cofre?.filteredContratos);
   const builderPayload = builder?.builderPayload ?? null;
