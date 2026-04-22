@@ -123,7 +123,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className="hidden md:flex md:flex-col relative z-50 shrink-0 h-screen"
       style={{
-        background: "rgba(3, 3, 5, 0.4)",
+        background: "linear-gradient(180deg, rgba(8, 0, 15, 0.8) 0%, rgba(15, 0, 24, 0.9) 100%)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderRight: "1px solid rgba(255, 255, 255, 0.05)",
@@ -154,14 +154,14 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         <Link to="/admin" className="flex items-center gap-3 group">
           <div className="relative">
             <div
-              className="absolute -inset-1 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"
-              style={{ background: "var(--gradient-primary)" }}
+              className="absolute -inset-2 rounded-xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
+              style={{ background: "linear-gradient(135deg, #7C3AED, #DC2626)" }}
             />
             <div
-              className="rounded-xl flex items-center justify-center relative w-10 h-10"
-              style={{ background: "var(--gradient-primary)" }}
+              className="rounded-xl flex items-center justify-center relative w-10 h-10 border border-white/10"
+              style={{ background: "linear-gradient(135deg, #7C3AED, #DC2626)", boxShadow: "inset 0 2px 10px rgba(255,255,255,0.2)" }}
             >
-              <Sparkles className="w-5 h-5 text-white" />
+              <Sparkles className="w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
             </div>
           </div>
           {!isCollapsed && (
@@ -233,7 +233,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           "absolute w-[2px] rounded-r-full left-0",
                           item.isSubItem ? "h-3" : "h-5"
                         )}
-                        style={{ background: "var(--gradient-primary)" }}
+                        style={{ background: "linear-gradient(180deg, #7C3AED, #DC2626)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}

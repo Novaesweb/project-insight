@@ -11,8 +11,8 @@ export function RevenueChart({ data }: { data: any[] }) {
   return (
     <Card className="border-white/[0.06] bg-[var(--admin-surface)] lg:col-span-2 overflow-hidden relative group">
       {/* Top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#7b1fa2] via-[#c2185b] to-[#e8334a] opacity-50" />
-      <div className="absolute inset-0 bg-gradient-to-br from-[#7b1fa2]/[0.03] via-transparent to-[#e8334a]/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#7C3AED] to-[#DC2626] opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/[0.03] via-transparent to-[#DC2626]/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
       <CardHeader className="pb-2">
         <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-[#c2185b]" /> Visão Financeira (Últimos 6 Meses)
@@ -23,15 +23,13 @@ export function RevenueChart({ data }: { data: any[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorTotal" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#7b1fa2" stopOpacity={0.4} />
-                  <stop offset="50%" stopColor="#c2185b" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#e8334a" stopOpacity={0} />
+                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.6} />
+                  <stop offset="100%" stopColor="#DC2626" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#7b1fa2" />
-                  <stop offset="50%" stopColor="#c2185b" />
-                  <stop offset="100%" stopColor="#e8334a" />
+                  <stop offset="0%" stopColor="#7C3AED" />
+                  <stop offset="100%" stopColor="#DC2626" />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />

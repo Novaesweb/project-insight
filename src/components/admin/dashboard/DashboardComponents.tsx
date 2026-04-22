@@ -12,10 +12,10 @@ import { cn } from "@/lib/utils";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 const kpiGradients = [
-  { bg: "from-[#7b1fa2]/20 to-[#7b1fa2]/5", icon: "from-[#7b1fa2] to-[#9c27b0]", glow: "shadow-[#7b1fa2]/15", line: "from-[#7b1fa2] to-[#9c27b0]" },
-  { bg: "from-[#c2185b]/20 to-[#c2185b]/5", icon: "from-[#c2185b] to-[#e91e63]", glow: "shadow-[#c2185b]/15", line: "from-[#c2185b] to-[#e91e63]" },
-  { bg: "from-[#e8334a]/20 to-[#e8334a]/5", icon: "from-[#e8334a] to-[#ff5252]", glow: "shadow-[#e8334a]/15", line: "from-[#e8334a] to-[#ff5252]" },
-  { bg: "from-[#FFB800]/20 to-[#FFB800]/5", icon: "from-[#FFB800] to-[#FFD700]", glow: "shadow-[#FFB800]/15", line: "from-[#FFB800] to-[#FFD700]" },
+  { bg: "from-[#7C3AED]/20 to-[#7C3AED]/5", icon: "from-[#7C3AED] to-[#6D28D9]", glow: "shadow-[#7C3AED]/15", border: "border-l-financial" },
+  { bg: "from-[#10B981]/20 to-[#10B981]/5", icon: "from-[#10B981] to-[#059669]", glow: "shadow-[#10B981]/15", border: "border-l-projects" },
+  { bg: "from-[#F59E0B]/20 to-[#F59E0B]/5", icon: "from-[#F59E0B] to-[#D97706]", glow: "shadow-[#F59E0B]/15", border: "border-l-alerts" },
+  { bg: "from-[#7C3AED]/20 to-[#DC2626]/5", icon: "from-[#7C3AED] to-[#DC2626]", glow: "shadow-[#7C3AED]/15", border: "border-l-financial" },
 ];
 
 export function DashboardKPIs({ stats, revenue }: any) {
@@ -59,16 +59,14 @@ export function DashboardKPIs({ stats, revenue }: any) {
         const g = kpiGradients[i];
         return (
           <Link key={kpi.label} to={kpi.href} className="block">
-            <Card className="relative overflow-hidden border-white/[0.06] bg-[var(--admin-surface)] group hover:border-white/10 transition-all duration-500 hover:-translate-y-1">
-            {/* Top gradient line */}
-            <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${g.line} opacity-60`} />
+            <Card className={cn("relative overflow-hidden border-white/[0.06] bg-[var(--admin-surface)] group hover:border-white/10 transition-all duration-500 hover:-translate-y-1", g.border)}>
             {/* Hover glow */}
             <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${g.bg} opacity-0 group-hover:opacity-100 blur-[40px] transition-all duration-700`} />
             <CardContent className="p-5 relative z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">{kpi.label}</p>
-                  <p className="text-3xl font-black text-foreground tracking-tighter leading-none">{kpi.value}</p>
+                  <p className="text-3xl font-black gradient-text-purple-red tracking-tighter leading-none">{kpi.value}</p>
                   {kpi.change && (
                     <div className={cn(
                       "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold mt-2 border",

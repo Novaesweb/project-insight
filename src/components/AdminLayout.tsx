@@ -281,8 +281,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen text-foreground font-sora selection:bg-primary/30 overflow-hidden relative">
-      <div className="admin-mesh-bg" />
+    <div className="flex h-screen bg-[var(--admin-bg)] text-foreground font-sora selection:bg-primary/30 overflow-hidden relative">
       <div className="fixed inset-0 pointer-events-none ambient-glow opacity-20" />
 
       

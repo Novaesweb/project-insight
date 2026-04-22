@@ -177,8 +177,12 @@ export default function Dashboard() {
 
       {/* CHARTS ROW — moved up for visual impact */}
       <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-4" variants={fadeUp}>
-        <RevenueChart data={monthlyRevenue} />
-        <ModulesChart data={topModules} />
+        <div className="lg:col-span-2">
+          <RevenueChart data={monthlyRevenue} />
+        </div>
+        <div className="lg:col-span-1">
+          <ModulesChart data={topModules} />
+        </div>
       </motion.div>
 
       {/* CABINE DE INTELIGÊNCIA */}
@@ -262,8 +266,8 @@ export default function Dashboard() {
                 <div className={cn("relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-[#7b1fa2]/30 before:via-[#c2185b]/10 before:to-transparent", visibleActs > 5 && "max-h-[400px] overflow-y-auto pr-2 custom-scrollbar")}>
                   {activity.slice(0, visibleActs).map((act) => (
                     <div key={act.id} className="relative flex items-center gap-4 group">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/[0.06] bg-[var(--admin-surface)] text-[#c2185b] group-hover:scale-110 transition-transform">
-                        <BellRing className="w-3.5 h-3.5" />
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/[0.06] bg-gradient-to-br from-[#7C3AED]/20 to-[#DC2626]/20 text-[#7C3AED] group-hover:scale-110 transition-transform font-black text-[10px] shadow-inner shadow-[#7C3AED]/10">
+                        {act.title ? act.title.substring(0, 2).toUpperCase() : <BellRing className="w-3.5 h-3.5" />}
                       </div>
                       <div>
                         <h4 className="text-xs font-semibold text-foreground leading-none">{act.title}</h4>
