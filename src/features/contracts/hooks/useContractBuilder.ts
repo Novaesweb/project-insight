@@ -8,6 +8,7 @@ import {
   computeBuilderPricing,
   createEmptyBuilderPayload,
   formatCurrencyBRL,
+  parseMoneyInput,
   resolveContractCustomClauses,
   selectPrimaryPlan,
   type BuilderPrimaryPlanId,
@@ -154,10 +155,8 @@ export function useContractBuilder({
       const parsed = JSON.parse(saved);
       if (!parsed || typeof parsed !== "object") return null;
       
-      // Validação mínima de estrutura antes de passar pelo sanitizador
       if (!parsed.items || !parsed.pricing || !parsed.contractante) return null;
       
-      // Garantir que arrays críticos existam para evitar crash imediato
       if (!Array.isArray(parsed.items)) parsed.items = [];
       if (!Array.isArray(parsed.clientExtrasSnapshot)) parsed.clientExtrasSnapshot = [];
       
@@ -165,7 +164,6 @@ export function useContractBuilder({
         ? validateAndSanitizeBuilderPayload(parsed) 
         : parsed;
 
-      // Proteção final: garantir que mesmo após sanitização, propriedades vitais existam
       if (sanitized && !sanitized.clientExtrasSnapshot) {
         sanitized.clientExtrasSnapshot = [];
       }
@@ -219,7 +217,6 @@ export function useContractBuilder({
 
   const builderPrepared = useMemo(() => {
     if (!workingBuilderPayload) return null;
-
     try {
       return buildBuilderSavePayload(workingBuilderPayload, 4);
     } catch {
@@ -229,46 +226,6 @@ export function useContractBuilder({
 
   const builderPreparedError = useMemo(() => {
     if (!workingBuilderPayload || builderPrepared) return null;
-
-    try {
-      buildBuilderSavePayload(workingBuilderPayload, 4);
-      return null;
-    } catch (error) {
-      return getContractErrorMessage(error, "Esse contrato precisa de revisao antes de ser salvo.");
-    }
-  }, [builderPrepared, workingBuilderPayload]);
-
-  const setBuilderStep = useCallback((nextStep: ContractBuilderStepIndex) => {
-    setBuilderStepState(nextStep);
-    setBuilderPayload((current) =>
-      current
-        ? {
-            ...current,
-            lastStep: nextStep,
-            updatedAt: new Date().toISOString(),
-          }
-        : current,
-    );
-  }, []);
-
-  const builderSummary = useMemo(
-    () => (workingBuilderPayload ? buildProposalSummary(workingBuilderPayload) : null),
-    [workingBuilderPayload],
-  );
-
-  const builderPrepared = useMemo(() => {
-    if (!workingBuilderPayload) return null;
-
-    try {
-      return buildBuilderSavePayload(workingBuilderPayload, 4);
-    } catch {
-      return null;
-    }
-  }, [workingBuilderPayload]);
-
-  const builderPreparedError = useMemo(() => {
-    if (!workingBuilderPayload || builderPrepared) return null;
-
     try {
       buildBuilderSavePayload(workingBuilderPayload, 4);
       return null;
@@ -301,26 +258,22 @@ export function useContractBuilder({
     return extraCount + planCount;
   }, [workingBuilderPayload?.clientExtrasSnapshot, workingBuilderPayload?.primaryPlanId]);
 
-
   const builderStatusLabel = useMemo(() => {
     if (builderRemoteAutosaveState === "saving") {
       return { title: "Salvando", subtitle: "Sincronizando contrato com o cofre." };
     }
-
     if (builderRemoteAutosaveState === "saved" && builderLastSavedAt) {
       return {
         title: "Sincronizado",
         subtitle: `Ultima atualizacao as ${formatContractClock(builderLastSavedAt)}`,
       };
     }
-
     if (editingBuilderContract) {
       return {
         title: "Em edicao",
         subtitle: "Continue o fluxo por etapas e finalize o documento na revisao final.",
       };
     }
-
     return {
       title: "Novo contrato",
       subtitle: "Preencha cada etapa, revise o resumo no topo e finalize a previa no ultimo passo.",
@@ -371,10 +324,8 @@ export function useContractBuilder({
 
   const resetBuilder = useCallback(() => {
     if (!extrasLoaded) return;
-
     const nextPayload = createEmptyBuilderPayload(safeExtrasCatalogo);
     nextPayload.lastStep = 0;
-
     setBuilderPayload(nextPayload);
     setEditingBuilderContract(null);
     setBuilderStepState(0);
@@ -388,10 +339,8 @@ export function useContractBuilder({
   const hydrateClientExtras = useCallback(async (clienteId: string) => {
     const extras = clienteId ? await fetchActiveClientExtras(clienteId) : [];
     setBuilderClientExtras(extras);
-
     setBuilderPayload((current) => {
       if (!current) return current;
-
       const extrasSnapshot = extras.map((item, index) => mapClientExtraToSnapshot(item, index));
       return {
         ...current,
@@ -403,7 +352,37 @@ export function useContractBuilder({
         updatedAt: new Date().toISOString(),
       };
     });
-  }, []);
+  }, [computeBuilderPricing]);
+
+  const onPrimaryPlanChange = useCallback((planId: BuilderPrimaryPlanId) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+      const nextItems = selectPrimaryPlan(current.items, planId);
+      return {
+        ...current,
+        primaryPlanId: planId,
+        items: nextItems,
+        pricing: computeBuilderPricing(nextItems, current.clientExtrasSnapshot),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, [computeBuilderPricing]);
+
+  const onPricingChange = useCallback((field: string, value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+      const numValue = parseMoneyInput(value);
+      const nextPricing = computeBuilderPricing(current.items, current.clientExtrasSnapshot, {
+        ...current.pricing,
+        [field]: numValue,
+      });
+      return {
+        ...current,
+        pricing: nextPricing,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, [computeBuilderPricing]);
 
   const onClientChange = useCallback(
     async (clienteId: string) => {
@@ -444,7 +423,6 @@ export function useContractBuilder({
 
       setBuilderPayload((current) => {
         if (!current) return current;
-
         return {
           ...current,
           clienteId,
@@ -480,7 +458,6 @@ export function useContractBuilder({
           clienteId,
           contractId: editingBuilderContract?.id || null,
         });
-
         setBuilderClientExtras([]);
         toast({
           title: "Extras do cliente indisponiveis",
@@ -496,7 +473,6 @@ export function useContractBuilder({
 
   const onRefreshExtras = useCallback(async () => {
     if (!builderPayload?.clienteId) return;
-
     setSyncingClientExtras(true);
     try {
       await hydrateClientExtras(builderPayload.clienteId);
@@ -547,7 +523,6 @@ export function useContractBuilder({
   const onUpdateTextField = useCallback((field: string, value: string) => {
     setBuilderPayload((current) => {
       if (!current) return current;
-
       if (field === "contractNumber" || field === "issueDate" || field === "startDate" || field === "dueDate") {
         return {
           ...current,
@@ -555,7 +530,6 @@ export function useContractBuilder({
           updatedAt: new Date().toISOString(),
         };
       }
-
       if (field === "status") {
         return {
           ...current,
@@ -563,7 +537,6 @@ export function useContractBuilder({
           updatedAt: new Date().toISOString(),
         };
       }
-
       return {
         ...current,
         [field]: value,
@@ -575,7 +548,6 @@ export function useContractBuilder({
   const onClauseSelectionChange = useCallback((selection: ContractClauseSelection) => {
     setBuilderPayload((current) => {
       if (!current) return current;
-
       return {
         ...current,
         clauseSelection: {
@@ -592,20 +564,12 @@ export function useContractBuilder({
       };
     });
   }, []);
-          baseValue: current.pricing.baseValue,
-          entryValue: current.pricing.entryValue,
-        }),
-        updatedAt: new Date().toISOString(),
-      };
-    });
-  }, []);
 
   const openBuilderContract = useCallback(
     (contrato: Contrato) => {
       try {
         const payload = normalizeBuilderPayload(contrato.builder_payload, safeExtrasCatalogo, contrato.cliente_id || "");
         const nextStep = payload.lastStep ?? 4;
-
         setBuilderPayload(payload);
         setEditingBuilderContract(contrato);
         setBuilderStepState(nextStep);
@@ -644,7 +608,6 @@ export function useContractBuilder({
     } = {}) => {
       const currentPayload = workingBuilderPayload;
       if (!currentPayload) return false;
-
       const targetStep = stepOverride ?? builderStep;
       const validationMessage = getBuilderStepError(requireCompleteValidation ? 4 : targetStep);
       if (requireCompleteValidation && validationMessage) {
@@ -657,13 +620,10 @@ export function useContractBuilder({
         }
         return false;
       }
-
       try {
         const prepared = buildBuilderSavePayload(currentPayload, targetStep);
         if (!prepared) return false;
-
         if (autosaveRemote) setBuilderRemoteAutosaveState("saving");
-
         const payloadToPersist = {
           cliente_id: prepared.normalizedPayload.clienteId || null,
           titulo: prepared.title,
@@ -675,20 +635,17 @@ export function useContractBuilder({
           builder_payload: prepared.normalizedPayload as any,
           updated_at: new Date().toISOString(),
         };
-
         const savedContrato = await saveBuilderContractDirectly({
           contractId: editingBuilderContract?.id ?? null,
           payloadToPersist,
           createVersionSnapshot: !autosaveRemote,
         });
-
         const savedPayload = normalizeBuilderPayload(
           savedContrato.builder_payload,
           safeExtrasCatalogo,
           savedContrato.cliente_id || "",
           targetStep,
         );
-
         setBuilderPayload(savedPayload);
         setEditingBuilderContract(savedContrato);
         setBuilderStepState(savedPayload.lastStep ?? targetStep);
@@ -696,14 +653,12 @@ export function useContractBuilder({
         setBuilderRemoteAutosaveState("saved");
         upsertContratoState(savedContrato);
         localStorage.removeItem("nv_contract_builder_draft");
-
         if (!silent && !autosaveRemote) {
           toast({
             title: editingBuilderContract ? "Contrato atualizado" : "Contrato salvo",
             description: "O contrato foi salvo no cofre com a etapa atual preservada.",
           });
         }
-
         return savedContrato;
       } catch (error) {
         const debugEntry = logContractAdminError("builder-save-contract", error, {
@@ -711,9 +666,7 @@ export function useContractBuilder({
           clientId: currentPayload.clienteId || null,
           autosaveRemote,
         });
-
         setBuilderRemoteAutosaveState("error");
-
         if (!silent) {
           toast({
             title: "Erro ao salvar contrato",
@@ -721,7 +674,6 @@ export function useContractBuilder({
             variant: "destructive",
           });
         }
-
         return null;
       }
     },
@@ -742,7 +694,6 @@ export function useContractBuilder({
         );
         return false;
       }
-
       try {
         const patch =
           status === "ativo"
@@ -750,7 +701,6 @@ export function useContractBuilder({
             : status === "assinado"
               ? { data_assinatura: editingBuilderContract.data_assinatura || new Date().toISOString() }
               : {};
-
         const updated = await updateBuilderContractStatus(editingBuilderContract.id, status, patch);
         upsertContratoState(updated);
         setEditingBuilderContract(updated);
@@ -763,7 +713,6 @@ export function useContractBuilder({
               }
             : current,
         );
-
         await createContractEvent({
           contratoId: updated.id,
           tipo: status,
@@ -771,7 +720,6 @@ export function useContractBuilder({
           descricao: `O status do contrato foi atualizado para ${status.replace(/_/g, " ")}.`,
           actorType: "admin",
         });
-
         toast({
           title: "Status atualizado",
           description: `O contrato agora esta como ${status.replace(/_/g, " ")}.`,
@@ -813,7 +761,6 @@ export function useContractBuilder({
 
   const handlePrint = useCallback(() => {
     if (!builderPrepared) return;
-
     const printWindow = window.open("", "_blank", "noopener,noreferrer,width=980,height=900");
     if (!printWindow) {
       toast({
@@ -823,14 +770,12 @@ export function useContractBuilder({
       });
       return;
     }
-
     const html = downloadWordDocument(builderPrepared.title, builderPrepared.body, {
       proposal: builderPrepared.normalizedPayload,
       contractanteSignedName: editingBuilderContract?.assinatura_cliente_nome,
       signedAt: editingBuilderContract?.data_assinatura,
       returnHtml: true,
     }) as string;
-
     printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
@@ -840,10 +785,72 @@ export function useContractBuilder({
 
   const getMoneyInputDisplayValue = useCallback((_key: string, value: number) => `${value}`, []);
 
-  const describeClientExtraPricing = useCallback((item: any) => {
-    const price = Number(item.setupPrice ?? item.preco_ativacao ?? item.valor ?? 0);
+  const describeClientExtraPricing = useCallback((item: ContractBuilderClientExtraSnapshot) => {
+    const price = Number(item.setupPrice ?? 0);
     return formatCurrencyBRL(price);
   }, []);
+
+  const onDiscountTypeChange = useCallback((value: string) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+      const nextPricing = computeBuilderPricing(current.items, current.clientExtrasSnapshot, {
+        ...current.pricing,
+        discountType: value as "fixed" | "percentage",
+      });
+      return {
+        ...current,
+        pricing: nextPricing,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, [computeBuilderPricing]);
+
+  const onMoneyDraftBlur = useCallback((_key: string, _value: number) => {
+    // No-op
+  }, []);
+
+  const onExtraFieldChange = useCallback(
+    (extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => {
+      setBuilderPayload((current) => {
+        if (!current) return current;
+        const extrasSnapshot = current.clientExtrasSnapshot.map((item) => {
+          if (item.id === extraId) {
+            const numValue = field === "setupPrice" ? parseMoneyInput(value) : item.setupPrice;
+            return {
+              ...item,
+              [field]: field === "setupPrice" ? numValue : value,
+            };
+          }
+          return item;
+        });
+        return {
+          ...current,
+          clientExtrasSnapshot: extrasSnapshot,
+          pricing: computeBuilderPricing(current.items, extrasSnapshot, current.pricing),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+    },
+    [computeBuilderPricing],
+  );
+
+  const onToggleExtra = useCallback(
+    (extraId: string, active: boolean) => {
+      setBuilderPayload((current) => {
+        if (!current) return current;
+        const extrasSnapshot = current.clientExtrasSnapshot.map((item) =>
+          item.id === extraId ? { ...item, active } : item,
+        );
+        return {
+          ...current,
+          clientExtrasSnapshot: extrasSnapshot,
+          pricing: computeBuilderPricing(current.items, extrasSnapshot, current.pricing),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+    },
+    [computeBuilderPricing],
+  );
 
   const onNext = useCallback(async () => {
     if (!builderPayload) return;
@@ -911,9 +918,9 @@ export function useContractBuilder({
     onUpdateTextField,
     onClauseSelectionChange,
     onPrimaryPlanChange,
-    onDiscountTypeChange,
+    onDiscountTypeChange: onDiscountTypeChange,
     onPricingChange,
-    onMoneyDraftBlur,
+    onMoneyDraftBlur: onMoneyDraftBlur,
     onRefreshExtras,
     getBuilderStepError,
     getMoneyInputDisplayValue,
