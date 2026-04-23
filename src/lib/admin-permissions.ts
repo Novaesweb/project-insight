@@ -8,7 +8,7 @@ export const ADMIN_PERMISSION_MODULES = [
   { key: "clientes", label: "Clientes", description: "Gestao dos clientes e ecossistemas ativos.", hrefs: ["/admin/clientes"] },
   { key: "leads", label: "Leads", description: "Pipeline comercial e novas oportunidades.", hrefs: ["/admin/leads"] },
   { key: "projetos", label: "Projetos", description: "Execucao, prazos e entregas em andamento.", hrefs: ["/admin/projetos"] },
-  { key: "contratos", label: "Contratos", description: "Montagem, envio, revisao e assinatura dos contratos comerciais.", hrefs: ["/admin/contratos"] },
+  { key: "contratos", label: "Contratos", description: "Montagem, envio, revisao e assinatura dos contratos comerciais.", hrefs: ["/admin/contratos", "/admin/clausulas"] },
   { key: "pedidos", label: "Pedidos", description: "Pedidos, vendas e solicitacoes do time.", hrefs: ["/admin/pedidos"] },
   { key: "extras", label: "Extras", description: "Modulos, upgrades e extras vendidos.", hrefs: ["/admin/extras"] },
   { key: "recurrent_extras", label: "Extras Recorrentes", description: "Assinaturas e cobrancas recorrentes de extras.", hrefs: ["/admin/recurrent-extras"] },

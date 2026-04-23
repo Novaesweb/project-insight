@@ -10,12 +10,14 @@ interface ContractHeaderProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   onNewContract: () => void;
+  onOpenClauseManager: () => void;
 }
 
 export function ContractHeader({ 
   searchTerm, 
   setSearchTerm, 
-  onNewContract 
+  onNewContract,
+  onOpenClauseManager,
 }: ContractHeaderProps) {
   return (
     <motion.div 
@@ -50,6 +52,14 @@ export function ContractHeader({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button 
+          variant="outline"
+          onClick={onOpenClauseManager}
+          className="h-10 gap-2 border-white/10 bg-white/5 px-5 font-semibold text-white hover:bg-white/10"
+        >
+          <Search className="h-4 w-4" />
+          Gerenciar Clausulas
+        </Button>
         <Button 
           onClick={onNewContract}
           className="h-10 gap-2 bg-primary px-5 font-semibold text-white hover:bg-primary/90"

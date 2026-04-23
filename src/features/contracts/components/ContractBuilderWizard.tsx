@@ -16,17 +16,18 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   ContractStepCliente,
-  ContractStepDados,
   ContractStepExtras,
   ContractStepPlano,
   ContractStepPreview,
   SummaryPill,
 } from "@/features/contracts/components/ContractBuilderSteps";
+import { ContractStepDadosLibrary } from "@/features/contracts/components/ContractStepDadosLibrary";
 import {
   BUILDER_STEPS,
   type Cliente,
   type Contrato,
 } from "@/features/contracts/types";
+import type { ContractClauseSelection } from "@/lib/contract-clauses";
 import {
   formatCurrencyBRL,
   type BuilderPrimaryPlanId,
@@ -74,6 +75,8 @@ type ContractBuilderWizardProps = {
   onUpdateContractante: (field: string, value: string) => void;
   onUpdateContratada: (field: string, value: string) => void;
   onUpdateTextField: (field: string, value: string) => void;
+  onClauseSelectionChange: (selection: ContractClauseSelection) => void;
+  onOpenClauseManager: () => void;
   onPrimaryPlanChange: (planId: BuilderPrimaryPlanId) => void;
   onDiscountTypeChange: (value: string) => void;
   onPricingChange: (field: string, value: string) => void;
@@ -121,6 +124,8 @@ export function ContractBuilderWizard({
   onUpdateContractante,
   onUpdateContratada,
   onUpdateTextField,
+  onClauseSelectionChange,
+  onOpenClauseManager,
   onPrimaryPlanChange,
   onDiscountTypeChange,
   onPricingChange,
@@ -187,11 +192,12 @@ export function ContractBuilderWizard({
 
     if (builderStep === 1) {
       return (
-        <ContractStepDados
+        <ContractStepDadosLibrary
           payload={workingBuilderPayload}
           error={currentStepError}
           onUpdateTextField={onUpdateTextField}
-          onUpdateContratada={onUpdateContratada}
+          onClauseSelectionChange={onClauseSelectionChange}
+          onOpenClauseManager={onOpenClauseManager}
         />
       );
     }

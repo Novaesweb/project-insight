@@ -8,6 +8,7 @@ import {
   computeBuilderPricing,
   createEmptyBuilderPayload,
   formatCurrencyBRL,
+  resolveContractCustomClauses,
   selectPrimaryPlan,
   type BuilderPrimaryPlanId,
   type ContractBuilderClientExtraSnapshot,
@@ -16,6 +17,7 @@ import {
   type ContractStatus,
 } from "@/lib/contract-builder";
 import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
+import { type ContractClauseSelection } from "@/lib/contract-clauses";
 import {
   buildBuilderSavePayload,
   buildPricingMoneyDraftKey,
@@ -203,6 +205,7 @@ export function useContractBuilder({
     if (!builderPayload) return null;
     return {
       ...builderPayload,
+      customClauses: resolveContractCustomClauses(builderPayload),
       pricing: buildPricingFromPayload(builderPayload),
     };
   }, [builderPayload]);
@@ -519,6 +522,27 @@ export function useContractBuilder({
       return {
         ...current,
         [field]: value,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
+  const onClauseSelectionChange = useCallback((selection: ContractClauseSelection) => {
+    setBuilderPayload((current) => {
+      if (!current) return current;
+
+      return {
+        ...current,
+        clauseSelection: {
+          items: selection.items
+            .slice()
+            .sort((left, right) => left.order - right.order)
+            .map((item, index) => ({
+              ...item,
+              order: index,
+            })),
+          updatedAt: selection.updatedAt || new Date().toISOString(),
+        },
         updatedAt: new Date().toISOString(),
       };
     });
@@ -925,6 +949,7 @@ export function useContractBuilder({
     onUpdateContractante,
     onUpdateContratada,
     onUpdateTextField,
+    onClauseSelectionChange,
     onPrimaryPlanChange,
     onDiscountTypeChange,
     onPricingChange,
@@ -969,6 +994,7 @@ export function useContractBuilder({
     onUpdateContractante,
     onUpdateContratada,
     onUpdateTextField,
+    onClauseSelectionChange,
     onPrimaryPlanChange,
     onDiscountTypeChange,
     onPricingChange,

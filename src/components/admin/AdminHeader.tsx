@@ -21,6 +21,10 @@ interface AdminHeaderProps {
 }
 
 const extraPageInfo: Record<string, { titulo: string; subtitulo: string }> = {
+  "/admin/clausulas": {
+    titulo: "Gerenciador de Clausulas",
+    subtitulo: "Biblioteca global, variaveis e composicao visual das clausulas",
+  },
   "/admin/briefings/em-andamento": {
     titulo: "Briefings em Andamento",
     subtitulo: "Montagem, filtros e fluxo de envio",

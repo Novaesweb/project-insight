@@ -12,6 +12,7 @@ import {
   type ContractBuilderPricing,
   type ContractBuilderStepIndex,
 } from "@/lib/contract-builder";
+import { type ClauseCategory } from "@/lib/contract-clauses";
 
 const CONTROL_CHARS_REGEX = new RegExp(
   `[${[
@@ -168,6 +169,32 @@ const clientExtraSnapshotSchema = z.object({
   monthlyPrice: z.any().transform(sanitizeMoney),
 });
 
+const clauseCategorySchema = z.custom<ClauseCategory>((value) =>
+  value === "objeto" ||
+  value === "pagamento" ||
+  value === "cancelamento" ||
+  value === "entrega" ||
+  value === "revisao" ||
+  value === "propriedade" ||
+  value === "sigilo" ||
+  value === "suporte" ||
+  value === "geral",
+);
+
+const clauseSelectionItemSchema = z.object({
+  clauseId: z.any().transform((value) => sanitizePlainText(value, { maxLength: 120 })),
+  title: z.any().transform((value) => sanitizePlainText(value, { maxLength: 120 })),
+  text: z.any().transform((value) => sanitizePlainText(value, { maxLength: 6000, preserveLineBreaks: true })),
+  category: clauseCategorySchema,
+  required: z.boolean().default(false),
+  order: z.number().int().nonnegative(),
+});
+
+const clauseSelectionSchema = z.object({
+  items: z.array(clauseSelectionItemSchema).default([]),
+  updatedAt: z.string().nullable().default(null),
+});
+
 const pricingSchema = z.object({
   baseValue: z.any().transform(sanitizeMoney),
   extrasTotal: z.any().transform(sanitizeMoney),
@@ -214,6 +241,7 @@ export const contractBuilderPayloadSchema = z.object({
   customClauses: z
     .any()
     .transform((value) => sanitizePlainText(value, { maxLength: 8000, preserveLineBreaks: true })),
+  clauseSelection: clauseSelectionSchema.default({ items: [], updatedAt: null }),
   pricing: pricingSchema,
   createdAt: z.string(),
   updatedAt: z.string(),

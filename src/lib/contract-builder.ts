@@ -1,5 +1,11 @@
 import type { Tables } from "@/integrations/supabase/types";
 import { PUBLIC_PLAN_CATALOG, type PublicPlanCatalogItem } from "@/lib/public-plans";
+import {
+  buildClauseVariableMap,
+  normalizeContractClauseSelection,
+  renderContractClauseSelection,
+  type ContractClauseSelection,
+} from "@/lib/contract-clauses";
 
 export type BuilderPrimaryPlanId = PublicPlanCatalogItem["id"] | "none";
 export type BuilderItemGroup = "planos" | "extras";
@@ -104,6 +110,7 @@ export interface ContractBuilderPayload {
   observacoesComerciais: string;
   escopoExclusoes: string;
   customClauses: string;
+  clauseSelection: ContractClauseSelection;
   pricing: ContractBuilderPricing;
   createdAt: string;
   updatedAt: string;
@@ -370,6 +377,10 @@ export function createEmptyBuilderPayload(
     observacoesComerciais: DEFAULT_COMMERCIAL_NOTES,
     escopoExclusoes: DEFAULT_SCOPE_EXCLUSIONS,
     customClauses: "",
+    clauseSelection: {
+      items: [],
+      updatedAt: null,
+    },
     pricing: computeBuilderPricing(items),
     createdAt: now,
     updatedAt: now,
@@ -402,8 +413,23 @@ function buildCidadeEstado(payload: ContractBuilderPayload) {
   return [payload.contractante.cidade, payload.contractante.estado].filter(Boolean).join(" / ");
 }
 
+export function resolveContractCustomClauses(payload: ContractBuilderPayload) {
+  const clauseSelection = normalizeContractClauseSelection(payload.clauseSelection);
+
+  if (clauseSelection.items.length > 0) {
+    return renderContractClauseSelection(clauseSelection, buildClauseVariableMap(payload));
+  }
+
+  if (clauseSelection.updatedAt) {
+    return "";
+  }
+
+  return payload.customClauses || "";
+}
+
 export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
   const extras = getContractExtraSnapshots(payload);
+  const resolvedCustomClauses = resolveContractCustomClauses(payload);
 
   return {
     nome_cliente: payload.contractante.nome,
@@ -434,7 +460,7 @@ export function buildBuilderTemplateValues(payload: ContractBuilderPayload) {
     valor_extras: formatCurrencyBRL(payload.pricing.extrasTotal),
     valor_total: formatCurrencyBRL(payload.pricing.totalValue),
     observacoes: payload.observacoesComerciais || "Sem observações adicionais.",
-    clausulas_adicionais: payload.customClauses || "",
+    clausulas_adicionais: resolvedCustomClauses,
     nome_contratada: payload.contratada.nome,
     documento_contratada: payload.contratada.documento,
     endereco_contratada: `${payload.contratada.endereco}, ${payload.contratada.cidade}/${payload.contratada.estado}`,

@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ContractClausePickerDialog } from "@/features/contracts/components/ContractClausePickerDialog";
 import { CONTRACT_STATUS_OPTIONS, type Cliente, type Contrato } from "@/features/contracts/types";
+import { type ContractClauseSelection } from "@/lib/contract-clauses";
 import {
   formatCurrencyBRL,
   type BuilderPrimaryPlanId,
@@ -283,10 +285,14 @@ export function ContractStepDados({
   payload,
   error,
   onUpdateTextField,
+  onClauseSelectionChange,
+  onOpenClauseManager,
 }: {
   payload: ContractBuilderPayload;
   error?: string | null;
   onUpdateTextField: (field: string, value: string) => void;
+  onClauseSelectionChange: (selection: ContractClauseSelection) => void;
+  onOpenClauseManager: () => void;
 }) {
   const [aiState, setAiState] = useState<{
     isOpen: boolean;
@@ -299,6 +305,7 @@ export function ContractStepDados({
     field: "",
     currentText: "",
   });
+  const [clausePickerOpen, setClausePickerOpen] = useState(false);
 
   const openAi = (field: string, label: string, currentText: string) => {
     setAiState({

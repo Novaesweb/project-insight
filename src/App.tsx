@@ -87,6 +87,7 @@ const AdminRecurrentExtras = React.lazy(() => import("@/pages/AdminRecurrentExtr
 const ExtrasAtivos = React.lazy(() => import("@/pages/ExtrasAtivos"));
 const AdminResetPassword = React.lazy(() => import("./pages/AdminResetPassword"));
 const Contratos = React.lazy(() => import("./pages/Contratos"));
+const AdminClauseManager = React.lazy(() => import("./pages/admin/AdminClauseManager"));
 
 const ClientePedidosFome = React.lazy(() => import("./pages/cliente/ClientePedidosFome"));
 const AdminLogin = React.lazy(() => import("./pages/AdminLogin"));
@@ -146,6 +147,7 @@ function AdminWithSplash() {
             <Route path="revenda" element={<AdminRevenda />} />
             <Route path="contratos/*" element={<Contratos />} />
             <Route path="contratos/modelos" element={<Contratos />} />
+            <Route path="clausulas" element={<AdminClauseManager />} />
             <Route path="briefings" element={<BriefingsDashboard />} />
             <Route path="briefings/em-andamento" element={<InProgressList />} />
             <Route path="briefings/em-andamento/novo" element={<BriefingEditorPage />} />

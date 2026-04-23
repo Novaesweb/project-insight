@@ -5,6 +5,7 @@ import type {
   ContractBuilderStepIndex,
   ContractStatus,
 } from "@/lib/contract-builder";
+import type { ContractClauseSelection } from "@/lib/contract-clauses";
 
 export type Cliente = Tables<"clientes">;
 export type ExtraCatalogo = Tables<"extras_catalogo">;
@@ -59,6 +60,7 @@ export interface ContractBuilderState {
   onUpdateContractante: (field: string, value: string) => void;
   onUpdateContratada: (field: string, value: string) => void;
   onUpdateTextField: (field: string, value: string) => void;
+  onClauseSelectionChange: (selection: ContractClauseSelection) => void;
   onPrimaryPlanChange: (planId: any) => void; // Using any for planId to avoid circular dependency or missing import if not careful, but better than full any
   onPricingChange: (field: string, value: string) => void;
   onExtraFieldChange: (extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => void;

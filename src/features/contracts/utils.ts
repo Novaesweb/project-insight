@@ -5,6 +5,7 @@ import {
   createEmptyBuilderPayload,
   formatCurrencyBRL,
   parseMoneyInput,
+  resolveContractCustomClauses,
   selectPrimaryPlan,
   type BuilderPrimaryPlanId,
   type ContractBuilderClientExtraSnapshot,
@@ -13,6 +14,7 @@ import {
   type ContractStatus,
 } from "@/lib/contract-builder";
 import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
+import { normalizeContractClauseSelection } from "@/lib/contract-clauses";
 import { contractTemplates, fillTemplate } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 import { normalizeContractStatus } from "@/lib/contract-status";
@@ -264,6 +266,7 @@ export function normalizeBuilderPayload(
     ),
     escopoExclusoes: normalizeText(payload.escopoExclusoes, base.escopoExclusoes),
     customClauses: normalizeText(payload.customClauses, base.customClauses),
+    clauseSelection: normalizeContractClauseSelection(payload.clauseSelection),
     pricing,
     createdAt: normalizeText(payload.createdAt, base.createdAt) || base.createdAt,
     updatedAt: new Date().toISOString(),
@@ -283,11 +286,15 @@ export function buildBuilderSavePayload(
   const template = contractTemplates.find((item) => item.id === BUILDER_TEMPLATE_ID);
   if (!template) return null;
 
-  const normalizedPayload = validateAndSanitizeBuilderPayload({
+  const normalizedPayloadBase = validateAndSanitizeBuilderPayload({
     ...payload,
     lastStep: currentStep,
     updatedAt: new Date().toISOString(),
   });
+  const normalizedPayload = {
+    ...normalizedPayloadBase,
+    customClauses: resolveContractCustomClauses(normalizedPayloadBase),
+  };
 
   const templateValues = buildBuilderTemplateValues(normalizedPayload);
   const selectedPlan =
