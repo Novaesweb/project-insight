@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { Sparkles, Send, Check, Loader2 } from "lucide-react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import { useEffect, useState } from "react";
+import { Check, Loader2, Send, Sparkles } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,24 +27,41 @@ export function ContractAiAssistant({
   onClose,
   onApply,
   context,
-  currentText
+  currentText,
 }: ContractAiAssistantProps) {
   const [instruction, setInstruction] = useState("");
   const [suggestion, setSuggestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setErrorMessage("");
+  }, [context, isOpen]);
 
   const handleGenerate = async () => {
-    const finalInstruction = instruction.trim() || "Gere uma sugestão profissional e adequada para este campo do contrato, mantendo um tom sério e jurídico.";
-    
+    const finalInstruction =
+      instruction.trim() ||
+      "Gere uma sugestao profissional e adequada para este campo do contrato, mantendo um tom serio e juridico.";
+
     setIsLoading(true);
+    setErrorMessage("");
+
     try {
-      console.log(`[AI Assistant] Gerando para contexto: ${context}`);
       const result = await groqService.helpWithContractField(context, finalInstruction, currentText);
-      setSuggestion(result);
-      toast.success("Sugestão gerada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao gerar sugestão:", error);
-      toast.error("Erro ao gerar sugestão. Verifique sua conexão ou chave de API.");
+      const normalizedSuggestion = result.trim();
+
+      if (!normalizedSuggestion) {
+        throw new Error("A IA nao retornou nenhuma sugestao para este campo.");
+      }
+
+      setSuggestion(normalizedSuggestion);
+      toast.success("Sugestao gerada com sucesso.");
+    } catch (error: any) {
+      const message = error?.message || "Erro ao gerar sugestao. Verifique a configuracao da IA.";
+      console.error("Erro ao gerar sugestao:", error);
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +72,7 @@ export function ContractAiAssistant({
     onClose();
     setInstruction("");
     setSuggestion("");
+    setErrorMessage("");
   };
 
   return (
@@ -67,47 +86,55 @@ export function ContractAiAssistant({
             Assistente de IA
           </DialogTitle>
           <DialogDescription className="text-white/50">
-            Ajudando você a redigir o campo: <span className="text-fuchsia-400 font-medium">{context}</span>
+            Ajudando voce a redigir o campo: <span className="font-medium text-fuchsia-400">{context}</span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-widest text-white/30">O que a IA deve fazer?</label>
-            <Textarea 
-              placeholder="Ex: 'Escreva uma cláusula de suporte em dias úteis com resposta em 24h' ou 'Ajuste este texto para ser mais formal'"
+            <label className="text-xs font-bold uppercase tracking-widest text-white/30">
+              O que a IA deve fazer?
+            </label>
+            <Textarea
+              placeholder="Ex: Escreva uma clausula de suporte em dias uteis com resposta em 24h."
               value={instruction}
-              onChange={(e) => setInstruction(e.target.value)}
+              onChange={(event) => setInstruction(event.target.value)}
               className="min-h-[100px] border-white/10 bg-black/40 text-white placeholder:text-white/20 focus:border-fuchsia-500/50 transition-all"
             />
           </div>
 
-          {suggestion && (
+          {errorMessage ? (
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-100">
+              {errorMessage}
+            </div>
+          ) : null}
+
+          {suggestion ? (
             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-              <label className="text-xs font-bold uppercase tracking-widest text-white/30">Sugestão da IA</label>
-              <div className="rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/5 p-4 text-sm leading-relaxed text-white/80 max-h-[250px] overflow-y-auto custom-scrollbar">
+              <label className="text-xs font-bold uppercase tracking-widest text-white/30">Sugestao da IA</label>
+              <div className="custom-scrollbar max-h-[250px] overflow-y-auto rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/5 p-4 text-sm leading-relaxed text-white/80">
                 {suggestion}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button 
-            variant="ghost" 
-            onClick={onClose} 
-            className="text-white/50 hover:text-white hover:bg-white/5"
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="text-white/50 hover:bg-white/5 hover:text-white"
           >
             Cancelar
           </Button>
-          
+
           <div className="flex-1" />
 
           {!suggestion ? (
-            <Button 
-              onClick={handleGenerate} 
+            <Button
+              onClick={handleGenerate}
               disabled={isLoading}
-              className="bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white hover:from-fuchsia-500 hover:to-rose-500 border-none shadow-lg shadow-fuchsia-500/20"
+              className="border-none bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white shadow-lg shadow-fuchsia-500/20 hover:from-fuchsia-500 hover:to-rose-500"
             >
               {isLoading ? (
                 <>
@@ -117,22 +144,25 @@ export function ContractAiAssistant({
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Gerar Sugestão
+                  Gerar Sugestao
                 </>
               )}
             </Button>
           ) : (
-            <div className="flex gap-2 w-full sm:w-auto">
-               <Button 
-                variant="outline" 
-                onClick={() => setSuggestion("")} 
-                className="flex-1 sm:flex-none border-white/10 bg-white/5 text-white hover:bg-white/10"
+            <div className="flex w-full gap-2 sm:w-auto">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSuggestion("");
+                  setErrorMessage("");
+                }}
+                className="flex-1 border-white/10 bg-white/5 text-white hover:bg-white/10 sm:flex-none"
               >
                 Refazer
               </Button>
-              <Button 
-                onClick={handleApply} 
-                className="flex-1 sm:flex-none bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/10"
+              <Button
+                onClick={handleApply}
+                className="flex-1 bg-emerald-600 text-white shadow-lg shadow-emerald-500/10 hover:bg-emerald-500 sm:flex-none"
               >
                 <Check className="mr-2 h-4 w-4" />
                 Aplicar

@@ -1,8 +1,8 @@
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 
-// A chave será buscada do ambiente, mas podemos ter um fallback para desenvolvimento se necessário
-// IMPORTANTE: Em produção, o ideal é usar Supabase Edge Functions para não expor a chave no cliente.
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const CLIENT_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
+const REQUEST_TIMEOUT_MS = 25_000;
 
 export interface GroqMessage {
   role: "system" | "user" | "assistant";
@@ -16,64 +16,125 @@ export interface GroqCompletionOptions {
   messages: GroqMessage[];
 }
 
+type ContractAiSuggestionResponse = {
+  suggestion?: string;
+};
+
+function buildAbortSignal(timeoutMs: number) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  return {
+    signal: controller.signal,
+    cleanup: () => window.clearTimeout(timeout),
+  };
+}
+
+async function readErrorMessage(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+
+  try {
+    if (contentType.includes("application/json")) {
+      const payload = await response.json();
+      return payload?.error?.message || payload?.message || "Falha na comunicacao com a IA.";
+    }
+
+    const text = await response.text();
+    return text.trim() || "Falha na comunicacao com a IA.";
+  } catch {
+    return "Falha na comunicacao com a IA.";
+  }
+}
+
+async function getDirectChatCompletion({
+  model = "llama-3.3-70b-versatile",
+  temperature = 0.7,
+  max_tokens = 1024,
+  messages,
+}: GroqCompletionOptions) {
+  if (!CLIENT_API_KEY) {
+    throw new Error("A chave da IA nao esta configurada no frontend.");
+  }
+
+  const { signal, cleanup } = buildAbortSignal(REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${CLIENT_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature,
+        max_tokens,
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(await readErrorMessage(response));
+    }
+
+    const data = await response.json();
+    const suggestion = data?.choices?.[0]?.message?.content?.trim();
+
+    if (!suggestion) {
+      throw new Error("A IA nao retornou nenhuma sugestao para este campo.");
+    }
+
+    return suggestion;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("A IA demorou demais para responder. Tente novamente.");
+    }
+
+    throw error;
+  } finally {
+    cleanup();
+  }
+}
+
+async function getServerContractSuggestion(context: string, instruction: string, currentText: string) {
+  const response = await invokeAdminFunction<ContractAiSuggestionResponse>("contract-ai-assistant", {
+    body: { context, instruction, currentText },
+    returnTo: "/admin/contratos",
+    source: "contracts-ai-assistant",
+    fallbackMessage: "Nao foi possivel gerar a sugestao da IA agora.",
+  });
+
+  const suggestion = response?.suggestion?.trim();
+  if (!suggestion) {
+    throw new Error("A IA nao retornou nenhuma sugestao para este campo.");
+  }
+
+  return suggestion;
+}
+
 export const groqService = {
-  async getChatCompletion({
-    model = "llama-3.3-70b-versatile",
-    temperature = 0.7,
-    max_tokens = 1024,
-    messages
-  }: GroqCompletionOptions) {
-    if (!API_KEY) {
-      console.error("Groq API Key não configurada no ambiente (VITE_GROQ_API_KEY).");
-    }
-
-    console.log(`[Groq] Enviando requisição para ${model}...`);
-
-    try {
-      const response = await fetch(GROQ_API_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature,
-          max_tokens,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Falha na comunicação com a API do Groq");
-      }
-
-      const data = await response.json();
-      return data.choices[0]?.message?.content || "";
-    } catch (error) {
-      console.error("Erro no serviço Groq:", error);
-      throw error;
-    }
+  async getChatCompletion(options: GroqCompletionOptions) {
+    return getDirectChatCompletion(options);
   },
 
-  /**
-   * Atalho para gerar ou ajustar cláusulas contratuais
-   */
   async helpWithContractField(context: string, instruction: string, currentText: string = "") {
-    const systemPrompt = `Você é um assistente jurídico especializado em contratos de serviços digitais da NovaesWeb.
-Sua tarefa é ajudar a redigir ou ajustar partes de um contrato (cláusulas, escopo, observações).
-Seja profissional, direto e utilize uma linguagem jurídica moderna e clara.
+    const systemPrompt = `Voce e um assistente juridico especializado em contratos de servicos digitais da NovaesWeb.
+Sua tarefa e ajudar a redigir ou ajustar partes de um contrato (clausulas, escopo, observacoes).
+Seja profissional, direto e utilize uma linguagem juridica moderna e clara.
 Contexto do campo: ${context}
 Texto atual (se houver): ${currentText}`;
 
-    const userPrompt = instruction;
+    const messages: GroqMessage[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: instruction },
+    ];
 
-    return this.getChatCompletion({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ]
-    });
-  }
+    try {
+      return await getServerContractSuggestion(context, instruction, currentText);
+    } catch (serverError) {
+      console.warn("[Groq] fallback para chamada direta no cliente", serverError);
+      return getDirectChatCompletion({ messages });
+    }
+  },
 };
