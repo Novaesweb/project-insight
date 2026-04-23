@@ -23,9 +23,11 @@ export const groqService = {
     max_tokens = 1024,
     messages
   }: GroqCompletionOptions) {
-    if (!API_KEY && !import.meta.env.DEV) {
-      console.warn("Groq API Key não configurada. Verifique seu arquivo .env (VITE_GROQ_API_KEY)");
+    if (!API_KEY) {
+      console.error("Groq API Key não configurada no ambiente (VITE_GROQ_API_KEY).");
     }
+
+    console.log(`[Groq] Enviando requisição para ${model}...`);
 
     try {
       const response = await fetch(GROQ_API_URL, {

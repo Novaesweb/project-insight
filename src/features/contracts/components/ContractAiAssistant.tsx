@@ -33,14 +33,12 @@ export function ContractAiAssistant({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerate = async () => {
-    if (!instruction.trim()) {
-      toast.error("Por favor, digite uma instrução para a IA.");
-      return;
-    }
-
+    const finalInstruction = instruction.trim() || "Gere uma sugestão profissional e adequada para este campo do contrato, mantendo um tom sério e jurídico.";
+    
     setIsLoading(true);
     try {
-      const result = await groqService.helpWithContractField(context, instruction, currentText);
+      console.log(`[AI Assistant] Gerando para contexto: ${context}`);
+      const result = await groqService.helpWithContractField(context, finalInstruction, currentText);
       setSuggestion(result);
       toast.success("Sugestão gerada com sucesso!");
     } catch (error) {
@@ -108,7 +106,7 @@ export function ContractAiAssistant({
           {!suggestion ? (
             <Button 
               onClick={handleGenerate} 
-              disabled={isLoading || !instruction.trim()}
+              disabled={isLoading}
               className="bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white hover:from-fuchsia-500 hover:to-rose-500 border-none shadow-lg shadow-fuchsia-500/20"
             >
               {isLoading ? (
