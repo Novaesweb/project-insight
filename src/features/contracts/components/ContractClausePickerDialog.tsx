@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BookText,
-  ExternalLink,
   GripVertical,
   Plus,
   Search,
@@ -267,23 +266,11 @@ export function ContractClausePickerDialog({
 
                   {filteredLibrary.length === 0 ? (
                     <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm text-white/55">
-                      Nenhuma clausula encontrada nesse filtro. Se precisar editar a biblioteca completa, abra o gerenciador.
+                      Nenhuma clausula encontrada nesse filtro. Ajuste a busca ou a categoria para encontrar itens salvos.
                     </div>
                   ) : null}
                 </div>
               </ScrollArea>
-
-              <div className="rounded-[20px] border border-white/10 bg-black/25 p-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-white/10 bg-white/5 text-white hover:bg-white/10"
-                  onClick={() => window.location.assign("/admin/clausulas")}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Abrir gerenciador completo
-                </Button>
-              </div>
             </div>
           </div>
 

@@ -420,7 +420,6 @@ export default function Contratos() {
           searchTerm={cofre.searchTerm}
           setSearchTerm={cofre.setSearchTerm}
           onNewContract={handleNewContract}
-          onOpenClauseManager={() => navigate("/admin/clausulas")}
         />
 
         {catalogIssues.length > 0 ? (

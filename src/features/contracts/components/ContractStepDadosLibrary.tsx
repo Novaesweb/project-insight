@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Sparkles, Wand2 } from "lucide-react";
+import { Sparkles, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ type ContractStepDadosLibraryProps = {
   error?: string | null;
   onUpdateTextField: (field: string, value: string) => void;
   onClauseSelectionChange: (selection: ContractClauseSelection) => void;
-  onOpenClauseManager: () => void;
 };
 
 export function ContractStepDadosLibrary({
@@ -31,7 +30,6 @@ export function ContractStepDadosLibrary({
   error,
   onUpdateTextField,
   onClauseSelectionChange,
-  onOpenClauseManager,
 }: ContractStepDadosLibraryProps) {
   const [aiState, setAiState] = useState<{
     isOpen: boolean;
@@ -230,15 +228,6 @@ export function ContractStepDadosLibrary({
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
                   Selecionar clausulas salvas
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-fuchsia-300 hover:bg-fuchsia-400/10 hover:text-fuchsia-200"
-                  onClick={onOpenClauseManager}
-                >
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  Abrir gerenciador completo
                 </Button>
               </div>
             </div>

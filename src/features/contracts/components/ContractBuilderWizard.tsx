@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   FileDown,
   FileSignature,
+  LibraryBig,
   Printer,
   Save,
   Send,
@@ -197,7 +198,6 @@ export function ContractBuilderWizard({
           error={currentStepError}
           onUpdateTextField={onUpdateTextField}
           onClauseSelectionChange={onClauseSelectionChange}
-          onOpenClauseManager={onOpenClauseManager}
         />
       );
     }
@@ -364,6 +364,15 @@ export function ContractBuilderWizard({
               type="button"
               variant="outline"
               className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              onClick={onOpenClauseManager}
+            >
+              <LibraryBig className="mr-2 h-4 w-4" />
+              Gerenciar Cláusulas
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
               onClick={handlePrevious}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -403,6 +412,15 @@ export function ContractBuilderWizard({
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                onClick={onOpenClauseManager}
+              >
+                <LibraryBig className="mr-2 h-4 w-4" />
+                Gerenciar Cláusulas
+              </Button>
               <Button
                 type="button"
                 variant="outline"
