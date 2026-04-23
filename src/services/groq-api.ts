@@ -48,27 +48,26 @@ async function readErrorMessage(response: Response) {
 }
 
 function hasClientApiKey() {
-  const hasKey = CLIENT_API_KEY.trim().length > 0;
-  console.log(`[Groq] Verificando chave no cliente: ${hasKey ? "Encontrada" : "AUSENTE"}`);
-  if (!hasKey) {
-    console.warn("[Groq] VITE_GROQ_API_KEY nao detectada pelo Vite. Verifique se o arquivo .env existe e se o servidor foi reiniciado.");
+  const key = CLIENT_API_KEY.trim();
+  const isValid = key.length > 10 && key.startsWith("gsk_");
+  
+  if (!isValid) {
+    console.warn(
+      "[Groq-Config] Chave VITE_GROQ_API_KEY nao encontrada ou invalida no frontend. " +
+      "Certifique-se de que o arquivo .env existe, a chave comeca com 'gsk_' e voce REINICIOU o servidor (npm run dev)."
+    );
   }
-  return hasKey;
+  return isValid;
 }
 
 function normalizeError(error: unknown, fallbackMessage = DEFAULT_AI_ERROR_MESSAGE) {
-  console.error("[Groq] Erro capturado:", error);
+  console.error("[Groq-Error] Detalhes do erro:", error);
   
-  if (error instanceof Error && error.message.trim()) {
+  if (error instanceof Error) {
+    if (error.message.includes("Failed to fetch")) return new Error("Erro de rede: Verifique sua conexao ou se o dominio da Groq esta bloqueado.");
+    if (error.message.includes("401")) return new Error("Chave da IA invalida ou expirada.");
+    if (error.message.includes("429")) return new Error("Limite de requisicoes da IA atingido. Aguarde um momento.");
     return error;
-  }
-
-  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
-    return new Error(error.message.trim() || fallbackMessage);
-  }
-
-  if (typeof error === "string" && error.trim()) {
-    return new Error(error.trim());
   }
 
   return new Error(fallbackMessage);
@@ -81,7 +80,7 @@ async function getDirectChatCompletion({
   messages,
 }: GroqCompletionOptions) {
   if (!hasClientApiKey()) {
-    throw new Error("A chave da IA nao esta configurada no frontend.");
+    throw new Error("Chave VITE_GROQ_API_KEY ausente no frontend.");
   }
 
   const { signal, cleanup } = buildAbortSignal(REQUEST_TIMEOUT_MS);
@@ -103,22 +102,22 @@ async function getDirectChatCompletion({
     });
 
     if (!response.ok) {
-      throw new Error(await readErrorMessage(response));
+      const errorMsg = await readErrorMessage(response);
+      throw new Error(`Erro API Groq (${response.status}): ${errorMsg}`);
     }
 
     const data = await response.json();
     const suggestion = data?.choices?.[0]?.message?.content?.trim();
 
     if (!suggestion) {
-      throw new Error("A IA nao retornou nenhuma sugestao para este campo.");
+      throw new Error("A IA respondeu, mas nao retornou texto.");
     }
 
     return suggestion;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("A IA demorou demais para responder. Tente novamente.");
+      throw new Error("A IA demorou demais para responder (Timeout).");
     }
-
     throw error;
   } finally {
     cleanup();
@@ -126,19 +125,18 @@ async function getDirectChatCompletion({
 }
 
 async function getServerContractSuggestion(context: string, instruction: string, currentText: string) {
-  const response = await invokeAdminFunction<ContractAiSuggestionResponse>("contract-ai-assistant", {
-    body: { context, instruction, currentText },
-    returnTo: "/admin/contratos",
-    source: "contracts-ai-assistant",
-    fallbackMessage: "Nao foi possivel gerar a sugestao da IA agora.",
-  });
+  try {
+    const response = await invokeAdminFunction<ContractAiSuggestionResponse>("contract-ai-assistant", {
+      body: { context, instruction, currentText },
+      returnTo: "/admin/contratos",
+      source: "contracts-ai-assistant",
+      fallbackMessage: "Falha na comunicacao com a Edge Function do Supabase.",
+    });
 
-  const suggestion = response?.suggestion?.trim();
-  if (!suggestion) {
-    throw new Error("A IA nao retornou nenhuma sugestao para este campo.");
+    return response?.suggestion?.trim() || null;
+  } catch (error: any) {
+    throw new Error(`Erro na Edge Function: ${error.message || "Servidor indisponivel"}`);
   }
-
-  return suggestion;
 }
 
 export const groqService = {
@@ -147,33 +145,31 @@ export const groqService = {
   },
 
   async helpWithContractField(context: string, instruction: string, currentText: string = "") {
-    const systemPrompt = `Voce e um assistente juridico especializado em contratos de servicos digitais da NovaesWeb.
-Sua tarefa e ajudar a redigir ou ajustar partes de um contrato (clausulas, escopo, observacoes).
-Seja profissional, direto e utilize uma linguagem juridica moderna e clara.
-Contexto do campo: ${context}
-Texto atual (se houver): ${currentText}`;
+    const systemPrompt = `Voce e um assistente juridico especializado em contratos da NovaesWeb.
+Ajude a redigir o campo: ${context}.
+Texto atual: ${currentText || "(vazio)"}`;
 
     const messages: GroqMessage[] = [
       { role: "system", content: systemPrompt },
       { role: "user", content: instruction },
     ];
 
-    try {
-      // Prioritize direct client call if key is available for lower latency and reliability
-      if (hasClientApiKey()) {
-        try {
-          return await getDirectChatCompletion({ messages });
-        } catch (clientError) {
-          console.warn("[Groq] Chamada direta falhou, tentando server function...", clientError);
-          // Continue to server fallback
-        }
+    // Fluxo de execucao prioritario
+    if (hasClientApiKey()) {
+      try {
+        console.log("[Groq] Tentando chamada direta...");
+        return await getDirectChatCompletion({ messages });
+      } catch (clientError) {
+        console.warn("[Groq] Chamada direta falhou, tentando servidor...", clientError);
       }
+    }
 
-      // Fallback or default to server function
-      return await getServerContractSuggestion(context, instruction, currentText);
+    try {
+      const serverSuggestion = await getServerContractSuggestion(context, instruction, currentText);
+      if (serverSuggestion) return serverSuggestion;
+      throw new Error("Servidor retornou resposta vazia.");
     } catch (serverError) {
-      const normalizedServerError = normalizeError(serverError);
-      throw normalizedServerError;
+      throw normalizeError(serverError);
     }
   },
 };

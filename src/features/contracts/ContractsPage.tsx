@@ -92,18 +92,18 @@ export default function Contratos() {
   const [versionsContract, setVersionsContract] = useState<Contrato | null>(null);
   const [versionsOpen, setVersionsOpen] = useState(false);
 
-  useEffect(() => {
-    clientesLookupRef.current = new Map(clientes.map((cliente) => [cliente.id, cliente.nome]));
+  const clientesLookup = useMemo(() => {
+    return new Map(clientes.map((cliente) => [cliente.id, cliente.nome]));
   }, [clientes]);
 
   const decorateContrato = useCallback((c: any): Contrato => ({
     ...c,
     clientes:
       c.clientes ||
-      (clientesLookupRef.current.get(c.cliente_id)
-        ? { nome: clientesLookupRef.current.get(c.cliente_id)! }
+      (clientesLookup.get(c.cliente_id)
+        ? { nome: clientesLookup.get(c.cliente_id)! }
         : null),
-  }), []);
+  }), [clientesLookup]);
 
   const sortContratosByUpdatedAt = useCallback((items: Contrato[]) => {
     return [...items].sort((a, b) => {
@@ -200,9 +200,14 @@ export default function Contratos() {
 
   useContractsRealtime({
     channelName: "contracts-admin-realtime",
-    filter: `modelo=eq.${BUILDER_TEMPLATE_ID}`,
+    filter: "", // Escutamos todos para maior confiabilidade
     enabled: contratosLoaded,
-    onUpsert: upsertContratoState,
+    onUpsert: (contrato) => {
+      // Filtramos no cliente para garantir que so processamos o que interessa
+      if (contrato.modelo === BUILDER_TEMPLATE_ID) {
+        upsertContratoState(contrato);
+      }
+    },
     onDelete: removeContratoState,
   });
 
@@ -387,15 +392,19 @@ export default function Contratos() {
     }
   }, [extrasLoaded, resetBuilder, toast]);
 
+  // Sincronizacao de Rota para o Passo do Builder
   useEffect(() => {
     if (activeTab !== "montador") return;
 
+    // Se estiver na raiz do novo contrato, redireciona para o passo atual
     if (pathname === "/admin/contratos/novo") {
-      navigate(getContractBuilderStepPath(builder.builderStep ?? 0), { replace: true });
+      const targetPath = getContractBuilderStepPath(builder.builderStep ?? 0);
+      navigate(targetPath, { replace: true });
       return;
     }
 
-    if (!builderStepMeta) {
+    // Se a rota for invalida, volta para o passo atual
+    if (!builderStepMeta && pathname.startsWith("/admin/contratos/novo/")) {
       navigate(getContractBuilderStepPath(builder.builderStep ?? 0), { replace: true });
     }
   }, [activeTab, builder.builderStep, builderStepMeta, navigate, pathname]);

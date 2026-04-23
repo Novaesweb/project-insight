@@ -150,31 +150,15 @@ export function useContractBuilder({
     try {
       const saved = typeof window !== "undefined" ? localStorage.getItem("nv_contract_builder_draft") : null;
       if (!saved) return null;
-
       const parsed = JSON.parse(saved);
       if (!parsed || typeof parsed !== "object") return null;
-
-      // Validate and sanitize the recovered draft to prevent crashes
-      try {
-        if (typeof validateAndSanitizeBuilderPayload === "function") {
-          return validateAndSanitizeBuilderPayload(parsed);
-        }
-        console.warn("Validation function not ready during hook initialization");
-        return null;
-      } catch (e) {
-        console.warn("Recovered draft is invalid, discarding", e);
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("nv_contract_builder_draft");
-        }
-        return null;
-      }
-    } catch (e) {
-      console.error("Failed to recover contract draft", e);
-      return null;
-    }
+      if (!parsed.items || !parsed.pricing || !parsed.contractante) return null;
+      return typeof validateAndSanitizeBuilderPayload === "function" 
+        ? validateAndSanitizeBuilderPayload(parsed) 
+        : parsed;
+    } catch (e) { return null; }
   });
 
-  // Sync payload to localStorage
   useEffect(() => {
     if (builderPayload) {
       localStorage.setItem("nv_contract_builder_draft", JSON.stringify(builderPayload));
@@ -182,6 +166,7 @@ export function useContractBuilder({
       localStorage.removeItem("nv_contract_builder_draft");
     }
   }, [builderPayload]);
+
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
   const [builderStep, setBuilderStepState] = useState<ContractBuilderStepIndex>(() => {
     try {
@@ -190,11 +175,10 @@ export function useContractBuilder({
         const parsed = JSON.parse(saved);
         return (parsed.lastStep as ContractBuilderStepIndex) ?? 0;
       }
-    } catch (e) {
-      // Ignore, fallback to 0
-    }
+    } catch (e) {}
     return 0;
   });
+
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [syncingClientExtras, setSyncingClientExtras] = useState(false);
   const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
