@@ -207,9 +207,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           ? "justify-center px-2"
                           : "gap-4 px-4",
                       isActive
-                        ? "text-slate-900 bg-slate-100 border border-slate-200"
+                        ? "text-white bg-brand-gradient shadow-[0_10px_20px_rgba(124,58,237,0.25)] scale-[1.02]"
                         : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
-                      item.accent && !isActive && "text-[#7C3AED]/70 hover:text-[#7C3AED]"
+                      item.accent && !isActive && "text-[#7C3AED] hover:bg-[#7C3AED]/5"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
@@ -217,10 +217,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                       <motion.div
                         layoutId="adminNavIndicator"
                         className={cn(
-                          "absolute w-[3px] rounded-r-full left-0",
-                          item.isSubItem ? "h-4" : "h-6"
+                          "absolute w-1 rounded-r-full left-0",
+                          item.isSubItem ? "h-3" : "h-5"
                         )}
-                        style={{ background: "var(--gradient-primary)" }}
+                        style={{ background: "white" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
@@ -228,7 +228,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                       <span
                         className={cn(
                           "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
-                          isActive ? "bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" : "bg-slate-200 group-hover:bg-slate-400"
+                          isActive ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "bg-slate-200 group-hover:bg-slate-400"
                         )}
                       />
                     ) : item.icon ? (
@@ -236,9 +236,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                         className={cn(
                           "w-5 h-5 shrink-0 transition-all duration-300",
                           isActive
-                            ? "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]"
+                            ? "text-white"
                             : item.accent
-                              ? "text-[#EC4899]/50"
+                              ? "text-[#EC4899]"
                               : "text-slate-300 group-hover:text-slate-600 group-hover:scale-110"
                         )}
                       />
@@ -246,7 +246,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                     {!isCollapsed && <span className="truncate tracking-tight">{item.label}</span>}
                     {!isCollapsed && !item.isSubItem && badgeCount > 0 && (
                       <span
-                        className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black text-white bg-brand-gradient shadow-[0_0_10px_rgba(124,58,237,0.3)]"
+                        className={cn(
+                          "ml-auto px-2 py-0.5 rounded-full text-[9px] font-black transition-all",
+                          isActive ? "bg-white text-[#7C3AED]" : "bg-brand-gradient text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]"
+                        )}
                       >
                         {badgeCount}
                       </span>

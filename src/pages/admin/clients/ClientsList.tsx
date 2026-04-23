@@ -159,15 +159,17 @@ export default function ClientsList() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between px-2">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-white">Base de Clientes</h1>
-          <p className="mt-1 max-w-2xl text-sm text-white/55">
+          <h1 className="text-5xl font-light tracking-tight text-slate-900 md:text-6xl" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Base de <span className="text-brand-gradient italic">Clientes</span>
+          </h1>
+          <p className="mt-4 max-w-2xl text-base text-slate-500 leading-relaxed">
             Gerenciamento centralizado de contas, acessos e faturamento.
           </p>
         </div>
         <Button
-          className="gradient-primary h-12 rounded-2xl px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20"
+          className="bg-brand-gradient h-12 rounded-2xl px-8 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[#7C3AED]/20 hover:scale-[1.02] transition-all"
           onClick={() => setCreateOpen(true)}
         >
           <UserPlus className="mr-2 h-4 w-4" />
@@ -175,23 +177,23 @@ export default function ClientsList() {
         </Button>
       </div>
 
-      <div className="glass-card-premium flex flex-col items-center justify-between gap-4 rounded-3xl p-4 md:flex-row">
+      <div className="glass-premium flex flex-col items-center justify-between gap-4 rounded-[32px] p-4 md:flex-row border-slate-200">
         <div className="group relative w-full md:w-96">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/20 transition-colors group-focus-within:text-primary" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300 transition-colors group-focus-within:text-[#EC4899]" />
           <Input
             placeholder="Nome, e-mail ou empresa..."
-            className="h-11 rounded-2xl border-white/5 bg-white/5 pl-11 text-white focus:ring-1 focus:ring-primary/20"
+            className="h-11 rounded-2xl border-slate-100 bg-white/50 pl-11 text-slate-900 focus:ring-1 focus:ring-[#7C3AED]/20 shadow-sm"
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
           />
         </div>
 
-        <Badge className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-300">
+        <Badge className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-600">
           Somente clientes ativos
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 px-1">
         <AnimatePresence mode="popLayout">
           {filtrados.map((client) => (
             <motion.div
@@ -202,12 +204,12 @@ export default function ClientsList() {
               exit={{ opacity: 0, scale: 0.95 }}
             >
               <Card
-                className="glass-card-premium group h-full cursor-pointer transition-all hover:scale-[1.02]"
+                className="glass-premium group h-full cursor-pointer transition-all hover:scale-[1.02] border-slate-200 shadow-sm bg-white/80"
                 onClick={() => navigate(`/admin/clientes/${client.id}`)}
               >
                 <CardContent className="p-8">
                   <div className="mb-6 flex items-start justify-between">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-2xl font-black text-primary shadow-xl shadow-primary/5 transition-all group-hover:bg-primary/20">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 text-2xl font-black text-slate-900 shadow-sm transition-all group-hover:bg-brand-gradient group-hover:text-white group-hover:border-transparent">
                       {client.avatar || client.nome[0]}
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -216,32 +218,32 @@ export default function ClientsList() {
                         className={cn(
                           "rounded-full px-3 py-1 text-[9px] font-black uppercase",
                           client.status === "ativo"
-                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                            ? "border-emerald-100 bg-emerald-50 text-emerald-600"
                             : client.status === "bloqueado"
-                              ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
-                              : "border-amber-500/30 bg-amber-500/10 text-amber-300",
+                              ? "border-rose-100 bg-rose-50 text-rose-500"
+                              : "border-amber-100 bg-amber-50 text-amber-600",
                         )}
                       >
                         {client.status}
                       </Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" className="h-8 w-8 p-0 text-white/20 hover:text-white">
+                          <Button variant="ghost" className="h-8 w-8 p-0 text-slate-300 hover:text-slate-900">
                             <MoreVertical size={16} />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 rounded-xl border-white/10 bg-[#1a1421] text-white">
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }} className="gap-2 focus:bg-white/5 focus:text-white cursor-pointer">
-                            <Pencil size={14} className="text-primary" /> Editar Dados
+                        <DropdownMenuContent align="end" className="w-48 rounded-2xl glass-premium p-2 border-slate-200">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }} className="gap-2 focus:bg-brand-gradient focus:text-white cursor-pointer py-3 rounded-xl transition-all">
+                            <Pencil size={14} className="text-[#7C3AED]" /> <span className="text-[10px] font-black uppercase tracking-wider">Editar Dados</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clientes/${client.id}`); }} className="gap-2 focus:bg-white/5 focus:text-white cursor-pointer">
-                            <ExternalLink size={14} /> Ver Perfil Completo
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/clientes/${client.id}`); }} className="gap-2 focus:bg-brand-gradient focus:text-white cursor-pointer py-3 rounded-xl transition-all">
+                            <ExternalLink size={14} /> <span className="text-[10px] font-black uppercase tracking-wider">Perfil Completo</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(client.id); }} 
-                            className="gap-2 focus:bg-rose-500/10 focus:text-rose-400 text-rose-400/80 cursor-pointer"
+                            className="gap-2 focus:bg-rose-500 focus:text-white text-rose-500 cursor-pointer py-3 rounded-xl transition-all"
                           >
-                            <Trash2 size={14} /> Remover Cliente
+                            <Trash2 size={14} /> <span className="text-[10px] font-black uppercase tracking-wider">Remover</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -249,33 +251,33 @@ export default function ClientsList() {
                   </div>
 
                   <div className="mb-6 space-y-1">
-                    <h3 className="truncate text-xl font-black text-white transition-colors group-hover:text-primary">
+                    <h3 className="truncate text-xl font-black text-slate-900 transition-colors group-hover:text-[#EC4899]">
                       {client.nome}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs font-medium text-white/40">
-                      <Building size={14} />
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                      <Building size={14} className="text-slate-300" />
                       {client.nome_empresa || "Startup / Sem Empresa"}
                     </div>
                   </div>
 
-                  <div className="mb-8 space-y-3 border-t border-white/5 pt-6">
-                    <div className="flex items-center gap-3 text-xs text-white/60">
-                      <Mail size={14} className="text-white/20" />
+                  <div className="mb-8 space-y-3 border-t border-slate-100 pt-6">
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <Mail size={14} className="text-slate-300" />
                       {client.email}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-white/60">
-                      <Phone size={14} className="text-white/20" />
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <Phone size={14} className="text-slate-300" />
                       {client.whatsapp || client.telefone || "N/A"}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">
+                  <div className="flex items-center justify-between pt-4">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
                       Membro desde {new Date(client.created_at).getFullYear()}
                     </span>
                     <Button
                       variant="ghost"
-                      className="h-9 px-4 text-xs font-black uppercase tracking-widest text-primary transition-all group-hover:translate-x-1"
+                      className="h-9 px-4 text-xs font-black uppercase tracking-widest text-[#7C3AED] transition-all group-hover:translate-x-1 hover:bg-[#7C3AED]/5"
                     >
                       Ver Perfil <ArrowRight size={14} className="ml-2" />
                     </Button>
@@ -288,20 +290,22 @@ export default function ClientsList() {
       </div>
 
       {!loading && filtrados.length === 0 && (
-        <Card className="glass-card-premium border-white/10">
-          <CardContent className="flex flex-col items-center justify-center gap-3 p-10 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <Users className="h-7 w-7 text-white/35" />
+        <Card className="glass-premium border-slate-200 bg-white/40">
+          <CardContent className="flex flex-col items-center justify-center gap-6 p-16 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-[28px] border border-slate-100 bg-white shadow-sm">
+              <Users className="h-8 w-8 text-slate-300" />
             </div>
-            <h2 className="text-xl font-black text-white">
-              {clients.length === 0 ? "Nenhum cliente ativo encontrado" : "Nenhum cliente encontrado nessa busca"}
-            </h2>
-            <p className="max-w-xl text-sm text-white/50">
-              {clients.length === 0
-                ? "Esta tela mostra apenas clientes com status ativo. Clientes removidos, inativos ou bloqueados nao aparecem aqui."
-                : "Tente ajustar o nome, e-mail ou empresa para localizar um cliente ativo na base."}
-            </p>
-            <Button className="gradient-primary border-0 text-white" onClick={() => setCreateOpen(true)}>
+            <div>
+              <h2 className="text-2xl font-light text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
+                {clients.length === 0 ? "Nenhum cliente ativo" : "Nenhum resultado"}
+              </h2>
+              <p className="max-w-xl text-sm text-slate-500 mt-2">
+                {clients.length === 0
+                  ? "Esta tela mostra apenas clientes ativos. Comece criando seu primeiro cliente elite."
+                  : "Tente ajustar os termos da busca para localizar o registro desejado."}
+              </p>
+            </div>
+            <Button className="bg-brand-gradient border-0 text-white px-10 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#7C3AED]/20" onClick={() => setCreateOpen(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
               {clients.length === 0 ? "Criar primeiro cliente" : "Criar novo cliente"}
             </Button>
@@ -319,105 +323,64 @@ export default function ClientsList() {
           }
         }}
       >
-        <DialogContent className="max-w-lg rounded-[2rem] border-white/10 bg-[#120d18] p-0 text-white overflow-hidden">
-          <DialogHeader className="p-8 pb-0">
-            <DialogTitle className="text-2xl font-black">
+        <DialogContent className="max-w-lg rounded-[2.5rem] border-slate-200 bg-white p-0 text-slate-900 overflow-hidden shadow-2xl">
+          <DialogHeader className="p-10 pb-0">
+            <DialogTitle className="text-3xl font-light tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               {editingClient ? "Editar Cliente" : "Novo Cliente"}
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[70vh] px-8 py-6">
-            <div className="grid gap-4 md:grid-cols-2 pb-4">
+          <ScrollArea className="max-h-[70vh] px-10 py-8">
+            <div className="grid gap-6 md:grid-cols-2 pb-6">
               <div className="space-y-2 md:col-span-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Nome Completo</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nome Completo</Label>
                 <Input
                   value={form.nome}
                   onChange={(event) => setForm((current) => ({ ...current, nome: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  className="h-12 border-slate-200 bg-slate-50 text-slate-900 rounded-2xl focus:ring-primary/20 shadow-sm"
                   placeholder="Ex: Joao Silva"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Empresa / Negocio</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Empresa</Label>
                 <Input
                   value={form.nome_empresa}
                   onChange={(event) => setForm((current) => ({ ...current, nome_empresa: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  className="h-12 border-slate-200 bg-slate-50 text-slate-900 rounded-2xl focus:ring-primary/20 shadow-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">CPF / CNPJ</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">CPF / CNPJ</Label>
                 <Input
                   value={form.documento}
                   onChange={(event) => setForm((current) => ({ ...current, documento: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  className="h-12 border-slate-200 bg-slate-50 text-slate-900 rounded-2xl focus:ring-primary/20 shadow-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">E-mail</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">E-mail</Label>
                 <Input
                   type="email"
                   value={form.email}
                   onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  className="h-12 border-slate-200 bg-slate-50 text-slate-900 rounded-2xl focus:ring-primary/20 shadow-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">WhatsApp</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">WhatsApp</Label>
                 <Input
                   value={form.whatsapp}
                   onChange={(event) => setForm((current) => ({ ...current, whatsapp: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Telefone</Label>
-                <Input
-                  value={form.telefone}
-                  onChange={(event) => setForm((current) => ({ ...current, telefone: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Site URL</Label>
-                <Input
-                  value={form.site_url}
-                  onChange={(event) => setForm((current) => ({ ...current, site_url: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
-                  placeholder="https://"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Cidade</Label>
-                <Input
-                  value={form.cidade}
-                  onChange={(event) => setForm((current) => ({ ...current, cidade: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Estado</Label>
-                <Input
-                  value={form.estado}
-                  onChange={(event) => setForm((current) => ({ ...current, estado: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label className="text-xs uppercase tracking-widest text-white/40">Endereco</Label>
-                <Input
-                  value={form.endereco}
-                  onChange={(event) => setForm((current) => ({ ...current, endereco: event.target.value }))}
-                  className="h-12 border-white/10 bg-black/30 text-white rounded-xl"
+                  className="h-12 border-slate-200 bg-slate-50 text-slate-900 rounded-2xl focus:ring-primary/20 shadow-sm"
                 />
               </div>
             </div>
           </ScrollArea>
 
-          <div className="flex justify-end gap-3 p-8 pt-4 border-t border-white/5 bg-black/20">
+          <div className="flex justify-end gap-3 p-10 pt-6 border-t border-slate-100 bg-slate-50/50">
             <Button
               variant="ghost"
-              className="text-white/60 hover:text-white"
+              className="text-slate-400 hover:text-slate-900 font-bold uppercase tracking-widest text-[10px]"
               onClick={() => {
                 setCreateOpen(false);
                 resetForm();
@@ -427,31 +390,31 @@ export default function ClientsList() {
               Cancelar
             </Button>
             <Button
-              className="gradient-primary border-0 text-white px-8 rounded-xl font-black uppercase tracking-widest text-[10px]"
+              className="bg-brand-gradient border-0 text-white px-10 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#7C3AED]/20 hover:scale-105 transition-all"
               onClick={() => void handleSaveClient()}
               disabled={creating}
             >
-              {creating ? "Salvando..." : (editingClient ? "Atualizar Dados" : "Criar Cliente")}
+              {creating ? "Salvando..." : (editingClient ? "Atualizar" : "Criar Cliente")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <AlertDialogContent className="rounded-3xl border-white/10 bg-[#120d18] text-white">
+        <AlertDialogContent className="rounded-[2.5rem] border-slate-200 bg-white text-slate-900 p-10 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-black">Remover Cliente?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/50">
-              Esta acao nao pode ser desfeita. O cliente sera removido permanentemente da base de dados.
+            <AlertDialogTitle className="text-2xl font-light tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>Remover Cliente?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500 mt-2">
+              Esta acao nao pode ser desfeita. O cliente sera removido permanentemente do ecossistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10">
+          <AlertDialogFooter className="gap-3 mt-8">
+            <AlertDialogCancel className="rounded-2xl border-slate-200 bg-white text-slate-500 hover:bg-slate-50 font-bold uppercase tracking-widest text-[10px] h-12 px-8">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
-              className="rounded-xl bg-rose-500 text-white hover:bg-rose-600 font-bold"
+              className="rounded-2xl bg-rose-500 text-white hover:bg-rose-600 font-bold uppercase tracking-widest text-[10px] h-12 px-8 shadow-lg shadow-rose-500/20"
             >
               Confirmar Exclusao
             </AlertDialogAction>

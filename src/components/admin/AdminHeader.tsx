@@ -73,12 +73,14 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
   return (
     <header
-      className="h-16 md:h-20 flex items-center justify-between px-6 sm:px-8 lg:px-10 sticky top-0 z-40 backdrop-blur-3xl"
+      className="h-16 md:h-20 flex items-center justify-between px-6 sm:px-8 lg:px-10 sticky top-0 z-40 backdrop-blur-3xl overflow-hidden"
       style={{
         background: 'rgba(255, 255, 255, 0.7)',
         borderBottom: '1px solid rgba(124, 58, 237, 0.1)',
       }}
     >
+      <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-brand-gradient opacity-40" />
+
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex flex-col min-w-0">
           <h1 
@@ -91,7 +93,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
           </h1>
           <div className="hidden lg:flex items-center gap-3 mt-1.5">
             <p className="text-[10px] text-slate-400 font-bold tracking-[0.3em] uppercase">{pageSubtitle}</p>
-            <div className="w-1 h-1 rounded-full bg-[#7C3AED]/30" />
+            <div className="w-1 h-1 rounded-full bg-brand-gradient" />
             {recentLinks.map((route) => (
               <Link
                 key={route.href}
@@ -108,12 +110,12 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
       <div className="flex items-center gap-3">
         {/* System live indicator */}
-        <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-[#7C3AED]/5 border border-[#7C3AED]/10">
+        <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
           <div className="relative">
-            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#7C3AED]" />
-            <div className="relative w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
+            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#EC4899]" />
+            <div className="relative w-1.5 h-1.5 rounded-full bg-brand-gradient" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#7C3AED]">Premium Live</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Premium Live</span>
         </div>
 
         <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/50 border border-slate-200">
