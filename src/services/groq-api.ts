@@ -152,25 +152,21 @@ Texto atual (se houver): ${currentText}`;
     ];
 
     try {
+      // Prioritize direct client call if key is available for lower latency and reliability
+      if (hasClientApiKey()) {
+        try {
+          return await getDirectChatCompletion({ messages });
+        } catch (clientError) {
+          console.warn("[Groq] Chamada direta falhou, tentando server function...", clientError);
+          // Continue to server fallback
+        }
+      }
+
+      // Fallback or default to server function
       return await getServerContractSuggestion(context, instruction, currentText);
     } catch (serverError) {
       const normalizedServerError = normalizeError(serverError);
-
-      if (!hasClientApiKey()) {
-        throw normalizedServerError;
-      }
-
-      console.warn("[Groq] fallback para chamada direta no cliente", normalizedServerError);
-
-      try {
-        return await getDirectChatCompletion({ messages });
-      } catch (clientError) {
-        const normalizedClientError = normalizeError(clientError);
-
-        throw new Error(
-          `${normalizedServerError.message} Fallback do frontend: ${normalizedClientError.message}`,
-        );
-      }
+      throw normalizedServerError;
     }
   },
 };
