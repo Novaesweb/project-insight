@@ -169,11 +169,9 @@ export function ContractCofreList({
                         <Archive className="w-4 h-4 mr-2" /> Arquivar
                       </DropdownMenuItem>
                     )}
-                    {contrato.status === 'rascunho' && (
-                      <DropdownMenuItem onClick={() => onDelete(contrato)} className="rounded-xl focus:bg-red-500/20 text-red-400">
-                        <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                      </DropdownMenuItem>
-                    )}
+                    <DropdownMenuItem onClick={() => onDelete(contrato)} className="rounded-xl focus:bg-red-500/20 text-red-400">
+                      <Trash2 className="w-4 h-4 mr-2" /> Excluir permanentemente
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

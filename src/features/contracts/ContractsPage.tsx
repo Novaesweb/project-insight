@@ -409,7 +409,9 @@ export default function Contratos() {
   useEffect(() => {
     // Only auto-reset if we are on the base builder route and have no payload
     if (activeTab !== "montador" || !extrasLoaded || builderPayload) return;
-    if (pathname === "/admin/contratos/novo" || pathname === "/admin/contratos/novo/") {
+    
+    // Auto-init on any /novo subroute if we have no payload
+    if (pathname.includes("/admin/contratos/novo")) {
       resetBuilder();
     }
   }, [activeTab, builderPayload, extrasLoaded, pathname, resetBuilder]);

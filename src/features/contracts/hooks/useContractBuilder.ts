@@ -143,7 +143,26 @@ export function useContractBuilder({
   void setCofreFilter;
   void setSearchTerm;
 
-  const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(null);
+  const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(() => {
+    try {
+      const saved = localStorage.getItem("nv_contract_builder_draft");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Failed to recover contract draft", e);
+    }
+    return null;
+  });
+
+  // Sync payload to localStorage
+  useEffect(() => {
+    if (builderPayload) {
+      localStorage.setItem("nv_contract_builder_draft", JSON.stringify(builderPayload));
+    } else {
+      localStorage.removeItem("nv_contract_builder_draft");
+    }
+  }, [builderPayload]);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
   const [builderStep, setBuilderStepState] = useState<ContractBuilderStepIndex>(0);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
@@ -664,6 +683,7 @@ export function useContractBuilder({
         setBuilderLastSavedAt(savedContrato.updated_at || savedContrato.created_at);
         setBuilderRemoteAutosaveState("saved");
         upsertContratoState(savedContrato);
+        localStorage.removeItem("nv_contract_builder_draft");
 
         if (!silent && !autosaveRemote) {
           toast({

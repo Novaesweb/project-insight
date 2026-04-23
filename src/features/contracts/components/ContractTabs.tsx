@@ -256,6 +256,15 @@ export function ContractTabs({
             className="space-y-6"
           >
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="border-dashed border-white/20 bg-transparent transition-all hover:bg-white/[0.03] cursor-pointer group">
+                <CardContent className="flex flex-col items-center justify-center py-10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-white/40 group-hover:bg-primary/20 group-hover:text-primary transition-all">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <p className="mt-4 text-sm font-bold text-white">Adicionar Novo Modelo</p>
+                  <p className="text-[10px] text-white/40 text-center mt-1">Crie um template base personalizado</p>
+                </CardContent>
+              </Card>
               {contractTemplates.map((template: any) => (
                 <Card key={template.id} className="border-white/10 bg-white/[0.02] transition-all hover:bg-white/[0.05]">
                   <CardHeader>
