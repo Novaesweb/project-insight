@@ -13,6 +13,17 @@ import {
   noopContractAction, 
   noopTabChange 
 } from "@/features/contracts/runtime";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import { contractTemplates } from "@/lib/contract-templates";
 import type { 
   Cliente, 
@@ -57,6 +68,9 @@ export function ContractTabs({
   
   const filteredContratos = ensureArray(cofre?.filteredContratos);
   const builderPayload = builder?.builderPayload ?? null;
+  const [isAddModelOpen, setIsAddModelOpen] = React.useState(false);
+  const [newModel, setNewModel] = React.useState({ nome: "", descricao: "" });
+
   const builderStatusLabel = builder?.builderStatusLabel ?? {
     title: "Carregando",
     subtitle: "Preparando montador...",
@@ -256,7 +270,10 @@ export function ContractTabs({
             className="space-y-6"
           >
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="border-dashed border-white/20 bg-transparent transition-all hover:bg-white/[0.03] cursor-pointer group">
+              <Card 
+                className="border-dashed border-white/20 bg-transparent transition-all hover:bg-white/[0.03] cursor-pointer group"
+                onClick={() => setIsAddModelOpen(true)}
+              >
                 <CardContent className="flex flex-col items-center justify-center py-10">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-white/40 group-hover:bg-primary/20 group-hover:text-primary transition-all">
                     <Sparkles className="h-6 w-6" />
@@ -265,6 +282,53 @@ export function ContractTabs({
                   <p className="text-[10px] text-white/40 text-center mt-1">Crie um template base personalizado</p>
                 </CardContent>
               </Card>
+
+              <Dialog open={isAddModelOpen} onOpenChange={setIsAddModelOpen}>
+                <DialogContent className="border-white/10 bg-[#120d18] text-white">
+                  <DialogHeader>
+                    <DialogTitle>Novo Modelo de Contrato</DialogTitle>
+                    <DialogDescription className="text-white/40">
+                      Defina o nome e a descrição para o seu novo modelo de contrato.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-white/30">Nome do Modelo</label>
+                      <Input 
+                        placeholder="Ex: Contrato de Mentoria"
+                        value={newModel.nome}
+                        onChange={(e) => setNewModel(prev => ({ ...prev, nome: e.target.value }))}
+                        className="border-white/10 bg-black/40 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-white/30">Descrição</label>
+                      <Textarea 
+                        placeholder="Breve descrição do propósito deste modelo"
+                        value={newModel.descricao}
+                        onChange={(e) => setNewModel(prev => ({ ...prev, descricao: e.target.value }))}
+                        className="border-white/10 bg-black/40 text-white"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsAddModelOpen(false)} className="text-white/50 hover:bg-white/5">
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        toast.success("Modelo criado com sucesso!");
+                        setIsAddModelOpen(false);
+                        setNewModel({ nome: "", descricao: "" });
+                      }}
+                      className="bg-primary text-white"
+                      disabled={!newModel.nome.trim()}
+                    >
+                      Criar Modelo
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               {contractTemplates.map((template: any) => (
                 <Card key={template.id} className="border-white/10 bg-white/[0.02] transition-all hover:bg-white/[0.05]">
                   <CardHeader>

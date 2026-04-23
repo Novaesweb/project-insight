@@ -245,3 +245,15 @@ export async function deleteBuilderDraftContract(contractId: string) {
 
   if (error) throw error;
 }
+
+export async function deleteBuilderContract(contractId: string) {
+  await refreshAdminSessionSilently({ force: false });
+
+  const { error } = await supabase
+    .from("contratos")
+    .delete()
+    .eq("id", contractId)
+    .eq("modelo", BUILDER_TEMPLATE_ID);
+
+  if (error) throw error;
+}

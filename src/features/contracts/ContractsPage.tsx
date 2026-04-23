@@ -408,10 +408,8 @@ export default function Contratos() {
 
   useEffect(() => {
     // Only auto-reset if we are on the base builder route and have no payload
-    if (activeTab !== "montador" || !extrasLoaded || builderPayload) return;
-    
-    // Auto-init on any /novo subroute if we have no payload
-    if (pathname.includes("/admin/contratos/novo")) {
+    // Auto-init on Montador tab or any /novo subroute if we have no payload
+    if (activeTab === "montador" || pathname.includes("/admin/contratos/novo")) {
       resetBuilder();
     }
   }, [activeTab, builderPayload, extrasLoaded, pathname, resetBuilder]);
@@ -513,7 +511,7 @@ export default function Contratos() {
                   >
                     Cancelar
                   </Button>
-                  <Button variant="destructive" onClick={() => cofre.handleDeleteDraft()}>
+                  <Button variant="destructive" onClick={() => cofre.handleDeleteContract()}>
                     Confirmar exclusao
                   </Button>
                 </div>

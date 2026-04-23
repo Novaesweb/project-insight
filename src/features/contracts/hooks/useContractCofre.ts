@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { setContractArchived, deleteBuilderDraftContract } from "@/features/contracts/services";
+import { setContractArchived, deleteBuilderContract } from "@/features/contracts/services";
 import { Contrato, CONTRACT_STATUS_OPTIONS } from "@/features/contracts/types";
 import { ensureArray, noopContractAction } from "@/features/contracts/runtime";
 import { normalizeContractStatus } from "@/lib/contract-status";
@@ -104,11 +104,11 @@ export function useContractCofre({
     [upsertContratoState, toast],
   );
 
-  const handleDeleteDraft = useCallback(async () => {
+  const handleDeleteContract = useCallback(async () => {
     if (!deleteTarget) return;
 
     try {
-      await deleteBuilderDraftContract(deleteTarget.id);
+      await deleteBuilderContract(deleteTarget.id);
       removeContratoState(deleteTarget.id);
       setDeleteTarget(null);
       toast({
@@ -139,6 +139,6 @@ export function useContractCofre({
     contractStatusCounts,
     handleArchiveContract,
     handleUnarchiveContract,
-    handleDeleteDraft,
+    handleDeleteContract,
   };
 }

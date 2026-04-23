@@ -191,6 +191,7 @@ export function ContractBuilderWizard({
           payload={workingBuilderPayload}
           error={currentStepError}
           onUpdateTextField={onUpdateTextField}
+          onUpdateContratada={onUpdateContratada}
         />
       );
     }

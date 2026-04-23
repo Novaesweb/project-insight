@@ -15,13 +15,13 @@ import {
   type ContractBuilderStepIndex,
   type ContractStatus,
 } from "@/lib/contract-builder";
+import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
 import {
   buildBuilderSavePayload,
   buildPricingMoneyDraftKey,
   formatContractClock,
   getContractErrorMessage,
   normalizeBuilderPayload,
-  validateAndSanitizeBuilderPayload,
 } from "@/features/contracts/utils";
 import { createContractEvent } from "@/lib/contract-activity";
 import { downloadWordDocument, generateContractPDF } from "@/features/contracts/documents";
@@ -146,22 +146,30 @@ export function useContractBuilder({
 
   const [builderPayload, setBuilderPayload] = useState<ContractBuilderPayload | null>(() => {
     try {
-      const saved = localStorage.getItem("nv_contract_builder_draft");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Validate and sanitize the recovered draft to prevent crashes
-        try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("nv_contract_builder_draft") : null;
+      if (!saved) return null;
+
+      const parsed = JSON.parse(saved);
+      if (!parsed || typeof parsed !== "object") return null;
+
+      // Validate and sanitize the recovered draft to prevent crashes
+      try {
+        if (typeof validateAndSanitizeBuilderPayload === "function") {
           return validateAndSanitizeBuilderPayload(parsed);
-        } catch (e) {
-          console.warn("Recovered draft is invalid, discarding", e);
-          localStorage.removeItem("nv_contract_builder_draft");
-          return null;
         }
+        console.warn("Validation function not ready during hook initialization");
+        return null;
+      } catch (e) {
+        console.warn("Recovered draft is invalid, discarding", e);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("nv_contract_builder_draft");
+        }
+        return null;
       }
     } catch (e) {
       console.error("Failed to recover contract draft", e);
+      return null;
     }
-    return null;
   });
 
   // Sync payload to localStorage
@@ -853,6 +861,39 @@ export function useContractBuilder({
     return formatCurrencyBRL(price);
   }, []);
 
+  const onNext = useCallback(async () => {
+    if (!builderPayload) return;
+    const nextStep = (builderStep + 1) as ContractBuilderStepIndex;
+    if (nextStep < BUILDER_STEPS.length) {
+      setBuilderStep(nextStep);
+      setTab("montador", { step: nextStep });
+    }
+  }, [builderPayload, builderStep, setBuilderStep, setTab]);
+
+  const onBack = useCallback(() => {
+    if (builderStep > 0) {
+      const prevStep = (builderStep - 1) as ContractBuilderStepIndex;
+      setBuilderStep(prevStep);
+      setTab("montador", { step: prevStep });
+    }
+  }, [builderStep, setBuilderStep, setTab]);
+
+  const onSaveDraft = useCallback(async () => {
+    return await persistBuilderDraft({ silent: false, autosaveRemote: false });
+  }, [persistBuilderDraft]);
+
+  const onSaveAndExit = useCallback(async () => {
+    const success = await persistBuilderDraft({ silent: false, autosaveRemote: false });
+    if (success) {
+      setTab("lista");
+    }
+    return success;
+  }, [persistBuilderDraft, setTab]);
+
+  const onSaveDirect = useCallback(async () => {
+    return await persistBuilderDraft({ silent: true, autosaveRemote: true });
+  }, [persistBuilderDraft]);
+
   return useMemo(() => ({
     builderPayload,
     setBuilderPayload,
@@ -899,6 +940,11 @@ export function useContractBuilder({
     handleGeneratePdf,
     handleDownloadWord,
     handlePrint,
+    onNext,
+    onBack,
+    onSaveDraft,
+    onSaveAndExit,
+    onSave: onSaveDirect,
   }), [
     builderPayload,
     editingBuilderContract,
@@ -937,5 +983,10 @@ export function useContractBuilder({
     handleGeneratePdf,
     handleDownloadWord,
     handlePrint,
+    onNext,
+    onBack,
+    onSaveDraft,
+    onSaveAndExit,
+    onSaveDirect,
   ]);
 }

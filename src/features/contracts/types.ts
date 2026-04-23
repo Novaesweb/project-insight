@@ -42,7 +42,7 @@ export interface ContractCofreState {
   contractStatusCounts: Record<string, number>;
   handleArchiveContract: (target: Contrato) => Promise<void>;
   handleUnarchiveContract: (target: Contrato) => Promise<void>;
-  handleDeleteDraft: () => Promise<void>;
+  handleDeleteContract: () => Promise<void>;
 }
 
 export interface ContractBuilderState {
