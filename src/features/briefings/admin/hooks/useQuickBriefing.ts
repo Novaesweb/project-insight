@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminBriefingsOverview } from "./useAdminBriefingsOverview";
-import { useBriefingEditor } from "./useBriefingEditor";
+import { useAdminBriefingsOverview, useBriefingEditor } from "../hooks";
 import { buildTemplateFieldDraft, saveAdminBriefing } from "../api";
 import { getAdminBriefingSentDetailPath } from "../routes";
 import { getClientDisplayName } from "../types";
