@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -124,7 +126,11 @@ section {
     --glow-primary: rgba(124, 58, 237, 0.15);
     --glow-secondary: rgba(220, 38, 38, 0.15);
     --glow-accent: rgba(124, 58, 237, 0.10);
-    --gold: 43 100% 50%;
+    /* Novaes Gold Tokens */
+    --gold-primary: #D4AF37;
+    --gold-secondary: #B8860B;
+    --gold-accent: #FFD700;
+    --gold-glow: rgba(212, 175, 55, 0.3);
   }
 
   .light {
@@ -207,6 +213,38 @@ section {
 @layer utilities {
   .gradient-primary {
     background: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
+  }
+
+  .glass-premium {
+    @apply border border-white/10 bg-[#0d0914]/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)];
+  }
+  
+  .text-gold-gradient {
+    @apply bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#B8860B] bg-clip-text text-transparent;
+  }
+  
+  .bg-gold-gradient {
+    @apply bg-gradient-to-r from-[#D4AF37] to-[#B8860B];
+  }
+  
+  .border-gold-subtle {
+    @apply border border-[#D4AF37]/30;
+  }
+
+  .gold-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(212, 175, 55, 0) 0%,
+      rgba(212, 175, 55, 0.2) 50%,
+      rgba(212, 175, 55, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
   @keyframes founder-gradient-shift {

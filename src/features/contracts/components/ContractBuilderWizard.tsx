@@ -243,245 +243,197 @@ export function ContractBuilderWizard({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* HEADER PREMIUM COM ACENTO DOURADO */}
       <motion.section
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(123,31,162,0.28),transparent_24%),radial-gradient(circle_at_top_right,rgba(232,51,74,0.18),transparent_26%),linear-gradient(135deg,rgba(13,9,20,0.98),rgba(23,10,28,0.96),rgba(44,12,34,0.92))] shadow-[0_32px_80px_rgba(8,4,16,0.42)]"
+        className="relative overflow-hidden rounded-[40px] border border-white/10 bg-[linear-gradient(135deg,rgba(13,9,20,0.98),rgba(23,10,28,0.95))] shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
       >
-        <div className="border-b border-white/10 px-6 py-5 md:px-8">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-white/15 bg-white/10 text-white/80">
-                Contratos NovaesWeb
-              </Badge>
-              <Badge variant="outline" className={getContractStatusBadgeClass(contractStatus)}>
-                {getContractStatusLabel(contractStatus)}
-              </Badge>
-              {editingBuilderContract ? (
-                <Badge variant="outline" className="border-cyan-300/20 bg-cyan-300/10 text-cyan-100">
-                  Editando contrato do cofre
+        {/* Linha de Ouro Superior */}
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-60" />
+        
+        <div className="relative border-b border-white/5 px-8 py-8 md:px-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge className="border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700] hover:bg-[#D4AF37]/20 transition-colors">
+                  <Sparkles className="mr-1.5 h-3 w-3" />
+                  Smart Assembler Gold
                 </Badge>
-              ) : null}
+                <Badge variant="outline" className={`${getContractStatusBadgeClass(contractStatus)} px-3 py-0.5 border-white/10`}>
+                  {getContractStatusLabel(contractStatus)}
+                </Badge>
+                {editingBuilderContract && (
+                  <Badge className="border-cyan-500/30 bg-cyan-500/10 text-cyan-200">
+                    Sincronizado com o Cofre
+                  </Badge>
+                )}
+              </div>
+              <div>
+                <h2 className="text-4xl font-light tracking-tight text-white md:text-5xl" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  Montador <span className="text-[#D4AF37] italic">Smart</span>
+                </h2>
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-white/50">
+                  Refine cada detalhe do contrato com precisão. O sistema organiza a estrutura e a IA ajuda no texto jurídico.
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h2
-                className="text-3xl font-semibold leading-tight text-white"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-              >
-                Fluxo por etapas do contrato
-              </h2>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/60">
-                Cada etapa foca em um bloco do contrato. O resumo fica no topo e a previa completa aparece apenas no passo final.
-              </p>
+            {/* Pílulas de Resumo Flutuantes */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col items-end px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]/80">Valor Total</span>
+                <span className="text-xl font-medium text-white">{formatCurrencyBRL(workingBuilderPayload.pricing.totalValue)}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-6 px-6 py-6 md:px-8">
-          <div className="grid gap-3 md:grid-cols-5">
-            <SummaryPill label="Cliente" value={workingBuilderPayload.contractante.nome || "Selecione um cliente"} />
-            <SummaryPill label="Plano" value={selectedPlan?.title || "Plano nao definido"} />
-            <SummaryPill label="Extras" value={`${activeExtras.length} ativo(s)`} />
-            <SummaryPill label="Valor total" value={formatCurrencyBRL(workingBuilderPayload.pricing.totalValue)} accent />
-            <SummaryPill label="Status" value={builderStatusLabel.title} />
-          </div>
-
-          <div className="space-y-3 rounded-[26px] border border-white/10 bg-black/20 p-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">Fluxo do editor</p>
-                <p className="mt-1 text-sm text-white/70">{builderStatusLabel.subtitle}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-white/15 bg-white/10 text-white/70">
-                  Etapa {builderStep + 1} de {BUILDER_STEPS.length}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={
-                    builderRemoteAutosaveState === "error"
-                      ? "border-red-300/20 bg-red-300/10 text-red-100"
-                      : builderRemoteAutosaveState === "saved"
-                        ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
-                        : "border-white/10 bg-white/[0.06] text-white/60"
-                  }
-                >
-                  {builderRemoteAutosaveState === "saving"
-                    ? "Sincronizando"
-                    : builderRemoteAutosaveState === "saved"
-                      ? "Sincronizado"
-                      : builderRemoteAutosaveState === "error"
-                        ? "Falha no sync"
-                        : "Rascunho local"}
-                </Badge>
-              </div>
-            </div>
-            <Progress value={builderProgress} className="h-2 bg-white/10" />
-            <div className="grid gap-2 md:grid-cols-5">
-              {BUILDER_STEPS.map((step) => {
+        {/* INDICADOR DE ETAPAS MODERNO */}
+        <div className="px-8 py-8 md:px-10 bg-black/20">
+          <div className="relative">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-white/5 -translate-y-1/2" />
+            <div className="relative flex justify-between gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              {BUILDER_STEPS.map((step, idx) => {
                 const isActive = builderStep === step.id;
+                const isCompleted = builderStep > step.id;
                 const stepError = getStepError(step.id);
 
                 return (
                   <button
                     key={step.id}
-                    type="button"
                     onClick={() => onStepChange(step.id)}
-                    className={`rounded-2xl border px-3 py-3 text-left transition-all ${
-                      isActive
-                        ? "border-fuchsia-300/20 bg-fuchsia-300/10"
-                        : "border-white/10 bg-white/[0.03] hover:border-white/20"
-                    }`}
+                    className="group relative flex flex-col items-center min-w-[120px] outline-none"
                   >
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">{step.label}</p>
-                    <p className="mt-2 text-sm font-semibold text-white">{step.description}</p>
-                    {stepError ? <p className="mt-2 text-xs text-amber-100/75">{stepError}</p> : null}
+                    <div className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-500 ${
+                      isActive 
+                        ? "border-[#D4AF37] bg-[#D4AF37]/20 shadow-[0_0_15px_rgba(212,175,55,0.3)] scale-110" 
+                        : isCompleted 
+                          ? "border-[#D4AF37]/40 bg-[#D4AF37]/10" 
+                          : "border-white/10 bg-[#1a1520]"
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="h-5 w-5 text-[#D4AF37]" />
+                      ) : (
+                        <span className={`text-sm font-bold ${isActive ? "text-[#FFD700]" : "text-white/40"}`}>{idx + 1}</span>
+                      )}
+                    </div>
+                    <span className={`mt-3 text-[10px] font-black uppercase tracking-[0.15em] transition-colors ${
+                      isActive ? "text-[#D4AF37]" : "text-white/30 group-hover:text-white/60"
+                    }`}>
+                      {step.label}
+                    </span>
+                    {stepError && (
+                      <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" title={stepError} />
+                    )}
                   </button>
                 );
               })}
             </div>
           </div>
+          
+          <div className="mt-8">
+             <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Progresso do Contrato</span>
+                <span className="text-[10px] font-bold text-[#D4AF37]">{builderProgress}%</span>
+             </div>
+             <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${builderProgress}%` }}
+                  className="h-full bg-gradient-to-r from-[#D4AF37] to-[#FFD700] shadow-[0_0_10px_rgba(212,175,55,0.5)]"
+                />
+             </div>
+          </div>
         </div>
       </motion.section>
 
-      {renderCurrentStep()}
+      {/* CONTEÚDO PRINCIPAL (ETAPAS) */}
+      <div className="relative">
+        <motion.div
+          key={builderStep}
+          initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          {renderCurrentStep()}
+        </motion.div>
+      </div>
 
-      {builderStep < BUILDER_STEPS.length - 1 ? (
-        <div className="flex flex-col gap-3 rounded-[28px] border border-white/10 bg-[#120d18] p-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-white">{currentStepMeta.label}</p>
-            <p className="mt-1 text-sm text-white/55">
-              {currentStepError || "Tudo certo nesta etapa. Voce pode salvar o rascunho ou continuar o fluxo."}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-              onClick={handlePrevious}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {builderStep === 0 ? "Voltar ao cofre" : "Etapa anterior"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-              onClick={() => void onSaveDraft()}
-              disabled={isPersisting}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Salvar rascunho
-            </Button>
-            <Button
-              type="button"
-              className="border-0 text-white"
-              style={{ background: "var(--admin-gradient)" }}
-              onClick={handleNext}
-              disabled={!canAdvance}
-            >
-              Avancar
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-[28px] border border-white/10 bg-[#120d18] p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-white">Acoes finais do contrato</p>
-              <p className="mt-1 text-sm text-white/55">
-                {builderPrepared
-                  ? "Documento pronto para salvar, imprimir, enviar ao cliente ou marcar assinatura."
-                  : builderPreparedError || "Complete os dados minimos antes de finalizar o contrato."}
-              </p>
+      {/* FOOTER DE AÇÕES PREMIUM */}
+      <div className="sticky bottom-6 z-40">
+        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[#0d0914]/90 backdrop-blur-xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4 px-2">
+               <div className={`h-2 w-2 rounded-full ${builderRemoteAutosaveState === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-[#D4AF37]'}`} />
+               <p className="text-xs text-white/50">{builderStatusLabel.subtitle}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            
+            <div className="flex flex-wrap items-center gap-2">
               <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                variant="ghost"
+                className="rounded-2xl text-white/60 hover:text-white hover:bg-white/5"
                 onClick={handlePrevious}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar uma etapa
+                Voltar
               </Button>
+
               <Button
-                type="button"
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="rounded-2xl border-white/5 bg-white/[0.03] text-white/80 hover:bg-white/10"
                 onClick={() => void onSaveDraft()}
                 disabled={isPersisting}
               >
                 <Save className="mr-2 h-4 w-4" />
-                Salvar rascunho
+                Rascunho
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => void onSaveAndExit()}
-                disabled={isPersisting}
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Salvar e voltar
-              </Button>
-              <Button
-                type="button"
-                className="border-0 text-white"
-                style={{ background: "var(--admin-gradient)" }}
-                onClick={() => void onSave()}
-                disabled={isPersisting || !builderPrepared}
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                {isPersisting ? "Salvando..." : saveLabel}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={onGeneratePdf}
-                disabled={!builderPrepared}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Gerar PDF
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={onPrint}
-                disabled={!builderPrepared}
-              >
-                <Printer className="mr-2 h-4 w-4" />
-                Imprimir
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => void onSendCurrent?.()}
-                disabled={!onSendCurrent || isPersisting || !builderPrepared}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Marcar como enviado
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => void onMarkAsSigned?.()}
-                disabled={!onMarkAsSigned || isPersisting || !builderPrepared}
-              >
-                <FileSignature className="mr-2 h-4 w-4" />
-                Marcar como assinado
-              </Button>
+
+              {builderStep < BUILDER_STEPS.length - 1 ? (
+                <Button
+                  className="rounded-2xl border-0 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 text-black font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(212,175,55,0.2)]"
+                  onClick={handleNext}
+                  disabled={!canAdvance}
+                >
+                  Continuar
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    className="rounded-2xl border-0 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 text-black font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all"
+                    onClick={() => void onSave()}
+                    disabled={isPersisting || !builderPrepared}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    {isPersisting ? "Finalizando..." : "Gerar Contrato"}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+      </div>
+
+      {/* AÇÕES EXTRAS (Só no Preview Final) */}
+      {builderStep === BUILDER_STEPS.length - 1 && builderPrepared && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap justify-center gap-3 pt-4"
+        >
+          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#FFD700]" onClick={onGeneratePdf}>
+            <FileDown className="mr-2 h-4 w-4" /> PDF
+          </Button>
+          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#FFD700]" onClick={onPrint}>
+            <Printer className="mr-2 h-4 w-4" /> Imprimir
+          </Button>
+          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#FFD700]" onClick={() => void onSendCurrent?.()}>
+            <Send className="mr-2 h-4 w-4" /> Enviar
+          </Button>
+        </motion.div>
       )}
     </div>
   );

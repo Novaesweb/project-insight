@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Users,
@@ -121,70 +121,72 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
 
   return (
     <motion.aside
-      animate={{ width: isCollapsed ? 72 : 264 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      animate={{ width: isCollapsed ? 80 : 280 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="hidden md:flex md:flex-col relative z-50 shrink-0 h-screen"
       style={{
-        background: "linear-gradient(180deg, rgba(8, 0, 15, 0.8) 0%, rgba(15, 0, 24, 0.9) 100%)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderRight: "1px solid rgba(255, 255, 255, 0.05)",
+        background: "rgba(8, 6, 12, 0.95)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
+        borderRight: "1px solid rgba(212, 175, 55, 0.1)",
       }}
     >
+      {/* Gold Border Shimmer */}
       <div
-        className="absolute top-0 left-0 w-[1px] h-full opacity-30"
-        style={{ background: "linear-gradient(180deg, hsl(var(--primary)), transparent 60%)" }}
+        className="absolute top-0 right-0 w-[1px] h-full opacity-20"
+        style={{ background: "linear-gradient(180deg, #D4AF37, transparent 70%)" }}
       />
 
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full flex items-center justify-center z-50 transition-all"
+        className="absolute -right-3 top-24 w-6 h-6 rounded-full flex items-center justify-center z-50 transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/50"
         style={{
-          background: "hsl(var(--secondary))",
-          border: "1px solid hsl(var(--border))",
-          color: "hsl(var(--muted-foreground))",
+          background: "#1a1625",
+          border: "1px solid rgba(212, 175, 55, 0.3)",
+          color: "#D4AF37",
         }}
         aria-label={isCollapsed ? "Expandir" : "Recolher"}
       >
-        {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
 
+      {/* Logo Section */}
       <div
-        className={cn("py-6 flex items-center border-b", isCollapsed ? "px-0 justify-center" : "px-5 gap-3")}
-        style={{ borderColor: "hsl(var(--border))" }}
+        className={cn("py-8 flex items-center border-b", isCollapsed ? "px-0 justify-center" : "px-6 gap-4")}
+        style={{ borderColor: "rgba(255, 255, 255, 0.03)" }}
       >
         <Link to="/admin" className="flex items-center gap-3 group">
           <div className="relative">
             <div
-              className="absolute -inset-2 rounded-xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
-              style={{ background: "var(--admin-gradient)" }}
+              className="absolute -inset-3 rounded-2xl blur-2xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 bg-gold-gradient"
             />
             <div
-              className="rounded-xl flex items-center justify-center relative w-10 h-10 border border-white/10"
-              style={{ background: "var(--admin-gradient)", boxShadow: "inset 0 2px 10px rgba(255,255,255,0.2)" }}
+              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[#D4AF37]/30 bg-gold-gradient shadow-[0_0_15px_rgba(212,175,55,0.2)]"
             >
-              <Sparkles className="w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+              <Sparkles className="w-6 h-6 text-black" />
             </div>
           </div>
           {!isCollapsed && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-              <p className="text-sm font-extrabold tracking-tight text-foreground leading-none">{branding.nome || "NovaesWeb"}</p>
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground mt-0.5">Admin Panel</p>
+            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+              <p className="text-lg font-light tracking-tight text-white leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Novaes<span className="text-[#D4AF37] italic">Web</span>
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/20 mt-1.5">Elite Admin</p>
             </motion.div>
           )}
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5 custom-scrollbar" role="navigation">
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-6 custom-scrollbar" role="navigation">
         {navGroups.map((group) => (
           <div key={group.title}>
             {!isCollapsed && (
-              <p className="text-[9px] font-bold uppercase tracking-[0.25em] px-3 mb-2 text-muted-foreground/50">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-white/10 italic">
                 {group.title}
               </p>
             )}
 
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {group.items
                 .filter((item) => item.href !== "/admin/extras/lista")
                 .filter((item) => canAccessPath(item.href))
@@ -198,71 +200,53 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      "group flex items-center py-2.5 text-[12px] font-medium transition-all relative rounded-xl",
+                      "group flex items-center py-3 text-[13px] font-medium transition-all relative rounded-2xl",
                       item.isSubItem
-                        ? "ml-7 gap-2 px-3 py-2 text-[11px]"
+                        ? "ml-8 gap-3 px-4 py-2.5 text-[11px]"
                         : isCollapsed
                           ? "justify-center px-2"
-                          : "gap-3 px-3",
+                          : "gap-4 px-4",
                       isActive
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
-                      item.accent && !isActive && "text-amber-400/60 hover:text-amber-400"
+                        ? "text-white bg-white/[0.04] border border-white/5"
+                        : "text-white/40 hover:text-white hover:bg-white/[0.02]",
+                      item.accent && !isActive && "text-[#FFD700]/50 hover:text-[#FFD700]"
                     )}
-                    style={isActive ? {
-                      background: "rgba(255, 255, 255, 0.05)",
-                      boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.08)",
-                      backdropFilter: "blur(10px)",
-                    } : undefined}
                     aria-current={isActive ? "page" : undefined}
                   >
                     {isActive && (
                       <motion.div
-                        layoutId="activeNavBackground"
-                        className="absolute inset-x-2 inset-y-1 rounded-xl -z-10"
-                        style={{ 
-                          background: "rgba(124, 58, 237, 0.08)",
-                          border: "1px solid rgba(124, 58, 237, 0.15)",
-                          boxShadow: "0 0 20px -5px rgba(124, 58, 237, 0.2)"
-                        }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      />
-                    )}
-                    {isActive && (
-                      <motion.div
                         layoutId="adminNavIndicator"
                         className={cn(
-                          "absolute w-[2px] rounded-r-full left-0",
-                          item.isSubItem ? "h-3" : "h-5"
+                          "absolute w-[3px] rounded-r-full left-0",
+                          item.isSubItem ? "h-4" : "h-6"
                         )}
-                        style={{ background: "var(--admin-gradient)" }}
+                        style={{ background: "var(--gold-accent)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
                     {item.isSubItem ? (
                       <span
                         className={cn(
-                          "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-200",
-                          isActive ? "bg-primary" : "bg-white/30 group-hover:bg-white/60"
+                          "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
+                          isActive ? "bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" : "bg-white/10 group-hover:bg-white/30"
                         )}
                       />
                     ) : item.icon ? (
                       <item.icon
                         className={cn(
-                          "w-4 h-4 shrink-0 transition-all duration-200",
+                          "w-5 h-5 shrink-0 transition-all duration-300",
                           isActive
-                            ? "text-primary"
+                            ? "text-[#D4AF37] drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]"
                             : item.accent
-                              ? "text-amber-400/50"
-                              : "text-muted-foreground/60 group-hover:text-foreground/80"
+                              ? "text-[#FFD700]/30"
+                              : "text-white/20 group-hover:text-white/60 group-hover:scale-110"
                         )}
                       />
                     ) : null}
-                    {!isCollapsed && <span className="truncate">{item.label}</span>}
+                    {!isCollapsed && <span className="truncate tracking-tight">{item.label}</span>}
                     {!isCollapsed && !item.isSubItem && badgeCount > 0 && (
                       <span
-                        className="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"
-                        style={{ background: "hsl(var(--primary))" }}
+                        className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black text-black bg-gold-gradient shadow-[0_0_10px_rgba(212,175,55,0.3)]"
                       >
                         {badgeCount}
                       </span>
@@ -275,61 +259,35 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         ))}
 
         {!isCollapsed && (
-          <>
-            <div className="pt-1">
-              <p className="text-[9px] font-bold uppercase tracking-[0.25em] px-3 mb-2 text-muted-foreground/50">
-                Atalhos
-              </p>
-              <div className="flex flex-wrap gap-2 px-3">
-                {favoriteRoutes.map((route) => (
-                  <Link
-                    key={route.href}
-                    to={route.href}
-                    className="rounded-xl px-3 py-2 text-[11px] font-semibold text-foreground transition-all hover:bg-secondary/80"
-                    style={{
-                      background: "hsl(var(--secondary))",
-                      border: "1px solid hsl(var(--border))",
-                    }}
-                  >
-                    {route.shortLabel || route.label}
-                  </Link>
-                ))}
-              </div>
+          <div className="pt-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-white/10">
+              Atalhos Gold
+            </p>
+            <div className="flex flex-wrap gap-2 px-4">
+              {favoriteRoutes.map((route) => (
+                <Link
+                  key={route.href}
+                  to={route.href}
+                  className="rounded-xl px-4 py-2 text-[11px] font-bold text-white/60 transition-all hover:text-white hover:border-[#D4AF37]/50 border border-white/5 bg-white/[0.02]"
+                >
+                  {route.shortLabel || route.label}
+                </Link>
+              ))}
             </div>
-
-            {recentRoutes.length > 0 && (
-              <div className="pt-1">
-                <p className="text-[9px] font-bold uppercase tracking-[0.25em] px-3 mb-2 text-muted-foreground/50">
-                  Recentes
-                </p>
-                <div className="space-y-1">
-                  {recentRoutes.map((route) => (
-                    <Link
-                      key={route.href}
-                      to={route.href}
-                      className="flex items-center justify-between px-3 py-2 rounded-xl text-[12px] text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-                    >
-                      <span>{route.label}</span>
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground/50">Abrir</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </nav>
 
-      <div className={cn("p-3 border-t", isCollapsed && "px-2")} style={{ borderColor: "hsl(var(--border))" }}>
+      <div className={cn("p-4 border-t", isCollapsed && "px-2")} style={{ borderColor: "rgba(255, 255, 255, 0.03)" }}>
         <button
           onClick={handleLogout}
           className={cn(
-            "flex items-center py-2.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-all w-full rounded-xl hover:bg-destructive/5",
-            isCollapsed ? "justify-center px-2" : "gap-3 px-3"
+            "flex items-center py-3 text-xs font-bold uppercase tracking-widest text-white/20 hover:text-rose-400 transition-all w-full rounded-2xl hover:bg-rose-500/5 group",
+            isCollapsed ? "justify-center px-2" : "gap-4 px-4"
           )}
         >
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!isCollapsed && <span>Sair</span>}
+          <LogOut size={18} className="shrink-0 transition-transform group-hover:translate-x-1" />
+          {!isCollapsed && <span>Terminar Sessão</span>}
         </button>
       </div>
     </motion.aside>

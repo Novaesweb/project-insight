@@ -240,10 +240,18 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   const renderMainContent = () => {
     if (loading) {
       return (
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="text-center space-y-2">
-            <p className="text-sm font-semibold text-foreground">Carregando permissões do painel...</p>
-            <p className="text-xs text-muted-foreground">Estamos validando o acesso deste usuário para liberar os módulos corretos.</p>
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <div className="text-center space-y-6">
+            <div className="relative w-20 h-20 mx-auto">
+              <div className="absolute inset-0 rounded-full border-2 border-[#D4AF37]/10 animate-ping" />
+              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-gold-gradient shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                <Sparkles className="w-10 h-10 text-black" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xl font-light text-white tracking-widest uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>Validando <span className="text-gold-gradient italic">Credenciais</span></p>
+              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Preparando ecossistema premium...</p>
+            </div>
           </div>
         </div>
       );
@@ -251,25 +259,24 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 
     if (!canAccessPath(pathname)) {
       return (
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <div className="max-w-lg w-full rounded-[1.75rem] border border-white/10 bg-[var(--admin-surface)] p-7 text-center shadow-2xl">
-            <div className="mx-auto w-14 h-14 rounded-2xl border border-white/10 bg-white/[0.03] flex items-center justify-center">
-              <LockKeyhole className="w-6 h-6 text-primary" />
+        <div className="min-h-[80vh] flex items-center justify-center p-4">
+          <div className="max-w-lg w-full glass-premium p-10 text-center rounded-[40px] border-[#D4AF37]/20">
+            <div className="mx-auto w-20 h-20 rounded-[28px] bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mb-8">
+              <LockKeyhole size={36} className="text-[#FFD700]" />
             </div>
-            <p className="text-[10px] uppercase tracking-[0.28em] font-black text-primary mt-5">Acesso restrito</p>
-            <h2 className="text-xl font-black text-foreground mt-2">Esse módulo não está liberado para o seu perfil.</h2>
-            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-              As permissões do admin foram centralizadas. Se você precisa acessar essa área, ajuste a matriz de segurança em configurações.
+            <p className="text-[10px] uppercase tracking-[0.4em] font-black text-[#D4AF37] mb-4">Acesso Reservado</p>
+            <h2 className="text-3xl font-light text-white leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Este módulo pertence a outro <span className="text-gold-gradient italic">nível de acesso</span>.
+            </h2>
+            <p className="text-sm text-white/40 mt-6 leading-relaxed px-4">
+              As permissões de segurança da NovaesWeb são rigorosas. Se você acredita que isto é um erro, consulte a governança do sistema.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 mt-6 justify-center">
-              <Button asChild className="h-11 rounded-xl border-0 text-white" style={{ background: "var(--gradient-primary)" }}>
+            <div className="flex flex-col sm:flex-row gap-4 mt-10 justify-center">
+              <Button asChild className="h-12 rounded-2xl border-0 bg-gold-gradient text-black font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] transition-all">
                 <Link to="/admin">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Voltar ao dashboard
+                  Dashboard Principal
                 </Link>
-              </Button>
-              <Button asChild variant="ghost" className="h-11 rounded-xl border border-white/10 text-foreground hover:bg-white/5">
-                <Link to="/admin/configuracoes?tab=permissoes">Revisar permissões</Link>
               </Button>
             </div>
           </div>

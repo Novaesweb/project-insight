@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowRight, RefreshCw, Search, Sparkles, UserRound, Wand2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, RefreshCw, Search, Sparkles, UserRound, Wand2 } from "lucide-react";
 import { ContractAiAssistant } from "./ContractAiAssistant";
 
 import { BuilderLiveSummary } from "@/components/contracts/BuilderLiveSummary";
@@ -42,14 +42,14 @@ export function SummaryPill({
 }) {
   return (
     <div
-      className={`rounded-[24px] border px-4 py-3 ${
+      className={`rounded-[24px] border px-4 py-3 transition-all duration-300 ${
         accent
-          ? "border-fuchsia-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.18))]"
-          : "border-white/10 bg-white/[0.04]"
+          ? "border-[#D4AF37]/30 bg-[linear-gradient(135deg,rgba(212,175,55,0.15),rgba(184,134,11,0.1))] shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
+          : "border-white/5 bg-white/[0.02]"
       }`}
     >
-      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#D4AF37]/60">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-white tracking-tight">{value}</p>
     </div>
   );
 }
@@ -68,32 +68,36 @@ export function StepPanel({
   children: ReactNode;
 }) {
   return (
-    <Card className="overflow-hidden border-white/10 bg-[#120d18]">
-      <CardHeader className="border-b border-white/10">
+    <Card className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0d0914]/80 backdrop-blur-sm shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+      {/* Detalhe de Ouro Lateral */}
+      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#D4AF37] via-[#B8860B] to-transparent opacity-80" />
+      
+      <CardHeader className="border-b border-white/5 px-8 py-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-fuchsia-200/70">{stepLabel}</p>
-            <CardTitle className="text-2xl text-white">{title}</CardTitle>
-            <CardDescription className="max-w-3xl text-white/55">{description}</CardDescription>
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]">{stepLabel}</p>
+            <CardTitle className="text-3xl font-light text-white" style={{ fontFamily: "'Playfair Display', serif" }}>{title}</CardTitle>
+            <CardDescription className="max-w-3xl text-base text-white/40">{description}</CardDescription>
           </div>
           <Badge
             variant="outline"
             className={
               error
-                ? "border-amber-300/20 bg-amber-300/10 text-amber-100"
-                : "border-emerald-300/15 bg-emerald-300/10 text-emerald-100"
+                ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                : "border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700]"
             }
           >
-            {error ? "Revisar" : "Pronto"}
+            {error ? "Ação Requerida" : "Validado"}
           </Badge>
         </div>
         {error ? (
-          <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100/85">
+          <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-200/80 flex items-center gap-3">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
             {error}
           </div>
         ) : null}
       </CardHeader>
-      <CardContent className="space-y-5 p-5">{children}</CardContent>
+      <CardContent className="space-y-6 p-8">{children}</CardContent>
     </Card>
   );
 }
@@ -402,7 +406,7 @@ export function ContractStepDados({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              className="h-6 px-2 text-[10px] text-[#D4AF37] hover:text-[#FFD700] hover:bg-[#D4AF37]/10"
               onClick={() => openAi("prazoSuporte", "Prazo de Suporte", payload.prazoSuporte)}
             >
               <Wand2 className="mr-1 h-3 w-3" />
@@ -422,7 +426,7 @@ export function ContractStepDados({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 px-2 text-[10px] text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-400/10"
+              className="h-6 px-2 text-[10px] text-[#D4AF37] hover:text-[#FFD700] hover:bg-[#D4AF37]/10"
               onClick={() => openAi("customScope", "Escopo Principal", payload.customScope)}
             >
               <Wand2 className="mr-1 h-3 w-3" />
@@ -540,28 +544,37 @@ export function ContractStepPlano({
               key={plan.id}
               type="button"
               onClick={() => onPrimaryPlanChange(plan.id)}
-              className={`rounded-[24px] border p-4 text-left transition-all ${
+              className={`group relative overflow-hidden rounded-[32px] border p-6 text-left transition-all duration-500 ${
                 isSelected
-                  ? "border-fuchsia-300/20 bg-[linear-gradient(135deg,rgba(123,31,162,0.22),rgba(232,51,74,0.15))] shadow-[0_20px_40px_rgba(17,6,26,0.18)]"
-                  : "border-white/10 bg-white/[0.03] hover:border-white/20"
+                  ? "border-[#D4AF37]/40 bg-[linear-gradient(135deg,rgba(212,175,55,0.15),rgba(13,9,20,0.95))] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                  : "border-white/5 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
               }`}
             >
-              <div className="flex items-center justify-between gap-3">
+              {isSelected && (
+                 <div className="absolute top-0 right-0 p-4">
+                    <CheckCircle2 className="h-5 w-5 text-[#D4AF37]" />
+                 </div>
+              )}
+              
+              <div className="flex flex-col gap-3">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">{plan.tag}</p>
-                  <p className="mt-2 text-xl font-semibold text-white">{plan.title}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]/70">{plan.tag}</p>
+                  <p className="mt-2 text-2xl font-light text-white tracking-tight">{plan.title}</p>
                 </div>
                 {plan.popular ? (
-                  <Badge variant="outline" className="border-amber-300/20 bg-amber-300/10 text-amber-100">
-                    Mais pedido
+                  <Badge variant="outline" className="w-fit border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700]">
+                    Exclusivo
                   </Badge>
                 ) : null}
               </div>
-              <p className="mt-3 text-sm leading-relaxed text-white/60">{plan.description}</p>
-              <div className="mt-4 space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">{plan.priceLabel}</p>
-                <p className="text-lg font-semibold text-white">{formatCurrencyBRL(plan.setupPrice)}</p>
-                <p className="text-xs text-white/45">{plan.priceSub}</p>
+              <p className="mt-4 text-sm leading-relaxed text-white/40 min-h-[40px]">{plan.description}</p>
+              
+              <div className="mt-6 pt-6 border-t border-white/5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">{plan.priceLabel}</p>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <p className="text-2xl font-semibold text-white">{formatCurrencyBRL(plan.setupPrice)}</p>
+                </div>
+                <p className="text-xs text-[#D4AF37]/50 mt-1">{plan.priceSub}</p>
               </div>
             </button>
           );
@@ -682,7 +695,7 @@ export function ContractStepExtras({
           payload.clientExtrasSnapshot.map((extra) => (
             <div
               key={extra.id}
-              className="rounded-[28px] border border-white/10 bg-[linear-gradient(145deg,rgba(123,31,162,0.08),rgba(255,255,255,0.02))] p-5"
+              className="rounded-[32px] border border-white/5 bg-[linear-gradient(145deg,rgba(212,175,55,0.05),rgba(13,9,20,0.8))] p-6 shadow-lg"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
@@ -700,11 +713,11 @@ export function ContractStepExtras({
                       variant="outline"
                       className={
                         extra.active !== false
-                          ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
-                          : "border-white/10 bg-white/[0.06] text-white/55"
+                          ? "border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700]"
+                          : "border-white/10 bg-white/[0.04] text-white/40"
                       }
                     >
-                      {extra.active !== false ? "Ativo" : "Desligado"}
+                      {extra.active !== false ? "Incluído no Contrato" : "Opcional (Desativado)"}
                     </Badge>
                   </div>
                   <p className="text-sm text-white/55">{extra.description}</p>

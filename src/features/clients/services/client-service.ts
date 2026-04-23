@@ -142,23 +142,26 @@ export const clientService = {
 
   async update(id: string, updates: Partial<Client>) {
     const payload: Tables<"clientes">["Update"] = {
-      ...(updates.nome !== undefined ? { nome: updates.nome } : {}),
-      ...(updates.email !== undefined ? { email: updates.email.trim().toLowerCase() } : {}),
-      ...(updates.whatsapp !== undefined ? { whatsapp: updates.whatsapp } : {}),
-      ...(updates.telefone !== undefined ? { telefone: updates.telefone } : {}),
-      ...(updates.documento !== undefined ? { documento: updates.documento } : {}),
-      ...(updates.nome_empresa !== undefined ? { nome_empresa: updates.nome_empresa } : {}),
-      ...(updates.nome_negocio !== undefined ? { nome_empresa: updates.nome_negocio } : {}),
-      ...(updates.status !== undefined ? { status: updates.status } : {}),
-      ...(updates.cidade !== undefined ? { cidade: updates.cidade } : {}),
-      ...(updates.estado !== undefined ? { estado: updates.estado } : {}),
-      ...(updates.endereco !== undefined ? { endereco: updates.endereco } : {}),
-      ...(updates.site_url !== undefined ? { site_url: updates.site_url } : {}),
+      ...(updates.nome && { nome: updates.nome.trim() }),
+      ...(updates.email && { email: updates.email.trim().toLowerCase() }),
+      ...(updates.whatsapp !== undefined && { whatsapp: updates.whatsapp }),
+      ...(updates.telefone !== undefined && { telefone: updates.telefone }),
+      ...(updates.documento !== undefined && { documento: updates.documento }),
+      ...(updates.nome_empresa !== undefined && { nome_empresa: updates.nome_empresa }),
+      ...(updates.nome_negocio !== undefined && { nome_empresa: updates.nome_negocio }),
+      ...(updates.status && { status: updates.status }),
+      ...(updates.cidade !== undefined && { cidade: updates.cidade }),
+      ...(updates.estado !== undefined && { estado: updates.estado }),
+      ...(updates.endereco !== undefined && { endereco: updates.endereco }),
+      ...(updates.site_url !== undefined && { site_url: updates.site_url }),
       updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase.from("clientes").update(payload).eq("id", id);
-    if (error) throw error;
+    if (error) {
+      console.error(`[ClientService] Error updating client ${id}:`, error);
+      throw new Error(`Falha ao atualizar cliente: ${error.message}`);
+    }
   },
 
   async delete(id: string) {

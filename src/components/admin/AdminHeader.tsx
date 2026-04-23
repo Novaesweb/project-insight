@@ -73,83 +73,85 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
   return (
     <header
-      className="h-14 md:h-16 flex items-center justify-between px-3 sm:px-5 lg:px-8 sticky top-0 z-40 backdrop-blur-xl"
+      className="h-16 md:h-20 flex items-center justify-between px-6 sm:px-8 lg:px-10 sticky top-0 z-40 backdrop-blur-3xl"
       style={{
-        background: 'hsl(var(--background) / 0.85)',
-        borderBottom: '1px solid hsl(var(--border))',
+        background: 'rgba(8, 6, 12, 0.8)',
+        borderBottom: '1px solid rgba(212, 175, 55, 0.1)',
       }}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-4 min-w-0">
         <div className="flex flex-col min-w-0">
-          <h1 className="text-sm md:text-base font-bold tracking-tight text-foreground truncate" role="heading" aria-level={1}>
+          <h1 
+            className="text-lg md:text-xl font-light tracking-tight text-white truncate" 
+            style={{ fontFamily: "'Playfair Display', serif" }}
+            role="heading" 
+            aria-level={1}
+          >
             {pageTitle}
           </h1>
-          <div className="hidden lg:flex items-center gap-2 mt-1">
-            <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">{pageSubtitle}</p>
+          <div className="hidden lg:flex items-center gap-3 mt-1.5">
+            <p className="text-[10px] text-white/40 font-bold tracking-[0.3em] uppercase">{pageSubtitle}</p>
+            <div className="w-1 h-1 rounded-full bg-[#D4AF37]/30" />
             {recentLinks.map((route) => (
               <Link
                 key={route.href}
                 to={route.href}
-                className="px-2 py-1 rounded-full text-[10px] font-semibold transition-colors"
-                style={{
-                  background: "hsl(var(--secondary))",
-                  border: "1px solid hsl(var(--border))",
-                  color: "hsl(var(--muted-foreground))",
-                }}
+                className="px-3 py-1 rounded-full text-[10px] font-bold transition-all hover:text-[#D4AF37] border border-white/5 bg-white/[0.03] text-white/30"
               >
                 {route.label}
               </Link>
             ))}
           </div>
-          <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase lg:hidden hidden sm:block">{pageSubtitle}</p>
+          <p className="text-[10px] text-white/40 font-bold tracking-[0.3em] uppercase lg:hidden hidden sm:block mt-1">{pageSubtitle}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-3">
         {/* System live indicator */}
-        <div className="hidden sm:flex items-center gap-1.5 mr-2 px-2.5 py-1.5 rounded-lg" style={{ background: 'hsl(var(--success) / 0.06)', border: '1px solid hsl(var(--success) / 0.12)' }}>
+        <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-[#D4AF37]/5 border border-[#D4AF37]/10">
           <div className="relative">
-            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50" style={{ background: 'hsl(var(--success))' }} />
-            <div className="relative w-1.5 h-1.5 rounded-full" style={{ background: 'hsl(var(--success))' }} />
+            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#D4AF37]" />
+            <div className="relative w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
           </div>
-          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--success))' }}>Live</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">Premium Live</span>
         </div>
 
-        {/* Quick Actions */}
-        {quickActions.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
-                style={{ background: 'hsl(var(--primary) / 0.1)', border: '1px solid hsl(var(--primary) / 0.2)' }}
-                aria-label="Ações rápidas"
-              >
-                <Plus className="w-4 h-4" style={{ color: 'hsl(var(--primary))' }} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {quickActions.map((action) => (
-                <DropdownMenuItem key={action.href} onClick={() => navigate(action.href)} className="gap-2 cursor-pointer">
-                  <action.icon className="w-4 h-4" /> {action.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/5">
+          <GlobalSearch />
+          
+          <div className="h-4 w-[1px] mx-1 bg-white/10" />
 
-        <GlobalSearch />
+          {quickActions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[#D4AF37] hover:text-black hover:bg-gold-gradient transition-all border border-[#D4AF37]/20"
+                  aria-label="Ações rápidas"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 glass-premium p-2 rounded-2xl border-[#D4AF37]/20">
+                {quickActions.map((action) => (
+                  <DropdownMenuItem key={action.href} onClick={() => navigate(action.href)} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-gold-gradient focus:text-black transition-all group text-white/70">
+                    <action.icon className="w-4 h-4 text-[#D4AF37] group-focus:text-black" /> 
+                    <span className="text-xs font-bold uppercase tracking-wider">{action.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
-        <div className="h-4 w-px mx-1 hidden sm:block" style={{ background: 'hsl(var(--border))' }} />
-
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))' }}>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white/40 hover:text-white hover:bg-white/5"
             onClick={toggle} aria-label="Alternar tema">
-            {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
+          
           <NotificationCenter userType="admin" userId="admin" />
+          
           {canAccessPath("/admin/configuracoes") && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white/40 hover:text-white hover:bg-white/5"
               onClick={() => navigate("/admin/configuracoes")} aria-label="Configurações">
-              <Settings className="w-3.5 h-3.5" />
+              <Settings className="w-4 h-4" />
             </Button>
           )}
         </div>
