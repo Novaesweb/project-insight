@@ -243,14 +243,14 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="min-h-[80vh] flex items-center justify-center">
           <div className="text-center space-y-6">
             <div className="relative w-20 h-20 mx-auto">
-              <div className="absolute inset-0 rounded-full border-2 border-[#D4AF37]/10 animate-ping" />
-              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-gold-gradient shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-                <Sparkles className="w-10 h-10 text-black" />
+              <div className="absolute inset-0 rounded-full border-2 border-[#7C3AED]/10 animate-ping" />
+              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-brand-gradient shadow-[0_0_30px_rgba(124,58,237,0.2)]">
+                <Sparkles className="w-10 h-10 text-white" />
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-xl font-light text-white tracking-widest uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>Validando <span className="text-gold-gradient italic">Credenciais</span></p>
-              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Preparando ecossistema premium...</p>
+              <p className="text-xl font-light text-slate-900 tracking-widest uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>Validando <span className="text-brand-gradient italic">Credenciais</span></p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Preparando ecossistema premium...</p>
             </div>
           </div>
         </div>
@@ -260,19 +260,19 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     if (!canAccessPath(pathname)) {
       return (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
-          <div className="max-w-lg w-full glass-premium p-10 text-center rounded-[40px] border-[#D4AF37]/20">
-            <div className="mx-auto w-20 h-20 rounded-[28px] bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center mb-8">
-              <LockKeyhole size={36} className="text-[#FFD700]" />
+          <div className="max-w-lg w-full glass-premium p-10 text-center rounded-[40px] border-slate-200">
+            <div className="mx-auto w-20 h-20 rounded-[28px] bg-[#7C3AED]/10 border border-[#7C3AED]/20 flex items-center justify-center mb-8">
+              <LockKeyhole size={36} className="text-[#7C3AED]" />
             </div>
-            <p className="text-[10px] uppercase tracking-[0.4em] font-black text-[#D4AF37] mb-4">Acesso Reservado</p>
-            <h2 className="text-3xl font-light text-white leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Este módulo pertence a outro <span className="text-gold-gradient italic">nível de acesso</span>.
+            <p className="text-[10px] uppercase tracking-[0.4em] font-black text-[#EC4899] mb-4">Acesso Reservado</p>
+            <h2 className="text-3xl font-light text-slate-900 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Este módulo pertence a outro <span className="text-brand-gradient italic">nível de acesso</span>.
             </h2>
-            <p className="text-sm text-white/40 mt-6 leading-relaxed px-4">
+            <p className="text-sm text-slate-500 mt-6 leading-relaxed px-4">
               As permissões de segurança da NovaesWeb são rigorosas. Se você acredita que isto é um erro, consulte a governança do sistema.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-10 justify-center">
-              <Button asChild className="h-12 rounded-2xl border-0 bg-gold-gradient text-black font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] transition-all">
+              <Button asChild className="h-12 rounded-2xl border-0 bg-brand-gradient text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] transition-all">
                 <Link to="/admin">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Dashboard Principal
@@ -288,8 +288,8 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-[var(--admin-bg)] text-foreground font-sora selection:bg-primary/30 overflow-hidden relative">
-      <div className="fixed inset-0 pointer-events-none ambient-glow opacity-20" />
+    <div className="flex h-screen admin-light-moving-bg text-slate-900 font-sora selection:bg-primary/30 overflow-hidden relative">
+      <div className="fixed inset-0 pointer-events-none ambient-glow opacity-10" />
 
       
       {/* Desktop Sidebar */}

@@ -47,6 +47,8 @@ export default function FinanceDashboard() {
             </h1>
             <p className="max-w-2xl text-base text-white/40 leading-relaxed">
               Monitore o fluxo de capital e a saúde do ecossistema NovaesWeb com precisão cirúrgica.
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1.5">
+              Fluxo e Performance
             </p>
           </div>
         </div>
@@ -58,7 +60,7 @@ export default function FinanceDashboard() {
               Relatórios
             </Link>
           </Button>
-          <Button className="rounded-2xl border-0 bg-gold-gradient text-black font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(212,175,55,0.2)]">
+          <Button className="rounded-2xl border-0 bg-brand-gradient text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(124,58,237,0.2)]">
             <Plus className="mr-2 h-4 w-4" />
             Lançamento
           </Button>

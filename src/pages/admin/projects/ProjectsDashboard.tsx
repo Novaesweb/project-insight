@@ -44,6 +44,8 @@ export default function ProjectsDashboard() {
             </h1>
             <p className="max-w-2xl text-base text-white/40 leading-relaxed">
               Supervisão analítica de performance, cronogramas e entregas de alto padrão.
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1.5">
+              Governança e Operações
             </p>
           </div>
         </div>
@@ -55,7 +57,7 @@ export default function ProjectsDashboard() {
               Tabela
             </Link>
           </Button>
-          <Button asChild className="rounded-2xl border-0 bg-gold-gradient text-black font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(212,175,55,0.2)]">
+          <Button asChild className="rounded-2xl border-0 bg-brand-gradient text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(124,58,237,0.2)]">
             <Link to="/admin/projetos/kanban">
               <LayoutGrid className="mr-2 h-4 w-4" />
               Kanban

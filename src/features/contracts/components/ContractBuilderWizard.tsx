@@ -147,18 +147,18 @@ export function ContractBuilderWizard({
   builderPreparedError,
 }: ContractBuilderWizardProps) {
   const selectedPlan = useMemo(
-    () => PUBLIC_PLAN_CATALOG.find((plan) => plan.id === workingBuilderPayload.primaryPlanId) || null,
-    [workingBuilderPayload.primaryPlanId],
+    () => PUBLIC_PLAN_CATALOG.find((plan) => plan.id === workingBuilderPayload?.primaryPlanId) || null,
+    [workingBuilderPayload?.primaryPlanId],
   );
   const activeExtras = useMemo(
-    () => workingBuilderPayload.clientExtrasSnapshot.filter((item) => item.active !== false),
-    [workingBuilderPayload.clientExtrasSnapshot],
+    () => (workingBuilderPayload?.clientExtrasSnapshot || []).filter((item) => item.active !== false),
+    [workingBuilderPayload?.clientExtrasSnapshot],
   );
-  const contractStatus = editingBuilderContract?.status || workingBuilderPayload.status;
+  const contractStatus = editingBuilderContract?.status || workingBuilderPayload?.status || "rascunho";
   const isPersisting = builderRemoteAutosaveState === "saving";
   const saveLabel = editingBuilderContract ? "Atualizar contrato" : "Salvar contrato";
   const currentStepMeta = BUILDER_STEPS.find((step) => step.id === builderStep) || BUILDER_STEPS[0];
-  const currentStepError = getStepError(builderStep);
+  const currentStepError = getStepError?.(builderStep) || null;
   const canAdvance = builderStep < BUILDER_STEPS.length - 1 && !currentStepError;
 
   const handlePrevious = () => {
@@ -250,32 +250,27 @@ export function ContractBuilderWizard({
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-[40px] border border-white/10 bg-[linear-gradient(135deg,rgba(13,9,20,0.98),rgba(23,10,28,0.95))] shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
       >
-        {/* Linha de Ouro Superior */}
-        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-60" />
+        {/* Linha de Marca Superior */}
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FF1F1F] to-transparent opacity-60" />
         
         <div className="relative border-b border-white/5 px-8 py-8 md:px-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className="border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700] hover:bg-[#D4AF37]/20 transition-colors">
-                  <Sparkles className="mr-1.5 h-3 w-3" />
-                  Smart Assembler Gold
+                <Badge className="border-[#FF1F1F]/30 bg-[#FF1F1F]/10 text-white hover:bg-[#FF1F1F]/20 transition-colors">
+                  <Sparkles className="mr-1.5 h-3 w-3 text-[#EC4899]" />
+                  Smart Assembler Premium
                 </Badge>
                 <Badge variant="outline" className={`${getContractStatusBadgeClass(contractStatus)} px-3 py-0.5 border-white/10`}>
                   {getContractStatusLabel(contractStatus)}
                 </Badge>
-                {editingBuilderContract && (
-                  <Badge className="border-cyan-500/30 bg-cyan-500/10 text-cyan-200">
-                    Sincronizado com o Cofre
-                  </Badge>
-                )}
               </div>
               <div>
                 <h2 className="text-4xl font-light tracking-tight text-white md:text-5xl" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  Montador <span className="text-[#D4AF37] italic">Smart</span>
+                  Montador <span className="text-brand-gradient italic">Smart</span>
                 </h2>
                 <p className="mt-3 max-w-2xl text-base leading-relaxed text-white/50">
-                  Refine cada detalhe do contrato com precisão. O sistema organiza a estrutura e a IA ajuda no texto jurídico.
+                  Refine cada detalhe do contrato com precisão. O sistema organiza a estrutura e a IA ajuda no texto jurídico com o DNA da marca.
                 </p>
               </div>
             </div>
@@ -283,8 +278,8 @@ export function ContractBuilderWizard({
             {/* Pílulas de Resumo Flutuantes */}
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex flex-col items-end px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/5">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]/80">Valor Total</span>
-                <span className="text-xl font-medium text-white">{formatCurrencyBRL(workingBuilderPayload.pricing.totalValue)}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#EC4899]/80">Valor Total</span>
+                <span className="text-xl font-medium text-white">{formatCurrencyBRL(workingBuilderPayload?.pricing?.totalValue || 0)}</span>
               </div>
             </div>
           </div>
@@ -308,19 +303,19 @@ export function ContractBuilderWizard({
                   >
                     <div className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-500 ${
                       isActive 
-                        ? "border-[#D4AF37] bg-[#D4AF37]/20 shadow-[0_0_15px_rgba(212,175,55,0.3)] scale-110" 
+                        ? "border-[#FF1F1F] bg-[#FF1F1F]/20 shadow-[0_0_15px_rgba(255,31,31,0.3)] scale-110" 
                         : isCompleted 
-                          ? "border-[#D4AF37]/40 bg-[#D4AF37]/10" 
+                          ? "border-[#7C3AED]/40 bg-[#7C3AED]/10" 
                           : "border-white/10 bg-[#1a1520]"
                     }`}>
                       {isCompleted ? (
-                        <CheckCircle2 className="h-5 w-5 text-[#D4AF37]" />
+                        <CheckCircle2 className="h-5 w-5 text-[#EC4899]" />
                       ) : (
-                        <span className={`text-sm font-bold ${isActive ? "text-[#FFD700]" : "text-white/40"}`}>{idx + 1}</span>
+                        <span className={`text-sm font-bold ${isActive ? "text-white" : "text-white/40"}`}>{idx + 1}</span>
                       )}
                     </div>
                     <span className={`mt-3 text-[10px] font-black uppercase tracking-[0.15em] transition-colors ${
-                      isActive ? "text-[#D4AF37]" : "text-white/30 group-hover:text-white/60"
+                      isActive ? "text-white" : "text-white/30 group-hover:text-white/60"
                     }`}>
                       {step.label}
                     </span>
@@ -336,13 +331,13 @@ export function ContractBuilderWizard({
           <div className="mt-8">
              <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Progresso do Contrato</span>
-                <span className="text-[10px] font-bold text-[#D4AF37]">{builderProgress}%</span>
+                <span className="text-[10px] font-bold text-[#EC4899]">{builderProgress}%</span>
              </div>
              <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${builderProgress}%` }}
-                  className="h-full bg-gradient-to-r from-[#D4AF37] to-[#FFD700] shadow-[0_0_10px_rgba(212,175,55,0.5)]"
+                  className="h-full bg-brand-gradient shadow-[0_0_10px_rgba(236,72,153,0.3)]"
                 />
              </div>
           </div>
@@ -367,7 +362,7 @@ export function ContractBuilderWizard({
         <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[#0d0914]/90 backdrop-blur-xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4 px-2">
-               <div className={`h-2 w-2 rounded-full ${builderRemoteAutosaveState === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-[#D4AF37]'}`} />
+               <div className={`h-2 w-2 rounded-full ${builderRemoteAutosaveState === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-[#7C3AED]'}`} />
                <p className="text-xs text-white/50">{builderStatusLabel.subtitle}</p>
             </div>
             
@@ -393,7 +388,7 @@ export function ContractBuilderWizard({
 
               {builderStep < BUILDER_STEPS.length - 1 ? (
                 <Button
-                  className="rounded-2xl border-0 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 text-black font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(212,175,55,0.2)]"
+                  className="rounded-2xl border-0 bg-brand-gradient px-8 text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(124,58,237,0.2)]"
                   onClick={handleNext}
                   disabled={!canAdvance}
                 >
@@ -403,7 +398,7 @@ export function ContractBuilderWizard({
               ) : (
                 <div className="flex items-center gap-2">
                   <Button
-                    className="rounded-2xl border-0 bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 text-black font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all"
+                    className="rounded-2xl border-0 bg-brand-gradient px-8 text-white font-bold hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all"
                     onClick={() => void onSave()}
                     disabled={isPersisting || !builderPrepared}
                   >
@@ -424,13 +419,13 @@ export function ContractBuilderWizard({
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap justify-center gap-3 pt-4"
         >
-          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#FFD700]" onClick={onGeneratePdf}>
+          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#EC4899]" onClick={onGeneratePdf}>
             <FileDown className="mr-2 h-4 w-4" /> PDF
           </Button>
-          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#FFD700]" onClick={onPrint}>
+          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#EC4899]" onClick={onPrint}>
             <Printer className="mr-2 h-4 w-4" /> Imprimir
           </Button>
-          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#FFD700]" onClick={() => void onSendCurrent?.()}>
+          <Button variant="outline" className="rounded-xl border-white/5 bg-white/[0.02] text-white/60 hover:text-[#EC4899]" onClick={() => void onSendCurrent?.()}>
             <Send className="mr-2 h-4 w-4" /> Enviar
           </Button>
         </motion.div>

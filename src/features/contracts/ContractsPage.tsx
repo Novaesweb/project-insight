@@ -93,22 +93,29 @@ export default function Contratos() {
   const [versionsOpen, setVersionsOpen] = useState(false);
 
   const clientesLookup = useMemo(() => {
+    if (!Array.isArray(clientes)) return new Map<string, string>();
     return new Map(clientes.map((cliente) => [cliente.id, cliente.nome]));
   }, [clientes]);
 
-  const decorateContrato = useCallback((c: any): Contrato => ({
-    ...c,
-    clientes:
-      c.clientes ||
-      (clientesLookup.get(c.cliente_id)
-        ? { nome: clientesLookup.get(c.cliente_id)! }
-        : null),
-  }), [clientesLookup]);
+  const decorateContrato = useCallback((c: any): Contrato => {
+    if (!c) return {} as Contrato;
+    
+    return {
+      ...c,
+      clientes:
+        c.clientes ||
+        (c.cliente_id && clientesLookup.get(c.cliente_id)
+          ? { nome: clientesLookup.get(c.cliente_id)! }
+          : null),
+    };
+  }, [clientesLookup]);
 
   const sortContratosByUpdatedAt = useCallback((items: Contrato[]) => {
+    if (!Array.isArray(items)) return [];
+    
     return [...items].sort((a, b) => {
-      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
-      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+      const dateA = new Date(a?.updated_at || a?.created_at || 0).getTime();
+      const dateB = new Date(b?.updated_at || b?.created_at || 0).getTime();
       return dateB - dateA;
     });
   }, []);

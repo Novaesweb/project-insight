@@ -125,25 +125,25 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="hidden md:flex md:flex-col relative z-50 shrink-0 h-screen"
       style={{
-        background: "rgba(8, 6, 12, 0.95)",
+        background: "rgba(255, 255, 255, 0.8)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
-        borderRight: "1px solid rgba(212, 175, 55, 0.1)",
+        borderRight: "1px solid rgba(124, 58, 237, 0.1)",
       }}
     >
-      {/* Gold Border Shimmer */}
+      {/* Brand Border Shimmer */}
       <div
         className="absolute top-0 right-0 w-[1px] h-full opacity-20"
-        style={{ background: "linear-gradient(180deg, #D4AF37, transparent 70%)" }}
+        style={{ background: "linear-gradient(180deg, #7C3AED, transparent 70%)" }}
       />
 
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-24 w-6 h-6 rounded-full flex items-center justify-center z-50 transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/50"
+        className="absolute -right-3 top-24 w-6 h-6 rounded-full flex items-center justify-center z-50 transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/5"
         style={{
-          background: "#1a1625",
-          border: "1px solid rgba(212, 175, 55, 0.3)",
-          color: "#D4AF37",
+          background: "white",
+          border: "1px solid rgba(124, 58, 237, 0.3)",
+          color: "#7C3AED",
         }}
         aria-label={isCollapsed ? "Expandir" : "Recolher"}
       >
@@ -153,25 +153,25 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       {/* Logo Section */}
       <div
         className={cn("py-8 flex items-center border-b", isCollapsed ? "px-0 justify-center" : "px-6 gap-4")}
-        style={{ borderColor: "rgba(255, 255, 255, 0.03)" }}
+        style={{ borderColor: "rgba(0, 0, 0, 0.03)" }}
       >
         <Link to="/admin" className="flex items-center gap-3 group">
           <div className="relative">
             <div
-              className="absolute -inset-3 rounded-2xl blur-2xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 bg-gold-gradient"
+              className="absolute -inset-3 rounded-2xl blur-2xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 bg-brand-gradient"
             />
             <div
-              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[#D4AF37]/30 bg-gold-gradient shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[#7C3AED]/30 bg-brand-gradient shadow-[0_0_15px_rgba(124,58,237,0.2)]"
             >
-              <Sparkles className="w-6 h-6 text-black" />
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
           </div>
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <p className="text-lg font-light tracking-tight text-white leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Novaes<span className="text-[#D4AF37] italic">Web</span>
+              <p className="text-lg font-light tracking-tight text-slate-900 leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Novaes<span className="text-[#EC4899] italic font-bold">Web</span>
               </p>
-              <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/20 mt-1.5">Elite Admin</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-slate-400 mt-1.5">Premium Admin</p>
             </motion.div>
           )}
         </Link>
@@ -181,7 +181,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         {navGroups.map((group) => (
           <div key={group.title}>
             {!isCollapsed && (
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-white/10 italic">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-slate-300 italic">
                 {group.title}
               </p>
             )}
@@ -207,9 +207,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           ? "justify-center px-2"
                           : "gap-4 px-4",
                       isActive
-                        ? "text-white bg-white/[0.04] border border-white/5"
-                        : "text-white/40 hover:text-white hover:bg-white/[0.02]",
-                      item.accent && !isActive && "text-[#FFD700]/50 hover:text-[#FFD700]"
+                        ? "text-slate-900 bg-slate-100 border border-slate-200"
+                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
+                      item.accent && !isActive && "text-[#7C3AED]/70 hover:text-[#7C3AED]"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
@@ -220,7 +220,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           "absolute w-[3px] rounded-r-full left-0",
                           item.isSubItem ? "h-4" : "h-6"
                         )}
-                        style={{ background: "var(--gold-accent)" }}
+                        style={{ background: "var(--gradient-primary)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
@@ -228,7 +228,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                       <span
                         className={cn(
                           "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
-                          isActive ? "bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" : "bg-white/10 group-hover:bg-white/30"
+                          isActive ? "bg-[#7C3AED] shadow-[0_0_8px_#7C3AED]" : "bg-slate-200 group-hover:bg-slate-400"
                         )}
                       />
                     ) : item.icon ? (
@@ -236,17 +236,17 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                         className={cn(
                           "w-5 h-5 shrink-0 transition-all duration-300",
                           isActive
-                            ? "text-[#D4AF37] drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]"
+                            ? "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]"
                             : item.accent
-                              ? "text-[#FFD700]/30"
-                              : "text-white/20 group-hover:text-white/60 group-hover:scale-110"
+                              ? "text-[#EC4899]/50"
+                              : "text-slate-300 group-hover:text-slate-600 group-hover:scale-110"
                         )}
                       />
                     ) : null}
                     {!isCollapsed && <span className="truncate tracking-tight">{item.label}</span>}
                     {!isCollapsed && !item.isSubItem && badgeCount > 0 && (
                       <span
-                        className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black text-black bg-gold-gradient shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+                        className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black text-white bg-brand-gradient shadow-[0_0_10px_rgba(124,58,237,0.3)]"
                       >
                         {badgeCount}
                       </span>
@@ -260,15 +260,15 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
 
         {!isCollapsed && (
           <div className="pt-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-white/10">
-              Atalhos Gold
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-slate-300">
+              Atalhos Elite
             </p>
             <div className="flex flex-wrap gap-2 px-4">
               {favoriteRoutes.map((route) => (
                 <Link
                   key={route.href}
                   to={route.href}
-                  className="rounded-xl px-4 py-2 text-[11px] font-bold text-white/60 transition-all hover:text-white hover:border-[#D4AF37]/50 border border-white/5 bg-white/[0.02]"
+                  className="rounded-xl px-4 py-2 text-[11px] font-bold text-slate-500 transition-all hover:text-slate-900 hover:border-[#7C3AED]/50 border border-slate-200 bg-white"
                 >
                   {route.shortLabel || route.label}
                 </Link>
@@ -278,11 +278,11 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         )}
       </nav>
 
-      <div className={cn("p-4 border-t", isCollapsed && "px-2")} style={{ borderColor: "rgba(255, 255, 255, 0.03)" }}>
+      <div className={cn("p-4 border-t", isCollapsed && "px-2")} style={{ borderColor: "rgba(0, 0, 0, 0.03)" }}>
         <button
           onClick={handleLogout}
           className={cn(
-            "flex items-center py-3 text-xs font-bold uppercase tracking-widest text-white/20 hover:text-rose-400 transition-all w-full rounded-2xl hover:bg-rose-500/5 group",
+            "flex items-center py-3 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rose-600 transition-all w-full rounded-2xl hover:bg-rose-50 group",
             isCollapsed ? "justify-center px-2" : "gap-4 px-4"
           )}
         >

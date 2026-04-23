@@ -29,9 +29,9 @@ export default function QuickBriefingPage() {
         <motion.div 
           animate={{ opacity: [0.4, 1, 0.4] }} 
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-[10px] font-black uppercase tracking-[0.5em] text-[#D4AF37]"
+          className="text-[10px] font-black uppercase tracking-[0.5em] text-[#EC4899]"
         >
-          Sincronizando Protocolos Gold...
+          Sincronizando Sistemas Elite...
         </motion.div>
       </div>
     );
