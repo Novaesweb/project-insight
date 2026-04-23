@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   FileDown,
   FileSignature,
-  LibraryBig,
   Printer,
   Save,
   Send,
@@ -77,7 +76,6 @@ type ContractBuilderWizardProps = {
   onUpdateContratada: (field: string, value: string) => void;
   onUpdateTextField: (field: string, value: string) => void;
   onClauseSelectionChange: (selection: ContractClauseSelection) => void;
-  onOpenClauseManager: () => void;
   onPrimaryPlanChange: (planId: BuilderPrimaryPlanId) => void;
   onDiscountTypeChange: (value: string) => void;
   onPricingChange: (field: string, value: string) => void;
@@ -126,7 +124,6 @@ export function ContractBuilderWizard({
   onUpdateContratada,
   onUpdateTextField,
   onClauseSelectionChange,
-  onOpenClauseManager,
   onPrimaryPlanChange,
   onDiscountTypeChange,
   onPricingChange,
@@ -364,15 +361,6 @@ export function ContractBuilderWizard({
               type="button"
               variant="outline"
               className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-              onClick={onOpenClauseManager}
-            >
-              <LibraryBig className="mr-2 h-4 w-4" />
-              Gerenciar Cláusulas
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
               onClick={handlePrevious}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -412,15 +400,6 @@ export function ContractBuilderWizard({
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={onOpenClauseManager}
-              >
-                <LibraryBig className="mr-2 h-4 w-4" />
-                Gerenciar Cláusulas
-              </Button>
               <Button
                 type="button"
                 variant="outline"

@@ -19,6 +19,7 @@ import {
   CalendarDays,
   ServerCog,
   ClipboardList,
+  BookText,
   FileSignature,
 } from "lucide-react";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -45,6 +46,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/projetos/lista", label: "Lista de Projetos", isSubItem: true },
       { href: "/admin/projetos/kanban", label: "Quadro Kanban", isSubItem: true },
       { href: "/admin/contratos", label: "Contratos", icon: FileSignature },
+      { href: "/admin/clausulas", label: "Cláusulas", icon: BookText },
     ],
   },
   {

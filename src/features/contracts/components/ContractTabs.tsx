@@ -231,7 +231,6 @@ export function ContractTabs({
                 onUpdateContratada={safeBuilder.onUpdateContratada ?? noop}
                 onUpdateTextField={safeBuilder.onUpdateTextField ?? noop}
                 onClauseSelectionChange={safeBuilder.onClauseSelectionChange ?? noop}
-                onOpenClauseManager={() => window.location.assign("/admin/clausulas")}
                 onPrimaryPlanChange={safeBuilder.onPrimaryPlanChange ?? noop}
                 onDiscountTypeChange={safeBuilder.onDiscountTypeChange ?? noop}
                 onPricingChange={safeBuilder.onPricingChange ?? noop}
