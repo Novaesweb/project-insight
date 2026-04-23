@@ -21,7 +21,8 @@ import {
   formatContractClock,
   getContractErrorMessage,
   normalizeBuilderPayload,
-} from "@/lib/contract-utils";
+  validateAndSanitizeBuilderPayload,
+} from "@/features/contracts/utils";
 import { createContractEvent } from "@/lib/contract-activity";
 import { downloadWordDocument, generateContractPDF } from "@/features/contracts/documents";
 import { logContractAdminError } from "@/features/contracts/debug";
@@ -147,7 +148,15 @@ export function useContractBuilder({
     try {
       const saved = localStorage.getItem("nv_contract_builder_draft");
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Validate and sanitize the recovered draft to prevent crashes
+        try {
+          return validateAndSanitizeBuilderPayload(parsed);
+        } catch (e) {
+          console.warn("Recovered draft is invalid, discarding", e);
+          localStorage.removeItem("nv_contract_builder_draft");
+          return null;
+        }
       }
     } catch (e) {
       console.error("Failed to recover contract draft", e);
@@ -164,7 +173,18 @@ export function useContractBuilder({
     }
   }, [builderPayload]);
   const [editingBuilderContract, setEditingBuilderContract] = useState<Contrato | null>(null);
-  const [builderStep, setBuilderStepState] = useState<ContractBuilderStepIndex>(0);
+  const [builderStep, setBuilderStepState] = useState<ContractBuilderStepIndex>(() => {
+    try {
+      const saved = localStorage.getItem("nv_contract_builder_draft");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return (parsed.lastStep as ContractBuilderStepIndex) ?? 0;
+      }
+    } catch (e) {
+      // Ignore, fallback to 0
+    }
+    return 0;
+  });
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [syncingClientExtras, setSyncingClientExtras] = useState(false);
   const [builderRemoteAutosaveState, setBuilderRemoteAutosaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");

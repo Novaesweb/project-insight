@@ -12,7 +12,7 @@ import {
   type ContractBuilderStepIndex,
   type ContractStatus,
 } from "@/lib/contract-builder";
-import { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
+export { validateAndSanitizeBuilderPayload } from "@/lib/contract-builder-schema";
 import { contractTemplates, fillTemplate } from "@/lib/contract-templates";
 import { PUBLIC_PLAN_CATALOG } from "@/lib/public-plans";
 import { normalizeContractStatus } from "@/lib/contract-status";

@@ -502,8 +502,8 @@ export default function Contratos() {
               >
                 <h3 className="mb-2 text-xl font-bold text-white">Confirmar exclusao</h3>
                 <p className="mb-6 text-sm text-white/60">
-                  Voce tem certeza que deseja excluir o rascunho <strong>{cofre.deleteTarget.titulo}</strong>?
-                  Esta acao nao pode ser desfeita.
+                  Voce tem certeza que deseja excluir o documento <strong>{cofre.deleteTarget.titulo}</strong>?
+                  Esta acao nao pode ser desfeita e removera o registro permanentemente.
                 </p>
                 <div className="flex justify-end gap-3">
                   <Button
@@ -514,7 +514,7 @@ export default function Contratos() {
                     Cancelar
                   </Button>
                   <Button variant="destructive" onClick={() => cofre.handleDeleteDraft()}>
-                    Excluir rascunho
+                    Confirmar exclusao
                   </Button>
                 </div>
               </motion.div>

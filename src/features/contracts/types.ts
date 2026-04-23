@@ -75,10 +75,24 @@ export interface ContractBuilderState {
   handleDownloadWord: () => void;
   handlePrint: () => void;
   syncingClientExtras: boolean;
-  builderRemoteAutosaveState: "idle" | "saving" | "saved" | "error";
-  builderLastSavedAt: string | null;
   mobileSummaryOpen: boolean;
   setMobileSummaryOpen: (open: boolean) => void;
+  builderRecoveredLocally?: boolean;
+  builderLastSavedSignature?: string | null;
+  builderLastSavedAt: string | null;
+  builderRemoteAutosaveState: "idle" | "saving" | "saved" | "error";
+  shouldReduceMotion?: boolean;
+  workingBuilderPayload: ContractBuilderPayload | null;
+  builderSummary: any; // ContractProposalSummary
+  builderPrepared: any;
+  builderPreparedError: string | null;
+  builderClientExtras: any[];
+  onDiscountTypeChange: (value: string) => void;
+  onMoneyDraftBlur: (key: string, value: number) => void;
+  getBuilderStepError: (step: number) => string | null;
+  getMoneyInputDisplayValue: (key: string, value: number) => string;
+  buildPricingMoneyDraftKey: (field: string) => string;
+  describeClientExtraPricing: (item: any) => string;
 }
 
 export type ContractDraftStatus = ContractStatus;
