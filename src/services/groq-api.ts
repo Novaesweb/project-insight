@@ -48,10 +48,17 @@ async function readErrorMessage(response: Response) {
 }
 
 function hasClientApiKey() {
-  return CLIENT_API_KEY.trim().length > 0;
+  const hasKey = CLIENT_API_KEY.trim().length > 0;
+  console.log(`[Groq] Verificando chave no cliente: ${hasKey ? "Encontrada" : "AUSENTE"}`);
+  if (!hasKey) {
+    console.warn("[Groq] VITE_GROQ_API_KEY nao detectada pelo Vite. Verifique se o arquivo .env existe e se o servidor foi reiniciado.");
+  }
+  return hasKey;
 }
 
 function normalizeError(error: unknown, fallbackMessage = DEFAULT_AI_ERROR_MESSAGE) {
+  console.error("[Groq] Erro capturado:", error);
+  
   if (error instanceof Error && error.message.trim()) {
     return error;
   }
