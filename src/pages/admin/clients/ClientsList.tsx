@@ -169,10 +169,10 @@ export default function ClientsList() {
           </p>
         </div>
         <Button
-          className="bg-brand-gradient h-12 rounded-2xl px-8 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[#7C3AED]/20 hover:scale-[1.02] transition-all"
+          className="bg-white text-slate-900 border border-[#FF1F1F]/10 h-12 rounded-2xl px-8 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#7C3AED]/10 hover:scale-[1.02] transition-all"
           onClick={() => setCreateOpen(true)}
         >
-          <UserPlus className="mr-2 h-4 w-4" />
+          <UserPlus className="mr-2 h-4 w-4 text-[#FF1F1F]" />
           Novo Cliente
         </Button>
       </div>
@@ -305,8 +305,8 @@ export default function ClientsList() {
                   : "Tente ajustar os termos da busca para localizar o registro desejado."}
               </p>
             </div>
-            <Button className="bg-brand-gradient border-0 text-white px-10 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#7C3AED]/20" onClick={() => setCreateOpen(true)}>
-              <UserPlus className="mr-2 h-4 w-4" />
+            <Button className="bg-white text-slate-900 border border-[#FF1F1F]/10 px-10 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#7C3AED]/10" onClick={() => setCreateOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4 text-[#FF1F1F]" />
               {clients.length === 0 ? "Criar primeiro cliente" : "Criar novo cliente"}
             </Button>
           </CardContent>
@@ -390,7 +390,7 @@ export default function ClientsList() {
               Cancelar
             </Button>
             <Button
-              className="bg-brand-gradient border-0 text-white px-10 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#7C3AED]/20 hover:scale-105 transition-all"
+              className="bg-white text-slate-900 border border-[#FF1F1F]/10 px-10 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#7C3AED]/10 hover:scale-105 transition-all"
               onClick={() => void handleSaveClient()}
               disabled={creating}
             >

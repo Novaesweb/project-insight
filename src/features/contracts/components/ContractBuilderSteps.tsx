@@ -686,16 +686,16 @@ export function ContractStepExtras({
       </div>
 
       <div className="space-y-4">
-        {payload.clientExtrasSnapshot.length === 0 ? (
+        {(payload.clientExtrasSnapshot || []).length === 0 ? (
           <div className="rounded-[24px] border border-dashed border-white/10 bg-black/10 px-5 py-8 text-center">
             <UserRound className="mx-auto h-8 w-8 text-white/25" />
             <p className="mt-3 text-sm text-white/60">Este cliente ainda nao possui extras ativos vinculados.</p>
           </div>
         ) : (
-          payload.clientExtrasSnapshot.map((extra) => (
+          (payload.clientExtrasSnapshot || []).map((extra) => (
             <div
               key={extra.id}
-              className="rounded-[32px] border border-white/5 bg-[linear-gradient(145deg,rgba(212,175,55,0.05),rgba(13,9,20,0.8))] p-6 shadow-lg"
+              className="rounded-[32px] border border-white/5 bg-[linear-gradient(145deg,rgba(220,38,38,0.05),rgba(13,9,20,0.8))] p-6 shadow-lg"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">

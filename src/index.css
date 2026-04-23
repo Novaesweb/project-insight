@@ -224,7 +224,7 @@ section {
   }
   
   .bg-brand-gradient {
-    @apply bg-gradient-to-r from-[#FF1F1F] to-[#EC4899];
+    @apply bg-gradient-to-r from-[#FF1F1F] via-[#7C3AED] to-[#EC4899];
   }
   
   .border-brand-subtle {

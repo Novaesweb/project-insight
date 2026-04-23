@@ -112,7 +112,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         {/* System live indicator */}
         <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
           <div className="relative">
-            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#EC4899]" />
+            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#FF1F1F]" />
             <div className="relative w-1.5 h-1.5 rounded-full bg-brand-gradient" />
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Premium Live</span>
@@ -126,7 +126,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
           {quickActions.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[#7C3AED] hover:text-white hover:bg-brand-gradient transition-all border border-[#7C3AED]/20"
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-white text-[#FF1F1F] hover:scale-110 transition-all border border-[#FF1F1F]/10 shadow-sm shadow-red-500/5"
                   aria-label="Ações rápidas"
                 >
                   <Plus className="w-5 h-5" />

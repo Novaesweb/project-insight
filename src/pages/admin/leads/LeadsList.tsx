@@ -83,7 +83,7 @@ export default function LeadsList() {
               className={cn(
                 "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shadow-sm",
                 filtroStatus === s
-                  ? "bg-brand-gradient border-transparent text-white scale-105"
+                  ? "bg-white border-[#FF1F1F]/20 text-slate-900 scale-105 shadow-md shadow-red-500/5"
                   : "bg-white border-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-50"
               )}
             >

@@ -69,9 +69,9 @@ export default function ProjectsList() {
             <p className="text-sm text-slate-500 mt-2">Gerenciamento operacional da carteira</p>
           </div>
         </div>
-        <Button asChild className="bg-brand-gradient text-white font-black h-12 rounded-2xl px-8 text-[10px] uppercase tracking-widest shadow-lg shadow-[#7C3AED]/20 hover:scale-[1.02] transition-all">
+        <Button asChild className="bg-white text-slate-900 border border-[#FF1F1F]/10 font-black h-12 rounded-2xl px-8 text-[10px] uppercase tracking-widest shadow-lg shadow-[#7C3AED]/10 hover:scale-[1.02] transition-all">
           <Link to="/admin/projetos/kanban">
-            <LayoutGrid className="h-4 w-4 mr-2" />
+            <LayoutGrid className="h-4 w-4 mr-2 text-[#FF1F1F]" />
             Ver no Kanban
           </Link>
         </Button>

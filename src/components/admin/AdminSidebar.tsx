@@ -161,9 +161,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
               className="absolute -inset-3 rounded-2xl blur-2xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 bg-brand-gradient"
             />
             <div
-              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[#7C3AED]/30 bg-brand-gradient shadow-[0_0_15px_rgba(124,58,237,0.2)]"
+              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[#FF1F1F]/20 bg-white shadow-[0_5px_15px_rgba(255,31,31,0.1)]"
             >
-              <Sparkles className="w-6 h-6 text-white" />
+              <Sparkles className="w-6 h-6 text-brand-gradient" />
             </div>
           </div>
           {!isCollapsed && (
@@ -207,9 +207,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           ? "justify-center px-2"
                           : "gap-4 px-4",
                       isActive
-                        ? "text-white bg-brand-gradient shadow-[0_10px_20px_rgba(124,58,237,0.25)] scale-[1.02]"
+                        ? "bg-white border-brand-subtle shadow-[0_10px_30px_rgba(0,0,0,0.04)] scale-[1.02]"
                         : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
-                      item.accent && !isActive && "text-[#7C3AED] hover:bg-[#7C3AED]/5"
+                      isActive ? "text-slate-900" : item.accent && "text-[#FF1F1F] hover:bg-[#FF1F1F]/5"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
@@ -220,7 +220,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           "absolute w-1 rounded-r-full left-0",
                           item.isSubItem ? "h-3" : "h-5"
                         )}
-                        style={{ background: "white" }}
+                        style={{ background: "var(--gradient-primary)" }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                       />
                     )}
@@ -236,9 +236,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                         className={cn(
                           "w-5 h-5 shrink-0 transition-all duration-300",
                           isActive
-                            ? "text-white"
+                            ? "text-brand-gradient"
                             : item.accent
-                              ? "text-[#EC4899]"
+                              ? "text-[#FF1F1F]"
                               : "text-slate-300 group-hover:text-slate-600 group-hover:scale-110"
                         )}
                       />

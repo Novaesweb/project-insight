@@ -150,13 +150,31 @@ export function useContractBuilder({
     try {
       const saved = typeof window !== "undefined" ? localStorage.getItem("nv_contract_builder_draft") : null;
       if (!saved) return null;
+      
       const parsed = JSON.parse(saved);
       if (!parsed || typeof parsed !== "object") return null;
+      
+      // Validação mínima de estrutura antes de passar pelo sanitizador
       if (!parsed.items || !parsed.pricing || !parsed.contractante) return null;
-      return typeof validateAndSanitizeBuilderPayload === "function" 
+      
+      // Garantir que arrays críticos existam para evitar crash imediato
+      if (!Array.isArray(parsed.items)) parsed.items = [];
+      if (!Array.isArray(parsed.clientExtrasSnapshot)) parsed.clientExtrasSnapshot = [];
+      
+      const sanitized = typeof validateAndSanitizeBuilderPayload === "function" 
         ? validateAndSanitizeBuilderPayload(parsed) 
         : parsed;
-    } catch (e) { return null; }
+
+      // Proteção final: garantir que mesmo após sanitização, propriedades vitais existam
+      if (sanitized && !sanitized.clientExtrasSnapshot) {
+        sanitized.clientExtrasSnapshot = [];
+      }
+
+      return sanitized;
+    } catch (e) { 
+      console.error("[ContractBuilder] Falha na hidratação do rascunho:", e);
+      return null; 
+    }
   });
 
   useEffect(() => {
@@ -233,13 +251,56 @@ export function useContractBuilder({
     );
   }, []);
 
+  const builderSummary = useMemo(
+    () => (workingBuilderPayload ? buildProposalSummary(workingBuilderPayload) : null),
+    [workingBuilderPayload],
+  );
+
+  const builderPrepared = useMemo(() => {
+    if (!workingBuilderPayload) return null;
+
+    try {
+      return buildBuilderSavePayload(workingBuilderPayload, 4);
+    } catch {
+      return null;
+    }
+  }, [workingBuilderPayload]);
+
+  const builderPreparedError = useMemo(() => {
+    if (!workingBuilderPayload || builderPrepared) return null;
+
+    try {
+      buildBuilderSavePayload(workingBuilderPayload, 4);
+      return null;
+    } catch (error) {
+      return getContractErrorMessage(error, "Esse contrato precisa de revisao antes de ser salvo.");
+    }
+  }, [builderPrepared, workingBuilderPayload]);
+
+  const setBuilderStep = useCallback((nextStep: ContractBuilderStepIndex) => {
+    setBuilderStepState(nextStep);
+    setBuilderPayload((current) =>
+      current
+        ? {
+            ...current,
+            lastStep: nextStep,
+            updatedAt: new Date().toISOString(),
+          }
+        : current,
+    );
+  }, []);
+
   const builderProgress = builderPayload
     ? Math.round(((builderStep + 1) / BUILDER_STEPS.length) * 100)
     : 0;
 
-  const selectedItemsCount =
-    (workingBuilderPayload?.clientExtrasSnapshot.filter((item) => item.active !== false).length || 0) +
-    (workingBuilderPayload?.primaryPlanId !== "none" ? 1 : 0);
+  const selectedItemsCount = useMemo(() => {
+    const extraCount = (workingBuilderPayload?.clientExtrasSnapshot || [])
+      .filter((item) => item.active !== false).length;
+    const planCount = workingBuilderPayload?.primaryPlanId !== "none" ? 1 : 0;
+    return extraCount + planCount;
+  }, [workingBuilderPayload?.clientExtrasSnapshot, workingBuilderPayload?.primaryPlanId]);
+
 
   const builderStatusLabel = useMemo(() => {
     if (builderRemoteAutosaveState === "saving") {
@@ -531,91 +592,6 @@ export function useContractBuilder({
       };
     });
   }, []);
-
-  const onPrimaryPlanChange = useCallback((planId: BuilderPrimaryPlanId) => {
-    setBuilderPayload((current) => {
-      if (!current) return current;
-
-      const nextItems = selectPrimaryPlan(current.items, planId);
-      const selectedPlan = nextItems.find((item) => item.selected) || null;
-      return {
-        ...current,
-        primaryPlanId: planId,
-        items: nextItems,
-        pricing: computeBuilderPricing(nextItems, current.clientExtrasSnapshot, {
-          baseValue: selectedPlan?.setupPrice ?? current.pricing.baseValue,
-          entryValue: current.pricing.entryValue,
-        }),
-        updatedAt: new Date().toISOString(),
-      };
-    });
-  }, []);
-
-  const onPricingChange = useCallback((field: string, value: string) => {
-    setBuilderPayload((current) => {
-      if (!current) return current;
-
-      const numeric = Math.max(Number.isFinite(Number(value)) ? Number(value) : 0, 0);
-      const nextPricing = {
-        ...current.pricing,
-        ...(field === "baseValue" ? { baseValue: numeric } : {}),
-        ...(field === "entryValue" ? { entryValue: numeric } : {}),
-      };
-
-      return {
-        ...current,
-        pricing: computeBuilderPricing(current.items, current.clientExtrasSnapshot, {
-          baseValue: nextPricing.baseValue,
-          entryValue: nextPricing.entryValue,
-        }),
-        updatedAt: new Date().toISOString(),
-      };
-    });
-  }, []);
-
-  const onDiscountTypeChange = useCallback(() => undefined, []);
-  const onMoneyDraftBlur = useCallback(() => undefined, []);
-
-  const onExtraFieldChange = useCallback(
-    (extraId: string, field: "name" | "description" | "clause" | "setupPrice", value: string) => {
-      setBuilderPayload((current) => {
-        if (!current) return current;
-
-        const nextExtras = current.clientExtrasSnapshot.map((item) =>
-          item.id === extraId
-            ? {
-                ...item,
-                [field]: field === "setupPrice" ? Math.max(Number(value || 0), 0) : value,
-              }
-            : item,
-        );
-
-        return {
-          ...current,
-          clientExtrasSnapshot: nextExtras,
-          pricing: computeBuilderPricing(current.items, nextExtras, {
-            baseValue: current.pricing.baseValue,
-            entryValue: current.pricing.entryValue,
-          }),
-          updatedAt: new Date().toISOString(),
-        };
-      });
-    },
-    [],
-  );
-
-  const onToggleExtra = useCallback((extraId: string, active: boolean) => {
-    setBuilderPayload((current) => {
-      if (!current) return current;
-
-      const nextExtras = current.clientExtrasSnapshot.map((item) =>
-        item.id === extraId ? { ...item, active } : item,
-      );
-
-      return {
-        ...current,
-        clientExtrasSnapshot: nextExtras,
-        pricing: computeBuilderPricing(current.items, nextExtras, {
           baseValue: current.pricing.baseValue,
           entryValue: current.pricing.entryValue,
         }),
