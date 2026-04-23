@@ -3,6 +3,7 @@ import { invokeAdminFunction } from "@/lib/admin-function-client";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const CLIENT_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "";
 const REQUEST_TIMEOUT_MS = 25_000;
+const DEFAULT_AI_ERROR_MESSAGE = "Nao foi possivel gerar a sugestao da IA agora.";
 
 export interface GroqMessage {
   role: "system" | "user" | "assistant";
@@ -46,13 +47,33 @@ async function readErrorMessage(response: Response) {
   }
 }
 
+function hasClientApiKey() {
+  return CLIENT_API_KEY.trim().length > 0;
+}
+
+function normalizeError(error: unknown, fallbackMessage = DEFAULT_AI_ERROR_MESSAGE) {
+  if (error instanceof Error && error.message.trim()) {
+    return error;
+  }
+
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return new Error(error.message.trim() || fallbackMessage);
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return new Error(error.trim());
+  }
+
+  return new Error(fallbackMessage);
+}
+
 async function getDirectChatCompletion({
   model = "llama-3.3-70b-versatile",
   temperature = 0.7,
   max_tokens = 1024,
   messages,
 }: GroqCompletionOptions) {
-  if (!CLIENT_API_KEY) {
+  if (!hasClientApiKey()) {
     throw new Error("A chave da IA nao esta configurada no frontend.");
   }
 
@@ -133,8 +154,23 @@ Texto atual (se houver): ${currentText}`;
     try {
       return await getServerContractSuggestion(context, instruction, currentText);
     } catch (serverError) {
-      console.warn("[Groq] fallback para chamada direta no cliente", serverError);
-      return getDirectChatCompletion({ messages });
+      const normalizedServerError = normalizeError(serverError);
+
+      if (!hasClientApiKey()) {
+        throw normalizedServerError;
+      }
+
+      console.warn("[Groq] fallback para chamada direta no cliente", normalizedServerError);
+
+      try {
+        return await getDirectChatCompletion({ messages });
+      } catch (clientError) {
+        const normalizedClientError = normalizeError(clientError);
+
+        throw new Error(
+          `${normalizedServerError.message} Fallback do frontend: ${normalizedClientError.message}`,
+        );
+      }
     }
   },
 };
