@@ -813,7 +813,7 @@ export function useContractBuilder({
     return formatCurrencyBRL(price);
   }, []);
 
-  return {
+  return useMemo(() => ({
     builderPayload,
     setBuilderPayload,
     editingBuilderContract,
@@ -859,5 +859,43 @@ export function useContractBuilder({
     handleGeneratePdf,
     handleDownloadWord,
     handlePrint,
-  };
+  }), [
+    builderPayload,
+    editingBuilderContract,
+    builderStep,
+    mobileSummaryOpen,
+    syncingClientExtras,
+    builderLastSavedAt,
+    builderRemoteAutosaveState,
+    shouldReduceMotion,
+    workingBuilderPayload,
+    resetBuilder,
+    openBuilderContract,
+    persistBuilderDraft,
+    builderSummary,
+    builderProgress,
+    builderStatusLabel,
+    builderPrepared,
+    builderPreparedError,
+    selectedItemsCount,
+    builderClientExtras,
+    onClientChange,
+    onUpdateContractante,
+    onUpdateContratada,
+    onUpdateTextField,
+    onPrimaryPlanChange,
+    onDiscountTypeChange,
+    onPricingChange,
+    onMoneyDraftBlur,
+    onRefreshExtras,
+    getBuilderStepError,
+    getMoneyInputDisplayValue,
+    describeClientExtraPricing,
+    onExtraFieldChange,
+    onToggleExtra,
+    changeContractStatus,
+    handleGeneratePdf,
+    handleDownloadWord,
+    handlePrint,
+  ]);
 }

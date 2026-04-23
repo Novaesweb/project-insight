@@ -407,9 +407,12 @@ export default function Contratos() {
   }, [activeTab, builder, builderStepMeta, routeBuilderStep]);
 
   useEffect(() => {
+    // Only auto-reset if we are on the base builder route and have no payload
     if (activeTab !== "montador" || !extrasLoaded || builderPayload) return;
-    resetBuilder();
-  }, [activeTab, builderPayload, extrasLoaded, resetBuilder]);
+    if (pathname === "/admin/contratos/novo" || pathname === "/admin/contratos/novo/") {
+      resetBuilder();
+    }
+  }, [activeTab, builderPayload, extrasLoaded, pathname, resetBuilder]);
 
   return (
     <div className="min-h-screen bg-[#0a0510] pb-20 pt-4 md:pt-8">
