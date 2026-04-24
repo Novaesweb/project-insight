@@ -359,7 +359,7 @@ export function ContractBuilderWizard({
       </div>
 
       {/* FOOTER DE AÇÕES PREMIUM */}
-      <div className={builderStep === BUILDER_STEPS.length - 1 && builderPrepared ? "mt-8 flex flex-col-reverse gap-4" : "mt-8"}>
+      <div className={builderStep === BUILDER_STEPS.length - 1 && builderPrepared ? "mt-auto flex flex-col-reverse gap-4 pt-2" : "mt-auto pt-2"}>
         <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[#0d0914]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4 px-2">
