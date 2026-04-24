@@ -72,7 +72,7 @@ export default function ProjectsDashboard() {
         
         {/* KPI: Projetos Ativos - Grande */}
         <motion.div variants={fadeUp} className="md:col-span-2 row-span-1">
-          <Card className="glass-premium relative overflow-hidden h-full border-slate-200 shadow-sm">
+          <Card className="glass-card-admin relative overflow-hidden h-full border-slate-200 shadow-sm group">
              <div className="absolute -top-6 -right-6 p-6 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 transition-all duration-700">
                <FolderKanban size={240} />
              </div>
@@ -85,11 +85,11 @@ export default function ProjectsDashboard() {
                  <p className="text-sm text-slate-400 mt-4 leading-relaxed">Projetos em fase de execução de alta fidelidade.</p>
                </div>
                <div className="mt-12 grid grid-cols-2 gap-4">
-                  <div className="p-5 rounded-[24px] bg-slate-50 border border-slate-200 group-hover:bg-slate-100 transition-colors shadow-sm">
+                  <div className="p-5 rounded-[24px] bg-white/40 border border-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Entregues</p>
                      <p className="text-2xl font-medium text-emerald-600" style={{ fontFamily: "'Playfair Display', serif" }}>{kpis.completed}</p>
                   </div>
-                  <div className="p-5 rounded-[24px] bg-slate-50 border border-slate-200 group-hover:bg-slate-100 transition-colors shadow-sm">
+                  <div className="p-5 rounded-[24px] bg-white/40 border border-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
                      <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Histórico</p>
                      <p className="text-2xl font-medium text-slate-600" style={{ fontFamily: "'Playfair Display', serif" }}>{kpis.total}</p>
                   </div>
@@ -102,8 +102,8 @@ export default function ProjectsDashboard() {
         {/* KPI: Atrasados - Alerta */}
         <motion.div variants={fadeUp} className="col-span-1">
           <Card className={cn(
-            "glass-premium h-full group transition-all shadow-sm bg-white",
-            kpis.late > 0 ? "border-rose-200 bg-rose-50" : "border-slate-200"
+            "glass-card-admin h-full group transition-all shadow-sm",
+            kpis.late > 0 ? "border-rose-200 bg-rose-50/60" : "border-slate-200"
           )}>
             <CardContent className="p-8">
               <div className={cn(
@@ -125,7 +125,7 @@ export default function ProjectsDashboard() {
 
         {/* KPI: Saúde (Estagnados) */}
         <motion.div variants={fadeUp} className="col-span-1">
-           <Card className="glass-premium h-full group hover:border-[#7C3AED]/30 transition-all border-slate-200 shadow-sm bg-white">
+           <Card className="glass-card-admin h-full group hover:border-[#7C3AED]/30 transition-all border-slate-200 shadow-sm">
             <CardContent className="p-8">
               <div className="p-5 rounded-[24px] bg-amber-50 border border-amber-100 w-fit mb-8 group-hover:bg-amber-100 transition-all">
                 <Clock size={28} className="text-amber-500" />
@@ -141,8 +141,8 @@ export default function ProjectsDashboard() {
 
         {/* Atividade Recente - Brand List */}
         <motion.div variants={fadeUp} className="md:col-span-3 lg:col-span-2">
-           <Card className="glass-premium h-full border-slate-200 shadow-sm bg-white">
-            <CardHeader className="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+           <Card className="glass-card-admin h-full border-slate-200 shadow-sm">
+            <CardHeader className="px-8 py-6 border-b border-white/20 bg-white/20">
               <CardTitle className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Log de Operações Premium</CardTitle>
             </CardHeader>
             <CardContent className="px-6 py-6">
@@ -168,8 +168,8 @@ export default function ProjectsDashboard() {
 
         {/* Projetos em Risco - Brand Alert */}
         <motion.div variants={fadeUp} className="md:col-span-3 lg:col-span-2">
-           <Card className="glass-premium h-full border-slate-200 shadow-sm bg-white">
-            <CardHeader className="flex flex-row items-center justify-between px-8 py-6 border-b border-slate-100 bg-rose-50/50">
+           <Card className="glass-card-admin h-full border-slate-200 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between px-8 py-6 border-b border-white/20 bg-rose-50/30">
               <CardTitle className="text-[10px] font-black uppercase tracking-[0.25em] text-rose-500/80">Projetos sob Atenção</CardTitle>
               <AlertTriangle className="h-4 w-4 text-rose-300" />
             </CardHeader>

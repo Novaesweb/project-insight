@@ -123,13 +123,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
     <motion.aside
       animate={{ width: isCollapsed ? 80 : 280 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="hidden md:flex md:flex-col relative z-50 shrink-0 h-screen"
-      style={{
-        background: "rgba(255, 255, 255, 0.8)",
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
-        borderRight: "1px solid rgba(124, 58, 237, 0.1)",
-      }}
+      className="hidden md:flex md:flex-col relative z-50 shrink-0 h-screen glass-sidebar-admin"
     >
       {/* Brand Border Shimmer */}
       <div

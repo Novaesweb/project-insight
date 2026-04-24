@@ -73,11 +73,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
 
   return (
     <header
-      className="h-16 md:h-20 flex items-center justify-between px-6 sm:px-8 lg:px-10 sticky top-0 z-40 backdrop-blur-3xl overflow-hidden"
-      style={{
-        background: 'rgba(255, 255, 255, 0.7)',
-        borderBottom: '1px solid rgba(124, 58, 237, 0.1)',
-      }}
+      className="h-16 md:h-20 flex items-center justify-between px-6 sm:px-8 lg:px-10 sticky top-0 z-40 glass-header-admin overflow-hidden"
     >
       <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-brand-gradient opacity-40" />
 

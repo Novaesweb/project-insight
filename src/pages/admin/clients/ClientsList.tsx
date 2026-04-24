@@ -204,12 +204,12 @@ export default function ClientsList() {
               exit={{ opacity: 0, scale: 0.95 }}
             >
               <Card
-                className="glass-premium group h-full cursor-pointer transition-all hover:scale-[1.02] border-slate-200 shadow-sm bg-white/80"
+                className="glass-card-admin group h-full cursor-pointer transition-all hover:scale-[1.02] border-slate-200 shadow-sm"
                 onClick={() => navigate(`/admin/clientes/${client.id}`)}
               >
                 <CardContent className="p-8">
                   <div className="mb-6 flex items-start justify-between">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 text-2xl font-black text-slate-900 shadow-sm transition-all group-hover:bg-brand-gradient group-hover:text-white group-hover:border-transparent">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/40 bg-white/40 text-2xl font-black text-slate-900 shadow-sm transition-all group-hover:bg-brand-gradient group-hover:text-white group-hover:border-transparent">
                       {client.avatar || client.nome[0]}
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -290,7 +290,7 @@ export default function ClientsList() {
       </div>
 
       {!loading && filtrados.length === 0 && (
-        <Card className="glass-premium border-slate-200 bg-white/40">
+        <Card className="glass-card-admin border-slate-200">
           <CardContent className="flex flex-col items-center justify-center gap-6 p-16 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-[28px] border border-slate-100 bg-white shadow-sm">
               <Users className="h-8 w-8 text-slate-300" />
@@ -323,7 +323,7 @@ export default function ClientsList() {
           }
         }}
       >
-        <DialogContent className="max-w-lg rounded-[2.5rem] border-slate-200 bg-white p-0 text-slate-900 overflow-hidden shadow-2xl">
+        <DialogContent className="max-w-lg rounded-[2.5rem] border-white/20 bg-white/70 backdrop-blur-3xl p-0 text-slate-900 overflow-hidden shadow-2xl">
           <DialogHeader className="p-10 pb-0">
             <DialogTitle className="text-3xl font-light tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               {editingClient ? "Editar Cliente" : "Novo Cliente"}
