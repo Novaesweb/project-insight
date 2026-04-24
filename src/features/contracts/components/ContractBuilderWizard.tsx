@@ -9,6 +9,7 @@ import {
   Printer,
   Save,
   Send,
+  Sparkles,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
