@@ -124,10 +124,19 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                       boxShadow: '0 0 0 1px hsl(var(--border))',
                     } : undefined}
                   >
-                    <item.icon className={cn(
-                      "w-4 h-4 shrink-0",
-                      isActive ? "text-primary" : "text-muted-foreground/60"
-                    )} />
+                    {item.icon ? (
+                      <item.icon className={cn(
+                        "w-4 h-4 shrink-0",
+                        isActive ? "text-primary" : "text-muted-foreground/60"
+                      )} />
+                    ) : (
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 shrink-0 rounded-full",
+                          isActive ? "bg-primary" : "bg-muted-foreground/50"
+                        )}
+                      />
+                    )}
                     <span>{item.label}</span>
                     {item.showCount && leadCount > 0 && (
                       <span className="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"

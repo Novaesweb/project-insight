@@ -29,9 +29,21 @@ const stagger = { show: { transition: { staggerChildren: 0.08 } } };
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { 
-    stats, pedidos, tickets, dbStatus, activity, 
-    monthlyRevenue, topModules, funnelData, pendingInvoices, revenue, newLeads, lateProjects, refresh 
+  const {
+    stats,
+    pedidos,
+    tickets,
+    dbStatus,
+    subCount,
+    activity,
+    monthlyRevenue,
+    topModules,
+    funnelData,
+    pendingInvoices,
+    revenue,
+    newLeads,
+    lateProjects,
+    refresh,
   } = useDashboardData();
 
   const [showAddExtra, setShowAddExtra] = useState(false);
