@@ -68,6 +68,33 @@ export default function Dashboard() {
     },
   ].filter((item) => item.count > 0);
 
+  const heroSignals = [
+    {
+      label: "Base ativa",
+      value: `${stats.clientes}`,
+      hint: "clientes premium",
+      accent: "text-[#C4B5FD]",
+    },
+    {
+      label: "Banco",
+      value: dbStatus === "conectado" ? "Online" : dbStatus === "erro" ? "Falha" : "Sync",
+      hint: "telemetria central",
+      accent: dbStatus === "erro" ? "text-[#FCA5A5]" : "text-[#86EFAC]",
+    },
+    {
+      label: "Push",
+      value: `${subCount}`,
+      hint: "assinaturas ativas",
+      accent: "text-[#F9A8D4]",
+    },
+    {
+      label: "Suporte",
+      value: `${tickets.length}`,
+      hint: "tickets em vista",
+      accent: "text-[#FCD34D]",
+    },
+  ];
+
   const openAddExtra = async () => {
     const [cli, cat] = await Promise.all([
       supabase.from("clientes").select("id, nome").eq("status", "ativo").order("nome"),
@@ -111,6 +138,58 @@ export default function Dashboard() {
 
   return (
     <motion.div className="space-y-8 min-h-screen pb-12" initial="hidden" animate="show" variants={stagger}>
+      <motion.section variants={fadeUp} className="admin-hero-card p-8 md:p-10">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-brand-gradient opacity-60" />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(192,38,211,0.14),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(220,38,38,0.1),transparent_28%)]" />
+        <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.26em] text-[var(--admin-muted)]">
+              <Sparkles className="h-3.5 w-3.5 text-[#EC4899]" />
+              NovaesWeb Command Center
+            </div>
+            <div>
+              <h1 className="text-4xl font-light tracking-tight text-[var(--admin-text)] md:text-6xl" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Centro de <span className="text-brand-gradient italic">Comando</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--admin-muted)]">
+                Visao consolidada da operacao para decidir rapido, agir com clareza e manter o ecossistema inteiro da NovaesWeb no mesmo ritmo premium.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {heroSignals.map((signal) => (
+                <div key={signal.label} className="admin-stat-pill">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-muted)]">{signal.label}</p>
+                  <p className={`mt-2 text-2xl font-light tracking-tight ${signal.accent}`} style={{ fontFamily: "'Playfair Display', serif" }}>
+                    {signal.value}
+                  </p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/35">{signal.hint}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[420px]">
+            <Button className="h-12 rounded-2xl border-0 bg-brand-gradient text-[10px] font-black uppercase tracking-[0.24em] text-white shadow-[0_14px_35px_rgba(124,58,237,0.24)] hover:scale-[1.02] transition-all" onClick={openAddExtra}>
+              <Plus size={16} className="mr-2" />
+              Injetar Modulo
+            </Button>
+            <Button variant="ghost" className="h-12 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] text-[10px] font-black uppercase tracking-[0.24em] text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.08)]" onClick={() => refresh()}>
+              <ShieldCheck size={16} className="mr-2 text-[#C4B5FD]" />
+              Sincronizar
+            </Button>
+            <Button asChild className="h-12 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] text-[10px] font-black uppercase tracking-[0.24em] text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.08)]">
+              <Link to="/admin/briefings">
+                <ClipboardList size={16} className="mr-2 text-[#EC4899]" />
+                Briefings Elite
+              </Link>
+            </Button>
+            <Button variant="ghost" className="h-12 rounded-2xl border border-dashed border-[#EC4899]/30 text-[10px] font-black uppercase tracking-[0.24em] text-[#F9A8D4] hover:bg-[#EC4899]/8" onClick={() => setShowPricing(true)}>
+              <DollarSign size={16} className="mr-2" />
+              Catalogo de Valor
+            </Button>
+          </div>
+        </div>
+      </motion.section>
       
       {/* KPIs Section */}
       <DashboardKPIs stats={stats} revenue={revenue} />
@@ -118,19 +197,19 @@ export default function Dashboard() {
 
       {/* Operation Focus */}
       <motion.div variants={fadeUp}>
-        <Card className="glass-premium overflow-hidden relative border-slate-200 shadow-sm">
+        <Card className="glass-card-admin overflow-hidden relative">
           <div className="absolute inset-0 bg-brand-gradient opacity-[0.02] pointer-events-none" />
           <CardContent className="p-8 relative z-10">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#EC4899] mb-2">Foco Operacional</p>
-                <h2 className="text-3xl font-light text-slate-900 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <h2 className="text-3xl font-light text-[var(--admin-text)] leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
                   Sua <span className="text-brand-gradient italic">Estratégia</span> em Tempo Real
                 </h2>
               </div>
               <Button 
                 variant="ghost" 
-                className="h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-200 text-slate-400 hover:text-[#EC4899] hover:bg-[#EC4899]/5 transition-all" 
+                className="h-11 px-6 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] text-[10px] font-black uppercase tracking-widest text-[var(--admin-muted)] hover:text-[#F9A8D4] hover:bg-[#EC4899]/8 transition-all" 
                 onClick={() => refresh()}
               >
                 Sincronizar Inteligência
@@ -143,16 +222,16 @@ export default function Dashboard() {
                   <Link
                     key={priority.title}
                     to={priority.href}
-                    className="group relative rounded-[32px] border border-slate-100 bg-white p-6 transition-all hover:-translate-y-2 hover:border-[#7C3AED]/20 hover:bg-slate-50 shadow-sm"
+                    className="admin-list-card group relative p-6 transition-all hover:-translate-y-2 hover:border-[#C026D3]/30"
                   >
                     <div className={cn("absolute top-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r opacity-40 group-hover:opacity-100 transition-opacity", priority.accent)} />
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-4">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 group-hover:text-[#EC4899] transition-colors">{priority.title}</p>
-                        <p className="text-5xl font-light tracking-tighter text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>{priority.count}</p>
-                        <p className="text-xs text-slate-500 leading-relaxed group-hover:text-slate-600 transition-colors">{priority.description}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--admin-muted)] group-hover:text-[#F9A8D4] transition-colors">{priority.title}</p>
+                        <p className="text-5xl font-light tracking-tighter text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>{priority.count}</p>
+                        <p className="text-xs leading-relaxed text-white/55 group-hover:text-white/75 transition-colors">{priority.description}</p>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-[#EC4899] group-hover:text-white transition-all">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.05)] text-[var(--admin-muted)] group-hover:bg-[#EC4899] group-hover:text-white transition-all">
                         <ArrowRight size={18} />
                       </div>
                     </div>
@@ -160,13 +239,13 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-[32px] border border-slate-100 bg-white p-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between shadow-sm">
+              <div className="admin-list-card p-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div className="max-w-2xl">
-                  <p className="text-xl font-medium text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>Operação em <span className="text-brand-gradient italic">Equilíbrio Perfeito</span></p>
-                  <p className="text-sm text-slate-500 mt-2 leading-relaxed">Não detectamos pendências críticas. Seu fluxo operacional está otimizado de acordo com as diretrizes de alta performance da NovaesWeb.</p>
+                  <p className="text-xl font-medium text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>Operação em <span className="text-brand-gradient italic">Equilíbrio Perfeito</span></p>
+                  <p className="text-sm text-[var(--admin-muted)] mt-2 leading-relaxed">Não detectamos pendências críticas. Seu fluxo operacional está otimizado de acordo com as diretrizes de alta performance da NovaesWeb.</p>
                 </div>
                 <div className="flex gap-4">
-                  <Button asChild className="h-12 px-8 rounded-2xl bg-white border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
+                  <Button asChild className="h-12 px-8 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] text-[var(--admin-text)] font-bold text-[10px] uppercase tracking-widest hover:bg-[rgba(255,255,255,0.08)] transition-all shadow-sm">
                     <Link to="/admin/clientes">Ecossistema</Link>
                   </Button>
                   <Button asChild className="h-12 px-8 rounded-2xl bg-brand-gradient border-0 text-white font-bold text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#7C3AED]/20">
@@ -190,7 +269,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Intelligence Hub */}
-      <motion.div variants={fadeUp} className="relative glass-premium p-10 rounded-[40px] border-slate-200 overflow-hidden shadow-sm">
+      <motion.div variants={fadeUp} className="relative admin-hero-card p-10">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-brand-gradient opacity-20" />
         <div className="absolute inset-0 bg-brand-gradient opacity-[0.01] pointer-events-none" />
         
@@ -200,57 +279,36 @@ export default function Dashboard() {
           </div>
           <div>
             <h2 className="text-xs font-black text-[#EC4899] uppercase tracking-[0.4em]">Hub de Arquitetura</h2>
-            <p className="text-xl font-light text-slate-600" style={{ fontFamily: "'Playfair Display', serif" }}>Engenharia de <span className="text-slate-900 italic">Resultados Exponenciais</span></p>
+            <p className="text-xl font-light text-[var(--admin-muted)]" style={{ fontFamily: "'Playfair Display', serif" }}>Engenharia de <span className="text-[var(--admin-text)] italic">Resultados Exponenciais</span></p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-          <InsightAction icon={UserPlus} title="Lead Prospections" desc={`Identificamos ${funnelData[0]?.value || 0} ativos que podem ser convertidos em clientes elite hoje.`} action="Expandir Base" link="/admin/leads" color="border-slate-100" />
-          <InsightAction icon={DollarSign} title="Revenue Flow" desc={`O fluxo financeiro possui ${pendingInvoices} entradas pendentes de validação bancária.`} action="Validar Caixa" link="/admin/financeiro" color="border-slate-100" />
-          <InsightAction icon={Zap} title="System Integrity" desc={lateProjects > 0 ? `${lateProjects} projetos requerem intervenção imediata para manter o SLA.` : "A integridade operacional do ecossistema está em 100%."} action="Auditoria de Projetos" link="/admin/projetos" color="border-slate-100" />
-        </div>
-      </motion.div>
-
-      {/* Quick Actions */}
-      <motion.div variants={fadeUp}>
-        <div className="flex items-center gap-3 mb-6 px-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#EC4899] shadow-[0_0_8px_#EC4899]" />
-          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Protocolos Rápidos</h2>
-        </div>
-        <div className="flex flex-wrap gap-4">
-          <Button className="h-12 px-6 rounded-2xl bg-brand-gradient text-white font-bold uppercase tracking-widest text-[10px] border-0 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-[#7C3AED]/10" onClick={openAddExtra}>
-            <Plus size={16} className="mr-2" /> Injetar Módulo
-          </Button>
-          <Button asChild className="h-12 px-6 rounded-2xl bg-white text-slate-600 border border-slate-200 font-bold uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all shadow-sm">
-            <Link to="/admin/briefings">
-              <ClipboardList size={16} className="mr-2 text-[#EC4899]" /> Briefings Elite
-            </Link>
-          </Button>
-          <Button variant="ghost" className="h-12 px-6 rounded-2xl text-[#EC4899] hover:bg-[#EC4899]/5 text-[10px] font-black uppercase tracking-[0.2em] border border-dashed border-[#EC4899]/20" onClick={() => setShowPricing(true)}>
-            <DollarSign size={16} className="mr-2" /> Catálogo de Valor
-          </Button>
+          <InsightAction icon={UserPlus} title="Lead Prospections" desc={`Identificamos ${funnelData[0]?.value || 0} ativos que podem ser convertidos em clientes elite hoje.`} action="Expandir Base" link="/admin/leads" color="border-[rgba(124,58,237,0.18)]" />
+          <InsightAction icon={DollarSign} title="Revenue Flow" desc={`O fluxo financeiro possui ${pendingInvoices} entradas pendentes de validação bancária.`} action="Validar Caixa" link="/admin/financeiro" color="border-[rgba(124,58,237,0.18)]" />
+          <InsightAction icon={Zap} title="System Integrity" desc={lateProjects > 0 ? `${lateProjects} projetos requerem intervenção imediata para manter o SLA.` : "A integridade operacional do ecossistema está em 100%."} action="Auditoria de Projetos" link="/admin/projetos" color="border-[rgba(124,58,237,0.18)]" />
         </div>
       </motion.div>
 
       {/* Activity & Support */}
       <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-6" variants={fadeUp}>
-        <Card className="glass-premium lg:col-span-1 border-slate-200 shadow-sm">
-          <CardHeader className="p-6 border-b border-slate-100">
+        <Card className="glass-card-admin lg:col-span-1">
+          <CardHeader className="p-6 border-b border-[rgba(124,58,237,0.14)]">
             <CardTitle className="text-[10px] font-black text-[#EC4899] flex items-center gap-3 uppercase tracking-[0.3em]">
               <BellRing size={14} /> Log de Inteligência
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {activity.length === 0 ? (
-              <div className="text-center py-10 opacity-20">Sem atividade registrada</div>
+              <div className="py-10 text-center text-white/25">Sem atividade registrada</div>
             ) : (
               <div className="space-y-6">
                 {activity.slice(0, 5).map((act) => (
                   <div key={act.id} className="flex gap-4 group">
                     <div className="w-1 h-8 rounded-full bg-brand-gradient opacity-20 group-hover:opacity-100 transition-opacity" />
                     <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-[#EC4899] transition-colors">{act.title}</p>
-                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">{act.body}</p>
+                      <p className="text-xs font-bold text-[var(--admin-text)] group-hover:text-[#F9A8D4] transition-colors">{act.title}</p>
+                      <p className="text-[10px] text-[var(--admin-muted)] mt-1 leading-relaxed">{act.body}</p>
                     </div>
                   </div>
                 ))}
@@ -259,25 +317,25 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-premium lg:col-span-2 border-slate-200 shadow-sm">
-          <CardHeader className="p-6 border-b border-slate-100">
+        <Card className="glass-card-admin lg:col-span-2">
+          <CardHeader className="p-6 border-b border-[rgba(124,58,237,0.14)]">
             <CardTitle className="text-[10px] font-black text-[#EC4899] uppercase tracking-[0.3em]">Monitor de Pedidos</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {pedidos.length === 0 ? (
-              <div className="p-10 text-center text-slate-300">Aguardando novos fluxos</div>
+              <div className="p-10 text-center text-[var(--admin-muted)]">Aguardando novos fluxos</div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-100 hover:bg-transparent">
-                    <TableHead className="text-[9px] uppercase tracking-widest text-slate-400 pl-6">Cliente Ecossistema</TableHead>
-                    <TableHead className="text-[9px] uppercase tracking-widest text-slate-400">Status Operacional</TableHead>
+                  <TableRow className="border-[rgba(124,58,237,0.14)] hover:bg-transparent">
+                    <TableHead className="pl-6 text-[9px] uppercase tracking-widest text-[var(--admin-muted)]">Cliente Ecossistema</TableHead>
+                    <TableHead className="text-[9px] uppercase tracking-widest text-[var(--admin-muted)]">Status Operacional</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pedidos.map((p: any) => (
-                    <TableRow key={p.id} className="border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={() => navigate("/admin/clientes")}>
-                      <TableCell className="text-xs font-bold text-slate-800 py-4 pl-6">{p.clientes?.nome || "—"}</TableCell>
+                    <TableRow key={p.id} className="cursor-pointer border-[rgba(124,58,237,0.12)] hover:bg-[rgba(255,255,255,0.04)]" onClick={() => navigate("/admin/clientes")}>
+                      <TableCell className="py-4 pl-6 text-xs font-bold text-[var(--admin-text)]">{p.clientes?.nome || "—"}</TableCell>
                       <TableCell className="py-4"><StatusBadge status={p.status} /></TableCell>
                     </TableRow>
                   ))}
