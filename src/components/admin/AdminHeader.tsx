@@ -1,5 +1,7 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
+import { Sun, Moon, Settings, Plus, Users, FileSignature, Headphones } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -7,7 +9,6 @@ import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useTheme } from "@/hooks/useTheme";
 import { pageInfo } from "@/lib/constants";
 import { getRecentAdminRoutes } from "@/lib/admin-navigation";
-import { Sun, Moon, Settings, Plus, Users, FolderKanban, Headphones } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,82 +57,88 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const { theme, toggle } = useTheme();
   const { pathname } = useLocation();
   const { canAccessPath } = useAdminAccess();
+
   const recentLinks = useMemo(
     () => getRecentAdminRoutes().filter((route) => route.href !== pathname && canAccessPath(route.href)).slice(0, 2),
-    [canAccessPath, pathname]
+    [canAccessPath, pathname],
   );
 
   const quickActions = [
     { href: "/admin/clientes", label: "Novo Cliente", icon: Users },
-    { href: "/admin/projetos", label: "Novo Projeto", icon: FolderKanban },
+    { href: "/admin/contratos/novo/cliente", label: "Novo Contrato", icon: FileSignature },
     { href: "/admin/leads", label: "Ver Leads", icon: Headphones },
   ].filter((action) => canAccessPath(action.href));
 
   const matchedPageInfo = resolvePageInfoMatch(pathname);
   const pageTitle = title || matchedPageInfo?.titulo || "Painel Admin";
-  const pageSubtitle = subtitle || "Gestão Digital";
+  const pageSubtitle = subtitle || matchedPageInfo?.subtitulo || "Gestao Digital";
 
   return (
-    <header
-      className="h-16 md:h-20 flex items-center justify-between px-6 sm:px-8 lg:px-10 sticky top-0 z-40 glass-header-admin overflow-hidden"
-    >
+    <header className="glass-header-admin sticky top-0 z-40 flex h-16 items-center justify-between overflow-hidden px-6 sm:px-8 lg:h-20 lg:px-10">
       <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-brand-gradient opacity-40" />
 
-      <div className="flex items-center gap-4 min-w-0">
-        <div className="flex flex-col min-w-0">
-          <h1 
-            className="text-lg md:text-xl font-light tracking-tight text-[var(--admin-text)] truncate" 
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="flex min-w-0 flex-col">
+          <h1
+            className="truncate text-lg font-light tracking-tight text-[var(--admin-text)] md:text-xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
-            role="heading" 
+            role="heading"
             aria-level={1}
           >
             {pageTitle}
           </h1>
-          <div className="hidden lg:flex items-center gap-3 mt-1.5">
-            <p className="text-[10px] text-[var(--admin-muted)] font-bold tracking-[0.3em] uppercase">{pageSubtitle}</p>
-            <div className="w-1 h-1 rounded-full bg-brand-gradient" />
+
+          <div className="mt-1.5 hidden items-center gap-3 lg:flex">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--admin-muted)]">{pageSubtitle}</p>
+            <div className="h-1 w-1 rounded-full bg-brand-gradient" />
             {recentLinks.map((route) => (
               <Link
                 key={route.href}
                 to={route.href}
-                className="px-3 py-1 rounded-full text-[10px] font-bold transition-all hover:text-white border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] text-[var(--admin-muted)] hover:bg-[rgba(124,58,237,0.18)]"
+                className="rounded-full border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] px-3 py-1 text-[10px] font-bold text-[var(--admin-muted)] transition-all hover:bg-[rgba(124,58,237,0.18)] hover:text-white"
               >
-                {route.label}
+                {route.shortLabel || route.label}
               </Link>
             ))}
           </div>
-          <p className="text-[10px] text-[var(--admin-muted)] font-bold tracking-[0.3em] uppercase lg:hidden hidden sm:block mt-1">{pageSubtitle}</p>
+
+          <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--admin-muted)] sm:block lg:hidden">{pageSubtitle}</p>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        {/* System live indicator */}
-        <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(124,58,237,0.18)]">
+        <div className="mr-4 hidden items-center gap-2 rounded-xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] px-3 py-1.5 sm:flex">
           <div className="relative">
-            <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#FF1F1F]" />
-            <div className="relative w-1.5 h-1.5 rounded-full bg-brand-gradient" />
+            <div className="absolute h-1.5 w-1.5 animate-ping rounded-full bg-[#FF1F1F] opacity-50" />
+            <div className="relative h-1.5 w-1.5 rounded-full bg-brand-gradient" />
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-muted)]">Premium Live</span>
         </div>
 
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[rgba(255,255,255,0.04)] border border-[rgba(124,58,237,0.18)] shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+        <div className="flex items-center gap-2 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
           <GlobalSearch />
-          
-          <div className="h-4 w-[1px] mx-1 bg-[rgba(124,58,237,0.18)]" />
+          <div className="mx-1 h-4 w-[1px] bg-[rgba(124,58,237,0.18)]" />
 
           {quickActions.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-brand-gradient text-white hover:scale-110 transition-all border-0 shadow-[0_12px_30px_rgba(124,58,237,0.25)]"
-                  aria-label="Ações rápidas"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-xl border-0 bg-brand-gradient text-white shadow-[0_12px_30px_rgba(124,58,237,0.25)] transition-all hover:scale-110"
+                  aria-label="Acoes rapidas"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 glass-premium p-2 rounded-2xl border-[rgba(124,58,237,0.22)]">
+              <DropdownMenuContent align="end" className="glass-premium w-56 rounded-2xl border-[rgba(124,58,237,0.22)] p-2">
                 {quickActions.map((action) => (
-                  <DropdownMenuItem key={action.href} onClick={() => navigate(action.href)} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-brand-gradient focus:text-white transition-all group text-[var(--admin-muted)]">
-                    <action.icon className="w-4 h-4 text-[#C4B5FD] group-focus:text-white" /> 
+                  <DropdownMenuItem
+                    key={action.href}
+                    onClick={() => navigate(action.href)}
+                    className="group cursor-pointer gap-3 rounded-xl py-3 text-[var(--admin-muted)] transition-all focus:bg-brand-gradient focus:text-white"
+                  >
+                    <action.icon className="h-4 w-4 text-[#C4B5FD] group-focus:text-white" />
                     <span className="text-xs font-bold uppercase tracking-wider">{action.label}</span>
                   </DropdownMenuItem>
                 ))}
@@ -139,17 +146,27 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             </DropdownMenu>
           )}
 
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.06)]"
-            onClick={toggle} aria-label="Alternar tema">
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--admin-text)]"
+            onClick={toggle}
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-          
+
           <NotificationCenter userType="admin" userId="admin" />
-          
+
           {canAccessPath("/admin/configuracoes") && (
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.06)]"
-              onClick={() => navigate("/admin/configuracoes")} aria-label="Configurações">
-              <Settings className="w-4 h-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--admin-text)]"
+              onClick={() => navigate("/admin/configuracoes")}
+              aria-label="Configuracoes"
+            >
+              <Settings className="h-4 w-4" />
             </Button>
           )}
         </div>
