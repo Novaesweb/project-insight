@@ -133,11 +133,11 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
 
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-24 w-6 h-6 rounded-full flex items-center justify-center z-50 transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/5"
+        className="absolute -right-3 top-24 w-6 h-6 rounded-full flex items-center justify-center z-50 transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/30"
         style={{
-          background: "white",
+          background: "rgba(21, 0, 34, 0.96)",
           border: "1px solid rgba(124, 58, 237, 0.3)",
-          color: "#7C3AED",
+          color: "#F0E8FF",
         }}
         aria-label={isCollapsed ? "Expandir" : "Recolher"}
       >
@@ -147,7 +147,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       {/* Logo Section */}
       <div
         className={cn("py-8 flex items-center border-b", isCollapsed ? "px-0 justify-center" : "px-6 gap-4")}
-        style={{ borderColor: "rgba(0, 0, 0, 0.03)" }}
+        style={{ borderColor: "rgba(124, 58, 237, 0.14)" }}
       >
         <Link to="/admin" className="flex items-center gap-3 group">
           <div className="relative">
@@ -155,17 +155,17 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
               className="absolute -inset-3 rounded-2xl blur-2xl opacity-0 group-hover:opacity-40 transition-opacity duration-700 bg-brand-gradient"
             />
             <div
-              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[#FF1F1F]/20 bg-white shadow-[0_5px_15px_rgba(255,31,31,0.1)]"
+              className="rounded-xl flex items-center justify-center relative w-11 h-11 border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
             >
-              <Sparkles className="w-6 h-6 text-brand-gradient" />
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
           </div>
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <p className="text-lg font-light tracking-tight text-slate-900 leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+              <p className="text-lg font-light tracking-tight text-[var(--admin-text)] leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
                 Novaes<span className="text-[#EC4899] italic font-bold">Web</span>
               </p>
-              <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-slate-400 mt-1.5">Premium Admin</p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-[var(--admin-muted)] mt-1.5">Premium Admin</p>
             </motion.div>
           )}
         </Link>
@@ -175,7 +175,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         {navGroups.map((group) => (
           <div key={group.title}>
             {!isCollapsed && (
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-slate-300 italic">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-[var(--admin-muted)] italic">
                 {group.title}
               </p>
             )}
@@ -201,9 +201,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                           ? "justify-center px-2"
                           : "gap-4 px-4",
                       isActive
-                        ? "bg-white border-brand-subtle shadow-[0_10px_30px_rgba(0,0,0,0.04)] scale-[1.02]"
-                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
-                      isActive ? "text-slate-900" : item.accent && "text-[#FF1F1F] hover:bg-[#FF1F1F]/5"
+                        ? "bg-[rgba(124,58,237,0.18)] border-brand-subtle shadow-[0_10px_30px_rgba(0,0,0,0.16)] scale-[1.02]"
+                        : "text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.04)]",
+                      isActive ? "text-[var(--admin-text)]" : item.accent && "text-[#F9A8D4] hover:bg-[rgba(236,72,153,0.08)]"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
@@ -222,7 +222,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                       <span
                         className={cn(
                           "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
-                          isActive ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "bg-slate-200 group-hover:bg-slate-400"
+                          isActive ? "bg-[#F0E8FF] shadow-[0_0_10px_rgba(240,232,255,0.45)]" : "bg-[rgba(155,137,184,0.55)] group-hover:bg-[#C4B5FD]"
                         )}
                       />
                     ) : item.icon ? (
@@ -230,10 +230,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                         className={cn(
                           "w-5 h-5 shrink-0 transition-all duration-300",
                           isActive
-                            ? "text-brand-gradient"
+                            ? "text-[#C4B5FD]"
                             : item.accent
-                              ? "text-[#FF1F1F]"
-                              : "text-slate-300 group-hover:text-slate-600 group-hover:scale-110"
+                              ? "text-[#F472B6]"
+                              : "text-[var(--admin-muted)] group-hover:text-[var(--admin-text)] group-hover:scale-110"
                         )}
                       />
                     ) : null}
@@ -242,7 +242,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                       <span
                         className={cn(
                           "ml-auto px-2 py-0.5 rounded-full text-[9px] font-black transition-all",
-                          isActive ? "bg-white text-[#7C3AED]" : "bg-brand-gradient text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]"
+                          isActive ? "bg-[rgba(255,255,255,0.08)] text-[#F0E8FF]" : "bg-brand-gradient text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]"
                         )}
                       >
                         {badgeCount}
@@ -257,7 +257,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
 
         {!isCollapsed && (
           <div className="pt-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-slate-300">
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] px-4 mb-3 text-[var(--admin-muted)]">
               Atalhos Elite
             </p>
             <div className="flex flex-wrap gap-2 px-4">
@@ -265,7 +265,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                 <Link
                   key={route.href}
                   to={route.href}
-                  className="rounded-xl px-4 py-2 text-[11px] font-bold text-slate-500 transition-all hover:text-slate-900 hover:border-[#7C3AED]/50 border border-slate-200 bg-white"
+                  className="rounded-xl px-4 py-2 text-[11px] font-bold text-[var(--admin-muted)] transition-all hover:text-[var(--admin-text)] hover:border-[#7C3AED]/50 border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)]"
                 >
                   {route.shortLabel || route.label}
                 </Link>
@@ -275,11 +275,11 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         )}
       </nav>
 
-      <div className={cn("p-4 border-t", isCollapsed && "px-2")} style={{ borderColor: "rgba(0, 0, 0, 0.03)" }}>
+      <div className={cn("p-4 border-t", isCollapsed && "px-2")} style={{ borderColor: "rgba(124, 58, 237, 0.14)" }}>
         <button
           onClick={handleLogout}
           className={cn(
-            "flex items-center py-3 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rose-600 transition-all w-full rounded-2xl hover:bg-rose-50 group",
+            "flex items-center py-3 text-xs font-bold uppercase tracking-widest text-[var(--admin-muted)] hover:text-[#FCA5A5] transition-all w-full rounded-2xl hover:bg-[rgba(220,38,38,0.08)] group",
             isCollapsed ? "justify-center px-2" : "gap-4 px-4"
           )}
         >

@@ -80,7 +80,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex flex-col min-w-0">
           <h1 
-            className="text-lg md:text-xl font-light tracking-tight text-slate-900 truncate" 
+            className="text-lg md:text-xl font-light tracking-tight text-[var(--admin-text)] truncate" 
             style={{ fontFamily: "'Playfair Display', serif" }}
             role="heading" 
             aria-level={1}
@@ -88,50 +88,50 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             {pageTitle}
           </h1>
           <div className="hidden lg:flex items-center gap-3 mt-1.5">
-            <p className="text-[10px] text-slate-400 font-bold tracking-[0.3em] uppercase">{pageSubtitle}</p>
+            <p className="text-[10px] text-[var(--admin-muted)] font-bold tracking-[0.3em] uppercase">{pageSubtitle}</p>
             <div className="w-1 h-1 rounded-full bg-brand-gradient" />
             {recentLinks.map((route) => (
               <Link
                 key={route.href}
                 to={route.href}
-                className="px-3 py-1 rounded-full text-[10px] font-bold transition-all hover:text-[#7C3AED] border border-slate-200 bg-white text-slate-400"
+                className="px-3 py-1 rounded-full text-[10px] font-bold transition-all hover:text-white border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] text-[var(--admin-muted)] hover:bg-[rgba(124,58,237,0.18)]"
               >
                 {route.label}
               </Link>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400 font-bold tracking-[0.3em] uppercase lg:hidden hidden sm:block mt-1">{pageSubtitle}</p>
+          <p className="text-[10px] text-[var(--admin-muted)] font-bold tracking-[0.3em] uppercase lg:hidden hidden sm:block mt-1">{pageSubtitle}</p>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         {/* System live indicator */}
-        <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
+        <div className="hidden sm:flex items-center gap-2 mr-4 px-3 py-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(124,58,237,0.18)]">
           <div className="relative">
             <div className="absolute w-1.5 h-1.5 rounded-full animate-ping opacity-50 bg-[#FF1F1F]" />
             <div className="relative w-1.5 h-1.5 rounded-full bg-brand-gradient" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Premium Live</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-muted)]">Premium Live</span>
         </div>
 
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/50 border border-slate-200">
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[rgba(255,255,255,0.04)] border border-[rgba(124,58,237,0.18)] shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
           <GlobalSearch />
           
-          <div className="h-4 w-[1px] mx-1 bg-slate-200" />
+          <div className="h-4 w-[1px] mx-1 bg-[rgba(124,58,237,0.18)]" />
 
           {quickActions.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-white text-[#FF1F1F] hover:scale-110 transition-all border border-[#FF1F1F]/10 shadow-sm shadow-red-500/5"
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-brand-gradient text-white hover:scale-110 transition-all border-0 shadow-[0_12px_30px_rgba(124,58,237,0.25)]"
                   aria-label="Ações rápidas"
                 >
                   <Plus className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 glass-premium p-2 rounded-2xl border-slate-200">
+              <DropdownMenuContent align="end" className="w-56 glass-premium p-2 rounded-2xl border-[rgba(124,58,237,0.22)]">
                 {quickActions.map((action) => (
-                  <DropdownMenuItem key={action.href} onClick={() => navigate(action.href)} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-brand-gradient focus:text-white transition-all group text-slate-600">
-                    <action.icon className="w-4 h-4 text-[#7C3AED] group-focus:text-white" /> 
+                  <DropdownMenuItem key={action.href} onClick={() => navigate(action.href)} className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-brand-gradient focus:text-white transition-all group text-[var(--admin-muted)]">
+                    <action.icon className="w-4 h-4 text-[#C4B5FD] group-focus:text-white" /> 
                     <span className="text-xs font-bold uppercase tracking-wider">{action.label}</span>
                   </DropdownMenuItem>
                 ))}
@@ -139,7 +139,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             </DropdownMenu>
           )}
 
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.06)]"
             onClick={toggle} aria-label="Alternar tema">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
@@ -147,7 +147,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
           <NotificationCenter userType="admin" userId="admin" />
           
           {canAccessPath("/admin/configuracoes") && (
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.06)]"
               onClick={() => navigate("/admin/configuracoes")} aria-label="Configurações">
               <Settings className="w-4 h-4" />
             </Button>

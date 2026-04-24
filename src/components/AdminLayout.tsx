@@ -215,6 +215,14 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
+    document.body.classList.add("admin-premium-active");
+
+    return () => {
+      document.body.classList.remove("admin-premium-active");
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     const keepSessionAlive = async () => {
@@ -249,8 +257,10 @@ function AdminShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-xl font-light text-slate-900 tracking-widest uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>Validando <span className="text-brand-gradient italic">Credenciais</span></p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Preparando ecossistema premium...</p>
+              <p className="text-xl font-light text-[var(--admin-text)] tracking-widest uppercase" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Validando <span className="text-brand-gradient italic">Credenciais</span>
+              </p>
+              <p className="text-[10px] font-bold text-[var(--admin-muted)] uppercase tracking-[0.3em]">Preparando ecossistema premium...</p>
             </div>
           </div>
         </div>
@@ -260,15 +270,15 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     if (!canAccessPath(pathname)) {
       return (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
-          <div className="max-w-lg w-full glass-premium p-10 text-center rounded-[40px] border-slate-200">
-            <div className="mx-auto w-20 h-20 rounded-[28px] bg-[#7C3AED]/10 border border-[#7C3AED]/20 flex items-center justify-center mb-8">
+          <div className="max-w-lg w-full glass-card-admin p-10 text-center rounded-[40px]">
+            <div className="mx-auto w-20 h-20 rounded-[28px] bg-[rgba(124,58,237,0.12)] border border-[rgba(124,58,237,0.22)] flex items-center justify-center mb-8">
               <LockKeyhole size={36} className="text-[#7C3AED]" />
             </div>
             <p className="text-[10px] uppercase tracking-[0.4em] font-black text-[#EC4899] mb-4">Acesso Reservado</p>
-            <h2 className="text-3xl font-light text-slate-900 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h2 className="text-3xl font-light text-[var(--admin-text)] leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               Este módulo pertence a outro <span className="text-brand-gradient italic">nível de acesso</span>.
             </h2>
-            <p className="text-sm text-slate-500 mt-6 leading-relaxed px-4">
+            <p className="text-sm text-[var(--admin-muted)] mt-6 leading-relaxed px-4">
               As permissões de segurança da NovaesWeb são rigorosas. Se você acredita que isto é um erro, consulte a governança do sistema.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-10 justify-center">
@@ -288,8 +298,8 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen admin-light-moving-bg text-slate-900 font-sora selection:bg-primary/30 overflow-hidden relative">
-      <div className="fixed inset-0 pointer-events-none ambient-glow opacity-10" />
+    <div className="flex h-screen admin-premium-bg text-[var(--admin-text)] font-sora selection:bg-primary/30 overflow-hidden relative">
+      <div className="fixed inset-0 pointer-events-none ambient-glow opacity-20" />
 
       
       {/* Desktop Sidebar */}
@@ -308,7 +318,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Mobile Sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-72 p-0 overflow-hidden"
-          style={{ background: 'hsl(var(--background))', borderRight: '1px solid hsl(var(--border))' }}>
+          style={{ background: 'hsl(var(--background))', borderRight: '1px solid hsl(var(--border))', color: 'var(--admin-text)' }}>
           <div className="h-full flex flex-col">
             <MobileSidebar branding={branding} onClose={() => setOpen(false)} />
           </div>
@@ -328,8 +338,9 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         <div
           className="grid grid-cols-5 gap-1 p-1.5 rounded-[1.35rem] backdrop-blur-xl shadow-2xl"
           style={{
-            background: "hsl(var(--background) / 0.92)",
-            border: "1px solid hsl(var(--border))",
+            background: "linear-gradient(180deg, rgba(13,0,24,0.92), rgba(7,0,13,0.95))",
+            border: "1px solid rgba(124,58,237,0.18)",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
           }}
         >
           {availableDockItems.slice(0, 4).map((item) => {

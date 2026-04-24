@@ -113,15 +113,21 @@ section {
     --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
     --gradient-admin-subtle: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(107, 33, 168, 0.08), rgba(236, 72, 153, 0.08));
     /* High-End Dark Command Theme Tokens */
-    --admin-bg: #08000F;
-    --admin-surface: #0F0018;
+    --admin-bg: #07000D;
+    --admin-surface: #0D0018;
+    --admin-surface-2: #150022;
     --admin-border: 240 10% 20% / 0.4;
+    --admin-border-color: rgba(124, 58, 237, 0.22);
     --admin-accent-purple: #7C3AED;
+    --admin-accent-magenta: #C026D3;
     --admin-accent-red: #DC2626;
     --admin-accent-green: #10B981;
     --admin-accent-yellow: #F59E0B;
-    --admin-gradient: linear-gradient(135deg, var(--admin-accent-purple), var(--admin-accent-red));
+    --admin-gradient: linear-gradient(135deg, var(--admin-accent-purple), var(--admin-accent-magenta), var(--admin-accent-red));
     --admin-glow: rgba(124, 58, 237, 0.15);
+    --admin-text: #F0E8FF;
+    --admin-muted: #9B89B8;
+    --admin-muted-soft: rgba(155, 137, 184, 0.72);
     
     --glow-primary: rgba(124, 58, 237, 0.15);
     --glow-secondary: rgba(220, 38, 38, 0.15);
@@ -131,6 +137,11 @@ section {
     --brand-secondary: #7C3AED;
     --brand-pink: #EC4899;
     --brand-glow: rgba(124, 58, 237, 0.3);
+    --novaes-red: #FF1F1F;
+    --novaes-purple: #7C3AED;
+    --novaes-pink: #EC4899;
+    --novaes-gradient: linear-gradient(135deg, var(--novaes-red), var(--novaes-purple), var(--novaes-pink));
+    --novaes-gradient-text: linear-gradient(to right, var(--novaes-red), var(--novaes-purple), var(--novaes-pink));
   }
 
   .light {
@@ -212,19 +223,35 @@ section {
 
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
+    background: var(--gradient-primary);
   }
 
   .glass-premium {
-    @apply border border-white/40 bg-white/40 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.05)];
+    @apply backdrop-blur-xl shadow-2xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.10);
   }
   
   .text-brand-gradient {
-    @apply bg-gradient-to-r from-[#FF1F1F] via-[#7C3AED] to-[#EC4899] bg-clip-text text-transparent;
+    background: var(--novaes-gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   .bg-brand-gradient {
-    @apply bg-gradient-to-r from-[#FF1F1F] via-[#7C3AED] to-[#EC4899];
+    background: var(--novaes-gradient);
+  }
+
+  .bg-gold-gradient {
+    background: var(--novaes-gradient);
+  }
+
+  .text-gold-gradient {
+    background: var(--novaes-gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   .border-brand-subtle {
@@ -242,28 +269,127 @@ section {
     animation: shimmer 2s infinite;
   }
 
-  /* Admin Premium Moving Background - Refined with brand colors */
+  .admin-premium-bg,
   .admin-light-moving-bg {
-    background: radial-gradient(circle at 0% 0%, rgba(255, 31, 31, 0.18) 0%, transparent 60%),
-                radial-gradient(circle at 100% 0%, rgba(124, 58, 237, 0.18) 0%, transparent 60%),
-                radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.15) 0%, transparent 60%),
-                radial-gradient(circle at 0% 100%, rgba(124, 58, 237, 0.15) 0%, transparent 60%),
-                #f8f6ff; /* Tinted white */
-    background-size: 200% 200%;
-    animation: mesh-move 20s ease-in-out infinite;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.20) 0%, transparent 35%),
+      radial-gradient(circle at 100% 0%, rgba(192, 38, 211, 0.16) 0%, transparent 32%),
+      radial-gradient(circle at 100% 100%, rgba(220, 38, 38, 0.14) 0%, transparent 34%),
+      radial-gradient(circle at 0% 100%, rgba(124, 58, 237, 0.12) 0%, transparent 30%),
+      linear-gradient(180deg, rgba(13, 0, 24, 0.98), rgba(7, 0, 13, 1));
+    background-size: 180% 180%;
+    animation: mesh-move 24s ease-in-out infinite;
   }
 
   .glass-card-admin {
-    @apply backdrop-blur-xl bg-white/60 border border-white/40 shadow-xl;
-    box-shadow: 0 8px 32px 0 rgba(124, 58, 237, 0.05);
+    @apply backdrop-blur-xl shadow-xl;
+    background: linear-gradient(180deg, rgba(21, 0, 34, 0.92), rgba(13, 0, 24, 0.88));
+    border: 1px solid rgba(124, 58, 237, 0.22);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .glass-sidebar-admin {
-    @apply backdrop-blur-3xl bg-white/40 border-r border-white/20;
+    @apply backdrop-blur-3xl;
+    background: linear-gradient(180deg, rgba(13, 0, 24, 0.96), rgba(7, 0, 13, 0.98));
+    border-right: 1px solid rgba(124, 58, 237, 0.16);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.02);
   }
 
   .glass-header-admin {
-    @apply backdrop-blur-2xl bg-white/30 border-b border-white/20;
+    @apply backdrop-blur-2xl;
+    background: linear-gradient(180deg, rgba(13, 0, 24, 0.88), rgba(13, 0, 24, 0.72));
+    border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+  }
+
+  body.admin-premium-active {
+    --background: 276 100% 3%;
+    --foreground: 272 73% 95%;
+    --card: 280 64% 8% / 0.94;
+    --card-foreground: 272 73% 95%;
+    --popover: 280 64% 8%;
+    --popover-foreground: 272 73% 95%;
+    --primary: 266 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 282 58% 10%;
+    --secondary-foreground: 272 73% 95%;
+    --muted: 282 52% 10%;
+    --muted-foreground: 272 25% 64%;
+    --accent: 311 72% 46%;
+    --accent-foreground: 0 0% 100%;
+    --border: 272 63% 54% / 0.22;
+    --input: 272 63% 54% / 0.22;
+    --ring: 266 83% 58%;
+    --sidebar-background: 278 100% 4%;
+    --sidebar-foreground: 272 25% 64%;
+    --sidebar-primary: 266 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 282 58% 10%;
+    --sidebar-accent-foreground: 272 73% 95%;
+    --sidebar-border: 272 63% 54% / 0.18;
+    --sidebar-ring: 266 83% 58%;
+    --gradient-primary: linear-gradient(135deg, #7C3AED, #C026D3, #DC2626);
+    --novaes-gradient: linear-gradient(135deg, #7C3AED, #C026D3, #DC2626);
+    --novaes-gradient-text: linear-gradient(90deg, #DDD6FE, #F5D0FE, #FCA5A5);
+    color: var(--admin-text);
+    background: var(--admin-bg);
+  }
+
+  body.admin-premium-active .glass-premium,
+  body.admin-premium-active .glass-card-admin {
+    background: linear-gradient(180deg, rgba(21, 0, 34, 0.94), rgba(13, 0, 24, 0.90));
+    border-color: var(--admin-border-color);
+    color: var(--admin-text);
+  }
+
+  body.admin-premium-active .glass-sidebar-admin {
+    background: linear-gradient(180deg, rgba(13, 0, 24, 0.98), rgba(7, 0, 13, 0.99));
+    border-right-color: rgba(124, 58, 237, 0.18);
+  }
+
+  body.admin-premium-active .glass-header-admin {
+    background: linear-gradient(180deg, rgba(13, 0, 24, 0.92), rgba(13, 0, 24, 0.78));
+    border-bottom-color: rgba(124, 58, 237, 0.18);
+  }
+
+  body.admin-premium-active .border-brand-subtle {
+    border-color: var(--admin-border-color) !important;
+  }
+
+  body.admin-premium-active [class~="bg-white"],
+  body.admin-premium-active [class~="bg-white/40"],
+  body.admin-premium-active [class~="bg-white/50"],
+  body.admin-premium-active [class~="bg-slate-50"],
+  body.admin-premium-active [class~="bg-slate-100"] {
+    background-color: var(--admin-surface-2) !important;
+    color: var(--admin-text);
+  }
+
+  body.admin-premium-active [class~="border-slate-100"],
+  body.admin-premium-active [class~="border-slate-200"] {
+    border-color: var(--admin-border-color) !important;
+  }
+
+  body.admin-premium-active [class~="text-slate-900"],
+  body.admin-premium-active [class~="text-slate-800"],
+  body.admin-premium-active [class~="text-slate-700"] {
+    color: var(--admin-text) !important;
+  }
+
+  body.admin-premium-active [class~="text-slate-600"],
+  body.admin-premium-active [class~="text-slate-500"],
+  body.admin-premium-active [class~="text-slate-400"],
+  body.admin-premium-active [class~="text-slate-300"] {
+    color: var(--admin-muted) !important;
+  }
+
+  body.admin-premium-active [class*="hover:bg-slate-50"]:hover,
+  body.admin-premium-active [class*="hover:bg-slate-100"]:hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  body.admin-premium-active [class*="hover:text-slate-900"]:hover,
+  body.admin-premium-active [class*="hover:text-slate-600"]:hover {
+    color: var(--admin-text) !important;
   }
 
   @keyframes mesh-move {
@@ -762,161 +888,11 @@ section {
   }
 
   .font-space {
-  /* Ambient glow with animated rays */
-  .ambient-glow {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .ambient-glow::before {
-    content: '';
-    position: fixed;
-    top: -40%;
-    right: -20%;
-    width: 800px;
-    height: 800px;
-    background:
-      conic-gradient(from 0deg at 50% 50%,
-        transparent 0deg,
-        hsla(346, 78%, 55%, 0.08) 30deg,
-        transparent 60deg,
-        hsla(280, 60%, 38%, 0.06) 120deg,
-        transparent 150deg,
-        hsla(346, 78%, 55%, 0.05) 210deg,
-        transparent 240deg,
-        hsla(330, 70%, 45%, 0.07) 300deg,
-        transparent 330deg,
-        hsla(280, 60%, 38%, 0.04) 360deg);
-    animation: ray-spin 25s linear infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .ambient-glow::after {
-    content: '';
-    position: fixed;
-    bottom: -30%;
-    left: -15%;
-    width: 700px;
-    height: 700px;
-    background:
-      conic-gradient(from 180deg at 50% 50%,
-        transparent 0deg,
-        hsla(280, 60%, 38%, 0.07) 40deg,
-        transparent 80deg,
-        hsla(346, 78%, 55%, 0.05) 140deg,
-        transparent 180deg,
-        hsla(330, 70%, 45%, 0.06) 240deg,
-        transparent 280deg,
-        hsla(280, 60%, 38%, 0.04) 340deg,
-        transparent 360deg);
-    animation: ray-spin 30s linear infinite reverse;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Login-specific dramatic rays */
-  .login-rays {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .login-rays::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background:
-      conic-gradient(from 0deg at 50% 50%,
-        transparent 0deg,
-        hsla(346, 78%, 55%, 0.1) 15deg,
-        transparent 30deg,
-        hsla(280, 60%, 38%, 0.08) 60deg,
-        transparent 75deg,
-        hsla(330, 70%, 45%, 0.06) 105deg,
-        transparent 120deg,
-        hsla(346, 78%, 55%, 0.09) 150deg,
-        transparent 165deg,
-        hsla(280, 60%, 38%, 0.07) 195deg,
-        transparent 210deg,
-        hsla(346, 78%, 55%, 0.05) 240deg,
-        transparent 255deg,
-        hsla(330, 70%, 45%, 0.08) 285deg,
-        transparent 300deg,
-        hsla(280, 60%, 38%, 0.06) 330deg,
-        transparent 345deg,
-        hsla(346, 78%, 55%, 0.04) 360deg);
-    animation: ray-spin 20s linear infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .login-rays::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 600px;
-    height: 600px;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle,
-        hsla(346, 78%, 55%, 0.12) 0%,
-        hsla(280, 60%, 38%, 0.06) 40%,
-        transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Novo fundo para painel logado */
-  .admin-layout-container {
-    background-image: linear-gradient(to bottom, rgba(5, 5, 5, 0.92), rgba(5, 5, 5, 0.88));
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-  }
-
-  .font-space {
     font-family: 'Space Grotesk', sans-serif;
   }
 
   .bg-novaesweb-gradient {
     background: radial-gradient(circle at center, hsla(260, 20%, 15%, 1) 0%, hsla(260, 20%, 8%, 1) 100%);
-  }
-
-  /* NOVAES PREMIUM GRADIENT - Red, Purple, Pink */
-  :root {
-  --novaes-red: #FF1F1F;
-  --novaes-purple: #7C3AED;
-  --novaes-pink: #EC4899;
-  --novaes-gradient: linear-gradient(135deg, var(--novaes-red), var(--novaes-purple), var(--novaes-pink));
-  --novaes-gradient-text: linear-gradient(to right, var(--novaes-red), var(--novaes-purple), var(--novaes-pink));
-  }
-
-  .glass-premium {
-  @apply backdrop-blur-xl bg-white/[0.03] border border-white/10 shadow-2xl;
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
-  }
-
-  .bg-brand-gradient {
-  background: var(--novaes-gradient);
-  }
-
-  .text-brand-gradient {
-  background: var(--novaes-gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  }
-
-  /* Backwards compatibility for the classes I used */
-  .bg-gold-gradient {
-  @apply bg-brand-gradient;
-  }
-
-  .text-gold-gradient {
-  @apply text-brand-gradient;
   }
 
   .sidebar-novaesweb-gradient {
@@ -1363,8 +1339,6 @@ section {
 .gold-item {
   color: hsl(var(--gold)) !important;
   text-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
-}
-
 }
 
 .animate-conic {
