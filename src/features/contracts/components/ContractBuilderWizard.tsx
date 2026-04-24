@@ -244,7 +244,7 @@ export function ContractBuilderWizard({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-44 md:pb-48">
       {/* HEADER PREMIUM COM ACENTO DOURADO */}
       <motion.section
         initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
@@ -359,8 +359,8 @@ export function ContractBuilderWizard({
       </div>
 
       {/* FOOTER DE AÇÕES PREMIUM */}
-      <div className="sticky bottom-6 z-40">
-        <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[#0d0914]/90 backdrop-blur-xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+      <div className="pointer-events-none fixed bottom-4 left-3 right-3 z-40 md:left-[18rem] md:right-6">
+        <div className="pointer-events-auto mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[#0d0914]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4 px-2">
                <div className={`h-2 w-2 rounded-full ${builderRemoteAutosaveState === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-[#7C3AED]'}`} />
