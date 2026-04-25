@@ -104,15 +104,15 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
   };
 
   return (
-    <div className="flex h-full flex-col" style={{ background: "hsl(var(--background))" }}>
-      <div className="flex items-center gap-3 border-b px-5 py-5" style={{ borderColor: "hsl(var(--border))" }}>
+    <div className="flex h-full flex-col bg-[var(--admin-bg)] text-[var(--admin-text)]">
+      <div className="flex items-center gap-3 border-b border-[rgba(124,58,237,0.14)] px-5 py-5">
         <Link to="/admin" onClick={onClose} className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--gradient-primary)" }}>
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
-            <p className="leading-none text-sm font-extrabold tracking-tight text-foreground">{branding.nome || "NovaesWeb"}</p>
-            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Admin Panel</p>
+            <p className="admin-brand-title leading-none text-[var(--admin-text)]">{branding.nome || "NovaesWeb"}</p>
+            <p className="admin-kicker mt-1 text-[var(--admin-muted)]">Admin Panel</p>
           </div>
         </Link>
       </div>
@@ -120,7 +120,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
       <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
         {mobileNavGroups.map((group) => (
           <div key={group.title}>
-            <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50">{group.title}</p>
+            <p className="admin-kicker mb-2 px-3 text-[var(--admin-muted-soft)]">{group.title}</p>
             <div className="space-y-0.5">
               {group.items.filter((item) => canAccessPath(item.href)).map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
@@ -131,25 +131,22 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                     to={item.href}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all",
-                      isActive ? "text-foreground" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all",
+                      isActive ? "text-[var(--admin-text)]" : "text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]",
                     )}
                     style={
                       isActive
                         ? {
-                            background: "hsl(var(--secondary))",
-                            boxShadow: "0 0 0 1px hsl(var(--border))",
+                            background: "rgba(124,58,237,0.16)",
+                            boxShadow: "0 0 0 1px rgba(124,58,237,0.18)",
                           }
                         : undefined
                     }
                   >
-                    <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground/60")} />
-                    <span>{item.label}</span>
+                    <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-[#C4B5FD]" : "text-[var(--admin-muted)]")} />
+                    <span className="admin-nav-copy text-[0.74rem]">{item.label}</span>
                     {item.showCount && leadCount > 0 && (
-                      <span
-                        className="ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
-                        style={{ background: "hsl(var(--primary))" }}
-                      >
+                      <span className="ml-auto rounded-full bg-brand-gradient px-1.5 py-0.5 text-[9px] font-bold text-white">
                         {leadCount}
                       </span>
                     )}
@@ -161,20 +158,15 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
         ))}
 
         {favoriteRoutes.length > 0 && (
-          <div className="border-t pt-4" style={{ borderColor: "hsl(var(--border))" }}>
-            <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50">Atalhos</p>
+          <div className="border-t border-[rgba(124,58,237,0.14)] pt-4">
+            <p className="admin-kicker mb-2 px-3 text-[var(--admin-muted-soft)]">Atalhos</p>
             <div className="flex flex-wrap gap-2 px-3">
               {favoriteRoutes.map((route) => (
                 <Link
                   key={route.href}
                   to={route.href}
                   onClick={onClose}
-                  className="rounded-xl px-3 py-2 text-[11px] font-semibold"
-                  style={{
-                    background: "hsl(var(--secondary))",
-                    border: "1px solid hsl(var(--border))",
-                    color: "hsl(var(--foreground))",
-                  }}
+                  className="rounded-xl border border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-[11px] font-semibold text-[var(--admin-text)]"
                 >
                   {route.label}
                 </Link>
@@ -185,17 +177,17 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
 
         {recentRoutes.length > 0 && (
           <div>
-            <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50">Recentes</p>
+            <p className="admin-kicker mb-2 px-3 text-[var(--admin-muted-soft)]">Recentes</p>
             <div className="space-y-1 px-3">
               {recentRoutes.map((route) => (
                 <Link
                   key={route.href}
                   to={route.href}
                   onClick={onClose}
-                  className="flex items-center justify-between rounded-xl px-3 py-2 text-[12px] font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                  className="flex items-center justify-between rounded-xl px-3 py-2 text-[12px] font-medium text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]"
                 >
                   <span>{route.label}</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground/50">Abrir</span>
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--admin-muted-soft)]">Abrir</span>
                 </Link>
               ))}
             </div>
@@ -203,10 +195,10 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
         )}
       </nav>
 
-      <div className="border-t p-3" style={{ borderColor: "hsl(var(--border))" }}>
+      <div className="border-t border-[rgba(124,58,237,0.14)] p-3">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-muted-foreground transition-all hover:bg-destructive/5 hover:text-destructive"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sair</span>
@@ -336,7 +328,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="admin-premium-bg relative flex h-screen overflow-hidden font-sora text-[var(--admin-text)] selection:bg-primary/30">
+    <div className="admin-premium-bg relative flex h-screen overflow-hidden text-[var(--admin-text)] selection:bg-primary/30">
       <div className="ambient-glow pointer-events-none fixed inset-0 opacity-20" />
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">

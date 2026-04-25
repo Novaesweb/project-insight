@@ -113,12 +113,13 @@ export default function GlobalSearch() {
     <>
       <button
         type="button"
-        className="relative inline-flex h-9 w-full items-center justify-start rounded-[0.8rem] border border-white/10 bg-white/5 px-3 text-sm text-white/50 shadow-none transition-colors hover:text-white sm:pr-12 md:w-44 lg:w-72"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-white/10 bg-white/5 px-0 text-sm text-white/50 shadow-none transition-colors hover:text-white sm:w-auto sm:justify-start sm:px-3 sm:pr-12 md:w-44 lg:w-72"
         onClick={() => setOpen(true)}
+        aria-label="Abrir busca global"
       >
-        <Search className="mr-2 h-4 w-4" />
-        <span className="hidden lg:inline-flex">Buscar cliente, lead, fatura...</span>
-        <span className="inline-flex lg:hidden">Busca global</span>
+        <Search className="h-4 w-4 sm:mr-2" />
+        <span className="hidden md:inline-flex">Buscar cliente, lead, fatura...</span>
+        <span className="hidden sm:inline-flex md:hidden">Busca global</span>
         <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-6 select-none items-center gap-1 rounded border border-white/20 bg-white/5 px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>

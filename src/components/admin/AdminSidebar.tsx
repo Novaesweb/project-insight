@@ -156,7 +156,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         />
 
         {!isCollapsed && (
-          <span className={cn("truncate tracking-tight", variant === "primary" && "text-[12px] font-semibold uppercase tracking-[0.16em]")}>
+          <span className={cn("truncate", variant === "primary" ? "admin-nav-copy text-[0.76rem]" : "text-[13px] font-medium tracking-tight")}>
             {item.label}
           </span>
         )}
@@ -212,10 +212,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
           </div>
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <p className="leading-none text-lg font-light tracking-tight text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>
+              <p className="admin-brand-title leading-none text-[var(--admin-text)]">
                 {branding.nome || "Novaes"}<span className="font-bold italic text-[#EC4899]">Web</span>
               </p>
-              <p className="mt-1.5 text-[9px] font-bold uppercase tracking-[0.4em] text-[var(--admin-muted)]">Premium Admin</p>
+              <p className="admin-kicker mt-1.5 text-[var(--admin-muted)]">Premium Admin</p>
             </motion.div>
           )}
         </Link>
@@ -224,10 +224,10 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
       <nav className="custom-scrollbar flex-1 space-y-6 overflow-y-auto px-4 py-6" role="navigation">
         <div>
           {!isCollapsed && (
-            <p className="mb-3 px-4 text-[9px] font-black uppercase tracking-[0.32em] text-[#F0E8FF]/55">
-              Essencial
-            </p>
-          )}
+              <p className="admin-kicker mb-3 px-4 text-[#F0E8FF]/55">
+                Essencial
+              </p>
+            )}
           <div className="space-y-1.5">
             {primaryNavItems.filter((item) => canAccessPath(item.href)).map((item) => renderNavItem(item, "primary"))}
           </div>
@@ -236,7 +236,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         {navGroups.map((group) => (
           <div key={group.title}>
             {!isCollapsed && (
-              <p className="mb-3 px-4 text-[9px] font-black uppercase tracking-[0.3em] italic text-[var(--admin-muted)]">
+              <p className="admin-kicker mb-3 px-4 italic text-[var(--admin-muted)]">
                 {group.title}
               </p>
             )}

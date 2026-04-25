@@ -1,22 +1,20 @@
 import { motion } from "framer-motion";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  AlertCircle, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Plus,
-  FileText,
-  PieChart,
+import {
+  AlertCircle,
+  ArrowUpRight,
   Calendar,
-  Wallet
+  DollarSign,
+  FileText,
+  Plus,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
-import { useFinance } from "@/features/finance/hooks/useFinance";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import UpcomingBillingPanel from "@/components/admin/financeiro/UpcomingBillingPanel";
+import { useFinance } from "@/features/finance/hooks/useFinance";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
@@ -25,7 +23,7 @@ const fadeUp = {
 };
 
 export default function FinanceDashboard() {
-  const { entries, stats, loading } = useFinance();
+  const { stats } = useFinance();
 
   return (
     <motion.div
@@ -34,135 +32,138 @@ export default function FinanceDashboard() {
       animate="show"
       variants={{ show: { transition: { staggerChildren: 0.1 } } }}
     >
-      {/* Header Premium Brand */}
-      <motion.div variants={fadeUp} className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between px-2">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border-slate-200 bg-slate-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
-            <TrendingUp className="h-3.5 w-3.5 text-[#EC4899]" />
-            Financial Intelligence
+      <motion.section variants={fadeUp} className="admin-hero-card p-8 md:p-10">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-brand-gradient opacity-60" />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(192,38,211,0.14),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(220,38,38,0.08),transparent_28%)]" />
+
+        <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[var(--admin-muted)]">
+              <TrendingUp className="h-3.5 w-3.5 text-[#EC4899]" />
+              Financial Intelligence
+            </div>
+
+            <div>
+              <h1 className="admin-page-title text-[var(--admin-text)]">
+                Gestao <span className="text-brand-gradient italic">Financeira</span>
+              </h1>
+              <p className="admin-copy">
+                Monitore o fluxo de capital, vencimentos e liquidez do ecossistema NovaesWeb com uma leitura
+                executiva, clara e responsiva.
+              </p>
+              <p className="admin-kicker mt-1.5 text-white/35">Fluxo e Performance</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-5xl font-light tracking-tight text-slate-900 md:text-6xl" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Gestão <span className="text-brand-gradient italic">Financeira</span>
-            </h1>
-            <p className="max-w-2xl text-base text-slate-500 leading-relaxed">
-              Monitore o fluxo de capital e a saúde do ecossistema NovaesWeb com precisão cirúrgica.
-            </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1.5">
-              Fluxo e Performance
-            </p>
+
+          <div className="flex flex-wrap gap-3">
+            <Button
+              asChild
+              variant="outline"
+              className="h-12 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] px-6 text-[10px] font-black uppercase tracking-[0.24em] text-[var(--admin-text)] hover:bg-[rgba(255,255,255,0.08)]"
+            >
+              <Link to="/admin/financeiro/lista">
+                <FileText className="mr-2 h-4 w-4" />
+                Relatorios
+              </Link>
+            </Button>
+
+            <Button className="h-12 rounded-2xl border-0 bg-brand-gradient px-8 text-[10px] font-black uppercase tracking-[0.24em] text-white shadow-[0_14px_35px_rgba(124,58,237,0.24)] transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <Plus className="mr-2 h-4 w-4" />
+              Lancamento
+            </Button>
           </div>
         </div>
+      </motion.section>
 
-        <div className="flex gap-3">
-          <Button asChild variant="outline" className="rounded-2xl border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
-            <Link to="/admin/financeiro/lista">
-              <FileText className="mr-2 h-4 w-4" />
-              Relatórios
-            </Link>
-          </Button>
-          <Button className="rounded-2xl border-0 bg-brand-gradient text-white font-bold uppercase tracking-widest text-[10px] px-8 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(124,58,237,0.2)]">
-            <Plus className="mr-2 h-4 w-4" />
-            Lançamento
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* Bento Grid Finance Stats Brand */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-1">
-        
-        {/* Card Principal - Receita Total */}
+      <div className="grid grid-cols-1 gap-6 px-1 md:grid-cols-4">
         <motion.div variants={fadeUp} className="md:col-span-2">
-          <Card className="glass-premium relative overflow-hidden h-full border-slate-200 shadow-sm">
-             <CardContent className="p-10">
-               <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#EC4899] mb-3">Faturamento Global</p>
-                    <h3 className="text-6xl font-light text-slate-900 tracking-tighter" style={{ fontFamily: "'Playfair Display', serif" }}>
-                      R$ {stats.total.toLocaleString()}
-                    </h3>
-                  </div>
-                  <div className="p-5 rounded-[24px] bg-brand-gradient text-white group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-[#7C3AED]/20">
-                    <Wallet size={36} />
-                  </div>
-               </div>
-               <div className="mt-10 flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold border border-emerald-100">
-                    <ArrowUpRight size={14} /> +8.4%
-                  </div>
-                  <span className="text-xs text-slate-400 font-medium">Crescimento vs anterior</span>
-               </div>
-             </CardContent>
-             <div className="absolute bottom-0 left-0 w-full h-[2px] bg-brand-gradient opacity-40" />
+          <Card className="glass-card-admin relative h-full overflow-hidden">
+            <CardContent className="p-8 md:p-10">
+              <div className="flex items-start justify-between gap-5">
+                <div>
+                  <p className="admin-kicker mb-3 text-[#EC4899]">Faturamento Global</p>
+                  <h2 className="admin-page-title !text-[clamp(2.2rem,6vw,4.4rem)] text-[var(--admin-text)]">
+                    R$ {stats.total.toLocaleString()}
+                  </h2>
+                </div>
+
+                <div className="rounded-[24px] bg-brand-gradient p-5 text-white shadow-lg shadow-[#7C3AED]/20">
+                  <Wallet size={34} />
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300">
+                  <ArrowUpRight size={14} /> +8.4%
+                </div>
+                <span className="text-xs font-medium text-[var(--admin-muted)]">Crescimento vs periodo anterior</span>
+              </div>
+            </CardContent>
+            <div className="absolute bottom-0 left-0 h-[2px] w-full bg-brand-gradient opacity-40" />
           </Card>
         </motion.div>
 
-        {/* Card Recebido */}
         <motion.div variants={fadeUp} className="col-span-1">
-          <Card className="glass-premium h-full group hover:border-emerald-500/30 transition-all border-slate-200 shadow-sm bg-white">
+          <Card className="glass-card-admin h-full transition-all hover:border-emerald-500/30">
             <CardContent className="p-8">
-              <div className="p-4 rounded-[20px] bg-emerald-50 w-fit mb-8 border border-emerald-100 group-hover:bg-emerald-100 transition-colors">
-                <TrendingUp size={24} className="text-emerald-500" />
+              <div className="mb-8 w-fit rounded-[20px] border border-emerald-500/20 bg-emerald-500/10 p-4">
+                <TrendingUp size={24} className="text-emerald-300" />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Liquidado (Mês)</p>
-              <h3 className="text-3xl font-medium text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
-                R$ {stats.recebido.toLocaleString()}
-              </h3>
+              <p className="admin-kicker mb-2 text-[var(--admin-muted)]">Liquidado (Mes)</p>
+              <h3 className="admin-section-title text-[var(--admin-text)]">R$ {stats.recebido.toLocaleString()}</h3>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Card Pendente */}
         <motion.div variants={fadeUp} className="col-span-1">
-          <Card className="glass-premium h-full group hover:border-amber-500/30 transition-all border-slate-200 shadow-sm bg-white">
+          <Card className="glass-card-admin h-full transition-all hover:border-amber-500/30">
             <CardContent className="p-8">
-              <div className="p-4 rounded-[20px] bg-amber-50 w-fit mb-8 border border-amber-100 group-hover:bg-amber-100 transition-colors">
-                <DollarSign size={24} className="text-amber-500" />
+              <div className="mb-8 w-fit rounded-[20px] border border-amber-500/20 bg-amber-500/10 p-4">
+                <DollarSign size={24} className="text-amber-300" />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Pendente</p>
-              <h3 className="text-3xl font-medium text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
-                R$ {stats.pendente.toLocaleString()}
-              </h3>
+              <p className="admin-kicker mb-2 text-[var(--admin-muted)]">Pendente</p>
+              <h3 className="admin-section-title text-[var(--admin-text)]">R$ {stats.pendente.toLocaleString()}</h3>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Alerta de Atraso */}
         <motion.div variants={fadeUp} className="md:col-span-1">
-          <Card className={cn(
-            "glass-premium h-full group transition-all shadow-sm bg-white",
-            stats.atraso > 0 ? "border-rose-200 bg-rose-50" : "border-slate-200"
-          )}>
+          <Card
+            className={cn(
+              "glass-card-admin h-full transition-all",
+              stats.atraso > 0 && "border-rose-500/30 bg-[linear-gradient(180deg,rgba(127,29,29,0.18),rgba(13,0,24,0.92))]",
+            )}
+          >
             <CardContent className="p-8">
-              <div className={cn(
-                "p-4 rounded-[20px] w-fit mb-8 border transition-all",
-                stats.atraso > 0 ? "bg-rose-100 border-rose-200" : "bg-slate-50 border-slate-100"
-              )}>
-                <AlertCircle size={24} className={stats.atraso > 0 ? "text-rose-500" : "text-slate-300"} />
+              <div
+                className={cn(
+                  "mb-8 w-fit rounded-[20px] border p-4",
+                  stats.atraso > 0 ? "border-rose-500/25 bg-rose-500/12" : "border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)]",
+                )}
+              >
+                <AlertCircle size={24} className={stats.atraso > 0 ? "text-rose-300" : "text-[var(--admin-muted)]"} />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Crítico / Atraso</p>
-              <h3 className={cn("text-3xl font-medium", stats.atraso > 0 ? "text-rose-500" : "text-slate-400")} style={{ fontFamily: "'Playfair Display', serif" }}>
+              <p className="admin-kicker mb-2 text-[var(--admin-muted)]">Critico / Atraso</p>
+              <h3 className={cn("admin-section-title", stats.atraso > 0 ? "text-rose-300" : "text-[var(--admin-muted)]")}>
                 R$ {stats.atraso.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Próximos Vencimentos List */}
         <motion.div variants={fadeUp} className="md:col-span-3">
-           <Card className="glass-premium overflow-hidden border-slate-200 shadow-sm bg-white">
-             <CardHeader className="border-b border-slate-100 px-8 py-6 bg-slate-50/50">
-               <CardTitle className="text-[10px] font-black uppercase tracking-[0.25em] text-[#EC4899] flex items-center gap-3">
-                 <Calendar className="w-4 h-4" />
-                 Agenda de Faturamentos Próximos
-               </CardTitle>
-             </CardHeader>
-             <CardContent className="p-0">
-               <UpcomingBillingPanel />
-             </CardContent>
-           </Card>
+          <Card className="glass-card-admin overflow-hidden">
+            <CardHeader className="border-b border-[rgba(124,58,237,0.14)] px-6 py-5 md:px-8 md:py-6">
+              <CardTitle className="admin-kicker flex items-center gap-3 text-[#EC4899]">
+                <Calendar className="h-4 w-4" />
+                Agenda de Faturamentos Proximos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <UpcomingBillingPanel />
+            </CardContent>
+          </Card>
         </motion.div>
-
       </div>
     </motion.div>
   );

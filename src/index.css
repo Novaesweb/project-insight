@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -384,8 +384,102 @@ section {
     --gradient-primary: linear-gradient(135deg, #7C3AED, #C026D3, #DC2626);
     --novaes-gradient: linear-gradient(135deg, #7C3AED, #C026D3, #DC2626);
     --novaes-gradient-text: linear-gradient(90deg, #DDD6FE, #F5D0FE, #FCA5A5);
+    --admin-font-body: 'Outfit', 'Inter', sans-serif;
+    --admin-font-display: 'Playfair Display', serif;
     color: var(--admin-text);
     background: var(--admin-bg);
+    font-family: var(--admin-font-body);
+    font-feature-settings: "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body.admin-premium-active,
+  body.admin-premium-active button,
+  body.admin-premium-active input,
+  body.admin-premium-active textarea,
+  body.admin-premium-active select {
+    font-family: var(--admin-font-body);
+  }
+
+  body.admin-premium-active .admin-page-title,
+  body.admin-premium-active .admin-section-title,
+  body.admin-premium-active .admin-shell-title,
+  body.admin-premium-active .admin-brand-title,
+  body.admin-premium-active .admin-metric-value,
+  body.admin-premium-active .admin-hero-card h1,
+  body.admin-premium-active .glass-card-admin h2,
+  body.admin-premium-active .glass-card-admin h3,
+  body.admin-premium-active .admin-list-card h2,
+  body.admin-premium-active .admin-list-card h3,
+  body.admin-premium-active .glass-header-admin h1 {
+    font-family: var(--admin-font-display);
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+
+  body.admin-premium-active .admin-page-title,
+  body.admin-premium-active .admin-hero-card h1 {
+    font-size: clamp(2.15rem, 6vw, 4.55rem);
+    line-height: 0.96;
+  }
+
+  body.admin-premium-active .admin-section-title {
+    font-size: clamp(1.45rem, 4vw, 2.45rem);
+    line-height: 1.02;
+  }
+
+  body.admin-premium-active .admin-shell-title {
+    font-size: clamp(1.05rem, 2vw, 1.45rem);
+    line-height: 1;
+  }
+
+  body.admin-premium-active .admin-brand-title {
+    font-size: clamp(1.08rem, 2vw, 1.35rem);
+    line-height: 1;
+  }
+
+  body.admin-premium-active .admin-metric-value {
+    font-size: clamp(1.65rem, 3vw, 2.65rem);
+    line-height: 0.95;
+  }
+
+  body.admin-premium-active .admin-kicker {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    color: var(--admin-muted);
+  }
+
+  body.admin-premium-active .admin-copy {
+    max-width: 66ch;
+    font-size: clamp(0.94rem, 1.8vw, 1.04rem);
+    line-height: 1.72;
+    color: var(--admin-muted);
+    text-wrap: pretty;
+  }
+
+  body.admin-premium-active .admin-nav-copy {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  body.admin-premium-active .admin-data-copy,
+  body.admin-premium-active table {
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  body.admin-premium-active .glass-card-admin,
+  body.admin-premium-active .admin-list-card,
+  body.admin-premium-active .admin-toolbar-card,
+  body.admin-premium-active .admin-hero-card {
+    overflow-wrap: anywhere;
   }
 
   body.admin-premium-active .glass-premium,
@@ -444,6 +538,83 @@ section {
   body.admin-premium-active [class*="hover:text-slate-900"]:hover,
   body.admin-premium-active [class*="hover:text-slate-600"]:hover {
     color: var(--admin-text) !important;
+  }
+
+  body.admin-premium-active .admin-responsive-table th,
+  body.admin-premium-active .admin-responsive-table td {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  @media (max-width: 767px) {
+    body.admin-premium-active .admin-page-title,
+    body.admin-premium-active .admin-hero-card h1 {
+      font-size: clamp(1.95rem, 9vw, 3rem);
+      line-height: 0.98;
+    }
+
+    body.admin-premium-active .admin-section-title {
+      font-size: clamp(1.3rem, 6vw, 1.9rem);
+    }
+
+    body.admin-premium-active .admin-shell-title {
+      font-size: 1rem;
+    }
+
+    body.admin-premium-active .admin-brand-title {
+      font-size: 1.05rem;
+    }
+
+    body.admin-premium-active .admin-copy {
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+
+    body.admin-premium-active .glass-header-admin {
+      min-height: 4.5rem;
+      padding-inline: 1rem;
+    }
+
+    body.admin-premium-active .admin-hero-card,
+    body.admin-premium-active .admin-toolbar-card,
+    body.admin-premium-active .admin-list-card,
+    body.admin-premium-active .glass-card-admin {
+      border-radius: 1.5rem;
+    }
+
+    body.admin-premium-active .admin-dialog-panel {
+      border-radius: 2rem;
+    }
+
+    body.admin-premium-active .admin-stat-pill {
+      border-radius: 1.15rem;
+      padding: 0.9rem 0.95rem;
+    }
+
+    body.admin-premium-active .glass-card-admin,
+    body.admin-premium-active .admin-list-card {
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+    }
+
+    body.admin-premium-active .admin-responsive-table th,
+    body.admin-premium-active .admin-responsive-table td {
+      padding-top: 0.85rem;
+      padding-bottom: 0.85rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body.admin-premium-active .glass-header-admin {
+      padding-inline: 0.85rem;
+    }
+
+    body.admin-premium-active .admin-hero-card,
+    body.admin-premium-active .admin-toolbar-card,
+    body.admin-premium-active .admin-list-card,
+    body.admin-premium-active .glass-card-admin {
+      border-radius: 1.35rem;
+    }
   }
 
   @keyframes mesh-move {

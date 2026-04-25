@@ -74,14 +74,13 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
   const pageSubtitle = subtitle || matchedPageInfo?.subtitulo || "Gestao Digital";
 
   return (
-    <header className="glass-header-admin sticky top-0 z-40 flex h-16 items-center justify-between overflow-hidden px-6 sm:px-8 lg:h-20 lg:px-10">
+    <header className="glass-header-admin sticky top-0 z-40 flex h-16 items-center justify-between gap-3 overflow-hidden px-4 sm:px-6 lg:h-20 lg:px-10">
       <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-brand-gradient opacity-40" />
 
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
         <div className="flex min-w-0 flex-col">
           <h1
-            className="truncate text-lg font-light tracking-tight text-[var(--admin-text)] md:text-xl"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="admin-shell-title truncate text-[var(--admin-text)]"
             role="heading"
             aria-level={1}
           >
@@ -89,7 +88,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
           </h1>
 
           <div className="mt-1.5 hidden items-center gap-3 lg:flex">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--admin-muted)]">{pageSubtitle}</p>
+            <p className="admin-kicker text-[var(--admin-muted)]">{pageSubtitle}</p>
             <div className="h-1 w-1 rounded-full bg-brand-gradient" />
             {recentLinks.map((route) => (
               <Link
@@ -102,11 +101,11 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             ))}
           </div>
 
-          <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--admin-muted)] sm:block lg:hidden">{pageSubtitle}</p>
+          <p className="admin-kicker mt-1 hidden text-[var(--admin-muted)] sm:block lg:hidden">{pageSubtitle}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <div className="mr-4 hidden items-center gap-2 rounded-xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] px-3 py-1.5 sm:flex">
           <div className="relative">
             <div className="absolute h-1.5 w-1.5 animate-ping rounded-full bg-[#FF1F1F] opacity-50" />
@@ -139,7 +138,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
                     className="group cursor-pointer gap-3 rounded-xl py-3 text-[var(--admin-muted)] transition-all focus:bg-brand-gradient focus:text-white"
                   >
                     <action.icon className="h-4 w-4 text-[#C4B5FD] group-focus:text-white" />
-                    <span className="text-xs font-bold uppercase tracking-wider">{action.label}</span>
+                    <span className="text-xs font-bold uppercase tracking-[0.16em]">{action.label}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
