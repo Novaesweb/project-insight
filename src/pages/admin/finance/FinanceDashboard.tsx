@@ -23,7 +23,8 @@ const fadeUp = {
 };
 
 export default function FinanceDashboard() {
-  const { stats } = useFinance();
+  const { entries, stats, loading } = useFinance();
+  const isFinanceEmpty = !loading && entries.length === 0;
 
   return (
     <motion.div
@@ -48,8 +49,9 @@ export default function FinanceDashboard() {
                 Gestao <span className="text-brand-gradient italic">Financeira</span>
               </h1>
               <p className="admin-copy">
-                Monitore o fluxo de capital, vencimentos e liquidez do ecossistema NovaesWeb com uma leitura
-                executiva, clara e responsiva.
+                {isFinanceEmpty
+                  ? "Seu caixa esta limpo para iniciar operacao. Os primeiros lancamentos e recorrencias vao aparecer aqui assim que voce comecar a vender."
+                  : "Monitore o fluxo de capital, vencimentos e liquidez do ecossistema NovaesWeb com uma leitura executiva, clara e responsiva."}
               </p>
               <p className="admin-kicker mt-1.5 text-white/35">Fluxo e Performance</p>
             </div>
@@ -165,6 +167,26 @@ export default function FinanceDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {isFinanceEmpty && (
+        <motion.div variants={fadeUp}>
+          <Card className="glass-card-admin overflow-hidden">
+            <CardContent className="flex flex-col items-center justify-center gap-5 px-8 py-12 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.05)]">
+                <Wallet className="h-7 w-7 text-[#C4B5FD]" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-light text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  Financeiro pronto para iniciar
+                </h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-muted)]">
+                  Nao existem lancamentos, contratos, pedidos ou cobrancas de teste no ambiente atual. O painel esta pronto para receber suas primeiras entradas reais.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

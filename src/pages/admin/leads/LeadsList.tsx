@@ -219,10 +219,12 @@ export default function LeadsList() {
             </div>
             <div>
               <h2 className="text-2xl font-light text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Nenhum lead encontrado
+                {leads.length === 0 ? "Nenhum lead na base" : "Nenhum lead encontrado"}
               </h2>
               <p className="mt-2 max-w-xl text-sm text-[var(--admin-muted)]">
-                Ajuste a busca ou o filtro de status para localizar as oportunidades desejadas.
+                {leads.length === 0
+                  ? "Sua base comercial esta limpa e pronta para receber novos contatos. Quando os primeiros leads entrarem, eles aparecerao aqui automaticamente."
+                  : "Ajuste a busca ou o filtro de status para localizar as oportunidades desejadas."}
               </p>
             </div>
           </CardContent>

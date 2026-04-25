@@ -31,6 +31,7 @@ export default function ClienteSuporte() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
+  const selectedOwnedTicketId = tickets.some((ticket) => ticket.id === selectedTicket) ? selectedTicket : null;
 
   const loadTickets = useCallback(() => {
     if (!cliente?.id) return;
@@ -39,26 +40,34 @@ export default function ClienteSuporte() {
   }, [cliente?.id]);
 
   const loadMsgs = useCallback(() => {
-    if (!selectedTicket) return;
-    supabase.from("ticket_mensagens").select("id, ticket_id, remetente, nome, texto, created_at").eq("ticket_id", selectedTicket).order("created_at", { ascending: true })
+    if (!selectedOwnedTicketId) {
+      setMsgs([]);
+      return;
+    }
+    supabase.from("ticket_mensagens").select("id, ticket_id, remetente, nome, texto, created_at").eq("ticket_id", selectedOwnedTicketId).order("created_at", { ascending: true })
       .then(({ data }) => setMsgs(data || []));
-  }, [selectedTicket]);
+  }, [selectedOwnedTicketId]);
 
   useEffect(() => { loadTickets(); }, [loadTickets]);
   useEffect(() => { loadMsgs(); }, [loadMsgs]);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs.length]);
+  useEffect(() => {
+    if (selectedTicket && !selectedOwnedTicketId) {
+      setSelectedTicket(null);
+    }
+  }, [selectedOwnedTicketId, selectedTicket]);
 
   useRealtimeSubscription("tickets", loadTickets);
   useRealtimeSubscription("ticket_mensagens", loadMsgs, {
-    enabled: Boolean(selectedTicket),
-    filter: selectedTicket ? `ticket_id=eq.${selectedTicket}` : undefined,
+    enabled: Boolean(selectedOwnedTicketId),
+    filter: selectedOwnedTicketId ? `ticket_id=eq.${selectedOwnedTicketId}` : undefined,
   });
 
-  const ticketAtivo = tickets.find(t => t.id === selectedTicket);
+  const ticketAtivo = tickets.find((ticket) => ticket.id === selectedOwnedTicketId);
 
   const enviarMensagem = async () => {
-    if (!mensagem.trim() || !selectedTicket) return;
-    const nova = { ticket_id: selectedTicket, remetente: "cliente", nome: cliente?.nome || "Cliente", texto: mensagem };
+    if (!mensagem.trim() || !selectedOwnedTicketId) return;
+    const nova = { ticket_id: selectedOwnedTicketId, remetente: "cliente", nome: cliente?.nome || "Cliente", texto: mensagem };
     const { data } = await supabase.from("ticket_mensagens").insert(nova).select().single();
     if (data) {
       setMsgs(prev => [...prev, data]);
@@ -75,7 +84,7 @@ export default function ClienteSuporte() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           evento: "nova_mensagem",
-          ticket_id: selectedTicket,
+          ticket_id: selectedOwnedTicketId,
           mensagem: mensagem,
           cliente_nome: cliente?.nome || "Cliente",
           cliente_email: cliente?.email || ""
@@ -125,7 +134,7 @@ export default function ClienteSuporte() {
     }
   };
 
-  if (selectedTicket && ticketAtivo) {
+  if (selectedOwnedTicketId && ticketAtivo) {
     return (
       <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-4 h-full flex flex-col">
         <div className="flex items-center justify-between">

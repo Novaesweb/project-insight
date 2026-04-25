@@ -49,6 +49,7 @@ export default function ClienteProjetos() {
   const [projetos, setProjetos] = useState<any[]>([]);
   const [atualizacoes, setAtualizacoes] = useState<any[]>([]);
   const [extrasAtivos, setExtrasAtivos] = useState<any[]>([]);
+  const selectedProjectId = projetos.some((project) => project.id === selectedId) ? selectedId : null;
 
   const loadProjetos = useCallback(() => {
     if (!cliente?.id) return;
@@ -57,10 +58,13 @@ export default function ClienteProjetos() {
   }, [cliente?.id]);
 
   const loadAtualizacoes = useCallback(() => {
-    if (!selectedId) return;
-    supabase.from("projeto_atualizacoes").select("*").eq("projeto_id", selectedId).eq("visivel_cliente", true).order("created_at", { ascending: false })
+    if (!selectedProjectId) {
+      setAtualizacoes([]);
+      return;
+    }
+    supabase.from("projeto_atualizacoes").select("*").eq("projeto_id", selectedProjectId).eq("visivel_cliente", true).order("created_at", { ascending: false })
       .then(({ data }) => setAtualizacoes(data || []));
-  }, [selectedId]);
+  }, [selectedProjectId]);
 
   const loadExtras = useCallback(() => {
     if (!cliente?.id) return;
@@ -71,12 +75,20 @@ export default function ClienteProjetos() {
   useEffect(() => { loadProjetos(); }, [loadProjetos]);
   useEffect(() => { loadAtualizacoes(); }, [loadAtualizacoes]);
   useEffect(() => { loadExtras(); }, [loadExtras]);
+  useEffect(() => {
+    if (selectedId && !selectedProjectId) {
+      setSelectedId(null);
+    }
+  }, [selectedId, selectedProjectId]);
 
   useRealtimeSubscription("projetos", loadProjetos);
-  useRealtimeSubscription("projeto_atualizacoes", loadAtualizacoes);
+  useRealtimeSubscription("projeto_atualizacoes", loadAtualizacoes, {
+    enabled: Boolean(selectedProjectId),
+    filter: selectedProjectId ? `projeto_id=eq.${selectedProjectId}` : undefined,
+  });
   useRealtimeSubscription("extras_clientes", loadExtras);
 
-  const selected = projetos.find(p => p.id === selectedId);
+  const selected = projetos.find((project) => project.id === selectedProjectId);
 
   if (selected) {
     const progresso = selected.progresso || 0;

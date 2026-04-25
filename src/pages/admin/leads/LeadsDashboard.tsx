@@ -24,6 +24,7 @@ const fadeUp = {
 export default function LeadsDashboard() {
   const { leads, stats, loading } = useLeads();
   const recentLeads = leads.slice(0, 5);
+  const isEmptyPipeline = !loading && leads.length === 0;
   const dashboardSignals = [
     { label: "Hoje", value: `${stats.todayCount}`, hint: "novas entradas", accent: "text-[#F9A8D4]" },
     { label: "Triagem", value: `${stats.unvisited}`, hint: "aguardando contato", accent: "text-[#FCA5A5]" },
@@ -55,7 +56,9 @@ export default function LeadsDashboard() {
                 Pipeline de <span className="text-brand-gradient italic">Oportunidades</span>
               </h1>
               <p className="max-w-2xl text-base leading-relaxed text-[var(--admin-muted)]">
-                Visao comercial para priorizar resposta, qualificar oportunidades e acelerar conversoes sem perder contexto.
+                {isEmptyPipeline
+                  ? "Painel limpo e pronto para captar. Assim que os primeiros leads entrarem, esta area vira seu radar comercial central."
+                  : "Visao comercial para priorizar resposta, qualificar oportunidades e acelerar conversoes sem perder contexto."}
               </p>
               <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.4em] text-white/35">
                 Inteligencia Comercial
@@ -195,40 +198,62 @@ export default function LeadsDashboard() {
               </Button>
             </CardHeader>
             <CardContent className="px-6 py-6">
-              <div className="space-y-1">
-                {recentLeads.map((lead) => (
-                  <Link
-                    key={lead.id}
-                    to={`/admin/leads/${lead.id}`}
-                    className="group flex items-center gap-5 rounded-[24px] border border-transparent p-4 transition-all hover:border-[rgba(124,58,237,0.18)] hover:bg-[rgba(255,255,255,0.04)]"
+              {isEmptyPipeline ? (
+                <div className="flex flex-col items-center justify-center gap-5 rounded-[28px] border border-dashed border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.03)] px-6 py-12 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-[22px] border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.05)]">
+                    <Sparkles className="h-7 w-7 text-[#F9A8D4]" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-light text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>
+                      Base pronta para captar
+                    </h3>
+                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--admin-muted)]">
+                      Nenhum lead foi registrado ainda. Assim que os primeiros contatos entrarem, eles vao aparecer aqui para triagem e conversao.
+                    </p>
+                  </div>
+                  <Button
+                    asChild
+                    className="h-11 rounded-2xl border-0 bg-brand-gradient px-6 text-[10px] font-black uppercase tracking-[0.22em] text-white shadow-[0_14px_35px_rgba(124,58,237,0.24)]"
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[16px] border border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)] font-serif text-xl text-[var(--admin-text)] transition-all group-hover:bg-brand-gradient group-hover:text-white group-hover:border-transparent shadow-sm">
-                      {lead.nome[0]}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold tracking-tight text-[var(--admin-text)] transition-colors group-hover:text-[#F9A8D4]">
-                        {lead.nome}
-                      </p>
-                      <p className="mt-1 truncate text-[10px] uppercase tracking-[0.15em] text-[var(--admin-muted)]">
-                        {lead.nome_negocio || "Empresa sob sigilo"}
-                      </p>
-                    </div>
-                    <div className="hidden items-center gap-4 sm:flex">
-                      <div
-                        className={cn(
-                          "rounded-full border px-4 py-1 text-[9px] font-black uppercase tracking-[0.15em] shadow-sm",
-                          lead.status === "novo"
-                            ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
-                            : "border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)] text-[var(--admin-muted)]",
-                        )}
-                      >
-                        {lead.status}
+                    <Link to="/admin/leads/lista">Abrir Base Comercial</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {recentLeads.map((lead) => (
+                    <Link
+                      key={lead.id}
+                      to={`/admin/leads/${lead.id}`}
+                      className="group flex items-center gap-5 rounded-[24px] border border-transparent p-4 transition-all hover:border-[rgba(124,58,237,0.18)] hover:bg-[rgba(255,255,255,0.04)]"
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-[16px] border border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)] font-serif text-xl text-[var(--admin-text)] transition-all group-hover:bg-brand-gradient group-hover:text-white group-hover:border-transparent shadow-sm">
+                        {lead.nome[0]}
                       </div>
-                      <ArrowRight size={16} className="text-white/20 transition-all group-hover:translate-x-1 group-hover:text-[#EC4899]" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold tracking-tight text-[var(--admin-text)] transition-colors group-hover:text-[#F9A8D4]">
+                          {lead.nome}
+                        </p>
+                        <p className="mt-1 truncate text-[10px] uppercase tracking-[0.15em] text-[var(--admin-muted)]">
+                          {lead.nome_negocio || "Empresa sob sigilo"}
+                        </p>
+                      </div>
+                      <div className="hidden items-center gap-4 sm:flex">
+                        <div
+                          className={cn(
+                            "rounded-full border px-4 py-1 text-[9px] font-black uppercase tracking-[0.15em] shadow-sm",
+                            lead.status === "novo"
+                              ? "border-rose-500/20 bg-rose-500/10 text-rose-300"
+                              : "border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)] text-[var(--admin-muted)]",
+                          )}
+                        >
+                          {lead.status}
+                        </div>
+                        <ArrowRight size={16} className="text-white/20 transition-all group-hover:translate-x-1 group-hover:text-[#EC4899]" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
