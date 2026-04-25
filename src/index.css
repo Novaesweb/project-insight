@@ -113,21 +113,23 @@ section {
     --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
     --gradient-admin-subtle: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(107, 33, 168, 0.08), rgba(236, 72, 153, 0.08));
     /* High-End Dark Command Theme Tokens */
-    --admin-bg: #07000D;
-    --admin-surface: #0D0018;
-    --admin-surface-2: #150022;
-    --admin-border: 240 10% 20% / 0.4;
-    --admin-border-color: rgba(124, 58, 237, 0.22);
-    --admin-accent-purple: #7C3AED;
-    --admin-accent-magenta: #C026D3;
-    --admin-accent-red: #DC2626;
+    --admin-bg: oklch(0.13 0.04 285);
+    --admin-surface: oklch(0.18 0.05 288 / 0.84);
+    --admin-surface-2: oklch(0.16 0.04 290 / 0.92);
+    --admin-border: 280 18% 100% / 0.08;
+    --admin-border-color: rgba(255, 255, 255, 0.08);
+    --admin-accent-purple: oklch(0.52 0.27 305);
+    --admin-accent-magenta: oklch(0.68 0.25 0);
+    --admin-accent-red: oklch(0.62 0.24 25);
     --admin-accent-green: #10B981;
     --admin-accent-yellow: #F59E0B;
-    --admin-gradient: linear-gradient(135deg, var(--admin-accent-purple), var(--admin-accent-magenta), var(--admin-accent-red));
-    --admin-glow: rgba(124, 58, 237, 0.15);
-    --admin-text: #F0E8FF;
-    --admin-muted: #9B89B8;
-    --admin-muted-soft: rgba(155, 137, 184, 0.72);
+    --admin-gradient: linear-gradient(135deg, var(--admin-accent-red), var(--admin-accent-purple), var(--admin-accent-magenta));
+    --admin-glow: rgba(124, 58, 237, 0.18);
+    --admin-text: oklch(0.98 0.01 280);
+    --admin-muted: rgba(240, 232, 255, 0.68);
+    --admin-muted-soft: rgba(240, 232, 255, 0.48);
+    --admin-shell-radius: 14px;
+    --admin-shell-radius-lg: 18px;
     
     --glow-primary: rgba(124, 58, 237, 0.15);
     --glow-secondary: rgba(220, 38, 38, 0.15);
@@ -290,49 +292,54 @@ section {
 
   .glass-sidebar-admin {
     @apply backdrop-blur-3xl;
-    background: linear-gradient(180deg, rgba(13, 0, 24, 0.96), rgba(7, 0, 13, 0.98));
-    border-right: 1px solid rgba(124, 58, 237, 0.16);
-    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.02);
+    background: linear-gradient(180deg, oklch(0.16 0.04 288 / 0.92), oklch(0.13 0.04 285 / 0.98));
+    border-right: 1px solid var(--admin-border-color);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
   }
 
   .glass-header-admin {
     @apply backdrop-blur-2xl;
-    background: linear-gradient(180deg, rgba(13, 0, 24, 0.88), rgba(13, 0, 24, 0.72));
-    border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.74), oklch(0.16 0.04 290 / 0.58));
+    border-bottom: 1px solid var(--admin-border-color);
   }
 
   .admin-hero-card {
-    @apply relative overflow-hidden rounded-[40px] border backdrop-blur-xl;
-    background: linear-gradient(180deg, rgba(21, 0, 34, 0.96), rgba(13, 0, 24, 0.92));
-    border-color: rgba(124, 58, 237, 0.22);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+    @apply relative overflow-hidden border backdrop-blur-xl;
+    border-radius: var(--admin-shell-radius-lg);
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.86), oklch(0.16 0.04 290 / 0.78));
+    border-color: var(--admin-border-color);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
   }
 
   .admin-toolbar-card {
-    @apply rounded-[32px] border backdrop-blur-xl;
-    background: linear-gradient(180deg, rgba(21, 0, 34, 0.88), rgba(13, 0, 24, 0.84));
-    border-color: rgba(124, 58, 237, 0.18);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+    @apply border backdrop-blur-xl;
+    border-radius: var(--admin-shell-radius);
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.78), oklch(0.16 0.04 290 / 0.72));
+    border-color: var(--admin-border-color);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
   }
 
   .admin-list-card {
-    @apply relative overflow-hidden rounded-[32px] border backdrop-blur-xl;
-    background: linear-gradient(180deg, rgba(21, 0, 34, 0.94), rgba(13, 0, 24, 0.90));
-    border-color: rgba(124, 58, 237, 0.18);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    @apply relative overflow-hidden border backdrop-blur-xl;
+    border-radius: var(--admin-shell-radius-lg);
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.84), oklch(0.16 0.04 290 / 0.76));
+    border-color: var(--admin-border-color);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
   }
 
   .admin-stat-pill {
-    @apply rounded-[24px] border px-4 py-3;
+    @apply border px-4 py-3;
+    border-radius: var(--admin-shell-radius);
     background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(124, 58, 237, 0.16);
+    border-color: var(--admin-border-color);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
   }
 
   .admin-input-shell {
-    @apply h-11 rounded-2xl border px-4;
+    @apply h-11 border px-4;
+    border-radius: var(--admin-shell-radius);
     background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(124, 58, 237, 0.16);
+    border-color: var(--admin-border-color);
     color: var(--admin-text);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   }
@@ -348,44 +355,45 @@ section {
   }
 
   .admin-dialog-panel {
-    @apply overflow-hidden rounded-[2.5rem] border backdrop-blur-3xl;
-    background: linear-gradient(180deg, rgba(21, 0, 34, 0.97), rgba(13, 0, 24, 0.95));
-    border-color: rgba(124, 58, 237, 0.22);
-    box-shadow: 0 32px 100px rgba(0, 0, 0, 0.42);
+    @apply overflow-hidden border backdrop-blur-3xl;
+    border-radius: calc(var(--admin-shell-radius-lg) + 4px);
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.9), oklch(0.16 0.04 290 / 0.86));
+    border-color: var(--admin-border-color);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
     color: var(--admin-text);
   }
 
   body.admin-premium-active {
-    --background: 276 100% 3%;
-    --foreground: 272 73% 95%;
-    --card: 280 64% 8% / 0.94;
-    --card-foreground: 272 73% 95%;
-    --popover: 280 64% 8%;
-    --popover-foreground: 272 73% 95%;
-    --primary: 266 83% 58%;
+    --background: 285 24% 8%;
+    --foreground: 280 20% 97%;
+    --card: 286 22% 12% / 0.88;
+    --card-foreground: 280 20% 97%;
+    --popover: 286 22% 12%;
+    --popover-foreground: 280 20% 97%;
+    --primary: 25 86% 58%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 282 58% 10%;
-    --secondary-foreground: 272 73% 95%;
-    --muted: 282 52% 10%;
-    --muted-foreground: 272 25% 64%;
-    --accent: 311 72% 46%;
+    --secondary: 286 20% 14%;
+    --secondary-foreground: 280 20% 97%;
+    --muted: 286 18% 14%;
+    --muted-foreground: 280 18% 76%;
+    --accent: 305 72% 52%;
     --accent-foreground: 0 0% 100%;
-    --border: 272 63% 54% / 0.22;
-    --input: 272 63% 54% / 0.22;
-    --ring: 266 83% 58%;
-    --sidebar-background: 278 100% 4%;
-    --sidebar-foreground: 272 25% 64%;
-    --sidebar-primary: 266 83% 58%;
+    --border: 280 18% 100% / 0.08;
+    --input: 280 18% 100% / 0.08;
+    --ring: 305 72% 52%;
+    --sidebar-background: 285 24% 8%;
+    --sidebar-foreground: 280 18% 76%;
+    --sidebar-primary: 25 86% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 282 58% 10%;
-    --sidebar-accent-foreground: 272 73% 95%;
-    --sidebar-border: 272 63% 54% / 0.18;
-    --sidebar-ring: 266 83% 58%;
-    --gradient-primary: linear-gradient(135deg, #7C3AED, #C026D3, #DC2626);
-    --novaes-gradient: linear-gradient(135deg, #7C3AED, #C026D3, #DC2626);
-    --novaes-gradient-text: linear-gradient(90deg, #DDD6FE, #F5D0FE, #FCA5A5);
-    --admin-font-body: 'Outfit', 'Inter', sans-serif;
-    --admin-font-display: 'Playfair Display', serif;
+    --sidebar-accent: 286 20% 14%;
+    --sidebar-accent-foreground: 280 20% 97%;
+    --sidebar-border: 280 18% 100% / 0.08;
+    --sidebar-ring: 305 72% 52%;
+    --gradient-primary: linear-gradient(135deg, oklch(0.62 0.24 25), oklch(0.52 0.27 305), oklch(0.68 0.25 0));
+    --novaes-gradient: linear-gradient(135deg, oklch(0.62 0.24 25), oklch(0.52 0.27 305), oklch(0.68 0.25 0));
+    --novaes-gradient-text: linear-gradient(90deg, oklch(0.98 0.01 280), oklch(0.84 0.13 305), oklch(0.82 0.16 25));
+    --admin-font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --admin-font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: var(--admin-text);
     background: var(--admin-bg);
     font-family: var(--admin-font-body);
@@ -414,8 +422,14 @@ section {
   body.admin-premium-active .admin-list-card h3,
   body.admin-premium-active .glass-header-admin h1 {
     font-family: var(--admin-font-display);
-    letter-spacing: -0.04em;
+    letter-spacing: -0.025em;
     text-wrap: balance;
+    font-weight: 800;
+  }
+
+  body.admin-premium-active [style*="Playfair Display"] {
+    font-family: var(--admin-font-body) !important;
+    font-style: normal !important;
   }
 
   body.admin-premium-active .admin-page-title,
@@ -484,19 +498,19 @@ section {
 
   body.admin-premium-active .glass-premium,
   body.admin-premium-active .glass-card-admin {
-    background: linear-gradient(180deg, rgba(21, 0, 34, 0.94), rgba(13, 0, 24, 0.90));
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.86), oklch(0.16 0.04 290 / 0.78));
     border-color: var(--admin-border-color);
     color: var(--admin-text);
   }
 
   body.admin-premium-active .glass-sidebar-admin {
-    background: linear-gradient(180deg, rgba(13, 0, 24, 0.98), rgba(7, 0, 13, 0.99));
-    border-right-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(180deg, oklch(0.16 0.04 288 / 0.92), oklch(0.13 0.04 285 / 0.98));
+    border-right-color: var(--admin-border-color);
   }
 
   body.admin-premium-active .glass-header-admin {
-    background: linear-gradient(180deg, rgba(13, 0, 24, 0.92), rgba(13, 0, 24, 0.78));
-    border-bottom-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(180deg, oklch(0.18 0.05 288 / 0.74), oklch(0.16 0.04 290 / 0.58));
+    border-bottom-color: var(--admin-border-color);
   }
 
   body.admin-premium-active .border-brand-subtle {
@@ -579,15 +593,15 @@ section {
     body.admin-premium-active .admin-toolbar-card,
     body.admin-premium-active .admin-list-card,
     body.admin-premium-active .glass-card-admin {
-      border-radius: 1.5rem;
+      border-radius: 1rem;
     }
 
     body.admin-premium-active .admin-dialog-panel {
-      border-radius: 2rem;
+      border-radius: 1.1rem;
     }
 
     body.admin-premium-active .admin-stat-pill {
-      border-radius: 1.15rem;
+      border-radius: 0.95rem;
       padding: 0.9rem 0.95rem;
     }
 
@@ -613,7 +627,7 @@ section {
     body.admin-premium-active .admin-toolbar-card,
     body.admin-premium-active .admin-list-card,
     body.admin-premium-active .glass-card-admin {
-      border-radius: 1.35rem;
+      border-radius: 0.95rem;
     }
   }
 

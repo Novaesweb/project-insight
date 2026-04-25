@@ -113,7 +113,7 @@ export default function GlobalSearch() {
     <>
       <button
         type="button"
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-white/10 bg-white/5 px-0 text-sm text-white/50 shadow-none transition-colors hover:text-white sm:w-auto sm:justify-start sm:px-3 sm:pr-12 md:w-44 lg:w-72"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-[14px] border border-[var(--admin-border-color)] bg-white/5 px-0 text-sm text-white/50 shadow-none transition-colors hover:text-white sm:w-auto sm:justify-start sm:px-3 sm:pr-12 md:w-44 lg:w-72"
         onClick={() => setOpen(true)}
         aria-label="Abrir busca global"
       >

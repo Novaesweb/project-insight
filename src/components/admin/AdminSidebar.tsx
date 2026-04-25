@@ -53,7 +53,7 @@ const primaryNavItems: NavItem[] = [
 
 const navGroups: NavGroup[] = [
   {
-    title: "Operacao",
+    title: "Operacoes",
     items: [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
       { href: "/admin/briefings", label: "Briefings", icon: ClipboardList },
@@ -61,11 +61,13 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Catalogo",
+    title: "Gestao",
     items: [
       { href: "/admin/extras", label: "Extras", icon: Puzzle, accent: true },
       { href: "/admin/clausulas", label: "Clausulas", icon: BookText },
       { href: "/admin/recurrent-extras", label: "Extras Recorrentes", icon: CalendarDays },
+      { href: "/admin/usuarios", label: "Usuarios", icon: UserCog },
+      { href: "/admin/revenda", label: "Revenda", icon: Users },
     ],
   },
   {
@@ -73,13 +75,8 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/relatorios", label: "Analytics", icon: BarChart3 },
       { href: "/admin/custos-sistema", label: "Custos", icon: ServerCog },
-      { href: "/admin/usuarios", label: "Usuarios", icon: UserCog },
-      { href: "/admin/revenda", label: "Revenda", icon: Users },
+      { href: "/admin/configuracoes", label: "Ajustes", icon: Settings },
     ],
-  },
-  {
-    title: "Configuracoes",
-    items: [{ href: "/admin/configuracoes", label: "Ajustes", icon: Settings }],
   },
 ];
 
@@ -125,7 +122,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         key={item.href}
         to={item.href}
         className={cn(
-          "group relative flex items-center rounded-2xl py-3 text-[13px] font-medium transition-all",
+          "group relative flex items-center rounded-[14px] py-3 text-[13px] font-medium transition-all",
           isCollapsed ? "justify-center px-2" : "gap-4 px-4",
           variant === "primary" && !isCollapsed && "py-3.5",
           isActive
@@ -206,16 +203,14 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         <Link to="/admin" className="group flex items-center gap-3">
           <div className="relative">
             <div className="absolute -inset-3 rounded-2xl bg-brand-gradient opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-40" />
-            <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-[rgba(124,58,237,0.22)] bg-[rgba(255,255,255,0.04)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
+            <div className="relative flex h-11 w-11 items-center justify-center rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
           </div>
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <p className="admin-brand-title leading-none text-[var(--admin-text)]">
-                {branding.nome || "Novaes"}<span className="font-bold italic text-[#EC4899]">Web</span>
-              </p>
-              <p className="admin-kicker mt-1.5 text-[var(--admin-muted)]">Premium Admin</p>
+              <p className="admin-brand-title leading-none text-[var(--admin-text)]">{branding.nome || "NovaesWeb"}</p>
+              <p className="admin-kicker mt-1.5 text-[var(--admin-muted)]">Painel Administrativo</p>
             </motion.div>
           )}
         </Link>
@@ -225,7 +220,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         <div>
           {!isCollapsed && (
               <p className="admin-kicker mb-3 px-4 text-[#F0E8FF]/55">
-                Essencial
+                Principal
               </p>
             )}
           <div className="space-y-1.5">
@@ -257,7 +252,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
                 <Link
                   key={route.href}
                   to={route.href}
-                  className="rounded-xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-[11px] font-bold text-[var(--admin-muted)] transition-all hover:border-[#7C3AED]/50 hover:text-[var(--admin-text)]"
+                  className="rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-[11px] font-bold text-[var(--admin-muted)] transition-all hover:border-[#7C3AED]/50 hover:text-[var(--admin-text)]"
                 >
                   {route.shortLabel || route.label}
                 </Link>
@@ -271,7 +266,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         <button
           onClick={handleLogout}
           className={cn(
-            "group flex w-full items-center rounded-2xl py-3 text-xs font-bold uppercase tracking-widest text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]",
+            "group flex w-full items-center rounded-[14px] py-3 text-xs font-bold uppercase tracking-widest text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]",
             isCollapsed ? "justify-center px-2" : "gap-4 px-4",
           )}
         >

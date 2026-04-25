@@ -106,15 +106,15 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        <div className="mr-4 hidden items-center gap-2 rounded-xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] px-3 py-1.5 sm:flex">
+        <div className="mr-4 hidden items-center gap-2 rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] px-3 py-1.5 sm:flex">
           <div className="relative">
             <div className="absolute h-1.5 w-1.5 animate-ping rounded-full bg-[#FF1F1F] opacity-50" />
             <div className="relative h-1.5 w-1.5 rounded-full bg-brand-gradient" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-muted)]">Premium Live</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-muted)]">Painel Ativo</span>
         </div>
 
-        <div className="flex items-center gap-2 rounded-2xl border border-[rgba(124,58,237,0.18)] bg-[rgba(255,255,255,0.04)] p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
+        <div className="flex items-center gap-2 rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
           <GlobalSearch />
           <div className="mx-1 h-4 w-[1px] bg-[rgba(124,58,237,0.18)]" />
 
@@ -124,18 +124,18 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-xl border-0 bg-brand-gradient text-white shadow-[0_12px_30px_rgba(124,58,237,0.25)] transition-all hover:scale-110"
+                  className="h-9 w-9 rounded-[14px] border-0 bg-brand-gradient text-white shadow-[0_12px_30px_rgba(124,58,237,0.25)] transition-all hover:scale-110"
                   aria-label="Acoes rapidas"
                 >
                   <Plus className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="glass-premium w-56 rounded-2xl border-[rgba(124,58,237,0.22)] p-2">
+              <DropdownMenuContent align="end" className="glass-premium w-56 rounded-[14px] border-[var(--admin-border-color)] p-2">
                 {quickActions.map((action) => (
                   <DropdownMenuItem
                     key={action.href}
                     onClick={() => navigate(action.href)}
-                    className="group cursor-pointer gap-3 rounded-xl py-3 text-[var(--admin-muted)] transition-all focus:bg-brand-gradient focus:text-white"
+                    className="group cursor-pointer gap-3 rounded-[14px] py-3 text-[var(--admin-muted)] transition-all focus:bg-brand-gradient focus:text-white"
                   >
                     <action.icon className="h-4 w-4 text-[#C4B5FD] group-focus:text-white" />
                     <span className="text-xs font-bold uppercase tracking-[0.16em]">{action.label}</span>
@@ -148,7 +148,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--admin-text)]"
+            className="h-9 w-9 rounded-[14px] text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--admin-text)]"
             onClick={toggle}
             aria-label="Alternar tema"
           >
@@ -161,7 +161,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-xl text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--admin-text)]"
+              className="h-9 w-9 rounded-[14px] text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--admin-text)]"
               onClick={() => navigate("/admin/configuracoes")}
               aria-label="Configuracoes"
             >

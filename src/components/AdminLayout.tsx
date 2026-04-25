@@ -43,7 +43,7 @@ import AdminMainContent from "./admin/AdminMainContent";
 
 const mobileNavGroups = [
   {
-    title: "Essencial",
+    title: "Principal",
     items: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
       { href: "/admin/leads", label: "Leads", icon: Headphones, showCount: true },
@@ -54,7 +54,7 @@ const mobileNavGroups = [
     ],
   },
   {
-    title: "Operacao",
+    title: "Operacoes",
     items: [
       { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
       { href: "/admin/briefings", label: "Briefings", icon: ClipboardList },
@@ -62,11 +62,13 @@ const mobileNavGroups = [
     ],
   },
   {
-    title: "Catalogo",
+    title: "Gestao",
     items: [
       { href: "/admin/extras", label: "Extras", icon: Puzzle },
       { href: "/admin/clausulas", label: "Clausulas", icon: BookText },
       { href: "/admin/recurrent-extras", label: "Extras Recorrentes", icon: CalendarDays },
+      { href: "/admin/usuarios", label: "Usuarios", icon: UserCog },
+      { href: "/admin/revenda", label: "Revenda", icon: Users },
     ],
   },
   {
@@ -74,13 +76,8 @@ const mobileNavGroups = [
     items: [
       { href: "/admin/relatorios", label: "Analytics", icon: BarChart3 },
       { href: "/admin/custos-sistema", label: "Custos", icon: ServerCog },
-      { href: "/admin/usuarios", label: "Usuarios", icon: UserCog },
-      { href: "/admin/revenda", label: "Revenda", icon: Users },
+      { href: "/admin/configuracoes", label: "Ajustes", icon: Settings },
     ],
-  },
-  {
-    title: "Configuracoes",
-    items: [{ href: "/admin/configuracoes", label: "Ajustes", icon: Settings }],
   },
 ];
 
@@ -107,12 +104,12 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
     <div className="flex h-full flex-col bg-[var(--admin-bg)] text-[var(--admin-text)]">
       <div className="flex items-center gap-3 border-b border-[rgba(124,58,237,0.14)] px-5 py-5">
         <Link to="/admin" onClick={onClose} className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--gradient-primary)" }}>
+          <div className="flex h-9 w-9 items-center justify-center rounded-[14px]" style={{ background: "var(--gradient-primary)" }}>
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
             <p className="admin-brand-title leading-none text-[var(--admin-text)]">{branding.nome || "NovaesWeb"}</p>
-            <p className="admin-kicker mt-1 text-[var(--admin-muted)]">Admin Panel</p>
+            <p className="admin-kicker mt-1 text-[var(--admin-muted)]">Painel Administrativo</p>
           </div>
         </Link>
       </div>
@@ -131,7 +128,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                     to={item.href}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all",
+                      "flex items-center gap-3 rounded-[14px] px-3 py-2.5 transition-all",
                       isActive ? "text-[var(--admin-text)]" : "text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]",
                     )}
                     style={
@@ -166,7 +163,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                   key={route.href}
                   to={route.href}
                   onClick={onClose}
-                  className="rounded-xl border border-[rgba(124,58,237,0.16)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-[11px] font-semibold text-[var(--admin-text)]"
+                  className="rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-[11px] font-semibold text-[var(--admin-text)]"
                 >
                   {route.label}
                 </Link>
@@ -184,7 +181,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                   key={route.href}
                   to={route.href}
                   onClick={onClose}
-                  className="flex items-center justify-between rounded-xl px-3 py-2 text-[12px] font-medium text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]"
+                  className="flex items-center justify-between rounded-[14px] px-3 py-2 text-[12px] font-medium text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]"
                 >
                   <span>{route.label}</span>
                   <span className="text-[10px] uppercase tracking-widest text-[var(--admin-muted-soft)]">Abrir</span>
@@ -198,7 +195,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
       <div className="border-t border-[rgba(124,58,237,0.14)] p-3">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]"
+          className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-xs font-medium text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sair</span>
@@ -297,12 +294,12 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     if (!canAccessPath(pathname)) {
       return (
         <div className="flex min-h-[80vh] items-center justify-center p-4">
-          <div className="glass-card-admin w-full max-w-lg rounded-[40px] p-10 text-center">
-            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[28px] border border-[rgba(124,58,237,0.22)] bg-[rgba(124,58,237,0.12)]">
+          <div className="glass-card-admin w-full max-w-lg p-10 text-center">
+            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(124,58,237,0.12)]">
               <LockKeyhole size={36} className="text-[#7C3AED]" />
             </div>
             <p className="mb-4 text-[10px] font-black uppercase tracking-[0.4em] text-[#EC4899]">Acesso Reservado</p>
-            <h2 className="text-3xl font-light leading-tight text-[var(--admin-text)]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h2 className="text-3xl font-semibold leading-tight text-[var(--admin-text)]">
               Este modulo pertence a outro <span className="text-brand-gradient italic">nivel de acesso</span>.
             </h2>
             <p className="mt-6 px-4 text-sm leading-relaxed text-[var(--admin-muted)]">
@@ -311,7 +308,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
               <Button
                 asChild
-                className="h-12 rounded-2xl border-0 bg-brand-gradient px-8 text-[10px] font-bold uppercase tracking-widest text-white transition-all hover:scale-[1.02]"
+                className="h-12 rounded-[14px] border-0 bg-brand-gradient px-8 text-[10px] font-bold uppercase tracking-widest text-white transition-all hover:scale-[1.02]"
               >
                 <Link to="/admin">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -358,7 +355,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="fixed bottom-4 left-3 right-3 z-50 md:hidden">
         <div
-          className="grid grid-cols-5 gap-1 rounded-[1.35rem] p-1.5 shadow-2xl backdrop-blur-xl"
+          className="grid grid-cols-5 gap-1 rounded-[14px] p-1.5 shadow-2xl backdrop-blur-xl"
           style={{
             background: "linear-gradient(180deg, rgba(13,0,24,0.92), rgba(7,0,13,0.95))",
             border: "1px solid rgba(124,58,237,0.18)",
@@ -372,7 +369,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 to={item.href}
-                className="flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 transition-all"
+                className="flex flex-col items-center justify-center gap-1 rounded-[12px] px-2 py-2.5 transition-all"
                 style={
                   isActive
                     ? {
@@ -394,7 +391,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground"
+            className="flex flex-col items-center justify-center gap-1 rounded-[12px] px-2 py-2.5 text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground"
           >
             <Menu className="h-4 w-4" />
             <span className="text-[10px] font-semibold">Menu</span>
