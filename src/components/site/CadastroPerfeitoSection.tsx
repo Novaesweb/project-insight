@@ -320,7 +320,7 @@ export default function CadastroPerfeitoSection() {
                     <motion.div whileTap={{ scale: 0.97 }}>
                       <Button onClick={handleNext} className="h-14 px-10 rounded-xl text-sm font-bold text-white border-0 shadow-lg group"
                         style={{ background: 'linear-gradient(135deg, #a855f7, #ff3366, #ec4899)', boxShadow: '0 8px 30px -6px rgba(139, 92, 246, 0.4)' }}>
-                        Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        Solicitar diagnostico <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </motion.div>
                   </motion.div>

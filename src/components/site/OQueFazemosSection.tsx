@@ -93,7 +93,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-lg font-black shadow-[0_18px_45px_rgba(236,72,153,0.18)] hover:shadow-[0_22px_55px_rgba(236,72,153,0.24)] hover:scale-105 transition-all"
               style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))' }}
             >
-              Solicitar orçamento
+              Solicitar diagnostico
             </a>
             <button 
               onClick={onOpenDemo}

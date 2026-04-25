@@ -120,7 +120,7 @@ export default function ComoFuncionaSection() {
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-base font-bold hover:scale-105 transition-all group"
               style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))', boxShadow: '0 15px 40px rgba(236,72,153,0.16)' }}
             >
-              Começar Agora
+              Solicitar diagnostico
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
             <a

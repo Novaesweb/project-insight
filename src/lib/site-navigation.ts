@@ -14,9 +14,8 @@ export interface SiteCompanyLink {
 }
 
 export const sitePrimaryNavLinks: SiteNavLink[] = [
-  { href: "#o-que-fazemos", label: "O Que Fazemos" },
-  { href: "#como-funciona", label: "Como Funciona" },
-  { href: "#automacao", label: "Automação" },
+  { href: "#o-que-fazemos", label: "Solucoes" },
+  { href: "#resultados", label: "Resultados" },
   { href: "#planos", label: "Planos" },
   { href: "/sobre", label: "Sobre" },
   { href: "#contato", label: "Contato" },
@@ -24,7 +23,7 @@ export const sitePrimaryNavLinks: SiteNavLink[] = [
 
 export const siteFeatureNavLinks: SiteNavLink[] = [
   { href: "/nichos", label: "Nichos" },
-  { href: "/criacao-conteudo", label: "Área do Marketing" },
+  { href: "/criacao-conteudo", label: "Area do Marketing" },
 ];
 
 export const siteNavLinks: SiteNavLink[] = [...sitePrimaryNavLinks, ...siteFeatureNavLinks];

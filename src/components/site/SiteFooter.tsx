@@ -84,7 +84,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-10 transition-opacity">
                   <Zap className="w-12 h-12 text-purple-400" />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-purple-400/80 mb-1">Solicitar Orçamento</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-purple-400/80 mb-1">Solicitar Diagnostico</p>
                 <p className="text-[11px] text-white/25 font-medium tracking-tight leading-snug">Inicie sua transformação digital com um dossiê técnico especializado.</p>
               </Link>
             </div>

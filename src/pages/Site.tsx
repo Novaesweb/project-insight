@@ -62,13 +62,13 @@ export default function Site() {
         
         <Suspense fallback={null}>
           <OQueFazemosSection onOpenDemo={openDemo} />
+          <ResultadosSection />
           <ComoFuncionaSection />
           <AutomacaoSection />
           <PlanosSection />
         </Suspense>
 
         <Suspense fallback={null}>
-          <ResultadosSection />
           <CadastroPerfeitoSection />
           <FaqSection />
         </Suspense>

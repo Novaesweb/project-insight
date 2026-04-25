@@ -1,7 +1,15 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Star, Sparkles, Briefcase, Target, Layout } from "lucide-react";
+import {
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Sparkles,
+  Briefcase,
+  Target,
+  Layout,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useCompanyCounter } from "@/hooks/useCompanyCounter";
@@ -10,7 +18,6 @@ interface HeroSectionProps {
   onOpenDemo: () => void;
 }
 
-// Simpler animated counter
 function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: string }) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => `${Math.round(latest)}${suffix}`);
@@ -24,7 +31,6 @@ function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: stri
   return <motion.span ref={ref}>{rounded}</motion.span>;
 }
 
-// Reduced particles — only 4 instead of 8
 const particles = [
   { delay: 0, x: "10%", y: "20%", size: 5 },
   { delay: 0.8, x: "85%", y: "15%", size: 4 },
@@ -35,30 +41,34 @@ const particles = [
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
   const companyCount = useCompanyCounter();
   const navigate = useNavigate();
+
   const featureCards = [
     {
-      eyebrow: "Estratégia por segmento",
-      title: "Nichos que atendemos",
-      description: "Veja como adaptamos a NovaesWeb para diferentes áreas e estilos de negócio.",
+      eyebrow: "Posicionamento por nicho",
+      title: "Estruturas para diferentes mercados",
+      description:
+        "Veja como adaptamos site, oferta e fluxo comercial para servicos, loja, clinica e operacoes locais.",
       icon: Briefcase,
       action: () => navigate("/nichos"),
       cta: "Ver nichos",
     },
     {
       eyebrow: "Campanhas e criativos",
-      title: "Área do Marketing",
-      description: "Explore materiais visuais e campanhas que podem complementar o teu projeto digital.",
+      title: "Marketing com direcao comercial",
+      description:
+        "Landing pages, criativos e campanhas para trazer mais conversas qualificadas para a sua operacao.",
       icon: Target,
       action: () => navigate("/criacao-conteudo"),
       cta: "Explorar marketing",
     },
     {
-      eyebrow: "Estrutura operacional",
-      title: "Painéis e Pedidos",
-      description: "Conheça a camada que organiza atendimento, controlo e fluxo comercial numa só base.",
+      eyebrow: "Operacao organizada",
+      title: "Painel, contratos e acompanhamento",
+      description:
+        "Uma base para vender melhor, acompanhar clientes e operar com mais clareza em um so lugar.",
       icon: Layout,
       action: onOpenDemo,
-      cta: "Ver demonstração",
+      cta: "Ver demonstracao",
     },
   ];
 
@@ -69,46 +79,56 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
 
   return (
     <section id="home" className="relative overflow-hidden pt-28 pb-20 lg:pt-32 lg:pb-24">
-      {/* Simplified gradient background — fewer layers, smaller blur */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         <div
           className="absolute top-0 -left-32 w-[620px] h-[620px] rounded-full blur-[160px]"
-          style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.18), transparent 72%)' }}
+          style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.18), transparent 72%)" }}
         />
         <div
           className="absolute -bottom-32 -right-32 w-[540px] h-[540px] rounded-full blur-[160px]"
-          style={{ background: 'radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.14), transparent 72%)' }}
+          style={{ background: "radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.14), transparent 72%)" }}
         />
       </div>
 
-      {/* Grid pattern */}
       <div className="absolute inset-0 opacity-[0.018] pointer-events-none" aria-hidden="true">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-          backgroundSize: '72px 72px'
-        }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+            backgroundSize: "72px 72px",
+          }}
+        />
       </div>
 
-      {/* Reduced floating particles */}
       <div className="absolute inset-0 pointer-events-none z-[1]" aria-hidden="true">
-        {particles.map((p, i) => (
+        {particles.map((particle, index) => (
           <motion.div
-            key={i}
+            key={index}
             className="absolute rounded-full"
             style={{
-              left: p.x, top: p.y, width: p.size, height: p.size,
-              background: `radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)`,
+              left: particle.x,
+              top: particle.y,
+              width: particle.size,
+              height: particle.size,
+              background: "radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)",
               opacity: 0.15,
             }}
             animate={{ y: [0, -20, 0], opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 5 + i, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
+            transition={{
+              duration: 5 + index,
+              delay: particle.delay,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "easeInOut",
+            }}
           />
         ))}
       </div>
 
-      {/* Spotlight */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[500px] opacity-[0.05] pointer-events-none" aria-hidden="true"
-        style={{ background: 'radial-gradient(ellipse at top, hsl(var(--accent) / 0.22), transparent 72%)' }}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[500px] opacity-[0.05] pointer-events-none"
+        aria-hidden="true"
+        style={{ background: "radial-gradient(ellipse at top, hsl(var(--accent) / 0.22), transparent 72%)" }}
       />
 
       <div className="container mx-auto px-6 relative z-10">
@@ -122,8 +142,11 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 className="site-badge site-badge--accent hero-tech-badge mb-8 relative"
               >
                 <Sparkles className="w-3.5 h-3.5" style={{ color: "hsl(var(--accent))" }} />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: "hsl(var(--muted-foreground) / 0.86)" }}>
-                  Architect v10.0 — Engenharia Digital
+                <span
+                  className="text-[10px] font-black uppercase tracking-[0.3em]"
+                  style={{ color: "hsl(var(--muted-foreground) / 0.86)" }}
+                >
+                  NovaesWeb Studio
                 </span>
               </motion.div>
 
@@ -131,11 +154,11 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-5xl md:text-7xl xl:text-[5.6rem] font-black tracking-tighter leading-[0.88]"
+                className="text-5xl md:text-7xl xl:text-[5.4rem] font-black tracking-tighter leading-[0.88]"
               >
-                <span className="block text-foreground/92">Transforma as tuas ideias</span>
-                <span className="block site-gradient-text mt-2">numa presença digital</span>
-                <span className="block text-foreground/50 mt-2">de elite</span>
+                <span className="block text-foreground/92">Seu negocio precisa de</span>
+                <span className="block site-gradient-text mt-2">mais que um site.</span>
+                <span className="block text-foreground/55 mt-2">Precisa de uma estrutura para vender.</span>
               </motion.h1>
 
               <motion.p
@@ -144,17 +167,29 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 transition={{ duration: 0.6, delay: 0.24 }}
                 className="text-lg md:text-xl mt-8 max-w-3xl leading-relaxed font-medium site-copy-muted"
               >
-                Estamos a selecionar apenas <span className="text-white font-bold">50 empreendedores</span> para testar a nova arquitetura digital da NovaesWeb. Uma base premium para apresentar melhor a marca, organizar o atendimento e vender com mais clareza.
+                A NovaesWeb cria uma base digital para atrair contatos, organizar atendimento e fechar com mais
+                clareza. Site, painel, contratos, extras e automacao trabalhando na mesma direcao.
               </motion.p>
 
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="text-sm md:text-base mt-4 max-w-2xl font-semibold text-white/55 leading-relaxed"
+                className="mt-5 flex flex-wrap gap-3"
               >
-                Site, pedidos, automação e marketing na mesma direção para o teu negócio crescer com mais controlo.
-              </motion.p>
+                {[
+                  "Site profissional com foco em conversao",
+                  "Painel para operar e acompanhar",
+                  "WhatsApp e fluxo comercial alinhados",
+                ].map((item) => (
+                  <span
+                    key={item}
+                    className="site-soft-surface rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/70"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
@@ -166,16 +201,18 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] font-black text-[hsl(var(--gold))]">
-                        <Star className="w-3.5 h-3.5" />
-                        Projeto Fundador
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Estrutura recomendada
                       </div>
                       <p className="text-sm sm:text-base text-white/82 font-semibold leading-relaxed">
-                        Acesso antecipado a uma estrutura com site, controlo, pedidos, WhatsApp e marketing alinhados para crescer com mais consistência.
+                        Indicamos a combinacao ideal entre vitrine, operacao e automacao para voce captar melhor e
+                        organizar o crescimento sem improviso.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2.5 shrink-0">
-                      <span className="hero-founder-pill">50 empreendedores</span>
-                      <span className="hero-founder-pill hero-founder-pill--warning">Restam poucas vagas</span>
+                      <span className="hero-founder-pill">Site + painel</span>
+                      <span className="hero-founder-pill">Proposta mais clara</span>
+                      <span className="hero-founder-pill hero-founder-pill--warning">Acompanhamento consultivo</span>
                     </div>
                   </div>
                 </div>
@@ -192,12 +229,13 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                     onClick={scrollToCadastro}
                     className="h-16 w-full sm:w-auto px-10 sm:px-12 rounded-2xl text-white text-lg font-black border-0 relative overflow-hidden group"
                     style={{
-                      background: "linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
+                      background:
+                        "linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
                       boxShadow: "0 18px 52px rgba(236,72,153,0.18), 0 0 28px rgba(236,72,153,0.08)",
                     }}
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
-                      Solicitar orçamento
+                      Solicitar diagnostico
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
                     </span>
                   </Button>
@@ -208,11 +246,9 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                   onClick={onOpenDemo}
                   whileHover={{ scale: 1.02, y: -2 }}
                   className="site-surface h-16 px-8 rounded-2xl text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
-                  style={{
-                    color: "hsl(var(--muted-foreground) / 0.92)",
-                  }}
+                  style={{ color: "hsl(var(--muted-foreground) / 0.92)" }}
                 >
-                  Ver demonstração
+                  Ver demonstracao
                   <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </motion.div>
@@ -226,26 +262,26 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
             className="hero-proof-strip max-w-5xl mx-auto"
           >
             <div className="hero-proof-card">
-              <Star className="w-4 h-4 text-white/70" />
+              <Zap className="w-4 h-4 text-white/70" />
               <div>
                 <p className="text-2xl md:text-3xl font-black site-gradient-text">
                   <AnimatedNumber target={companyCount} suffix="+" />
                 </p>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">negócios atendidos</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">bases entregues</p>
+              </div>
+            </div>
+            <div className="hero-proof-card">
+              <Layout className="w-4 h-4 text-white/70" />
+              <div>
+                <p className="text-xl md:text-2xl font-black text-white">3 frentes</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">site, operacao e conversao</p>
               </div>
             </div>
             <div className="hero-proof-card">
               <ShieldCheck className="w-4 h-4 text-white/70" />
               <div>
-                <p className="text-xl md:text-2xl font-black text-white">100%</p>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">foco em posicionamento</p>
-              </div>
-            </div>
-            <div className="hero-proof-card">
-              <Zap className="w-4 h-4 text-white/70" />
-              <div>
                 <p className="text-xl md:text-2xl font-black text-white">7 dias</p>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">prazo médio para lançar a base</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">prazo medio para colocar a base no ar</p>
               </div>
             </div>
           </motion.div>

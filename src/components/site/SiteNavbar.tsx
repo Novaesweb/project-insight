@@ -211,7 +211,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
             style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
           >
             <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
-              Solicitar orçamento <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              Solicitar diagnostico <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </span>
           </Button>
           <button
@@ -336,7 +336,7 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
                   onClick={() => handleBudgetClick(setMenuOpen)}
                   style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
                 >
-                  Solicitar orçamento
+                  Solicitar diagnostico
                 </Button>
               </div>
             </div>

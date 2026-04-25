@@ -8,7 +8,6 @@ import {
   MessageCircle,
   Rocket,
   Sparkles,
-  Star,
   Zap,
 } from "lucide-react";
 
@@ -22,13 +21,6 @@ const fade = {
 };
 
 const stagger = { show: { transition: { staggerChildren: 0.15 } } };
-
-const founderSlots = {
-  filled: 36,
-  total: 50,
-  remaining: 14,
-  progress: 72,
-};
 
 type Plan = (typeof PUBLIC_PLAN_CATALOG)[number] & {
   icon: typeof Globe;
@@ -46,10 +38,10 @@ const plans: Plan[] = PUBLIC_PLAN_CATALOG.map((plan) => ({
   ...planVisualMap[plan.id],
 }));
 
-function FounderAlert() {
+function CommercialGuideBanner() {
   return (
     <motion.div variants={fade} className="max-w-5xl mx-auto mb-10">
-      <div className="plans-founder-banner rounded-[1.75rem] px-5 py-4 md:px-8 md:py-5 text-white shadow-[0_18px_50px_rgba(232,51,74,0.2)]">
+      <div className="plans-founder-banner rounded-[1.75rem] px-5 py-4 md:px-8 md:py-5 text-white shadow-[0_18px_50px_rgba(232,51,74,0.18)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-3">
             <div className="relative mt-1 flex h-3.5 w-3.5 shrink-0">
@@ -57,11 +49,10 @@ function FounderAlert() {
               <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-white" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] font-black text-white/80">
-                Alerta Projeto Fundador
-              </p>
+              <p className="text-[10px] uppercase tracking-[0.28em] font-black text-white/80">Escolha com clareza</p>
               <p className="text-sm md:text-base font-semibold mt-1 leading-relaxed">
-                Já preenchemos <span className="text-[hsl(var(--gold))] font-black">{founderSlots.filled} das {founderSlots.total}</span> vagas com condição especial de custo.
+                Se voce ainda nao sabe qual estrutura faz mais sentido, a NovaesWeb faz o diagnostico inicial e indica o
+                melhor caminho para o seu momento.
               </p>
             </div>
           </div>
@@ -70,7 +61,7 @@ function FounderAlert() {
             <Button
               className="h-11 rounded-full px-6 text-xs font-black uppercase tracking-[0.18em] border-0 text-[hsl(var(--background))] bg-white hover:bg-[hsl(var(--gold))] hover:text-[hsl(var(--background))]"
             >
-              Garantir minha vaga
+              Solicitar diagnostico
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </a>
@@ -81,6 +72,9 @@ function FounderAlert() {
 }
 
 function PlanCard({ plan }: { plan: Plan }) {
+  const monthlyDisplay =
+    plan.monthlyDisplay || (plan.monthlyPrice > 0 ? `R$ ${plan.monthlyPrice.toLocaleString("pt-BR")}/mes` : "Nao inclusa");
+
   return (
     <motion.div
       variants={fade}
@@ -101,7 +95,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <>
           <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: "var(--gradient-primary)" }} />
           <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-black px-3 py-1.5 rounded-bl-2xl">
-            Mais popular
+            Mais indicado
           </div>
         </>
       ) : null}
@@ -135,36 +129,43 @@ function PlanCard({ plan }: { plan: Plan }) {
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground leading-relaxed mb-6 min-h-[70px]">{plan.description}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-4 min-h-[70px]">{plan.description}</p>
 
-      <div className="mb-6 pb-6 border-b border-white/10 space-y-2">
+      {plan.idealFor ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 mb-5">
+          <p className="text-[10px] uppercase tracking-[0.16em] font-black text-white/45 mb-2">Ideal para</p>
+          <p className="text-sm text-white/76 leading-relaxed">{plan.idealFor}</p>
+        </div>
+      ) : null}
+
+      <div className="mb-6 pb-6 border-b border-white/10 space-y-4">
         <div className="min-h-[18px]">
           {plan.oldPrice ? (
-            <p className="text-sm text-muted-foreground/55 line-through">De: R$ {plan.oldPrice?.toLocaleString("pt-BR")}</p>
+            <p className="text-sm text-muted-foreground/55 line-through">De: R$ {plan.oldPrice.toLocaleString("pt-BR")}</p>
           ) : (
-            <p className="text-sm text-transparent select-none">Espaço</p>
+            <p className="text-sm text-transparent select-none">Espaco</p>
           )}
         </div>
 
-        <div className="flex items-end gap-2 flex-wrap">
-          {plan.pricePrefix ? (
-            <span className="text-xs uppercase tracking-[0.14em] font-black text-muted-foreground/65 mb-1">
-              {plan.pricePrefix}
-            </span>
-          ) : null}
-          <span className="text-4xl md:text-5xl font-black text-white leading-none">
-            {plan.id === "sob-medida" ? "Sob análise" : `R$ ${plan.setupPrice.toLocaleString("pt-BR")}`}
-          </span>
-        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] font-black text-white/45 mb-1">Ativacao</p>
+            <p className="text-xl font-black text-white">
+              {plan.id === "sob-medida" ? "Sob analise" : `R$ ${plan.setupPrice.toLocaleString("pt-BR")}`}
+            </p>
+            <p className="text-[11px] text-muted-foreground/65 mt-1">{plan.priceSub}</p>
+          </div>
 
-        <p className="text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: `hsl(${plan.accentHsl})` }}>
-          {plan.priceLabel}
-        </p>
-        <p className="text-xs text-muted-foreground/65">{plan.priceSub}</p>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] font-black text-white/45 mb-1">Mensalidade</p>
+            <p className="text-xl font-black text-white">{monthlyDisplay}</p>
+            <p className="text-[11px] text-muted-foreground/65 mt-1">Conforme a estrutura escolhida.</p>
+          </div>
+        </div>
 
         {plan.monthlyNote ? (
           <div
-            className="rounded-2xl px-4 py-3 flex items-start gap-3 mt-4"
+            className="rounded-2xl px-4 py-3 flex items-start gap-3"
             style={{
               background: "hsl(142 71% 45% / 0.06)",
               border: "1px solid hsl(142 71% 45% / 0.16)",
@@ -176,7 +177,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         ) : null}
       </div>
 
-      <ul className="space-y-3 mb-8 flex-1">
+      <ul className="space-y-3 mb-6 flex-1">
         {plan.features.map((item) => (
           <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground/90">
             <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: `hsl(${plan.accentHsl} / 0.7)` }} />
@@ -185,11 +186,14 @@ function PlanCard({ plan }: { plan: Plan }) {
         ))}
       </ul>
 
-      <a
-        href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      {plan.outcome ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 mb-6">
+          <p className="text-[10px] uppercase tracking-[0.18em] font-black text-white/45 mb-2">O que melhora</p>
+          <p className="text-sm text-white/76 leading-relaxed">{plan.outcome}</p>
+        </div>
+      ) : null}
+
+      <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`} target="_blank" rel="noopener noreferrer">
         <Button
           className={cn(
             "w-full h-12 rounded-2xl font-black text-sm text-white border-0 transition-all hover:scale-[1.02]",
@@ -220,7 +224,10 @@ function CheckoutHighlight() {
           boxShadow: "0 24px 64px rgba(220, 38, 38, 0.06)",
         }}
       >
-        <div className="absolute -top-px left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))" }} />
+        <div
+          className="absolute -top-px left-0 right-0 h-[2px]"
+          style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))" }}
+        />
         <div className="absolute top-0 right-0 w-60 h-60 rounded-full blur-[120px] opacity-[0.08] pointer-events-none" style={{ background: "hsl(var(--primary))" }} />
         <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[100px] opacity-[0.06] pointer-events-none" style={{ background: "hsl(var(--accent))" }} />
 
@@ -230,7 +237,7 @@ function CheckoutHighlight() {
               className="text-[10px] uppercase tracking-wider font-bold text-white px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5"
               style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
             >
-              <Zap className="w-3.5 h-3.5" /> Superpoder Extra
+              <Zap className="w-3.5 h-3.5" /> Receita recorrente
             </span>
           </div>
 
@@ -240,20 +247,19 @@ function CheckoutHighlight() {
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
                   <CreditCard className="w-6 h-6" style={{ color: "hsl(var(--primary))" }} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
-                  Checkout Automático
-                </h3>
+                <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Checkout Automatico</h3>
               </div>
 
               <p className="text-muted-foreground leading-relaxed text-sm md:text-base mb-6 max-w-xl font-medium">
-                Pare de cobrar manualmente e transforme sua operação em uma <span className="text-foreground font-semibold">máquina de vendas mais automática</span>. A integração com o <span className="text-foreground font-semibold">Asaas</span> permite receber via Pix, boleto e cartão com emissão e baixa automáticas.
+                Se o seu negocio precisa cobrar com mais organizacao, voce pode adicionar a camada de pagamento e automacao
+                para receber via Pix, boleto e cartao sem depender de cobranca manual.
               </p>
 
               <ul className="space-y-2 mb-6">
                 {[
-                  "Receba via Pix, boleto e cartão de crédito",
-                  "Emissão e baixa automáticas de cobranças",
-                  "Disponível para qualquer plano da NovaesWeb",
+                  "Receba via Pix, boleto e cartao de credito",
+                  "Emissao e baixa automaticas de cobrancas",
+                  "Disponivel como modulo complementar da estrutura",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground/90">
                     <CheckCircle className="w-4 h-4 shrink-0" style={{ color: "hsl(var(--primary) / 0.6)" }} />
@@ -265,20 +271,22 @@ function CheckoutHighlight() {
 
             <div className="w-full md:w-72 shrink-0 space-y-3">
               <div className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--secondary) / 0.6)", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Ativação</p>
-                <p className="text-2xl font-black" style={{ color: "hsl(var(--primary))" }}>R$80</p>
-                <p className="text-[10px] text-muted-foreground/60">Taxa única de setup</p>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Ativacao</p>
+                <p className="text-2xl font-black" style={{ color: "hsl(var(--primary))" }}>
+                  R$80
+                </p>
+                <p className="text-[10px] text-muted-foreground/60">Taxa unica de setup</p>
               </div>
 
               <div className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--secondary) / 0.6)", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Manutenção</p>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Manutencao</p>
                 <p className="text-2xl font-black" style={{ color: "hsl(var(--primary))" }}>
-                  R$40<span className="text-xs font-medium text-muted-foreground/60">/mês</span>
+                  R$40<span className="text-xs font-medium text-muted-foreground/60">/mes</span>
                 </p>
               </div>
 
               <a
-                href="https://wa.me/5551981964238?text=Olá!%20Quero%20adicionar%20o%20Checkout%20Automático%20ao%20meu%20projeto!"
+                href="https://wa.me/5551981964238?text=Ola! Quero adicionar o Checkout Automatico ao meu projeto."
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -289,7 +297,7 @@ function CheckoutHighlight() {
                     boxShadow: "0 10px 30px rgba(220, 38, 38, 0.18)",
                   }}
                 >
-                  Quero Checkout Automático
+                  Quero esse modulo
                   <Zap className="w-4 h-4 ml-2" />
                 </Button>
               </a>
@@ -312,18 +320,17 @@ export default function PlanosSection() {
       variants={stagger}
     >
       <div className="max-w-7xl mx-auto relative z-10">
-        <FounderAlert />
+        <CommercialGuideBanner />
 
         <motion.div variants={fade} className="text-center max-w-3xl mx-auto mb-10">
-          <span className="site-badge site-badge--primary inline-flex mb-8">
-            Projeto Fundador
-          </span>
+          <span className="site-badge site-badge--primary inline-flex mb-8">Estruturas comerciais</span>
           <h2 className="text-4xl sm:text-6xl font-black text-foreground/90 leading-[0.9] tracking-tighter">
-            Escolha o seu <br />
-            <span className="site-gradient-text">Ecossistema</span>
+            Escolha a estrutura certa <br />
+            <span className="site-gradient-text">para o seu momento</span>
           </h2>
           <p className="text-lg site-copy-muted mt-8 leading-relaxed max-w-2xl mx-auto font-medium">
-            Soluções de elite para transformar sua presença digital em uma estrutura que atrai clientes, organiza a operação e acelera o crescimento.
+            Da vitrine profissional ao ecossistema com painel e automacao, cada plano foi organizado para ficar mais
+            claro, mais comercial e mais facil de evoluir.
           </p>
         </motion.div>
 
@@ -336,8 +343,9 @@ export default function PlanosSection() {
         <CheckoutHighlight />
 
         <motion.div variants={fade} className="mt-10 text-center">
-          <p className="text-xs text-muted-foreground/60 max-w-2xl mx-auto leading-relaxed font-medium">
-            <span className="text-muted-foreground font-bold">Nota:</span> cada projeto pode receber novos módulos e funcionalidades conforme o crescimento da empresa. Domínio e serviços externos podem ter custos separados pagos diretamente pelo cliente.
+          <p className="text-xs text-muted-foreground/60 max-w-3xl mx-auto leading-relaxed font-medium">
+            O projeto pode crescer por camadas: site, painel, contratos, portal do cliente, pedidos, extras, checkout,
+            automacao e campanhas. A estrutura entra no ritmo do seu negocio sem te prender a uma solucao engessada.
           </p>
         </motion.div>
       </div>
