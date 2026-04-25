@@ -28,7 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { acessoLabel, initialAdminUserForm, useAdminUsersManager } from "@/hooks/useAdminUsersManager";
 import { normalizeAdminRole, type AdminRole } from "@/lib/admin-permissions";
-import { Copy, Mail, Pencil, Plus, RefreshCw, Search, ShieldCheck, ShieldOff, UserPlus, Users } from "lucide-react";
+import { Copy, Mail, Pencil, Plus, RefreshCw, Search, ShieldCheck, ShieldOff, Trash2, UserPlus, Users } from "lucide-react";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -66,6 +66,8 @@ export default function Usuarios() {
     setEditForm,
     blockingUser,
     setBlockingUser,
+    deletingUser,
+    setDeletingUser,
     filteredUsers,
     summary,
     userMetadata,
@@ -75,6 +77,7 @@ export default function Usuarios() {
     handleUpdateUser,
     handleToggleBlock,
     handleSendResetLink,
+    handleDeleteUser,
   } = useAdminUsersManager();
 
   const handleCreate = async () => {
@@ -240,6 +243,16 @@ export default function Usuarios() {
                           <Button variant="ghost" size="sm" className={user.bloqueado ? "text-xs text-emerald-400 hover:text-emerald-300" : "text-xs text-amber-400 hover:text-amber-300"} onClick={() => setBlockingUser(user)}>
                             {user.bloqueado ? <><ShieldCheck className="w-3.5 h-3.5 mr-1.5" />Reativar</> : <><ShieldOff className="w-3.5 h-3.5 mr-1.5" />Bloquear</>}
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-rose-400 hover:text-rose-300"
+                            disabled={savingKey === `delete-${user.id}`}
+                            onClick={() => setDeletingUser(user)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                            Excluir
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -311,6 +324,26 @@ export default function Usuarios() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleToggleBlock}>
               {blockingUser?.bloqueado ? "Reativar acesso" : "Bloquear acesso"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir usuÃ¡rio</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa aÃ§Ã£o remove o usuÃ¡rio interno e o acesso de login do painel administrativo. NÃ£o pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-rose-500 text-white hover:bg-rose-600"
+            >
+              {savingKey === `delete-${deletingUser?.id}` ? "Excluindo..." : "Confirmar exclusÃ£o"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

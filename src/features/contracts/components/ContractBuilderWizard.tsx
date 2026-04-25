@@ -245,7 +245,7 @@ export function ContractBuilderWizard({
 
   return (
     <div className="space-y-8 pb-12">
-      {/* HEADER PREMIUM COM ACENTO DOURADO */}
+      {/* HEADER PREMIUM COM ACENTO DA MARCA */}
       <motion.section
         initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -321,7 +321,7 @@ export function ContractBuilderWizard({
                       {step.label}
                     </span>
                     {stepError && (
-                      <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" title={stepError} />
+                      <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[#DC2626] shadow-[0_0_8px_rgba(220,38,38,0.45)]" title={stepError} />
                     )}
                   </button>
                 );
@@ -363,7 +363,7 @@ export function ContractBuilderWizard({
         <div className="mx-auto max-w-5xl rounded-[32px] border border-white/10 bg-[#0d0914]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4 px-2">
-               <div className={`h-2 w-2 rounded-full ${builderRemoteAutosaveState === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-[#7C3AED]'}`} />
+               <div className={`h-2 w-2 rounded-full ${builderRemoteAutosaveState === 'saving' ? 'bg-[#EC4899] animate-pulse' : 'bg-[#7C3AED]'}`} />
                <p className="text-xs text-white/50">{builderStatusLabel.subtitle}</p>
             </div>
             

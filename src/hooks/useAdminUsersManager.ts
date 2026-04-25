@@ -6,6 +6,7 @@ import { invokeAdminFunction } from "@/lib/admin-function-client";
 import {
   logAdminAudit,
   loadAdminUserMetadata,
+  removeAdminUserMetadata,
   updateAdminUserMetadata,
   type AdminUserMetadataMap,
 } from "@/lib/admin-audit";
@@ -44,6 +45,7 @@ export function useAdminUsersManager() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editForm, setEditForm] = useState({ nome: "", cargo: "", acesso: "editor" as AdminRole, status: "ativo" });
   const [blockingUser, setBlockingUser] = useState<AdminUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
 
   const fetchUsuarios = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -305,6 +307,80 @@ export function useAdminUsersManager() {
     toast({ title: "Link enviado", description: "A redefinição de senha foi enviada por e-mail." });
   };
 
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    const normalizedEmail = deletingUser.email.trim().toLowerCase();
+
+    if (normalizedEmail === actorEmail) {
+      toast({
+        title: "Acao nao permitida",
+        description: "Voce nao pode excluir o proprio acesso por aqui.",
+        variant: "destructive",
+      });
+      setDeletingUser(null);
+      return;
+    }
+
+    if (normalizedEmail === "novaesweb@gmail.com") {
+      toast({
+        title: "Acao protegida",
+        description: "O administrador principal da NovaesWeb nao pode ser excluido por esta tela.",
+        variant: "destructive",
+      });
+      setDeletingUser(null);
+      return;
+    }
+
+    const adminCount = usuarios.filter((user) => normalizeAdminRole(user.acesso) === "admin").length;
+    if (normalizeAdminRole(deletingUser.acesso) === "admin" && adminCount <= 1) {
+      toast({
+        title: "Acao nao permitida",
+        description: "Nao e possivel excluir o ultimo administrador da base.",
+        variant: "destructive",
+      });
+      setDeletingUser(null);
+      return;
+    }
+
+    setSavingKey(`delete-${deletingUser.id}`);
+
+    try {
+      const data = await invokeAdminFunction<{ message?: string }>("delete-admin-account", {
+        body: { userId: deletingUser.id },
+        returnTo: "/admin/usuarios",
+        source: "admin-users-delete",
+        fallbackMessage: "Nao foi possivel remover o usuario administrativo.",
+      });
+
+      const nextMetadata = await removeAdminUserMetadata(deletingUser.email);
+      setUserMetadata(nextMetadata);
+      await logAdminAudit(
+        "Usuario admin removido",
+        `${actorEmail} excluiu ${deletingUser.nome} (${deletingUser.email}).`,
+        "/admin/usuarios"
+      );
+
+      setDeletingUser(null);
+      setSavingKey(null);
+      await fetchUsuarios(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("admin-access-refresh"));
+      }
+      toast({
+        title: "Usuario excluido",
+        description: data?.message || "O acesso administrativo foi removido com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir usuario",
+        description: error instanceof Error ? error.message : "Nao foi possivel remover o usuario administrativo.",
+        variant: "destructive",
+      });
+      setSavingKey(null);
+    }
+  };
+
   return {
     usuarios,
     userMetadata,
@@ -327,6 +403,8 @@ export function useAdminUsersManager() {
     setEditForm,
     blockingUser,
     setBlockingUser,
+    deletingUser,
+    setDeletingUser,
     filteredUsers,
     summary,
     fetchUsuarios,
@@ -335,5 +413,6 @@ export function useAdminUsersManager() {
     handleUpdateUser,
     handleToggleBlock,
     handleSendResetLink,
+    handleDeleteUser,
   };
 }

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeAdminFunction } from "@/lib/admin-function-client";
 
 export function UserManagement() {
   const [users, setUsers] = useState<any[]>([]);
@@ -56,6 +57,32 @@ export function UserManagement() {
 
   if (loading) return <div className="py-10 text-center text-white/40 text-xs">Carregando ecossistemas de usuários...</div>;
 
+  const handleDeleteAdminUser = async (user: any) => {
+    const confirmed = window.confirm(`Excluir o usuário ${user.nome} e remover o acesso administrativo dele?`);
+    if (!confirmed) return;
+
+    try {
+      const data = await invokeAdminFunction<{ message?: string }>("delete-admin-account", {
+        body: { userId: user.id },
+        returnTo: "/admin/configuracoes?tab=usuarios",
+        source: "settings-users-delete",
+        fallbackMessage: "NÃ£o foi possÃ­vel remover o usuÃ¡rio administrativo.",
+      });
+
+      toast({
+        title: "UsuÃ¡rio excluÃ­do",
+        description: data?.message || "O acesso administrativo foi removido com sucesso.",
+      });
+      loadAll();
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: error instanceof Error ? error.message : "NÃ£o foi possÃ­vel remover o usuÃ¡rio administrativo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -78,7 +105,10 @@ export function UserManagement() {
                 <TableCell className="text-sm text-white/50">{u.email}</TableCell>
                 <TableCell><Badge variant="outline" className="text-[9px] uppercase border-primary/20 text-primary">{u.cargo}</Badge></TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="text-xs text-white/40 hover:text-white" onClick={() => setEditingItem({ ...u, _type: 'usuarios' })}>Editar</Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" className="text-xs text-white/40 hover:text-white" onClick={() => setEditingItem({ ...u, _type: 'usuarios' })}>Editar</Button>
+                    <Button variant="ghost" size="sm" className="text-xs text-rose-400 hover:text-rose-300" onClick={() => void handleDeleteAdminUser(u)}>Excluir</Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

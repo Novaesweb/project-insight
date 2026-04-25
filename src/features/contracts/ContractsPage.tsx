@@ -439,7 +439,7 @@ export default function Contratos() {
         />
 
         {catalogIssues.length > 0 ? (
-          <Alert className="mb-6 border-amber-500/30 bg-amber-500/10 text-white [&>svg]:text-amber-300">
+          <Alert className="mb-6 border-[#DC2626]/30 bg-[linear-gradient(135deg,rgba(220,38,38,0.12),rgba(124,58,237,0.12))] text-white [&>svg]:text-[#F9A8D4]">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Painel carregado com avisos</AlertTitle>
             <AlertDescription className="space-y-4 text-white/80">

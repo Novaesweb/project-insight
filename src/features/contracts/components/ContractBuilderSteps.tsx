@@ -44,11 +44,11 @@ export function SummaryPill({
     <div
       className={`rounded-[24px] border px-4 py-3 transition-all duration-300 ${
         accent
-          ? "border-[#D4AF37]/30 bg-[linear-gradient(135deg,rgba(212,175,55,0.15),rgba(184,134,11,0.1))] shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
+          ? "border-[#7C3AED]/30 bg-[linear-gradient(135deg,rgba(220,38,38,0.14),rgba(124,58,237,0.16),rgba(236,72,153,0.1))] shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
           : "border-white/5 bg-white/[0.02]"
       }`}
     >
-      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#D4AF37]/60">{label}</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#EC4899]/70">{label}</p>
       <p className="mt-2 text-sm font-semibold text-white tracking-tight">{value}</p>
     </div>
   );
@@ -69,13 +69,13 @@ export function StepPanel({
 }) {
   return (
     <Card className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0d0914]/80 backdrop-blur-sm shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
-      {/* Detalhe de Ouro Lateral */}
-      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#D4AF37] via-[#B8860B] to-transparent opacity-80" />
+      {/* Detalhe lateral da marca */}
+      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#DC2626] via-[#7C3AED] to-transparent opacity-80" />
       
       <CardHeader className="border-b border-white/5 px-8 py-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]">{stepLabel}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#EC4899]">{stepLabel}</p>
             <CardTitle className="text-3xl font-light text-white" style={{ fontFamily: "'Playfair Display', serif" }}>{title}</CardTitle>
             <CardDescription className="max-w-3xl text-base text-white/40">{description}</CardDescription>
           </div>
@@ -83,16 +83,16 @@ export function StepPanel({
             variant="outline"
             className={
               error
-                ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
-                : "border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700]"
+                ? "border-[#DC2626]/30 bg-[#DC2626]/10 text-[#FCA5A5]"
+                : "border-[#7C3AED]/30 bg-[#7C3AED]/10 text-[#F5D0FE]"
             }
           >
             {error ? "Ação Requerida" : "Validado"}
           </Badge>
         </div>
         {error ? (
-          <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-200/80 flex items-center gap-3">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[#DC2626]/20 bg-[linear-gradient(135deg,rgba(220,38,38,0.08),rgba(124,58,237,0.08))] px-4 py-3 text-sm text-[#FBCFE8]/80">
+            <AlertTriangle className="h-4 w-4 text-[#EC4899]" />
             {error}
           </div>
         ) : null}
@@ -163,7 +163,7 @@ export function ContractStepCliente({
       error={error}
     >
       {!selectedClientExists ? (
-        <Alert className="border-amber-300/20 bg-amber-300/10 text-amber-100 [&>svg]:text-amber-200">
+        <Alert className="border-[#DC2626]/25 bg-[linear-gradient(135deg,rgba(220,38,38,0.12),rgba(124,58,237,0.12))] text-white [&>svg]:text-[#F9A8D4]">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Cliente nao encontrado</AlertTitle>
           <AlertDescription>
@@ -406,7 +406,7 @@ export function ContractStepDados({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 px-2 text-[10px] text-[#D4AF37] hover:text-[#FFD700] hover:bg-[#D4AF37]/10"
+              className="h-6 px-2 text-[10px] text-[#EC4899] hover:text-[#F9A8D4] hover:bg-[#EC4899]/10"
               onClick={() => openAi("prazoSuporte", "Prazo de Suporte", payload.prazoSuporte)}
             >
               <Wand2 className="mr-1 h-3 w-3" />
@@ -426,7 +426,7 @@ export function ContractStepDados({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 px-2 text-[10px] text-[#D4AF37] hover:text-[#FFD700] hover:bg-[#D4AF37]/10"
+              className="h-6 px-2 text-[10px] text-[#EC4899] hover:text-[#F9A8D4] hover:bg-[#EC4899]/10"
               onClick={() => openAi("customScope", "Escopo Principal", payload.customScope)}
             >
               <Wand2 className="mr-1 h-3 w-3" />
@@ -546,23 +546,23 @@ export function ContractStepPlano({
               onClick={() => onPrimaryPlanChange(plan.id)}
               className={`group relative overflow-hidden rounded-[32px] border p-6 text-left transition-all duration-500 ${
                 isSelected
-                  ? "border-[#D4AF37]/40 bg-[linear-gradient(135deg,rgba(212,175,55,0.15),rgba(13,9,20,0.95))] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                  ? "border-[#7C3AED]/40 bg-[linear-gradient(135deg,rgba(220,38,38,0.12),rgba(124,58,237,0.16),rgba(13,9,20,0.95))] shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
                   : "border-white/5 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
               }`}
             >
               {isSelected && (
                  <div className="absolute top-0 right-0 p-4">
-                    <CheckCircle2 className="h-5 w-5 text-[#D4AF37]" />
+                    <CheckCircle2 className="h-5 w-5 text-[#EC4899]" />
                  </div>
               )}
               
               <div className="flex flex-col gap-3">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]/70">{plan.tag}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#EC4899]/75">{plan.tag}</p>
                   <p className="mt-2 text-2xl font-light text-white tracking-tight">{plan.title}</p>
                 </div>
                 {plan.popular ? (
-                  <Badge variant="outline" className="w-fit border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700]">
+                  <Badge variant="outline" className="w-fit border-[#7C3AED]/30 bg-[#7C3AED]/10 text-[#F5D0FE]">
                     Exclusivo
                   </Badge>
                 ) : null}
@@ -574,7 +574,7 @@ export function ContractStepPlano({
                 <div className="flex items-baseline gap-1 mt-1">
                   <p className="text-2xl font-semibold text-white">{formatCurrencyBRL(plan.setupPrice)}</p>
                 </div>
-                <p className="text-xs text-[#D4AF37]/50 mt-1">{plan.priceSub}</p>
+                <p className="mt-1 text-xs text-[#EC4899]/60">{plan.priceSub}</p>
               </div>
             </button>
           );
@@ -713,7 +713,7 @@ export function ContractStepExtras({
                       variant="outline"
                       className={
                         extra.active !== false
-                          ? "border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#FFD700]"
+                          ? "border-[#7C3AED]/30 bg-[#7C3AED]/10 text-[#F5D0FE]"
                           : "border-white/10 bg-white/[0.04] text-white/40"
                       }
                     >
@@ -886,9 +886,9 @@ export function ContractStepPreview({
         {builderPrepared ? (
           <BuilderPreviewDocument title={builderPrepared.title} body={builderPrepared.body} summary={builderSummary} />
         ) : (
-          <div className="rounded-[24px] border border-amber-300/20 bg-amber-300/10 p-5">
+          <div className="rounded-[24px] border border-[#DC2626]/20 bg-[linear-gradient(135deg,rgba(220,38,38,0.12),rgba(124,58,237,0.12))] p-5">
             <p className="text-sm font-semibold text-white">Previa indisponivel</p>
-            <p className="mt-2 text-sm text-amber-100/80">
+            <p className="mt-2 text-sm text-[#FBCFE8]/80">
               {builderPreparedError || "Complete os dados minimos do contrato para renderizar a previa."}
             </p>
           </div>

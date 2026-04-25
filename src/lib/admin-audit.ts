@@ -89,6 +89,19 @@ export async function moveAdminUserMetadata(previousEmail: string, nextEmail: st
   return metadata;
 }
 
+export async function removeAdminUserMetadata(email: string) {
+  const metadata = await loadAdminUserMetadata();
+  const key = normalizeEmail(email);
+
+  if (!(key in metadata)) {
+    return metadata;
+  }
+
+  delete metadata[key];
+  await saveAdminUserMetadata(metadata);
+  return metadata;
+}
+
 export async function logAdminAudit(title: string, body: string, url = "/admin/configuracoes?tab=auditoria") {
   const { error } = await supabase.from("notifications").insert({
     title,
