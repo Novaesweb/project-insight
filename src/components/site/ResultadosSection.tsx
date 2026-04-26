@@ -72,7 +72,7 @@ export default function ResultadosSection() {
       <div className="max-w-6xl mx-auto">
         <motion.div variants={fade} className="mx-auto max-w-3xl text-center">
           <span className="site-badge site-badge--primary">Resultados e prova social</span>
-          <h2 className="mt-8 text-4xl sm:text-6xl font-black tracking-tighter text-white/90 leading-[0.92]">
+          <h2 className="mt-8 text-[clamp(2rem,7vw,3.75rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
             Mais que um visual bonito.
             <span className="site-gradient-text"> Uma estrutura que eleva a percepção da marca.</span>
           </h2>

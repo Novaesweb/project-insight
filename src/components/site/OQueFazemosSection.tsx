@@ -42,7 +42,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
       <div className="max-w-7xl mx-auto">
         <motion.div variants={fade} className="max-w-3xl">
           <span className="site-badge site-badge--accent">Solucoes NovaesWeb</span>
-          <h2 className="mt-8 text-4xl sm:text-6xl font-black tracking-tighter text-white/90 leading-[0.92]">
+          <h2 className="mt-8 text-[clamp(2rem,7vw,3.75rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
             Uma estrutura mais enxuta no layout,
             <span className="site-gradient-text"> mais forte na percepcao.</span>
           </h2>

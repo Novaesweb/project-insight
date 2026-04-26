@@ -39,7 +39,7 @@ export default function SiteTrustStrip() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center">
             <div>
               <div className="site-badge site-badge--primary mb-5">Base de confianca</div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white/90 leading-tight">
+              <h2 className="text-[clamp(1.5rem,5vw,2.5rem)] font-black tracking-tight text-white/90 leading-tight">
                 Estrutura pensada para posicionar sua marca, organizar a operacao e abrir conversas melhores.
               </h2>
               <p className="mt-4 max-w-2xl text-sm sm:text-base leading-relaxed site-copy-muted">

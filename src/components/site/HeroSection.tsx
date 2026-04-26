@@ -200,7 +200,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
   };
 
   return (
-    <section id="cadastro" className="relative overflow-hidden px-6 pb-16 pt-28 lg:pb-20 lg:pt-32">
+    <section id="cadastro" className="relative overflow-hidden px-4 sm:px-6 pb-16 pt-28 lg:pb-20 lg:pt-32">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
           className="absolute left-[-8%] top-0 h-[520px] w-[520px] rounded-full blur-[180px] opacity-[0.08]"

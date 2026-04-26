@@ -38,7 +38,7 @@ export default function ComoFuncionaSection() {
       <div className="max-w-6xl mx-auto">
         <motion.div variants={fade} className="mx-auto max-w-3xl text-center">
           <span className="site-badge site-badge--accent">Como funciona</span>
-          <h2 className="mt-8 text-4xl sm:text-5xl font-black tracking-tighter text-white/90 leading-[0.95]">
+          <h2 className="mt-8 text-[clamp(1.85rem,6vw,3.25rem)] font-black tracking-tighter text-white/90 leading-[0.95]">
             Um processo curto, consultivo e focado no que move a sua marca agora.
           </h2>
           <p className="mt-5 text-lg leading-relaxed site-copy-muted">

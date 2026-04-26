@@ -33,7 +33,7 @@ export default function AutomacaoSection() {
           <span className="site-badge site-badge--success">
             Automação Inteligente
           </span>
-          <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
+          <h2 className="text-[clamp(2.2rem,8vw,3.75rem)] font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
             Automatize o <br />
             <span className="site-title-muted">atendimento com </span>
             <span className="site-gradient-text">IA</span>
@@ -68,7 +68,7 @@ export default function AutomacaoSection() {
               <CheckCircle2 className="w-5 h-5 text-emerald-400/70" />
               <span className="text-xs font-black text-white/70 uppercase tracking-widest">Resultados Comprovados</span>
             </div>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {results.map((r) => (
                 <div key={r.label} className="text-center">
                   <div className="w-12 h-12 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/10 flex items-center justify-center mx-auto mb-3">

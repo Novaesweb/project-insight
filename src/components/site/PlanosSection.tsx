@@ -139,7 +139,7 @@ export default function PlanosSection() {
       <div className="max-w-7xl mx-auto">
         <motion.div variants={fade} className="mx-auto max-w-3xl text-center">
           <span className="site-badge site-badge--primary">Planos e estrutura</span>
-          <h2 className="mt-8 text-4xl sm:text-6xl font-black tracking-tighter text-white/90 leading-[0.92]">
+          <h2 className="mt-8 text-[clamp(2.1rem,7.5vw,3.75rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
             Comece com o formato certo
             <span className="site-gradient-text"> para o seu momento.</span>
           </h2>
