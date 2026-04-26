@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense, useCallback, memo } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
+import PublicSiteCursor from "@/components/site/PublicSiteCursor";
 import SiteTrustStrip from "@/components/site/SiteTrustStrip";
 
 // Lazy load all below-fold sections
@@ -45,6 +46,7 @@ export default function Site() {
   return (
     <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
       <GlobalBackground />
+      <PublicSiteCursor />
 
       <a
         href="#main-content"

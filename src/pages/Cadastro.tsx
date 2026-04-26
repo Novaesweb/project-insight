@@ -15,11 +15,9 @@ import { submitLeadCapture } from "@/lib/lead-capture";
 import { cn } from "@/lib/utils";
 
 const NECESSIDADES = [
-  { id: "site", label: "Site Profissional", icon: Globe, desc: "Presença online de alto impacto" },
-  { id: "loja", label: "Loja Virtual", icon: Store, desc: "Venda online 24/7" },
-  { id: "sistema", label: "Sistema Custom", icon: Layout, desc: "Solução sob medida" },
-  { id: "marketing", label: "Marketing / Leads", icon: Target, desc: "Captação e conversão" },
-  { id: "outros", label: "Outros", icon: MessageCircle, desc: "Conte-nos mais" },
+  { id: "site-painel", label: "Site + Painel", icon: Layout, desc: "Vitrine com operação integrada" },
+  { id: "site-vitrine", label: "Site de Vitrine", icon: Globe, desc: "Presença profissional para apresentar a marca" },
+  { id: "cardapio-delivery", label: "Cardapio Delivery", icon: Store, desc: "Estrutura para pedidos e delivery" },
 ];
 
 const VOLUMES = [

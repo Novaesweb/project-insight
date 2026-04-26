@@ -1,7 +1,8 @@
-import { Instagram, Linkedin, Facebook, ArrowRight } from "lucide-react";
+import { Instagram, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import SiteFooterWaves from "@/components/site/SiteFooterWaves";
 import { handleSiteNavigation } from "@/lib/site-navigation";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
 
@@ -25,8 +26,10 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
   const navigate = useNavigate();
 
   return (
-    <footer className="border-t border-white/[0.05] px-6 pb-10 pt-16">
-      <div className="max-w-7xl mx-auto">
+    <footer className="relative overflow-hidden px-6 pb-10 pt-24">
+      <SiteFooterWaves />
+
+      <div className="relative z-10 max-w-7xl mx-auto border-t border-white/[0.05] pt-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
           <div className="max-w-md">
             <div className="flex items-center gap-3">
@@ -72,8 +75,6 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
             <div className="mt-4 space-y-3">
               {[
                 { icon: Instagram, label: "Instagram", url: "https://www.instagram.com/novaesweb.oficial/" },
-                { icon: Linkedin, label: "LinkedIn", url: "https://linkedin.com/company/novaesweb" },
-                { icon: Facebook, label: "Facebook", url: "https://facebook.com/novaesweb" },
               ].map((item) => (
                 <a
                   key={item.label}

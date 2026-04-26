@@ -3,6 +3,7 @@ import { memo, useCallback, useState, type ReactNode } from "react";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteModals from "@/components/site/SiteModals";
 import SiteNavbar from "@/components/site/SiteNavbar";
+import PublicSiteCursor from "@/components/site/PublicSiteCursor";
 import WhatsAppFloat from "@/components/site/WhatsAppFloat";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ export default function PublicPageLayout({ children, mainClassName }: PublicPage
       style={{ background: "hsl(var(--background))" }}
     >
       <PublicBackground />
+      <PublicSiteCursor />
 
       <main className={cn("relative z-10", mainClassName)}>
         <SiteNavbar onOpenModal={setModalOpen} />

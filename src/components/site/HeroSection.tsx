@@ -12,6 +12,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SiteTypewriterLine from "@/components/site/SiteTypewriterLine";
 import { useToast } from "@/hooks/use-toast";
 import { submitLeadCapture } from "@/lib/lead-capture";
 import { cn } from "@/lib/utils";
@@ -24,16 +25,21 @@ interface HeroSectionProps {
 const FALLBACK_WHATSAPP = "5551991189293";
 
 const serviceOptions = [
-  { id: "site", label: "Site comercial" },
-  { id: "painel", label: "Site + painel" },
-  { id: "marketing", label: "Captação e marketing" },
-  { id: "sob-medida", label: "Projeto sob medida" },
+  { id: "site-painel", label: "Site + painel" },
+  { id: "site-vitrine", label: "Site de vitrine" },
+  { id: "cardapio-delivery", label: "Cardapio virtual para delivery" },
 ];
 
 const proofBullets = [
   "Diagnóstico inicial em até 24h",
   "Estrutura pensada para vender e operar",
   "Site, painel e automação na mesma direção",
+];
+
+const typedMessages = [
+  "Site + painel com a sua marca",
+  "Site de vitrine para vender melhor",
+  "Cardapio virtual para delivery",
 ];
 
 const highlightCards = [
@@ -243,6 +249,15 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.24 }}
+                className="mt-6"
+              >
+                <SiteTypewriterLine messages={typedMessages} />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.3 }}
                 className="mt-7 flex flex-wrap gap-3"
               >
                 {proofBullets.map((item) => (
@@ -258,7 +273,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.32 }}
+                transition={{ duration: 0.55, delay: 0.38 }}
                 className="mt-8 grid gap-4 md:grid-cols-3"
               >
                 {highlightCards.map((card) => (
@@ -272,7 +287,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.4 }}
+                transition={{ duration: 0.55, delay: 0.46 }}
                 className="mt-8 flex flex-col gap-3 sm:flex-row"
               >
                   <Button onClick={onOpenDemo} className="site-soft-surface h-12 rounded-2xl px-7 text-sm font-bold text-white/82 transition-all hover:text-white">
