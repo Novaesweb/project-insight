@@ -1,20 +1,18 @@
 import { useState, lazy, Suspense, useCallback, memo } from "react";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import HeroSection from "@/components/site/HeroSection";
+import SiteTrustStrip from "@/components/site/SiteTrustStrip";
 
 // Lazy load all below-fold sections
 const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSection"));
 const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
-const AutomacaoSection = lazy(() => import("@/components/site/AutomacaoSection"));
 const PlanosSection = lazy(() => import("@/components/site/PlanosSection"));
 const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection"));
-const FaqSection = lazy(() => import("@/components/site/FaqSection"));
 const SiteModals = lazy(() => import("@/components/site/SiteModals"));
 const CtaSection = lazy(() => import("@/components/site/CtaSection"));
 const SiteFooter = lazy(() => import("@/components/site/SiteFooter"));
 const WhatsAppFloat = lazy(() => import("@/components/site/WhatsAppFloat"));
 const MobileAppNav = lazy(() => import("@/components/site/MobileAppNav"));
-const CadastroPerfeitoSection = lazy(() => import("@/components/site/CadastroPerfeitoSection"));
 
 
 // Memoized background to avoid re-renders
@@ -57,20 +55,15 @@ export default function Site() {
       </a>
 
       <main id="main-content" className="relative z-10">
-        <SiteNavbar onOpenModal={setModalOpen} />
+        <SiteNavbar />
         <HeroSection onOpenDemo={openDemo} />
+        <SiteTrustStrip />
         
         <Suspense fallback={null}>
           <OQueFazemosSection onOpenDemo={openDemo} />
           <ResultadosSection />
           <ComoFuncionaSection />
-          <AutomacaoSection />
           <PlanosSection />
-        </Suspense>
-
-        <Suspense fallback={null}>
-          <CadastroPerfeitoSection />
-          <FaqSection />
         </Suspense>
 
         <Suspense fallback={null}>

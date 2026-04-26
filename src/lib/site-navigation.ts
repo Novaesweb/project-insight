@@ -17,8 +17,7 @@ export const sitePrimaryNavLinks: SiteNavLink[] = [
   { href: "#o-que-fazemos", label: "Solucoes" },
   { href: "#resultados", label: "Resultados" },
   { href: "#planos", label: "Planos" },
-  { href: "/sobre", label: "Sobre" },
-  { href: "#contato", label: "Contato" },
+  { href: "#cadastro", label: "Orcamento" },
 ];
 
 export const siteFeatureNavLinks: SiteNavLink[] = [

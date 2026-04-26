@@ -1,17 +1,11 @@
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, MessageCircle, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const FALLBACK_NUMBER = "5551991189293";
-
-const nextSteps = [
-  "Voce envia o contexto do seu negocio e do que quer melhorar.",
-  "A NovaesWeb analisa o melhor formato para sua estrutura digital.",
-  "Voce recebe uma orientacao comercial clara com proximos passos.",
-];
 
 export default function CtaSection() {
   const [whatsappNumber, setWhatsappNumber] = useState(FALLBACK_NUMBER);
@@ -27,106 +21,68 @@ export default function CtaSection() {
       });
   }, []);
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    "Ola! Quero um diagnostico da NovaesWeb para entender a melhor estrutura para meu negocio."
-  )}`;
+  const whatsappUrl = useMemo(
+    () =>
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+        "Ola! Quero entender a melhor estrutura da NovaesWeb para o meu negocio."
+      )}`,
+    [whatsappNumber]
+  );
 
   return (
-    <section id="contato" className="site-band py-32 px-6 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute top-[8%] left-[15%] w-[360px] h-[360px] rounded-full blur-[140px] opacity-[0.03]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 72%)" }}
-        />
-        <div
-          className="absolute bottom-[0%] right-[12%] w-[420px] h-[420px] rounded-full blur-[150px] opacity-[0.03]"
-          style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.35), transparent 72%)" }}
-        />
-      </div>
-
+    <section id="contato" className="site-band px-6 pb-24 pt-16 lg:pb-28 lg:pt-20">
       <motion.div
-        className="site-surface relative max-w-5xl mx-auto text-center rounded-[2.75rem] px-8 py-12 md:px-16"
-        initial={{ opacity: 0, y: 30 }}
+        className="public-page-cta-card max-w-5xl mx-auto"
+        initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <div className="absolute inset-0 pointer-events-none opacity-80" style={{ background: "radial-gradient(circle at top center, rgba(236, 72, 153, 0.12), transparent 35%)" }} />
-        <div className="absolute inset-x-10 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(220,38,38,0.65), rgba(107,33,168,0.6), rgba(236,72,153,0.65), transparent)" }} />
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="site-badge site-badge--primary mb-7">
+            <Sparkles className="h-3.5 w-3.5" />
+            Proximo passo
+          </span>
 
-        <span className="site-badge site-badge--primary mb-8">
-          <Sparkles className="w-3.5 h-3.5" />
-          Diagnostico comercial sem compromisso
-        </span>
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tighter text-white/92 leading-[0.92]">
+            Se a sua marca precisa parecer mais forte, este e o momento de estruturar direito.
+          </h2>
 
-        <h2 className="text-5xl sm:text-7xl font-black text-foreground/90 mb-8 leading-[0.9] tracking-tighter">
-          Vamos desenhar a <br />
-          <span className="site-gradient-text">sua proxima estrutura digital?</span>
-        </h2>
-        <p className="text-xl site-copy-muted mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
-          Se voce quer captar melhor, apresentar a marca com mais forca e organizar a operacao com cara de sistema
-          profissional, este e o proximo passo.
-        </p>
-
-        <div className="grid gap-4 md:grid-cols-3 max-w-4xl mx-auto mb-10">
-          {nextSteps.map((step, index) => (
-            <div key={step} className="public-page-highlight-card text-left">
-              <p className="text-[10px] uppercase tracking-[0.22em] font-black text-white/45 mb-2">Passo {index + 1}</p>
-              <p className="text-base font-black text-white leading-relaxed">{step}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-          <Link to="/cadastro">
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                className="h-14 px-10 rounded-2xl text-white text-base font-bold border-0 group overflow-hidden"
-                style={{
-                  background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
-                  boxShadow: "0 15px 36px rgba(236,72,153,0.16)",
-                }}
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  Solicitar diagnostico
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </Button>
-            </motion.div>
-          </Link>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-            <Button
-              className="site-soft-surface h-14 px-10 rounded-2xl text-base font-semibold transition-all"
-              style={{ color: "hsl(var(--muted-foreground) / 0.95)" }}
-            >
-              <MessageCircle className="w-5 h-5 mr-2" /> Falar no WhatsApp
-            </Button>
-          </a>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground/65">
-          {[
-            "Resposta consultiva em ate 24h",
-            "Sem compromisso para analisar",
-            "Projeto alinhado ao seu momento",
-            "Time humano no atendimento",
-          ].map((item) => (
-            <span key={item} className="site-soft-surface flex items-center gap-1.5 rounded-full px-4 py-2">
-              <CheckCircle className="w-3.5 h-3.5" style={{ color: "hsl(var(--success) / 0.5)" }} />
-              {item}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-8 rounded-[1.8rem] border border-white/10 bg-white/[0.03] px-5 py-4 max-w-2xl mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <ShieldCheck className="w-4 h-4 text-white/75" />
-            <p className="text-[10px] uppercase tracking-[0.2em] font-black text-white/50">Direcao antes da execucao</p>
-          </div>
-          <p className="text-sm text-white/72 leading-relaxed">
-            A proposta aqui nao e empurrar um pacote. E entender o seu negocio e indicar a estrutura que realmente faz
-            sentido para vender, operar e crescer.
+          <p className="mt-5 text-lg leading-relaxed text-white/64">
+            A NovaesWeb monta o diagnóstico inicial, indica o formato ideal e desenha uma base digital com mais clareza
+            comercial e operacional.
           </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {[
+              "Sem compromisso para analisar",
+              "Resposta consultiva em ate 24h",
+              "Orientacao alinhada ao seu momento",
+            ].map((item) => (
+              <span key={item} className="site-soft-surface inline-flex items-center gap-2 rounded-full px-4 py-2 text-[11px] font-bold text-white/72">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300/80" />
+                {item}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <a href="#cadastro">
+              <Button
+                className="h-12 rounded-2xl border border-white/10 px-8 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_18px_40px_rgba(236,72,153,0.18)]"
+                style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+              >
+                Solicitar orcamento
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </a>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+              <Button className="site-soft-surface h-12 rounded-2xl px-8 text-sm font-bold text-white/84">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Falar no WhatsApp
+              </Button>
+            </a>
+          </div>
         </div>
       </motion.div>
     </section>

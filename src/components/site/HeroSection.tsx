@@ -1,190 +1,254 @@
-import { memo, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { memo, useEffect, useMemo, useState, type FormEvent } from "react";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
+  CheckCircle2,
+  Loader2,
+  MessageCircle,
+  Send,
   ShieldCheck,
-  Zap,
   Sparkles,
-  Briefcase,
-  Target,
-  Layout,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useCompanyCounter } from "@/hooks/useCompanyCounter";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { submitLeadCapture } from "@/lib/lead-capture";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeroSectionProps {
   onOpenDemo: () => void;
 }
 
-function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => `${Math.round(latest)}${suffix}`);
-  const ref = useRef<HTMLSpanElement>(null);
+const FALLBACK_WHATSAPP = "5551991189293";
 
-  useEffect(() => {
-    const controls = animate(count, target, { duration: 1.5, ease: "easeOut" });
-    return controls.stop;
-  }, [target, count]);
-
-  return <motion.span ref={ref}>{rounded}</motion.span>;
-}
-
-const particles = [
-  { delay: 0, x: "10%", y: "20%", size: 5 },
-  { delay: 0.8, x: "85%", y: "15%", size: 4 },
-  { delay: 1.5, x: "70%", y: "70%", size: 4 },
-  { delay: 2, x: "20%", y: "75%", size: 3 },
+const serviceOptions = [
+  { id: "site", label: "Site comercial" },
+  { id: "painel", label: "Site + painel" },
+  { id: "marketing", label: "Captação e marketing" },
+  { id: "sob-medida", label: "Projeto sob medida" },
 ];
 
+const proofBullets = [
+  "Diagnóstico inicial em até 24h",
+  "Estrutura pensada para vender e operar",
+  "Site, painel e automação na mesma direção",
+];
+
+const highlightCards = [
+  {
+    title: "Marca mais forte",
+    description: "Apresentação premium para sair do improviso e passar mais confiança.",
+  },
+  {
+    title: "Operação mais clara",
+    description: "Contratos, atendimento, extras e rotina comercial alinhados em uma base própria.",
+  },
+  {
+    title: "Captação com direção",
+    description: "Uma estrutura que ajuda a gerar conversa qualificada e não só visita solta.",
+  },
+];
+
+const formatWhatsApp = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
 function HeroSection({ onOpenDemo }: HeroSectionProps) {
-  const companyCount = useCompanyCounter();
-  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [whatsappNumber, setWhatsappNumber] = useState(FALLBACK_WHATSAPP);
+  const [form, setForm] = useState({
+    nome: "",
+    email: "",
+    whatsapp: "",
+    empresa: "",
+    necessidade: serviceOptions[0].id,
+    _fax: "",
+  });
 
-  const featureCards = [
-    {
-      eyebrow: "Posicionamento por nicho",
-      title: "Estruturas para diferentes mercados",
-      description:
-        "Veja como adaptamos site, oferta e fluxo comercial para servicos, loja, clinica e operacoes locais.",
-      icon: Briefcase,
-      action: () => navigate("/nichos"),
-      cta: "Ver nichos",
-    },
-    {
-      eyebrow: "Campanhas e criativos",
-      title: "Marketing com direcao comercial",
-      description:
-        "Landing pages, criativos e campanhas para trazer mais conversas qualificadas para a sua operacao.",
-      icon: Target,
-      action: () => navigate("/criacao-conteudo"),
-      cta: "Explorar marketing",
-    },
-    {
-      eyebrow: "Operacao organizada",
-      title: "Painel, contratos e acompanhamento",
-      description:
-        "Uma base para vender melhor, acompanhar clientes e operar com mais clareza em um so lugar.",
-      icon: Layout,
-      action: onOpenDemo,
-      cta: "Ver demonstracao",
-    },
-  ];
+  useEffect(() => {
+    supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "whatsapp_number")
+      .single()
+      .then(({ data }) => {
+        if (data?.value) {
+          setWhatsappNumber(data.value.replace(/\D/g, "") || FALLBACK_WHATSAPP);
+        }
+      });
+  }, []);
 
-  const scrollToCadastro = () => {
-    const section = document.getElementById("cadastro");
-    section?.scrollIntoView({ behavior: "smooth" });
+  const whatsappUrl = useMemo(
+    () =>
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+        "Ola! Quero entender qual estrutura da NovaesWeb faz mais sentido para o meu negocio."
+      )}`,
+    [whatsappNumber]
+  );
+
+  const updateField = (field: keyof typeof form, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    if (errors[field]) {
+      setErrors((current) => {
+        const next = { ...current };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const validate = () => {
+    const nextErrors: Record<string, string> = {};
+
+    if (!form.nome.trim()) nextErrors.nome = "Informe seu nome.";
+    if (!form.empresa.trim()) nextErrors.empresa = "Informe o nome do negocio.";
+    if (!form.email.trim() || !form.email.includes("@")) nextErrors.email = "Informe um e-mail valido.";
+    if (form.whatsapp.replace(/\D/g, "").length < 10) nextErrors.whatsapp = "Informe um WhatsApp valido.";
+    if (!form.necessidade) nextErrors.necessidade = "Escolha a estrutura que mais combina com seu momento.";
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!validate()) {
+      toast({
+        title: "Preencha os campos principais",
+        description: "Precisamos de alguns dados para montar seu orçamento inicial.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    if (form._fax) {
+      setLoading(false);
+      setSubmitted(true);
+      return;
+    }
+
+    const now = Date.now();
+    const rateLimitRaw = localStorage.getItem("hero_lead_rate_limit");
+    let rateLimit = rateLimitRaw ? JSON.parse(rateLimitRaw) : { count: 0, firstAt: now };
+
+    if (now - rateLimit.firstAt > 10 * 60 * 1000) {
+      rateLimit = { count: 1, firstAt: now };
+    } else {
+      rateLimit.count += 1;
+    }
+
+    localStorage.setItem("hero_lead_rate_limit", JSON.stringify(rateLimit));
+
+    if (rateLimit.count > 3) {
+      setLoading(false);
+      toast({
+        title: "Limite excedido",
+        description: "Aguarde alguns minutos antes de tentar novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let error: Error | null = null;
+
+    try {
+      await submitLeadCapture({
+        nome: form.nome.trim(),
+        email: form.email.trim(),
+        whatsapp: form.whatsapp.replace(/\D/g, ""),
+        nome_negocio: form.empresa.trim(),
+        servicos: [form.necessidade],
+        orcamento: "A definir no diagnostico inicial",
+        mensagem: "Lead captado pelo formulario curto do hero editorial.",
+        source: "site-hero-form",
+        origin: window.location.pathname,
+        _fax: form._fax,
+      });
+    } catch (submitError) {
+      error = submitError instanceof Error ? submitError : new Error("Falha ao enviar seu contato.");
+    }
+
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Nao foi possivel enviar agora",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmitted(true);
   };
 
   return (
-    <section id="home" className="relative overflow-hidden pt-28 pb-20 lg:pt-32 lg:pb-24">
-      <div className="absolute inset-0 z-0" aria-hidden="true">
+    <section id="cadastro" className="relative overflow-hidden px-6 pb-16 pt-28 lg:pb-20 lg:pt-32">
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
-          className="absolute top-0 -left-32 w-[620px] h-[620px] rounded-full blur-[160px]"
-          style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.18), transparent 72%)" }}
+          className="absolute left-[-8%] top-0 h-[520px] w-[520px] rounded-full blur-[180px] opacity-[0.08]"
+          style={{ background: "radial-gradient(circle, rgba(220,38,38,0.36), transparent 72%)" }}
         />
         <div
-          className="absolute -bottom-32 -right-32 w-[540px] h-[540px] rounded-full blur-[160px]"
-          style={{ background: "radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.14), transparent 72%)" }}
-        />
-      </div>
-
-      <div className="absolute inset-0 opacity-[0.018] pointer-events-none" aria-hidden="true">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-            backgroundSize: "72px 72px",
-          }}
+          className="absolute bottom-[-10%] right-[-8%] h-[540px] w-[540px] rounded-full blur-[180px] opacity-[0.09]"
+          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.24), transparent 72%)" }}
         />
       </div>
 
-      <div className="absolute inset-0 pointer-events-none z-[1]" aria-hidden="true">
-        {particles.map((particle, index) => (
-          <motion.div
-            key={index}
-            className="absolute rounded-full"
-            style={{
-              left: particle.x,
-              top: particle.y,
-              width: particle.size,
-              height: particle.size,
-              background: "radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)",
-              opacity: 0.15,
-            }}
-            animate={{ y: [0, -20, 0], opacity: [0.1, 0.2, 0.1] }}
-            transition={{
-              duration: 5 + index,
-              delay: particle.delay,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
-      </div>
-
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[500px] opacity-[0.05] pointer-events-none"
-        aria-hidden="true"
-        style={{ background: "radial-gradient(ellipse at top, hsl(var(--accent) / 0.22), transparent 72%)" }}
-      />
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="hero-editorial-grid">
-            <div className="hero-editorial-copy">
+      <div className="public-page-container">
+        <div className="public-page-hero">
+          <div className="public-page-hero-grid gap-8 lg:gap-10">
+            <div className="flex flex-col justify-center">
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="site-badge site-badge--accent hero-tech-badge mb-8 relative"
+                className="site-badge site-badge--accent mb-6 w-fit"
               >
-                <Sparkles className="w-3.5 h-3.5" style={{ color: "hsl(var(--accent))" }} />
-                <span
-                  className="text-[10px] font-black uppercase tracking-[0.3em]"
-                  style={{ color: "hsl(var(--muted-foreground) / 0.86)" }}
-                >
-                  NovaesWeb Studio
-                </span>
+                <Sparkles className="h-3.5 w-3.5" />
+                NovaesWeb Studio
               </motion.div>
 
               <motion.h1
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-5xl md:text-7xl xl:text-[5.4rem] font-black tracking-tighter leading-[0.88]"
+                transition={{ duration: 0.55, delay: 0.08 }}
+                className="public-page-title"
               >
-                <span className="block text-foreground/92">Seu negocio precisa de</span>
-                <span className="block site-gradient-text mt-2">mais que um site.</span>
-                <span className="block text-foreground/55 mt-2">Precisa de uma estrutura para vender.</span>
+                Sua proxima fase digital precisa vender, organizar e valorizar a sua marca.
               </motion.h1>
 
               <motion.p
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.24 }}
-                className="text-lg md:text-xl mt-8 max-w-3xl leading-relaxed font-medium site-copy-muted"
+                transition={{ duration: 0.55, delay: 0.16 }}
+                className="public-page-description mt-6"
               >
-                A NovaesWeb cria uma base digital para atrair contatos, organizar atendimento e fechar com mais
-                clareza. Site, painel, contratos, extras e automacao trabalhando na mesma direcao.
+                A NovaesWeb desenha uma estrutura digital premium para empresas que querem sair do improviso e operar
+                com mais clareza: site, painel, contratos, extras e automação com a mesma linguagem comercial.
               </motion.p>
 
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-5 flex flex-wrap gap-3"
+                transition={{ duration: 0.55, delay: 0.24 }}
+                className="mt-7 flex flex-wrap gap-3"
               >
-                {[
-                  "Site profissional com foco em conversao",
-                  "Painel para operar e acompanhar",
-                  "WhatsApp e fluxo comercial alinhados",
-                ].map((item) => (
+                {proofBullets.map((item) => (
                   <span
                     key={item}
-                    className="site-soft-surface rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/70"
+                    className="site-soft-surface rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/72"
                   >
                     {item}
                   </span>
@@ -194,127 +258,217 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.36 }}
-                className="mt-6 max-w-3xl w-full"
+                transition={{ duration: 0.55, delay: 0.32 }}
+                className="mt-8 grid gap-4 md:grid-cols-3"
               >
-                <div className="hero-founder-card rounded-[1.8rem] px-5 py-5 sm:px-6 sm:py-6 text-left">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] font-black text-[hsl(var(--gold))]">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Estrutura recomendada
-                      </div>
-                      <p className="text-sm sm:text-base text-white/82 font-semibold leading-relaxed">
-                        Indicamos a combinacao ideal entre vitrine, operacao e automacao para voce captar melhor e
-                        organizar o crescimento sem improviso.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2.5 shrink-0">
-                      <span className="hero-founder-pill">Site + painel</span>
-                      <span className="hero-founder-pill">Proposta mais clara</span>
-                      <span className="hero-founder-pill hero-founder-pill--warning">Acompanhamento consultivo</span>
-                    </div>
+                {highlightCards.map((card) => (
+                  <div key={card.title} className="public-page-highlight-card">
+                    <p className="text-sm font-black tracking-tight text-white/92">{card.title}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-white/58">{card.description}</p>
                   </div>
-                </div>
+                ))}
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.48 }}
-                className="mt-8 flex flex-col sm:flex-row items-stretch gap-4 max-w-3xl w-full justify-center"
+                transition={{ duration: 0.55, delay: 0.4 }}
+                className="mt-8 flex flex-col gap-3 sm:flex-row"
               >
-                <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                  <Button
-                    onClick={scrollToCadastro}
-                    className="h-16 w-full sm:w-auto px-10 sm:px-12 rounded-2xl text-white text-lg font-black border-0 relative overflow-hidden group"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
-                      boxShadow: "0 18px 52px rgba(236,72,153,0.18), 0 0 28px rgba(236,72,153,0.08)",
-                    }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      Solicitar diagnostico
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
-                    </span>
-                  </Button>
-                </motion.div>
-
-                <motion.button
-                  type="button"
-                  onClick={onOpenDemo}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  className="site-surface h-16 px-8 rounded-2xl text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
-                  style={{ color: "hsl(var(--muted-foreground) / 0.92)" }}
-                >
+                  <Button onClick={onOpenDemo} className="site-soft-surface h-12 rounded-2xl px-7 text-sm font-bold text-white/82 transition-all hover:text-white">
                   Ver demonstracao
-                  <ArrowRight className="w-4 h-4" />
-                </motion.button>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                  <Button
+                    className="h-12 rounded-2xl border border-white/10 px-7 text-sm font-bold text-white shadow-[0_14px_36px_rgba(236,72,153,0.14)]"
+                    style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Falar no WhatsApp
+                  </Button>
+                </a>
               </motion.div>
             </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.18 }}
+              className="site-surface rounded-[2rem] p-5 sm:p-6"
+            >
+              {!submitted ? (
+                <>
+                  <div className="mb-5">
+                    <div className="site-badge site-badge--primary mb-4">Solicitar orcamento</div>
+                    <h2 className="text-2xl font-black tracking-tight text-white/92">Receba um diagnostico inicial.</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-white/62">
+                      Preencha o essencial e a NovaesWeb retorna com o formato mais indicado para sua estrutura.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <input
+                      type="text"
+                      name="_fax"
+                      tabIndex={-1}
+                      autoComplete="none"
+                      className="absolute -z-10 h-0 w-0 opacity-0"
+                      value={form._fax}
+                      onChange={(event) => updateField("_fax", event.target.value)}
+                    />
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
+                          Nome
+                        </label>
+                        <Input
+                          value={form.nome}
+                          onChange={(event) => updateField("nome", event.target.value)}
+                          placeholder="Seu nome"
+                          className={cn(
+                            "h-12 rounded-2xl border-white/10 bg-white/[0.03] text-sm text-white placeholder:text-white/26",
+                            errors.nome && "border-destructive/60"
+                          )}
+                        />
+                        {errors.nome ? <p className="mt-2 text-xs font-semibold text-red-300">{errors.nome}</p> : null}
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
+                          Negocio
+                        </label>
+                        <Input
+                          value={form.empresa}
+                          onChange={(event) => updateField("empresa", event.target.value)}
+                          placeholder="Marca ou empresa"
+                          className={cn(
+                            "h-12 rounded-2xl border-white/10 bg-white/[0.03] text-sm text-white placeholder:text-white/26",
+                            errors.empresa && "border-destructive/60"
+                          )}
+                        />
+                        {errors.empresa ? <p className="mt-2 text-xs font-semibold text-red-300">{errors.empresa}</p> : null}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
+                          E-mail
+                        </label>
+                        <Input
+                          value={form.email}
+                          onChange={(event) => updateField("email", event.target.value)}
+                          placeholder="voce@email.com"
+                          className={cn(
+                            "h-12 rounded-2xl border-white/10 bg-white/[0.03] text-sm text-white placeholder:text-white/26",
+                            errors.email && "border-destructive/60"
+                          )}
+                        />
+                        {errors.email ? <p className="mt-2 text-xs font-semibold text-red-300">{errors.email}</p> : null}
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
+                          WhatsApp
+                        </label>
+                        <Input
+                          value={form.whatsapp}
+                          onChange={(event) => updateField("whatsapp", formatWhatsApp(event.target.value))}
+                          placeholder="(51) 99999-9999"
+                          className={cn(
+                            "h-12 rounded-2xl border-white/10 bg-white/[0.03] text-sm text-white placeholder:text-white/26",
+                            errors.whatsapp && "border-destructive/60"
+                          )}
+                        />
+                        {errors.whatsapp ? (
+                          <p className="mt-2 text-xs font-semibold text-red-300">{errors.whatsapp}</p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
+                        O que voce busca agora
+                      </label>
+                      <select
+                        value={form.necessidade}
+                        onChange={(event) => updateField("necessidade", event.target.value)}
+                        className={cn(
+                          "h-12 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-all focus:border-primary/40",
+                          errors.necessidade && "border-destructive/60"
+                        )}
+                      >
+                        {serviceOptions.map((option) => (
+                          <option key={option.id} value={option.id} className="bg-[hsl(var(--background))] text-white">
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.necessidade ? (
+                        <p className="mt-2 text-xs font-semibold text-red-300">{errors.necessidade}</p>
+                      ) : null}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="h-12 w-full rounded-2xl border border-white/10 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_18px_42px_rgba(236,72,153,0.18)]"
+                      style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                    >
+                      {loading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="mr-2 h-4 w-4" />
+                      )}
+                      Solicitar orcamento inicial
+                    </Button>
+                  </form>
+
+                  <div className="mt-5 rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4">
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-white/74" />
+                      <p className="text-xs leading-relaxed text-white/58">
+                        Sem compromisso: usamos essas informacoes apenas para montar um primeiro direcionamento comercial
+                        e indicar a estrutura mais coerente para o seu momento.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex min-h-[420px] flex-col items-center justify-center text-center">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/12">
+                    <CheckCircle2 className="h-10 w-10 text-emerald-300" />
+                  </div>
+                  <h2 className="mt-6 text-3xl font-black tracking-tight text-white/92">
+                    Diagnostico solicitado com sucesso.
+                  </h2>
+                  <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/62">
+                    Recebemos seu contato e vamos analisar a melhor estrutura para o seu negócio. Se quiser acelerar, também
+                    podemos continuar pelo WhatsApp.
+                  </p>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                      <Button
+                        className="h-12 rounded-2xl border border-white/10 px-6 text-sm font-bold text-white"
+                        style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Continuar no WhatsApp
+                      </Button>
+                    </a>
+                    <Button
+                      onClick={onOpenDemo}
+                      className="site-soft-surface h-12 rounded-2xl px-6 text-sm font-bold text-white/84"
+                    >
+                      Ver demonstracao
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.62 }}
-            className="hero-proof-strip max-w-5xl mx-auto"
-          >
-            <div className="hero-proof-card">
-              <Zap className="w-4 h-4 text-white/70" />
-              <div>
-                <p className="text-2xl md:text-3xl font-black site-gradient-text">
-                  <AnimatedNumber target={companyCount} suffix="+" />
-                </p>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">bases entregues</p>
-              </div>
-            </div>
-            <div className="hero-proof-card">
-              <Layout className="w-4 h-4 text-white/70" />
-              <div>
-                <p className="text-xl md:text-2xl font-black text-white">3 frentes</p>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">site, operacao e conversao</p>
-              </div>
-            </div>
-            <div className="hero-proof-card">
-              <ShieldCheck className="w-4 h-4 text-white/70" />
-              <div>
-                <p className="text-xl md:text-2xl font-black text-white">7 dias</p>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">prazo medio para colocar a base no ar</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.74 }}
-            className="hero-feature-grid max-w-6xl mx-auto"
-          >
-            {featureCards.map((card) => (
-              <motion.button
-                key={card.title}
-                type="button"
-                onClick={card.action}
-                whileHover={{ y: -4, scale: 1.01 }}
-                className="hero-feature-card"
-              >
-                <div className="hero-feature-card__icon">
-                  <card.icon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.24em] font-black text-white/40">{card.eyebrow}</p>
-                  <h3 className="text-lg font-black text-white mt-2 tracking-tight">{card.title}</h3>
-                  <p className="text-sm site-copy-muted leading-relaxed mt-3">{card.description}</p>
-                  <span className="hero-feature-card__cta">
-                    {card.cta}
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </motion.button>
-            ))}
-          </motion.div>
         </div>
       </div>
     </section>

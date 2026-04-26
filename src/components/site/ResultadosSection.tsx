@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BadgeCheck, Briefcase, Clock3, Layout, MessageCircleMore, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, BriefcaseBusiness, LayoutDashboard, MessageCircleMore } from "lucide-react";
 
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
@@ -7,34 +7,25 @@ import { useCompanyCounter } from "@/hooks/useCompanyCounter";
 
 const fade = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
 };
 
-const stagger = { show: { transition: { staggerChildren: 0.08 } } };
+const stagger = { show: { transition: { staggerChildren: 0.1 } } };
 
-const sectorChips = [
-  "Restaurantes",
-  "Clinicas",
-  "Servicos",
-  "Lojas locais",
-  "Imobiliarias",
-  "Operacoes digitais",
-];
-
-const caseHighlights = [
+const proofCards = [
   {
-    title: "Mais presenca profissional",
-    description: "Empresas que queriam sair da dependencia do Instagram e apresentar a marca de um jeito mais forte.",
-    icon: Briefcase,
+    title: "Mais clareza no comercial",
+    description: "Empresas que precisavam apresentar melhor a oferta, organizar proposta e conduzir o contato com mais confiança.",
+    icon: BriefcaseBusiness,
   },
   {
-    title: "Mais clareza na operacao",
-    description: "Bases organizadas com painel, fluxo comercial e acompanhamento para reduzir retrabalho no dia a dia.",
-    icon: Layout,
+    title: "Mais leitura de operação",
+    description: "Marcas que saíram de páginas soltas para uma base com painel, histórico, módulos e acompanhamento real.",
+    icon: LayoutDashboard,
   },
   {
-    title: "Mais conversas prontas para fechar",
-    description: "Contato mais rapido, proposta mais clara e caminho de conversao mais objetivo no WhatsApp.",
+    title: "Mais conversa pronta para fechar",
+    description: "Fluxo mais rápido entre descoberta, WhatsApp e continuidade do atendimento, sem depender só de improviso.",
     icon: MessageCircleMore,
   },
 ];
@@ -42,109 +33,107 @@ const caseHighlights = [
 const testimonials = [
   {
     description:
-      "A NovaesWeb deixou nossa apresentacao muito mais profissional. Hoje o cliente entende melhor o que oferecemos e chega para conversar com mais confianca.",
+      "A entrega elevou a percepção da marca. O cliente entra no site e já entende melhor o nosso posicionamento antes de chamar no WhatsApp.",
     image: "",
     name: "Mariana Souza",
-    handle: "Operacao local de alimentacao",
+    handle: "Clinica de estetica",
   },
   {
     description:
-      "O que mais fez diferenca foi a clareza. Antes eu tinha um site solto. Agora tenho estrutura para mostrar servicos, captar e acompanhar tudo melhor.",
+      "O que mais mudou foi a organização. Deixou de ser só uma página e virou uma estrutura mais séria para apresentar serviços e acompanhar o comercial.",
     image: "",
     name: "Lucas Ferreira",
-    handle: "Barbearia premium",
+    handle: "Operacao local de servicos",
   },
   {
     description:
-      "A entrega ficou com cara de marca organizada. Melhorou a imagem do negocio, facilitou o atendimento e deixou o processo comercial mais profissional.",
+      "A NovaesWeb conseguiu transformar nossa presença digital em algo mais premium e mais claro para vender. A conversa já começa em outro nível.",
     image: "",
     name: "Carlos Henrique",
-    handle: "Clinica de estetica",
+    handle: "Barbearia premium",
   },
 ];
 
 export default function ResultadosSection() {
   const companyCount = useCompanyCounter();
-  const entregas = useAnimatedCounter(companyCount, 1500);
-  const retorno = useAnimatedCounter(24, 1000);
-  const prazo = useAnimatedCounter(7, 900);
+  const bases = useAnimatedCounter(companyCount, 1400);
+  const retorno = useAnimatedCounter(24, 900);
   const frentes = useAnimatedCounter(3, 800);
 
   return (
     <motion.section
       id="resultados"
-      className="site-band py-24 px-6 relative overflow-hidden"
+      className="site-band px-6 py-20 lg:py-24"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true }}
       variants={stagger}
     >
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute top-0 left-[8%] w-[420px] h-[420px] rounded-full blur-[150px] opacity-[0.03]"
-          style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.35), transparent 72%)" }}
-        />
-      </div>
-
       <div className="max-w-6xl mx-auto">
-        <motion.div variants={fade} className="text-center max-w-3xl mx-auto mb-16">
-          <span className="site-badge site-badge--primary">Prova social que sustenta a oferta</span>
-          <h2 className="text-4xl sm:text-6xl font-black text-white/90 mt-8 leading-[0.9] tracking-tighter">
-            Mais que um site bonito. <br />
-            <span className="site-gradient-text">Uma estrutura que passa confianca.</span>
+        <motion.div variants={fade} className="mx-auto max-w-3xl text-center">
+          <span className="site-badge site-badge--primary">Resultados e prova social</span>
+          <h2 className="mt-8 text-4xl sm:text-6xl font-black tracking-tighter text-white/90 leading-[0.92]">
+            Mais que um visual bonito.
+            <span className="site-gradient-text"> Uma estrutura que eleva a percepção da marca.</span>
           </h2>
-          <p className="text-lg site-copy-muted mt-8 leading-relaxed max-w-2xl mx-auto font-medium">
-            O cliente sente quando a marca esta bem apresentada. Por isso nossas entregas juntam posicionamento,
-            organizacao e conversao em uma mesma base.
+          <p className="mt-6 text-lg leading-relaxed site-copy-muted">
+            Quando a empresa parece organizada, o atendimento ganha mais força. Por isso a NovaesWeb trabalha imagem,
+            processo e captação como uma mesma experiência.
           </p>
         </motion.div>
 
-        <motion.div variants={fade} className="public-page-section-card mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="site-badge site-badge--accent">Quem ja atendemos</span>
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          {[
+            { ref: bases.ref, count: bases.count, suffix: "+", label: "bases entregues" },
+            { ref: frentes.ref, count: frentes.count, suffix: "", label: "frentes alinhadas" },
+            { ref: retorno.ref, count: retorno.count, suffix: "h", label: "retorno consultivo" },
+          ].map((stat) => (
+            <motion.div key={stat.label} ref={stat.ref} variants={fade} className="public-page-stat-card text-left">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/40">{stat.label}</p>
+              <p className="mt-4 flex items-end gap-2 text-4xl font-black tracking-tight text-white/92">
+                {stat.count}
+                <span className="site-gradient-text">{stat.suffix}</span>
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+          {proofCards.map((card) => (
+            <motion.div key={card.title} variants={fade} className="site-surface rounded-[1.8rem] p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+                  <card.icon className="h-5 w-5 text-white/82" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-white/32" />
+              </div>
+              <h3 className="mt-5 text-lg font-black tracking-tight text-white/92">{card.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed site-copy-muted">{card.description}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div variants={fade} className="mt-8 public-page-section-card">
+          <div className="flex items-center gap-2 mb-4">
+            <BadgeCheck className="h-4 w-4 text-white/72" />
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/40">O que costuma melhorar</p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {sectorChips.map((chip) => (
-              <span key={chip} className="site-soft-surface rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/70">
-                {chip}
-              </span>
+          <div className="grid gap-3 md:grid-cols-3">
+            {[
+              "Apresentação mais segura para o cliente entender o valor da empresa.",
+              "Fluxo mais claro entre descoberta, atendimento e próximos passos.",
+              "Base pronta para crescer depois com contratos, extras, financeiro e portal.",
+            ].map((item) => (
+              <div key={item} className="public-page-highlight-card">
+                <p className="text-sm leading-relaxed text-white/74">{item}</p>
+              </div>
             ))}
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
-          {[
-            { ref: entregas.ref, count: entregas.count, suffix: "+", label: "bases entregues", icon: BadgeCheck },
-            { ref: frentes.ref, count: frentes.count, suffix: "", label: "frentes integradas", icon: Sparkles },
-            { ref: prazo.ref, count: prazo.count, suffix: " dias", label: "partida media", icon: ShieldCheck },
-            { ref: retorno.ref, count: retorno.count, suffix: "h", label: "retorno comercial", icon: Clock3 },
-          ].map((stat) => (
-            <motion.div key={stat.label} ref={stat.ref} variants={fade} className="public-page-stat-card hover:border-[hsl(var(--primary)/0.24)] transition-all info-card-hover">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <stat.icon className="w-4 h-4 text-white/55" />
-                <p className="text-3xl font-black site-gradient-text">
-                  {stat.count}
-                  {stat.suffix}
-                </p>
-              </div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 font-bold">{stat.label}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-5 mb-14">
-          {caseHighlights.map((item) => (
-            <motion.div key={item.title} variants={fade} className="site-surface rounded-[1.8rem] p-6">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-white/[0.03] border border-white/10">
-                <item.icon className="w-5 h-5 text-white/80" />
-              </div>
-              <h3 className="text-lg font-black text-white/90 tracking-tight mb-3">{item.title}</h3>
-              <p className="text-sm site-copy-muted leading-relaxed">{item.description}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <AnimatedTestimonials data={testimonials} />
+        <motion.div variants={fade} className="mt-10">
+          <AnimatedTestimonials data={testimonials} />
+        </motion.div>
       </div>
     </motion.section>
   );
