@@ -146,7 +146,7 @@ export default function PlanosSection() {
   return (
     <motion.section
       id="planos"
-      className="site-band px-6 py-20 lg:py-24"
+      className="site-band px-4 sm:px-6 py-20 lg:py-24"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true }}

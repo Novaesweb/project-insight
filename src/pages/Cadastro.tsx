@@ -452,7 +452,7 @@ export default function Cadastro() {
                 className="w-full max-w-xl space-y-8"
               >
                 <StepHeader step={currentStep} label={currentStep === 5 ? "O que você precisa agora?" : "Como nos conheceu?"} />
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {(currentStep === 5 ? NECESSIDADES : ORIGENS).map((opt, idx) => {
                     const selected = (currentStep === 5 ? form.necessidade : form.origem) === opt.id;
                     return (

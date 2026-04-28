@@ -23,6 +23,11 @@ export default function MobileAppNav() {
         return;
       }
 
+      if (budgetSection && probe >= budgetSection.offsetTop - 80) {
+        setActiveItem("orcamento");
+        return;
+      }
+
       if (plansSection && probe >= plansSection.offsetTop - 80) {
         setActiveItem("planos");
         return;
@@ -30,11 +35,6 @@ export default function MobileAppNav() {
 
       if (resultsSection && probe >= resultsSection.offsetTop - 80) {
         setActiveItem("resultados");
-        return;
-      }
-
-      if (budgetSection && probe >= budgetSection.offsetTop - 80) {
-        setActiveItem("orcamento");
         return;
       }
 
@@ -55,28 +55,29 @@ export default function MobileAppNav() {
     { id: "inicio", label: "Inicio", icon: Compass, action: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
     { id: "resultados", label: "Resultados", icon: Send, action: () => scrollTo("resultados") },
     { id: "planos", label: "Planos", icon: CreditCard, action: () => scrollTo("planos") },
+    { id: "orcamento", label: "Orcamento", icon: Send, action: () => scrollTo("cadastro") },
   ];
 
   return (
     <div
-      className="fixed left-1/2 z-[95] w-[94%] max-w-md -translate-x-1/2 lg:hidden"
+      className="fixed left-1/2 z-[95] w-[calc(100%-1rem)] max-w-md -translate-x-1/2 lg:hidden"
       style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="site-surface flex items-center justify-between rounded-[1.6rem] p-2 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+      <div className="site-surface flex items-center justify-between rounded-[1.4rem] p-1.5 sm:rounded-[1.6rem] sm:p-2 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
         {navItems.map((item) => (
           <motion.button
             key={item.id}
             whileTap={{ scale: 0.92 }}
             onClick={item.action}
             className={cn(
-              "flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 transition-all",
+              "flex min-h-[58px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 transition-all",
               activeItem === item.id
                 ? "border border-white/10 bg-[linear-gradient(180deg,hsl(var(--primary)/0.22),hsl(var(--accent)/0.18))] text-white shadow-lg shadow-primary/10"
                 : "text-white/58 hover:text-white/88"
             )}
           >
             <item.icon className="h-5 w-5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em]">{item.label}</span>
           </motion.button>
         ))}
       </div>

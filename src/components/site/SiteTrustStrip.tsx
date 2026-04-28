@@ -33,7 +33,7 @@ export default function SiteTrustStrip() {
   ];
 
   return (
-    <section className="site-band px-6 pb-8 lg:pb-12">
+    <section className="site-band px-4 sm:px-6 pb-8 lg:pb-12">
       <div className="max-w-6xl mx-auto">
         <div className="public-page-section-card">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center">

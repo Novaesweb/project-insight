@@ -26,11 +26,11 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
   const navigate = useNavigate();
 
   return (
-    <footer className="relative overflow-hidden px-6 pb-10 pt-24">
+    <footer className="relative overflow-hidden px-4 sm:px-6 pb-10 pt-20 sm:pt-24">
       <SiteFooterWaves />
 
       <div className="relative z-10 max-w-7xl mx-auto border-t border-white/[0.05] pt-16">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
+        <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
           <div className="max-w-md">
             <div className="flex items-center gap-3">
               <OptimizedImage src={novaeswebSymbol} alt="NovaesWeb" width={40} height={40} className="h-10 w-10 rounded-xl" />
@@ -48,7 +48,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
 
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.26em] text-white/35">Navegacao</p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {footerLinks.map((link) => (
                 <button
                   key={link.href ?? link.id}

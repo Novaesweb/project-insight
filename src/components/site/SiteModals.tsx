@@ -67,7 +67,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             </button>
 
             {modalOpen === "sobre" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossa história</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sobre a novaesweb</h2>
@@ -87,7 +87,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <p>Nascemos com a ideia de tornar a tecnologia mais acessível para pequenos e médios negócios, oferecendo ferramentas que realmente ajudam no dia a dia da empresa. Mesmo sendo um projeto recente, já participamos do desenvolvimento de soluções utilizadas por cerca de 6 empresas.</p>
                   <p>Acreditamos que toda empresa, independente do tamanho, merece ter uma presença digital profissional e ferramentas de gestão que simplifiquem sua rotina. Nosso diferencial está no atendimento humanizado, na agilidade de entrega e na evolução contínua dos projetos.</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4 mt-8">
+                <div className="grid grid-cols-1 gap-4 mt-8 sm:grid-cols-3">
                   <div className="glass-card rounded-xl p-4 text-center">
                     <Target className="w-6 h-6 text-[hsl(var(--primary))] mx-auto mb-2" />
                     <h4 className="text-xs font-semibold text-[hsl(var(--foreground))] mb-1">Missão</h4>
@@ -114,7 +114,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "quem-somos" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Nossa equipe</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Quem Somos</h2>
@@ -139,7 +139,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "diferenciais" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Diferenciais</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Por que a novaesweb?</h2>
@@ -166,7 +166,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "privacidade" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Legal</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Política de Privacidade</h2>
@@ -183,7 +183,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "termos" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Legal</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Termos de Uso</h2>
@@ -200,7 +200,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "demonstracao" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Portfólio</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Sites de Demonstração</h2>
@@ -243,7 +243,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "cookies" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Legal</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] mt-2">Política de Cookies</h2>
@@ -259,7 +259,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
             )}
 
             {modalOpen === "conectividade" && (
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <div className="mb-6">
                   <span className="text-xs font-semibold uppercase tracking-widest text-primary">Inteligência & Automação</span>
                   <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2">Conectividade Estratégica</h2>

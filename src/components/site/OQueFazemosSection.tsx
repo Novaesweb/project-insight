@@ -36,7 +36,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
   return (
     <motion.section
       id="o-que-fazemos"
-      className="site-band px-6 py-20 lg:py-24"
+      className="site-band px-4 sm:px-6 py-20 lg:py-24"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
@@ -68,7 +68,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
                   )}
                   onClick={() => setActiveIndex(index)}
                 >
-                  <div className="p-6 flex items-center gap-4">
+                    <div className="p-5 sm:p-6 flex items-center gap-4">
                     <div
                       className={cn(
                         "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300",
@@ -93,7 +93,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
-                        <div className="px-6 pb-6 pt-0">
+                          <div className="px-5 pb-5 pt-0 sm:px-6 sm:pb-6">
                           <p className="text-sm leading-relaxed site-copy-muted">{solution.description}</p>
                           <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-400/90">
                             <ArrowRight className="w-3 h-3" />
@@ -108,7 +108,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
             })}
           </motion.div>
 
-          <motion.div variants={fade} className="site-surface rounded-[1.9rem] p-6 sm:p-8">
+          <motion.div variants={fade} className="site-surface rounded-[1.9rem] p-5 sm:p-8">
             <div className="site-badge site-badge--primary mb-5">
               <Sparkles className="h-3.5 w-3.5" />
               O que muda na pratica
@@ -140,7 +140,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <a
                 href="#planos"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_16px_38px_rgba(236,72,153,0.14)]"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/10 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_16px_38px_rgba(236,72,153,0.14)]"
                 style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
               >
                 Ver estruturas
@@ -148,7 +148,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
               </a>
               <button
                 onClick={onOpenDemo}
-                className="site-soft-surface inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/78 transition-all hover:text-white"
+                className="site-soft-surface inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/78 transition-all hover:text-white"
               >
                 <MessageCircle className="h-4 w-4" />
                 Ver demonstracao

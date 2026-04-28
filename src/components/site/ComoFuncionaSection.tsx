@@ -29,7 +29,7 @@ export default function ComoFuncionaSection() {
   return (
     <motion.section
       id="como-funciona"
-      className="site-band px-6 py-20 lg:py-24"
+      className="site-band px-4 sm:px-6 py-20 lg:py-24"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
@@ -49,7 +49,7 @@ export default function ComoFuncionaSection() {
 
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {steps.map((step) => (
-            <motion.div key={step.number} variants={fade} className="site-surface rounded-[1.8rem] p-6">
+            <motion.div key={step.number} variants={fade} className="site-surface rounded-[1.8rem] p-5 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
                   <step.icon className="h-5 w-5 text-white/82" />
@@ -66,7 +66,7 @@ export default function ComoFuncionaSection() {
         <motion.div variants={fade} className="mt-10 text-center">
           <a
             href="#cadastro"
-            className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-7 py-3 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_16px_38px_rgba(236,72,153,0.14)]"
+            className="inline-flex w-full justify-center sm:w-auto items-center gap-2 rounded-2xl border border-white/10 px-7 py-3 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_16px_38px_rgba(236,72,153,0.14)]"
             style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
           >
             Solicitar diagnostico

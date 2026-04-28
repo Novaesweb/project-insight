@@ -67,7 +67,7 @@ export default function Site() {
         Pular para o conteudo principal
       </a>
 
-      <main id="main-content" className="relative z-10">
+      <main id="main-content" className="relative z-10 pb-24 md:pb-0">
         <SiteNavbar />
         <HeroSection onOpenDemo={openDemo} />
         <SiteTrustStrip />
