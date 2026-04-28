@@ -9,11 +9,15 @@ const OQueFazemosSection = lazy(() => import("@/components/site/OQueFazemosSecti
 const ComoFuncionaSection = lazy(() => import("@/components/site/ComoFuncionaSection"));
 const PlanosSection = lazy(() => import("@/components/site/PlanosSection"));
 const ResultadosSection = lazy(() => import("@/components/site/ResultadosSection"));
+const PortfolioSection = lazy(() => import("@/components/site/PortfolioSection"));
+const TestimonialsSection = lazy(() => import("@/components/site/TestimonialsSection"));
+const FaqSection = lazy(() => import("@/components/site/FaqSection"));
 const SiteModals = lazy(() => import("@/components/site/SiteModals"));
 const CtaSection = lazy(() => import("@/components/site/CtaSection"));
 const SiteFooter = lazy(() => import("@/components/site/SiteFooter"));
 const WhatsAppFloat = lazy(() => import("@/components/site/WhatsAppFloat"));
 const MobileAppNav = lazy(() => import("@/components/site/MobileAppNav"));
+import { motion, useScroll } from "framer-motion";
 
 
 // Memoized background to avoid re-renders
@@ -43,8 +47,17 @@ export default function Site() {
   const openDemo = useCallback(() => setModalOpen("demonstracao"), []);
   const closeModal = useCallback(() => setModalOpen(null), []);
 
+  const { scrollYProgress } = useScroll();
+
   return (
     <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 z-[100] origin-left"
+        style={{ 
+          scaleX: scrollYProgress,
+          background: "linear-gradient(90deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))"
+        }}
+      />
       <GlobalBackground />
       <PublicSiteCursor />
 
@@ -62,10 +75,13 @@ export default function Site() {
         <SiteTrustStrip />
         
         <Suspense fallback={null}>
+          <PortfolioSection />
           <OQueFazemosSection onOpenDemo={openDemo} />
           <ResultadosSection />
           <ComoFuncionaSection />
           <PlanosSection />
+          <TestimonialsSection />
+          <FaqSection />
         </Suspense>
 
         <Suspense fallback={null}>

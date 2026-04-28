@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { ArrowRight, Menu, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,17 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const [hidden, setHidden] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   const supportLinks = useMemo(
     () => [{ href: "/sobre", label: "Sobre" }, ...siteFeatureNavLinks],
@@ -77,7 +88,13 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
   };
 
   return (
-    <nav
+    <motion.nav
+      variants={{
+        visible: { y: 0 },
+        hidden: { y: "-100%" },
+      }}
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
       className={cn(
         "fixed inset-x-0 top-0 z-50 px-4 py-5 transition-all duration-500 sm:px-6 lg:px-8",
         scrolled ? "py-3" : "py-5"
@@ -221,6 +238,6 @@ export default function SiteNavbar({ onOpenModal }: SiteNavbarProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </motion.nav>
   );
 }

@@ -210,6 +210,22 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
           className="absolute bottom-[-10%] right-[-8%] h-[540px] w-[540px] rounded-full blur-[180px] opacity-[0.09]"
           style={{ background: "radial-gradient(circle, rgba(236,72,153,0.24), transparent 72%)" }}
         />
+        {/* Animated Background Grid */}
+        <motion.div 
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
+          }}
+          animate={{
+            backgroundPosition: ['0px 0px', '0px 64px'],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 5,
+            ease: "linear"
+          }}
+        />
       </div>
 
       <div className="public-page-container">
@@ -426,19 +442,26 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                       ) : null}
                     </div>
 
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="h-12 w-full rounded-2xl border border-white/10 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_18px_42px_rgba(236,72,153,0.18)]"
-                      style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full relative group"
                     >
-                      {loading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="mr-2 h-4 w-4" />
-                      )}
-                      Solicitar orcamento inicial
-                    </Button>
+                      <div className="absolute -inset-1 bg-gradient-to-r from-red-600 via-purple-600 to-pink-600 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-500 animate-pulse"></div>
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="relative h-12 w-full rounded-2xl border border-white/10 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_18px_42px_rgba(236,72,153,0.18)]"
+                        style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                      >
+                        {loading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="mr-2 h-4 w-4" />
+                        )}
+                        Solicitar orcamento inicial
+                      </Button>
+                    </motion.div>
                   </form>
 
                   <div className="mt-5 rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-4">
@@ -452,18 +475,43 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                   </div>
                 </>
               ) : (
-                <div className="flex min-h-[420px] flex-col items-center justify-center text-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/12">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="flex min-h-[420px] flex-col items-center justify-center text-center"
+                >
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.1 }}
+                    className="flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/12"
+                  >
                     <CheckCircle2 className="h-10 w-10 text-emerald-300" />
-                  </div>
-                  <h2 className="mt-6 text-3xl font-black tracking-tight text-white/92">
+                  </motion.div>
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="mt-6 text-3xl font-black tracking-tight text-white/92"
+                  >
                     Diagnostico solicitado com sucesso.
-                  </h2>
-                  <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/62">
+                  </motion.h2>
+                  <motion.p 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-3 max-w-sm text-sm leading-relaxed text-white/62"
+                  >
                     Recebemos seu contato e vamos analisar a melhor estrutura para o seu negócio. Se quiser acelerar, também
                     podemos continuar pelo WhatsApp.
-                  </p>
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  </motion.p>
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="mt-6 flex flex-col gap-3 sm:flex-row"
+                  >
                     <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                       <Button
                         className="h-12 rounded-2xl border border-white/10 px-6 text-sm font-bold text-white"
@@ -479,8 +527,8 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                     >
                       Ver demonstracao
                     </Button>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               )}
             </motion.div>
           </div>

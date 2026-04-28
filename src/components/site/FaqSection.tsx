@@ -1,99 +1,67 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Sparkles, Plus, Minus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const faqs = [
   {
-    q: "O sistema é difícil de mexer?",
-    a: "Não! Projetamos a interface Architect v10.0 para ser intuitiva e direta. Além disso, você tem o suporte da nossa Engenharia de Evolução sempre à disposição.",
+    question: "Quanto tempo demora para meu site ficar pronto?",
+    answer: "Para projetos institucionais ou landing pages de alta conversão, o prazo médio é de 10 a 15 dias úteis. Para sistemas complexos ou e-commerces, o prazo é alinhado no momento da proposta, geralmente entre 20 a 30 dias úteis.",
   },
   {
-    q: "Como meus pedidos chegam no WhatsApp?",
-    a: "Eles chegam 100% organizados com itens, adicionais escolhidos, endereço de entrega e forma de pagamento, prontos para a produção.",
+    question: "Vocês fazem apenas o design ou a programação também?",
+    answer: "Entregamos a solução completa: do planejamento comercial, passando pelo design da interface (UI/UX) até a programação e publicação no seu domínio. Seu projeto já sai pronto para uso.",
   },
   {
-    q: "O App no iPhone funciona sem barra de navegador?",
-    a: "Com certeza! Ao adicionar à tela inicial, o sistema abre em modo 'Standalone' (Tela Cheia). O usuário nem percebe que é um site; ele navega como se fosse um aplicativo baixado na Apple Store.",
+    question: "Como funciona a manutenção depois que o site está no ar?",
+    answer: "Oferecemos planos de suporte contínuo para garantir que seu site continue rápido, seguro e atualizado. Caso prefira assumir a gestão, nosso painel de controle permite que sua própria equipe faça atualizações básicas sem depender da agência.",
   },
   {
-    q: "Tem limite de produtos ou pedidos?",
-    a: "Zero limites. Nossa engenharia é construída para escala, suportando desde o pequeno produtor até grandes franquias com alto volume de vendas.",
-  },
-  {
-    q: "A novaesweb cobra taxas por venda?",
-    a: "Nunca. Cobramos apenas o valor da sua engenharia e manutenção mensal. O lucro das suas vendas é 100% seu, sem porcentagem para terceiros.",
+    question: "Preciso ter as fotos e textos prontos?",
+    answer: "Não. Contamos com um processo guiado onde nossa equipe de copywriters e diretores de arte auxilia na estruturação de todo o conteúdo necessário, além de utilizarmos bancos de imagens premium quando fotos próprias não estão disponíveis.",
   },
 ];
 
 export default function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="site-band py-28 px-6 relative">
+    <section id="faq" className="site-band py-24 px-4 sm:px-6 relative">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <span className="site-badge site-badge--primary mb-8">
-            <Sparkles className="w-3 h-3" /> Suporte
-          </span>
-          <h2 className="text-4xl sm:text-5xl font-black text-foreground/90 tracking-tighter">
-            Dúvidas <span className="site-title-muted">Frequentes</span>
+        <div className="text-center mb-16">
+          <span className="site-badge site-badge--accent mb-4 mx-auto">Dúvidas Frequentes</span>
+          <h2 className="text-[clamp(2rem,5vw,3rem)] font-black text-white/90 leading-[0.92] tracking-tighter">
+            O que as empresas <span className="site-gradient-text">mais perguntam.</span>
           </h2>
-          <p className="text-base site-copy-muted mt-4 max-w-lg mx-auto">
-            Tudo que você precisa saber antes de começar.
-          </p>
-        </motion.div>
+        </div>
 
-        {/* FAQ items */}
-        <div className="space-y-3">
-          {faqs.map((faq, i) => {
-            const isOpen = openIndex === i;
+        <div className="space-y-4">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+            
             return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                className="site-surface rounded-2xl overflow-hidden transition-all duration-300"
-                style={{
-                  background: isOpen ? 'linear-gradient(180deg, hsl(var(--primary) / 0.05), hsl(var(--card)))' : 'linear-gradient(180deg, hsl(var(--card)), hsl(240 10% 8% / 0.84))',
-                  border: `1px solid ${isOpen ? 'hsl(var(--primary) / 0.14)' : 'hsl(var(--border))'}`,
-                }}
+              <div 
+                key={index}
+                className={cn(
+                  "site-surface rounded-[1.5rem] border transition-all duration-300",
+                  isOpen ? "border-primary/30 bg-white/[0.04] shadow-[0_0_20px_rgba(236,72,153,0.1)]" : "border-white/5 hover:border-white/10"
+                )}
               >
                 <button
-                  onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="w-full p-6 flex items-center justify-between text-left group"
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="flex w-full items-center justify-between p-6 text-left"
                 >
-                  <span className={cn(
-                    "text-base font-bold tracking-tight transition-colors",
-                    isOpen ? "text-foreground" : "text-foreground/70 group-hover:text-foreground"
+                  <h3 className={cn("text-lg font-black tracking-tight pr-8 transition-colors duration-300", isOpen ? "text-white" : "text-white/80")}>
+                    {faq.question}
+                  </h3>
+                  <div className={cn(
+                    "flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300",
+                    isOpen ? "border-primary/40 bg-primary/20 rotate-180" : "border-white/10 bg-white/5"
                   )}>
-                    {faq.q}
-                  </span>
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ml-4 transition-all duration-300",
-                    )}
-                    style={{
-                      background: isOpen ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--secondary))',
-                      border: `1px solid ${isOpen ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--border))'}`,
-                    }}
-                  >
-                    {isOpen ? (
-                      <Minus className="w-3.5 h-3.5" style={{ color: 'hsl(var(--primary))' }} />
-                    ) : (
-                      <Plus className="w-3.5 h-3.5 text-muted-foreground" />
-                    )}
+                    <ChevronDown className={cn("w-4 h-4 transition-colors", isOpen ? "text-primary-foreground" : "text-white/60")} />
                   </div>
                 </button>
-
+                
                 <AnimatePresence>
                   {isOpen && (
                     <motion.div
@@ -102,13 +70,16 @@ export default function FaqSection() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
-                      <div className="px-6 pb-6 text-sm text-muted-foreground leading-relaxed font-medium">
-                        {faq.a}
+                      <div className="px-6 pb-6 pt-0">
+                        <div className="h-[1px] w-full bg-white/5 mb-6" />
+                        <p className="text-base leading-relaxed site-copy-muted">
+                          {faq.answer}
+                        </p>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             );
           })}
         </div>

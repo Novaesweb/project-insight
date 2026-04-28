@@ -1,5 +1,7 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Bot, BriefcaseBusiness, LayoutDashboard, MessageCircle, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const fade = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { show: { transition: { staggerChildren: 0.12 } } };
@@ -30,6 +32,7 @@ interface OQueFazemosProps {
 }
 
 export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
   return (
     <motion.section
       id="o-que-fazemos"
@@ -53,20 +56,56 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
         </motion.div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <motion.div variants={fade} className="grid gap-5 md:grid-cols-3">
-            {solutions.map((solution) => (
-              <div key={solution.title} className="site-surface rounded-[1.8rem] p-6">
-                <div
-                  className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]"
-                  style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.12), rgba(107,33,168,0.12), rgba(236,72,153,0.08))" }}
+          <motion.div variants={fade} className="grid gap-3">
+            {solutions.map((solution, index) => {
+              const isActive = activeIndex === index;
+              return (
+                <div 
+                  key={solution.title} 
+                  className={cn(
+                    "site-surface rounded-[1.8rem] overflow-hidden transition-all duration-300 cursor-pointer border",
+                    isActive ? "border-primary/30 shadow-[0_0_30px_rgba(236,72,153,0.1)]" : "border-white/5 hover:border-white/15"
+                  )}
+                  onClick={() => setActiveIndex(index)}
                 >
-                  <solution.icon className="h-5 w-5 text-white/82" />
+                  <div className="p-6 flex items-center gap-4">
+                    <div
+                      className={cn(
+                        "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300",
+                        isActive 
+                          ? "border-primary/40 bg-primary/20 scale-110" 
+                          : "border-white/10 bg-white/[0.04]"
+                      )}
+                      style={!isActive ? { background: "linear-gradient(135deg, rgba(220,38,38,0.12), rgba(107,33,168,0.12), rgba(236,72,153,0.08))" } : {}}
+                    >
+                      <solution.icon className={cn("h-5 w-5 transition-colors duration-300", isActive ? "text-primary-foreground" : "text-white/82")} />
+                    </div>
+                    <h3 className={cn("text-lg font-black tracking-tight transition-colors duration-300", isActive ? "text-white" : "text-white/70")}>
+                      {solution.title}
+                    </h3>
+                  </div>
+                  
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                      >
+                        <div className="px-6 pb-6 pt-0">
+                          <p className="text-sm leading-relaxed site-copy-muted">{solution.description}</p>
+                          <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-400/90">
+                            <ArrowRight className="w-3 h-3" />
+                            {solution.result}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <h3 className="text-lg font-black tracking-tight text-white/90">{solution.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed site-copy-muted">{solution.description}</p>
-                <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-white/50">{solution.result}</p>
-              </div>
-            ))}
+              );
+            })}
           </motion.div>
 
           <motion.div variants={fade} className="site-surface rounded-[1.9rem] p-6 sm:p-8">
