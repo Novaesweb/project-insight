@@ -49,7 +49,7 @@ export default function Site() {
   const { scrollYProgress } = useScroll();
 
   return (
-    <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative" style={{ background: 'hsl(var(--background))' }}>
+    <div className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative overflow-x-hidden" style={{ background: 'hsl(var(--background))' }}>
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 z-[100] origin-left"
         style={{ 

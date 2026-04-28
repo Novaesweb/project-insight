@@ -231,7 +231,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
       <div className="public-page-container">
         <div className="public-page-hero">
           <div className="public-page-hero-grid gap-8 lg:gap-10">
-            <div className="flex flex-col justify-center">
+            <div className="flex min-w-0 flex-col justify-center">
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -265,7 +265,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.24 }}
-                className="mt-6"
+                className="mt-6 min-w-0"
               >
                 <SiteTypewriterLine messages={typedMessages} />
               </motion.div>
@@ -274,12 +274,12 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.3 }}
-                className="mt-7 flex flex-wrap gap-3"
+                className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
               >
                 {proofBullets.map((item) => (
                   <span
                     key={item}
-                    className="site-soft-surface rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/72"
+                    className="site-soft-surface inline-flex w-full justify-center rounded-full px-4 py-2 text-center text-[10px] font-black uppercase tracking-[0.16em] text-white/72 sm:w-auto"
                   >
                     {item}
                   </span>
@@ -293,7 +293,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 className="mt-8 grid gap-4 md:grid-cols-3"
               >
                 {highlightCards.map((card) => (
-                  <div key={card.title} className="public-page-highlight-card">
+                  <div key={card.title} className="public-page-highlight-card min-w-0">
                     <p className="text-sm font-black tracking-tight text-white/92">{card.title}</p>
                     <p className="mt-2 text-xs leading-relaxed text-white/58">{card.description}</p>
                   </div>
@@ -306,13 +306,13 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 transition={{ duration: 0.55, delay: 0.46 }}
                 className="mt-8 flex flex-col gap-3 sm:flex-row"
               >
-                  <Button onClick={onOpenDemo} className="site-soft-surface h-12 rounded-2xl px-7 text-sm font-bold text-white/82 transition-all hover:text-white">
+                <Button onClick={onOpenDemo} className="site-soft-surface h-12 w-full rounded-2xl px-7 text-sm font-bold text-white/82 transition-all hover:text-white sm:w-auto">
                   Ver demonstracao
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                   <Button
-                    className="h-12 rounded-2xl border border-white/10 px-7 text-sm font-bold text-white shadow-[0_14px_36px_rgba(236,72,153,0.14)]"
+                    className="h-12 w-full rounded-2xl border border-white/10 px-7 text-sm font-bold text-white shadow-[0_14px_36px_rgba(236,72,153,0.14)] sm:w-auto"
                     style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
                   >
                     <MessageCircle className="mr-2 h-4 w-4" />
@@ -326,7 +326,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.18 }}
-              className="site-surface rounded-[2rem] p-5 sm:p-6"
+              className="site-surface min-w-0 rounded-[2rem] p-5 sm:p-6"
             >
               {!submitted ? (
                 <>

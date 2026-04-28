@@ -51,7 +51,7 @@ export default function PublicPageLayout({ children, mainClassName }: PublicPage
 
   return (
     <div
-      className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative"
+      className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative overflow-x-hidden"
       style={{ background: "hsl(var(--background))" }}
     >
       <PublicBackground />
