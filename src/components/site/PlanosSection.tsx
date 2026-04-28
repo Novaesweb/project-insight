@@ -41,9 +41,13 @@ function PlanCard({ plan }: { plan: Plan }) {
   return (
     <motion.div
       variants={fade}
+      whileHover={{ y: -10, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className={cn(
         "site-surface relative flex flex-col rounded-[1.9rem] p-6 transition-all duration-300",
-        plan.popular && "border-white/14 shadow-[0_26px_70px_-44px_rgba(236,72,153,0.28)]"
+        plan.popular 
+          ? "border-primary/40 shadow-[0_0_40px_rgba(236,72,153,0.15)] ring-1 ring-primary/20" 
+          : "border-white/5 hover:border-white/15"
       )}
       style={
         plan.popular
@@ -51,10 +55,19 @@ function PlanCard({ plan }: { plan: Plan }) {
           : undefined
       }
     >
+      {plan.popular && (
+        <div className="absolute -top-[1px] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+      )}
+      
       {plan.popular ? (
-        <span className="mb-5 inline-flex w-fit rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/88">
+        <motion.span 
+          animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+          transition={{ duration: 5, ease: "linear", repeat: Infinity }}
+          className="mb-5 inline-flex w-fit rounded-full border border-primary/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+          style={{ background: "linear-gradient(90deg, rgba(236,72,153,0.2), rgba(107,33,168,0.2), rgba(220,38,38,0.2))", backgroundSize: "200% 200%" }}
+        >
           Mais indicado
-        </span>
+        </motion.span>
       ) : (
         <span className="mb-5 inline-flex w-fit rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/50">
           {plan.eyebrow}
@@ -62,8 +75,11 @@ function PlanCard({ plan }: { plan: Plan }) {
       )}
 
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
-          <plan.icon className="h-5 w-5 text-white/84" />
+        <div className={cn(
+          "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:scale-110",
+          plan.popular ? "border-primary/40 bg-primary/20 text-primary-foreground" : "border-white/10 bg-white/[0.04] text-white/84"
+        )}>
+          <plan.icon className="h-5 w-5" />
         </div>
         <div>
           <h3 className="text-2xl font-black tracking-tight text-white/92">{plan.title}</h3>

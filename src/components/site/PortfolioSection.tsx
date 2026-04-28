@@ -10,28 +10,24 @@ const projects = [
     id: 1,
     title: "Açaí Fast",
     category: "E-commerce",
-    image: "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&q=80&w=800",
     link: "#",
   },
   {
     id: 2,
     title: "Clínica Novaes",
     category: "Institucional",
-    image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800",
     link: "#",
   },
   {
     id: 3,
     title: "Barbearia Vip",
     category: "Landing Page",
-    image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800",
     link: "#",
   },
   {
     id: 4,
     title: "Imóveis Premium",
     category: "Landing Page",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800",
     link: "#",
   },
 ];
@@ -75,24 +71,40 @@ export default function PortfolioSection() {
 
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence>
-            {filteredProjects.map((project) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                key={project.id}
-                className="group relative rounded-[2rem] overflow-hidden aspect-[4/3] sm:aspect-[16/9] border border-white/10 cursor-pointer"
-              >
-                <img 
-                  src={project.image} 
-                  alt={project.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
-                />
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
+            {filteredProjects.map((project, index) => {
+              const gradients = [
+                "linear-gradient(135deg, rgba(220,38,38,0.4), rgba(107,33,168,0.6))",
+                "linear-gradient(135deg, rgba(16,185,129,0.4), rgba(14,165,233,0.6))",
+                "linear-gradient(135deg, rgba(245,158,11,0.4), rgba(236,72,153,0.6))",
+                "linear-gradient(135deg, rgba(99,102,241,0.4), rgba(236,72,153,0.6))",
+              ];
+              const bgGradient = gradients[index % gradients.length];
+              
+              return (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                  key={project.id}
+                  className="group relative rounded-[2rem] overflow-hidden aspect-[4/3] sm:aspect-[16/9] border border-white/10 cursor-pointer"
+                >
+                  <div 
+                    className="absolute inset-0 transition-transform duration-700 group-hover:scale-110 opacity-60"
+                    style={{ background: bgGradient }}
+                  />
+                  
+                  {/* Pattern overlay */}
+                  <div 
+                    className="absolute inset-0 opacity-20 mix-blend-overlay"
+                    style={{
+                      backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                      backgroundSize: '24px 24px',
+                    }}
+                  />
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
                 
                 <div className="absolute inset-0 p-8 flex flex-col justify-end translate-y-4 transition-transform duration-300 group-hover:translate-y-0">
                   <div className="flex items-center gap-3 mb-2 opacity-0 transition-opacity duration-300 delay-100 group-hover:opacity-100">
@@ -113,7 +125,8 @@ export default function PortfolioSection() {
                   </div>
                 </div>
               </motion.div>
-            ))}
+            );
+          })}
           </AnimatePresence>
         </motion.div>
       </div>
