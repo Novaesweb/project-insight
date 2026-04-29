@@ -49,6 +49,7 @@ const CustosSistema = React.lazy(() => import("./pages/CustosSistema"));
 const Suporte = React.lazy(() => import("./pages/Suporte"));
 const Usuarios = React.lazy(() => import("./pages/Usuarios"));
 const LeadsDashboard = React.lazy(() => import("./pages/admin/leads/LeadsDashboard"));
+const WhatsAppProspector = React.lazy(() => import("./pages/admin/leads/WhatsAppProspector"));
 const LeadsList = React.lazy(() => import("./pages/admin/leads/LeadsList"));
 const LeadDetailsPage = React.lazy(() => import("./pages/admin/leads/LeadDetailsPage"));
 const Configuracoes = React.lazy(() => import("./pages/Configuracoes"));
@@ -128,6 +129,7 @@ function AdminWithSplash() {
             <Route path="clientes/:id" element={<ClientDetailsPage />} />
             <Route path="leads" element={<LeadsDashboard />} />
             <Route path="leads/lista" element={<LeadsList />} />
+            <Route path="leads/prospectador" element={<WhatsAppProspector />} />
             <Route path="leads/:id" element={<LeadDetailsPage />} />
             <Route path="projetos" element={<ProjectsDashboard />} />
             <Route path="projetos/lista" element={<ProjectsList />} />

@@ -88,6 +88,17 @@ export default function LeadsDashboard() {
             >
               <Link to="/admin/leads/lista">Gerenciar Base</Link>
             </Button>
+            
+            <Button
+              asChild
+              className="h-12 rounded-2xl border-0 bg-emerald-600 px-6 text-[10px] font-black uppercase tracking-[0.24em] text-white shadow-[0_14px_35px_rgba(16,185,129,0.24)] hover:scale-[1.02] active:scale-[0.98] transition-all hover:bg-emerald-500"
+            >
+              <Link to="/admin/leads/prospectador">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Prospectador Rápido
+              </Link>
+            </Button>
+
             <Button
               asChild
               className="h-12 rounded-2xl border-0 bg-brand-gradient px-8 text-[10px] font-black uppercase tracking-[0.24em] text-white shadow-[0_14px_35px_rgba(124,58,237,0.24)] hover:scale-[1.02] active:scale-[0.98] transition-all"
