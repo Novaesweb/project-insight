@@ -7,7 +7,6 @@ import MobileAppNav from "@/components/site/MobileAppNav";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteModals from "@/components/site/SiteModals";
 import SiteNavbar from "@/components/site/SiteNavbar";
-import PublicSiteCursor from "@/components/site/PublicSiteCursor";
 import WhatsAppFloat from "@/components/site/WhatsAppFloat";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +52,6 @@ export default function PublicPageLayout({
         }}
       />
       <PublicAmbientBackground />
-      <PublicSiteCursor />
 
       <a
         href="#main-content"

@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { submitLeadCapture } from "@/lib/lead-capture";
 import { cn } from "@/lib/utils";
 import PublicAmbientBackground from "@/components/site/PublicAmbientBackground";
-import PublicSiteCursor from "@/components/site/PublicSiteCursor";
 
 const NECESSIDADES = [
   { id: "site-painel", label: "Site + Painel", icon: Layout, desc: "Vitrine com operação integrada" },
@@ -163,7 +162,6 @@ export default function Cadastro() {
       style={{ background: "hsl(var(--background))" }}
     >
       <PublicAmbientBackground />
-      <PublicSiteCursor />
       <div className="relative z-10 min-h-screen flex overflow-hidden">
       {/* Close button */}
       <motion.button
