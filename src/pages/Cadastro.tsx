@@ -13,6 +13,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { submitLeadCapture } from "@/lib/lead-capture";
 import { cn } from "@/lib/utils";
+import PublicAmbientBackground from "@/components/site/PublicAmbientBackground";
+import PublicSiteCursor from "@/components/site/PublicSiteCursor";
 
 const NECESSIDADES = [
   { id: "site-painel", label: "Site + Painel", icon: Layout, desc: "Vitrine com operação integrada" },
@@ -156,7 +158,13 @@ export default function Cadastro() {
   const progress = currentStep === 0 ? 0 : Math.min((currentStep / 9) * 100, 100);
 
   return (
-    <div className="min-h-screen flex font-sans text-foreground overflow-hidden relative" style={{ background: "hsl(var(--background))" }}>
+    <div
+      className="public-site-unified public-funnel-shell min-h-screen overflow-x-hidden font-sans text-foreground relative"
+      style={{ background: "hsl(var(--background))" }}
+    >
+      <PublicAmbientBackground />
+      <PublicSiteCursor />
+      <div className="relative z-10 min-h-screen flex overflow-hidden">
       {/* Close button */}
       <motion.button
         initial={{ opacity: 0, scale: 0.8 }}
@@ -634,6 +642,7 @@ export default function Cadastro() {
             </motion.div>
           </motion.div>
         )}
+      </div>
       </div>
     </div>
   );

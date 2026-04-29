@@ -22,6 +22,7 @@ export const sitePrimaryNavLinks: SiteNavLink[] = [
 
 export const siteFeatureNavLinks: SiteNavLink[] = [
   { href: "/nichos", label: "Nichos" },
+  { href: "/funcionalidades", label: "Modulos" },
   { href: "/criacao-conteudo", label: "Area do Marketing" },
 ];
 

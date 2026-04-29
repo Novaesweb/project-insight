@@ -1,5 +1,9 @@
-import { memo, useCallback, useState, type ReactNode } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 
+import { motion, useScroll } from "framer-motion";
+
+import PublicAmbientBackground from "@/components/site/PublicAmbientBackground";
+import MobileAppNav from "@/components/site/MobileAppNav";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteModals from "@/components/site/SiteModals";
 import SiteNavbar from "@/components/site/SiteNavbar";
@@ -7,62 +11,68 @@ import PublicSiteCursor from "@/components/site/PublicSiteCursor";
 import WhatsAppFloat from "@/components/site/WhatsAppFloat";
 import { cn } from "@/lib/utils";
 
-const PublicBackground = memo(function PublicBackground() {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(180deg, hsl(var(--background)), hsl(245 12% 5%))",
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-[0.012]"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-          backgroundSize: "96px 96px",
-        }}
-      />
-      <div
-        className="absolute top-[10%] -left-[8%] w-[560px] h-[560px] rounded-full blur-[180px] opacity-[0.04]"
-        style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.32), transparent 72%)" }}
-      />
-      <div
-        className="absolute top-[28%] -right-[10%] w-[520px] h-[520px] rounded-full blur-[170px] opacity-[0.045]"
-        style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.28), transparent 72%)" }}
-      />
-      <div
-        className="absolute bottom-[-8%] left-[20%] w-[520px] h-[520px] rounded-full blur-[180px] opacity-[0.03]"
-        style={{ background: "radial-gradient(circle, hsl(var(--primary-novaesweb) / 0.24), transparent 74%)" }}
-      />
-    </div>
-  );
-});
-
-interface PublicPageLayoutProps {
-  children: ReactNode;
-  mainClassName?: string;
+interface PublicPageLayoutRenderControls {
+  openModal: (id: string) => void;
 }
 
-export default function PublicPageLayout({ children, mainClassName }: PublicPageLayoutProps) {
+interface PublicPageLayoutProps {
+  children: ReactNode | ((controls: PublicPageLayoutRenderControls) => ReactNode);
+  mainClassName?: string;
+  showFooter?: boolean;
+  showNavbar?: boolean;
+  showMobileNav?: boolean;
+}
+
+export default function PublicPageLayout({
+  children,
+  mainClassName,
+  showFooter = true,
+  showNavbar = true,
+  showMobileNav = false,
+}: PublicPageLayoutProps) {
   const [modalOpen, setModalOpen] = useState<string | null>(null);
   const closeModal = useCallback(() => setModalOpen(null), []);
+  const openModal = useCallback((id: string) => setModalOpen(id), []);
+  const { scrollYProgress } = useScroll();
+
+  const content =
+    typeof children === "function"
+      ? (children as (controls: PublicPageLayoutRenderControls) => ReactNode)({ openModal })
+      : children;
 
   return (
     <div
       className="public-site-unified min-h-screen scroll-smooth font-sans antialiased relative overflow-x-hidden"
       style={{ background: "hsl(var(--background))" }}
     >
-      <PublicBackground />
+      <motion.div
+        className="fixed left-0 right-0 top-0 z-[100] h-1 origin-left"
+        style={{
+          scaleX: scrollYProgress,
+          background: "linear-gradient(90deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
+        }}
+      />
+      <PublicAmbientBackground />
       <PublicSiteCursor />
 
-      <main className={cn("relative z-10", mainClassName)}>
-        <SiteNavbar onOpenModal={setModalOpen} />
-        {children}
-        <SiteFooter onOpenModal={setModalOpen} />
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[120] focus:rounded-xl focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-white"
+        style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.96), rgba(107,33,168,0.92), rgba(236,72,153,0.9))" }}
+      >
+        Pular para o conteudo principal
+      </a>
+
+      <main
+        id="main-content"
+        className={cn("relative z-10", showMobileNav ? "pb-24 md:pb-0" : "", mainClassName)}
+      >
+        {showNavbar ? <SiteNavbar onOpenModal={openModal} /> : null}
+        {content}
+        {showFooter ? <SiteFooter onOpenModal={openModal} /> : null}
         <SiteModals modalOpen={modalOpen} onClose={closeModal} />
         <WhatsAppFloat />
+        {showMobileNav ? <MobileAppNav /> : null}
       </main>
     </div>
   );

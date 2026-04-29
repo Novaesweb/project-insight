@@ -1,10 +1,10 @@
-import { Instagram, ArrowRight } from "lucide-react";
+import { ArrowRight, Instagram } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import SiteFooterWaves from "@/components/site/SiteFooterWaves";
-import { handleSiteNavigation } from "@/lib/site-navigation";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import novaeswebSymbol from "@/assets/novaesweb-logo-glow.png";
+import { handleSiteNavigation } from "@/lib/site-navigation";
 
 interface SiteFooterProps {
   onOpenModal: (id: string) => void;
@@ -17,6 +17,7 @@ const footerLinks = [
   { href: "#cadastro", label: "Orcamento" },
   { href: "/sobre", label: "Sobre" },
   { href: "/nichos", label: "Nichos" },
+  { href: "/funcionalidades", label: "Modulos" },
   { id: "privacidade", label: "Privacidade" },
   { id: "termos", label: "Termos" },
 ];
@@ -26,10 +27,10 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
   const navigate = useNavigate();
 
   return (
-    <footer className="relative overflow-hidden px-4 sm:px-6 pb-10 pt-20 sm:pt-24">
+    <footer className="relative overflow-hidden px-4 pb-10 pt-20 sm:px-6 sm:pt-24">
       <SiteFooterWaves />
 
-      <div className="relative z-10 max-w-7xl mx-auto border-t border-white/[0.05] pt-16">
+      <div className="relative z-10 mx-auto max-w-7xl border-t border-white/[0.05] pt-16">
         <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
           <div className="max-w-md">
             <div className="flex items-center gap-3">
@@ -41,8 +42,8 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
             </div>
 
             <p className="mt-5 text-sm leading-relaxed text-white/52">
-              A NovaesWeb desenha estruturas digitais para empresas que querem apresentar melhor a marca, organizar a
-              operação e crescer com mais clareza comercial.
+              A NovaesWeb desenha estruturas digitais para marcas que precisam sair do generico, vender melhor e operar
+              com uma base propria mais clara.
             </p>
           </div>
 
@@ -92,7 +93,7 @@ export default function SiteFooter({ onOpenModal }: SiteFooterProps) {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-white/[0.05] pt-6 text-[11px] font-semibold text-white/32 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} NovaesWeb. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} NovaesWeb. Todos os direitos reservados.</p>
           <p>Estrutura digital premium para marcas que precisam vender com mais clareza.</p>
         </div>
       </div>

@@ -1,245 +1,325 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ShoppingBag, Layers, ChevronRight, 
-  Search, Zap, MessageSquare, ShieldCheck, 
-  Box, Star, TrendingUp, ArrowLeft
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Box,
+  Layers,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+
+import SEOHead from "@/components/SEOHead";
+import PublicPageLayout from "@/components/site/PublicPageLayout";
+import { PublicPageBackLink, PublicPageFinalCta, PublicPageStatGrid } from "@/components/site/PublicPageBlocks";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import SiteNavbar from "@/components/site/SiteNavbar";
-import SiteFooter from "@/components/site/SiteFooter";
-import SiteModals from "@/components/site/SiteModals";
-import { useNavigate } from "react-router-dom";
 import { usePublicContact } from "@/hooks/usePublicContact";
 
+type ExtraRecord = {
+  id: string;
+  nome: string;
+  descricao: string;
+  categoria: string;
+  subcategoria?: string | null;
+};
+
+const normalizeLabel = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 const iconMap: Record<string, React.ReactNode> = {
-  'Botão WhatsApp': <MessageSquare className="w-5 h-5" />,
-  'SEO de Elite': <Search className="w-5 h-5" />,
-  'Checkout Direto': <ShoppingBag className="w-5 h-5" />,
-  'Painel Business': <Layers className="w-5 h-5" />,
-  'Ultra Speed': <Zap className="w-5 h-5" />,
-  'Fidelidade pontos': <Star className="w-5 h-5" />,
-  'CRM Integrado': <ShieldCheck className="w-5 h-5" />,
-  'Cashback': <TrendingUp className="w-5 h-5" />,
-  'Área VIP': <ShieldCheck className="w-5 h-5" />,
-  'Cupom desconto': <Zap className="w-5 h-5" />,
-  'Popup promoção': <MessageSquare className="w-5 h-5" />,
-  'Banner promoções': <Layers className="w-5 h-5" />,
-  'default': <Box className="w-5 h-5" />
+  "botao whatsapp": <MessageCircle className="w-5 h-5" />,
+  "seo de elite": <Search className="w-5 h-5" />,
+  "checkout direto": <ShoppingBag className="w-5 h-5" />,
+  "painel business": <Layers className="w-5 h-5" />,
+  "ultra speed": <Zap className="w-5 h-5" />,
+  "fidelidade pontos": <Star className="w-5 h-5" />,
+  "crm integrado": <ShieldCheck className="w-5 h-5" />,
+  cashback: <TrendingUp className="w-5 h-5" />,
+  "area vip": <ShieldCheck className="w-5 h-5" />,
+  "cupom desconto": <Zap className="w-5 h-5" />,
+  "popup promocao": <MessageCircle className="w-5 h-5" />,
+  "banner promocoes": <Layers className="w-5 h-5" />,
+  default: <Box className="w-5 h-5" />,
 };
 
 const explanationMap: Record<string, string> = {
-  'Popup promoção': 'Gere senso de urgência instantâneo com janelas de ofertas relâmpago que aumentam a conversão em até 35%.',
-  'Cupom desconto': 'Sistema completo para criar códigos promocionais estratégicos e rastrear o sucesso das suas campanhas.',
-  'Cashback': 'Fidelize seus clientes devolvendo uma porcentagem da compra em créditos para o próximo pedido, garantindo o retorno.',
-  'Área VIP': 'Crie um clube exclusivo com conteúdos, preços e vantagens apenas para seus melhores clientes, gerando recorrência mensal.',
-  'Fidelidade pontos': 'Gamifique o consumo transformando cada real gasto em pontos que o cliente troca por brindes ou descontos reais.',
-  'Banner promoções': 'Banners dinâmicos e profissionais que destacam suas principais ofertas logo no topo da sua plataforma.'
+  "popup promocao": "Cria janelas de oferta para acionar urgencia e melhorar a chance de clique no momento certo.",
+  "cupom desconto": "Ajuda a ativar campanhas, rastrear respostas e gerar incentivo comercial sem perder controle.",
+  cashback: "Mantem o cliente voltando para comprar de novo com um motivo claro e facil de entender.",
+  "area vip": "Permite criar uma camada de exclusividade para clientes recorrentes e operacoes mais premium.",
+  "fidelidade pontos": "Transforma consumo recorrente em vantagem acumulada, reforcando repeticao e valor percebido.",
+  "banner promocoes": "Destaca ofertas principais logo no topo da experiencia para dar foco no que voce quer empurrar agora.",
+};
+
+const priorityNames = [
+  "cashback",
+  "area vip",
+  "cupom desconto",
+  "fidelidade pontos",
+  "popup promocao",
+  "banner promocoes",
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const stagger = { show: { transition: { staggerChildren: 0.1 } } };
+
+const categoryLabelMap: Record<string, string> = {
+  fixo: "Ativacao",
+  intermediario: "Pro",
+  mensal: "Recorrencia",
 };
 
 export default function Funcionalidades() {
-  const [extras, setExtras] = useState<any[]>([]);
+  const [extras, setExtras] = useState<ExtraRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [explainingId, setExplainingId] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState<string | null>(null);
-  const navigate = useNavigate();
   const { buildWhatsAppUrl } = usePublicContact();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    // Fetch ALL active modules, but prioritize these specific ones at the top
-    const priorityNames = [
-      'Cashback', 'Área VIP', 'Cupom desconto', 
-      'Fidelidade pontos', 'Popup promoção', 'Banner promoções'
-    ];
-
-    supabase.from("extras_catalogo")
-      .select("*")
+    supabase
+      .from("extras_catalogo")
+      .select("id, nome, descricao, categoria, subcategoria")
       .eq("status", "ativo")
       .then(({ data }) => {
-        const sortedData = data?.sort((a, b) => {
-          const indexA = priorityNames.indexOf(a.nome);
-          const indexB = priorityNames.indexOf(b.nome);
-          
-          if (indexA !== -1 && indexB !== -1) return indexA - indexB; // Both are priority
-          if (indexA !== -1) return -1; // Only A is priority
-          if (indexB !== -1) return 1;  // Only B is priority
-          return a.nome.localeCompare(b.nome); // Neither is priority, sort alphabetically
-        }) || [];
-        
-        const slicedData = sortedData.slice(0, 6);
-        setExtras(slicedData);
+        const normalized =
+          (data as ExtraRecord[] | null)?.sort((a, b) => {
+            const normalizedA = normalizeLabel(a.nome);
+            const normalizedB = normalizeLabel(b.nome);
+            const indexA = priorityNames.indexOf(normalizedA);
+            const indexB = priorityNames.indexOf(normalizedB);
+
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.nome.localeCompare(b.nome);
+          }) ?? [];
+
+        setExtras(normalized.slice(0, 6));
         setLoading(false);
       });
   }, []);
 
-  const handleAdd = (name: string) => {
-    window.open(
-      buildWhatsAppUrl(`Olá! Vi no site a funcionalidade "${name}" e gostaria de saber como adicionar ao meu projeto.`),
-      "_blank",
-      "noopener,noreferrer",
-    );
-  };
+  const recurringCount = useMemo(
+    () => extras.filter((item) => item.categoria === "mensal").length.toString(),
+    [extras]
+  );
 
-  const handleCustom = () => {
-    window.open(
-      buildWhatsAppUrl("Olá! Quero um site personalizado para o meu negócio."),
-      "_blank",
-      "noopener,noreferrer",
-    );
-  };
+  const strategicCount = useMemo(
+    () => extras.filter((item) => item.categoria === "intermediario").length.toString(),
+    [extras]
+  );
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] scroll-smooth ambient-glow">
-      <SiteNavbar onOpenModal={setModalOpen} />
-      
-      <main className="pt-40 pb-16 sm:pt-48 sm:pb-32 px-4 sm:px-6 relative">
-        <div className="max-w-7xl mx-auto flex flex-col items-center">
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={() => navigate(-1)}
-            className="self-start mb-8 text-white/50 hover:text-white flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </motion.button>
+    <PublicPageLayout>
+      <SEOHead
+        title="Funcionalidades e modulos | NovaesWeb"
+        description="Veja alguns dos modulos estrategicos da NovaesWeb para estruturar venda, fidelizacao, contato e operacao digital."
+      />
 
-          <motion.div
-            key="revealed-content"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "circOut" }}
-            className="w-full flex flex-col items-center"
-          >
-            <div className="text-center mb-16 space-y-4">
-              <Badge className="bg-red-500/10 text-red-500 border-red-500/20 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
-                novaesweb Premium
-              </Badge>
-              <h2 className="text-4xl sm:text-6xl font-black text-white tracking-tighter uppercase">
-                Funcionalidades <span className="gradient-text">Estratégicas</span>
-              </h2>
-              <p className="text-white/40 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed mb-8">
-                Módulos de alto impacto desenvolvidos para impulsionar suas vendas e criar 
-                fidelidade absoluta de forma automatizada.
+      <section className="public-page-shell">
+        <div className="public-page-container">
+          <PublicPageBackLink label="Voltar ao site" />
+
+          <motion.div initial="hidden" animate="show" variants={fadeUp} className="public-page-hero mb-10">
+            <div className="public-page-hero-grid">
+              <div>
+                <span className="site-badge site-badge--accent mb-6">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Modulos estrategicos
+                </span>
+                <h1 className="public-page-title">
+                  Recursos para vender, fidelizar e operar com uma
+                  <span className="site-gradient-text"> base mais inteligente</span>
+                </h1>
+                <p className="public-page-description mt-6">
+                  A NovaesWeb trabalha por camadas. Primeiro a estrutura principal. Depois os modulos entram para dar
+                  mais leitura comercial, mais retorno de cliente e mais controle operacional.
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {["Cashback", "Area VIP", "Cupom desconto"].map((item) => (
+                    <span key={item} className="public-page-pill">
+                      <BadgeCheck className="w-4 h-4 text-[hsl(var(--primary))]" />
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="public-page-highlight-grid">
+                <div className="public-page-highlight-card">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45 mb-2">Leitura premium</p>
+                  <p className="text-lg font-black leading-tight text-white/94">
+                    Modulos pensados como camadas de negocio, nao como lista tecnica perdida.
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-white/60">
+                    Cada recurso entra para reforcar conversao, recorrencia ou clareza na operacao.
+                  </p>
+                </div>
+                <div className="public-page-highlight-card">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45 mb-2">Crescimento modular</p>
+                  <p className="text-lg font-black leading-tight text-white/94">
+                    Voce comeca certo e expande sem precisar reconstruir tudo depois.
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-white/60">
+                    O projeto nasce preparado para receber novas frentes conforme o momento da empresa.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <PublicPageStatGrid
+            className="mb-10"
+            items={[
+              { value: `${extras.length}`, label: "modulos em destaque" },
+              { value: recurringCount, label: "camadas recorrentes" },
+              { value: strategicCount, label: "frentes pro para escalar" },
+            ]}
+          />
+
+          <motion.div initial="hidden" animate="show" variants={fadeUp} className="public-page-section-card mb-10">
+            <div className="flex items-center gap-3 mb-4">
+              <Layers className="w-5 h-5 text-[hsl(var(--primary))]" />
+              <p className="text-sm font-bold text-white">
+                Estes modulos entram para deixar a estrutura mais comercial, mais lucrativa e mais propria.
               </p>
             </div>
+            <p className="site-copy-muted leading-relaxed">
+              Em vez de parecer uma lista de extras, eles funcionam como decisao de posicionamento: o que reforca venda,
+              o que melhora recorrencia e o que cria mais controle no dia a dia.
+            </p>
+          </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
-              {loading ? (
-                [1,2,3,4,5,6].map(i => (
-                  <div key={i} className="h-80 rounded-[3rem] bg-white/5 animate-pulse border border-white/5" />
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={stagger}
+            className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
+          >
+            {loading
+              ? [1, 2, 3, 4, 5, 6].map((item) => (
+                  <div key={item} className="public-page-proof-card min-h-[320px] animate-pulse" />
                 ))
-              ) : (
-                <>
-                  {extras.map((m, idx) => (
+              : extras.map((item) => {
+                  const isOpen = explainingId === item.id;
+                  const categoryLabel = categoryLabelMap[item.categoria] ?? "Modulo";
+                  const normalizedName = normalizeLabel(item.nome);
+
+                  return (
                     <motion.div
-                      key={m.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="group relative h-80 glass-card rounded-[3rem] border border-white/5 hover:border-red-500/30 transition-all duration-500 flex flex-col overflow-hidden"
+                      key={item.id}
+                      variants={fadeUp}
+                      className="public-page-proof-card min-h-[320px] overflow-hidden"
                     >
                       <AnimatePresence mode="wait">
-                        {explainingId === m.id ? (
-                          <motion.div 
+                        {isOpen ? (
+                          <motion.div
                             key="explanation"
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="absolute inset-0 p-8 sm:p-10 flex flex-col justify-center bg-[#0d0d12] z-20"
+                            exit={{ opacity: 0, y: -16 }}
+                            transition={{ duration: 0.24 }}
+                            className="flex h-full flex-col justify-between gap-6"
                           >
-                            <h4 className="text-red-500 text-[10px] sm:text-xs font-black uppercase tracking-widest mb-3 sm:mb-4 italic">O segredo do sucesso:</h4>
-                            <p className="text-sm sm:text-base text-white/70 leading-relaxed font-medium">
-                               "{explanationMap[m.nome] || m.descricao}"
-                            </p>
-                            <button 
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/42">
+                                Porque este modulo importa
+                              </p>
+                              <h3 className="mt-3 text-xl font-black tracking-tight text-white/94">{item.nome}</h3>
+                              <p className="mt-4 text-sm leading-relaxed text-white/64">
+                                {explanationMap[normalizedName] || item.descricao}
+                              </p>
+                            </div>
+
+                            <button
                               onClick={() => setExplainingId(null)}
-                              className="mt-10 text-[10px] font-black text-white/30 hover:text-white transition-colors uppercase tracking-[0.2em]"
+                              className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-white/54 hover:text-white"
                             >
-                              ← Voltar ao card
+                              Voltar ao card
                             </button>
                           </motion.div>
                         ) : (
-                          <motion.div 
+                          <motion.div
                             key="main"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col h-full p-8 sm:p-10"
+                            className="flex h-full flex-col"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="relative">
-                                <div className="absolute -inset-6 bg-red-500/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
-                                <div className="relative w-16 h-16 rounded-[1.25rem] bg-white/5 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-red-500/20">
-                                  {iconMap[m.nome] || iconMap['default']}
-                                </div>
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-white/82">
+                                {iconMap[normalizedName] || iconMap.default}
                               </div>
-                              <Badge className="bg-white/5 text-white/30 border-white/5 text-[9px] font-black uppercase tracking-widest">
-                                {m.categoria === 'fixo' ? 'Ativação' : m.categoria === 'intermediario' ? 'Advanced' : 'Monthly'}
-                              </Badge>
-                            </div>
-                            
-                            <div className="mt-6 sm:mt-8">
-                              <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-red-500 transition-colors uppercase tracking-tight leading-none">{m.nome}</h3>
-                              <p className="text-[11px] sm:text-xs text-white/40 mt-3 sm:mt-4 line-clamp-2 leading-relaxed font-medium">{m.descricao}</p>
+                              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/48">
+                                {categoryLabel}
+                              </span>
                             </div>
 
-                            <div className="mt-auto flex flex-col gap-5">
-                              <button 
-                                onClick={() => setExplainingId(m.id)}
-                                className="text-[10px] font-black text-red-500/50 hover:text-red-500 transition-colors uppercase tracking-widest text-left"
+                            <div className="mt-6">
+                              <h3 className="text-xl font-black tracking-tight text-white/94">{item.nome}</h3>
+                              <p className="mt-3 text-sm leading-relaxed text-white/60">{item.descricao}</p>
+                            </div>
+
+                            <div className="mt-auto pt-6">
+                              <button
+                                onClick={() => setExplainingId(item.id)}
+                                className="text-[10px] font-black uppercase tracking-[0.22em] text-white/58 hover:text-white"
                               >
-                                Saiba como funciona →
+                                Entender o impacto
                               </button>
-                              
-                              <div className="flex items-center justify-between pt-5 border-t border-white/5">
-                                <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">{m.subcategoria || 'Digital Growth'}</span>
-                                <button 
-                                  onClick={() => handleAdd(m.nome)}
-                                  className="flex items-center gap-2 text-xs font-black text-white hover:text-red-500 transition-colors group/btn"
+
+                              <div className="mt-5 flex items-center justify-between border-t border-white/6 pt-5">
+                                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/32">
+                                  {item.subcategoria || "Estrutura NovaesWeb"}
+                                </span>
+                                <a
+                                  href={buildWhatsAppUrl(
+                                    `Ola! Vi a funcionalidade "${item.nome}" e quero entender como ela entraria no meu projeto.`
+                                  )}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                 >
-                                  CONTRATAR <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                </button>
+                                  <Button className="site-soft-surface h-10 rounded-xl px-4 text-[11px] font-black uppercase tracking-[0.14em] text-white/84">
+                                    Contratar
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                  </Button>
+                                </a>
                               </div>
                             </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
                     </motion.div>
-                  ))}
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="group relative h-80 rounded-[3rem] px-8 py-10 sm:p-12 bg-gradient-to-br from-red-500/10 to-transparent border border-dashed border-red-500/20 hover:border-red-500/50 transition-all duration-500 flex flex-col justify-center text-center items-center shadow-xl shadow-red-500/5"
-                  >
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <h3 className="text-xl sm:text-2xl font-black text-white mb-3 sm:mb-4 tracking-tighter group-hover:scale-105 transition-transform duration-500 uppercase leading-none">
-                      Engenharia <br /><span className="text-red-500">Sob Medida</span>
-                    </h3>
-                    <p className="text-[11px] sm:text-xs text-white/40 max-w-[240px] leading-relaxed mb-8 sm:mb-10 font-medium">
-                      Tem uma ideia única? Nossa equipe de engenharia desenvolve qualquer automação exclusiva para o seu fluxo.
-                    </p>
-                    <button 
-                      onClick={handleCustom}
-                      className="px-12 py-5 rounded-full bg-red-500 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all active:scale-95 shadow-2xl shadow-red-500/40"
-                    >
-                      Quero meu site personalizado
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </div>
+                  );
+                })}
           </motion.div>
-        </div>
-      </main>
 
-      <SiteModals modalOpen={modalOpen} onClose={() => setModalOpen(null)} />
-      <SiteFooter onOpenModal={setModalOpen} />
-    </div>
+          <PublicPageFinalCta
+            className="mt-10"
+            eyebrow="Planejar a proxima camada"
+            title="Quer descobrir quais modulos fazem sentido para o seu negocio?"
+            description="A NovaesWeb indica o que realmente agrega para o seu momento e monta a combinacao certa sem empilhar recurso inutil."
+            primaryHref="/cadastro"
+            primaryLabel="Solicitar diagnostico"
+            secondaryHref={buildWhatsAppUrl("Ola! Quero entender quais modulos da NovaesWeb fazem mais sentido para o meu projeto.")}
+            secondaryLabel="Falar no WhatsApp"
+          />
+        </div>
+      </section>
+    </PublicPageLayout>
   );
 }
-
-
-
