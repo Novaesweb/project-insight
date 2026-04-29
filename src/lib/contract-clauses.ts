@@ -120,88 +120,144 @@ function createSeedClause(
 
 export const CLAUSE_LIBRARY_SEED: ClauseLibraryItem[] = [
   createSeedClause(
-    "clause-seed-objeto",
-    "DO OBJETO",
+    "clause-seed-01-objeto",
+    "CLAUSULA 01 - OBJETO DO CONTRATO",
     "objeto",
-    true,
-    "O presente instrumento tem por objeto a prestacao de servicos de desenvolvimento digital pela CONTRATADA ({{CONTRATADA}}) a CONTRATANTE ({{NOME_CLIENTE}} — {{EMPRESA_CLIENTE}}), compreendendo criacao, configuracao e entrega das solucoes descritas na proposta comercial aceita.",
+    false,
+    "Este contrato formaliza a prestacao de servicos de criacao, desenvolvimento e hospedagem de website pela CONTRATADA ({{CONTRATADA}}) em favor do CONTRATANTE ({{NOME_CLIENTE}} - {{EMPRESA_CLIENTE}}). O foco exclusivo e a entrega de um site profissional, funcional e de qualidade, conforme escopo aprovado neste documento.",
   ),
   createSeedClause(
-    "clause-seed-pagamento",
-    "DO PAGAMENTO E ATIVACAO",
-    "pagamento",
-    true,
-    "O valor de ativacao de {{VALOR_ATIVACAO}} e devido no ato da assinatura e nao e reembolsavel. A mensalidade de {{MENSALIDADE}} vence todo {{DIA_VENCIMENTO}}. Atrasos sujeitam a multa de 2% mais juros de 1% ao mes. Apos 15 dias de inadimplencia os servicos poderao ser suspensos sem aviso previo.",
+    "clause-seed-02-escopo",
+    "CLAUSULA 02 - ESCOPO DOS SERVICOS CONTRATADOS",
+    "objeto",
+    false,
+    "Os servicos abrangem: (a) desenvolvimento completo do website conforme layout e funcionalidades aprovadas; (b) hospedagem em servidores gerenciados pela CONTRATADA; (c) painel administrativo para atualizacao de conteudo; (d) suporte tecnico ao funcionamento do site.",
   ),
   createSeedClause(
-    "clause-seed-entrega",
-    "DO PRAZO DE ENTREGA",
+    "clause-seed-03-nao-incluidos",
+    "CLAUSULA 03 - SERVICOS NAO INCLUIDOS",
+    "geral",
+    false,
+    "A CONTRATADA nao realiza, sob nenhuma hipotese, servicos de marketing digital, trafego pago, gestao de redes sociais, producao de conteudo, campanhas publicitarias, SEO avancado, fotografia, videomaking ou identidade visual. A assinatura deste contrato implica ciencia e concordancia plena com essa limitacao de escopo.",
+  ),
+  createSeedClause(
+    "clause-seed-04-prazo-entrega",
+    "CLAUSULA 04 - PRAZO DE ENTREGA",
     "entrega",
-    true,
-    "O prazo de {{PRAZO_ENTREGA}} inicia-se em {{DATA_INICIO}}, condicionado ao recebimento integral de materiais e aprovacoes do CONTRATANTE. Atrasos por omissao do CONTRATANTE implicam reprogramacao automatica do cronograma.",
-  ),
-  createSeedClause(
-    "clause-seed-revisoes",
-    "DAS REVISOES",
-    "revisao",
     false,
-    "O escopo inclui {{NUM_REVISOES}}, entendidas como ajustes dentro do escopo original aprovado, consolidadas em uma unica solicitacao formal por rodada. Alteracoes de escopo serao orcadas separadamente.",
+    "O prazo estimado de entrega e de ate {{PRAZO_ENTREGA}} apos aprovacao do escopo e recebimento de todos os materiais necessarios. Atrasos na entrega de textos, logotipo, imagens, referencias ou aprovacoes pelo CONTRATANTE prorrogam automaticamente o prazo, sem qualquer responsabilidade da CONTRATADA.",
   ),
   createSeedClause(
-    "clause-seed-vigencia",
-    "DA VIGENCIA E RENOVACAO",
-    "geral",
-    true,
-    "Vigencia de {{DURACAO}}, de {{DATA_INICIO}} a {{DATA_TERMINO}}. Renova-se automaticamente por igual prazo salvo aviso contrario por escrito com 30 dias de antecedencia.",
-  ),
-  createSeedClause(
-    "clause-seed-cancelamento",
-    "DO CANCELAMENTO",
-    "cancelamento",
-    true,
-    "Cancelamento deve ser formalizado por escrito com 30 dias de antecedencia. O valor de ativacao ({{VALOR_ATIVACAO}}) nao e reembolsavel. Cancelamento antes do termino sujeita ao pagamento de 30% do valor restante como clausula penal.",
-  ),
-  createSeedClause(
-    "clause-seed-obrigacoes-contratante",
-    "DAS OBRIGACOES DO CONTRATANTE",
-    "geral",
-    false,
-    "O CONTRATANTE compromete-se a fornecer materiais em ate 5 dias uteis apos solicitacao, designar responsavel unico para aprovacoes e efetuar pagamentos nas datas acordadas. O descumprimento suspende automaticamente os prazos da CONTRATADA.",
-  ),
-  createSeedClause(
-    "clause-seed-obrigacoes-contratada",
-    "DAS OBRIGACOES DA CONTRATADA",
-    "geral",
-    false,
-    "A CONTRATADA compromete-se a entregar nos prazos acordados, manter equipe qualificada, comunicar imprevistos com 48h de antecedencia e corrigir erros de execucao sem custo em ate 30 dias apos a entrega.",
-  ),
-  createSeedClause(
-    "clause-seed-propriedade",
-    "DA PROPRIEDADE INTELECTUAL",
-    "propriedade",
-    false,
-    "Os direitos patrimoniais sao transferidos ao CONTRATANTE somente apos quitacao integral. Ate esse momento permanecem com a CONTRATADA ({{CONTRATADA}}). Componentes open source permanecem sob suas respectivas licencas.",
-  ),
-  createSeedClause(
-    "clause-seed-sigilo",
-    "DO SIGILO",
-    "sigilo",
-    false,
-    "Ambas as partes mantem sigilo sobre informacoes confidenciais pelo prazo de 2 anos apos o encerramento. A violacao sujeita a parte infratora a indenizacao por perdas e danos.",
-  ),
-  createSeedClause(
-    "clause-seed-suporte",
-    "DO SUPORTE TECNICO",
+    "clause-seed-05-suporte",
+    "CLAUSULA 05 - SUPORTE TECNICO",
     "suporte",
     false,
-    "A mensalidade de {{MENSALIDADE}} cobre suporte para manutencao do desenvolvido. Novos desenvolvimentos serao orcados separadamente. Atendimento em dias uteis das 9h as 18h com retorno em ate 24 horas.",
+    "A CONTRATADA garante suporte tecnico para questoes relacionadas ao funcionamento do site, com prazo de resposta de ate 24 horas uteis a partir do chamado. O suporte e prestado em dias uteis, em horario comercial, por meio do canal oficial de atendimento. Novas funcionalidades ou alteracoes estruturais nao integram o suporte e podem gerar novo orcamento.",
   ),
   createSeedClause(
-    "clause-seed-foro",
-    "DO FORO",
+    "clause-seed-06-responsabilidade",
+    "CLAUSULA 06 - LIMITACAO DE RESPONSABILIDADE DA CONTRATADA",
     "geral",
-    true,
-    "As partes elegem o foro da comarca de Canoas/RS para dirimir quaisquer controversias, com renuncia a qualquer outro por mais privilegiado que seja.",
+    false,
+    "A CONTRATADA nao se responsabiliza por resultados comerciais, de vendas ou financeiros do CONTRATANTE, por posicionamento organico em buscadores, por desempenho de campanhas conduzidas por terceiros nem por indisponibilidades causadas por provedores de internet do CONTRATANTE ou eventos de forca maior. Sua responsabilidade limita-se ao correto funcionamento tecnico do site dentro do escopo contratado.",
+  ),
+  createSeedClause(
+    "clause-seed-07-propriedade",
+    "CLAUSULA 07 - PROPRIEDADE INTELECTUAL",
+    "propriedade",
+    false,
+    "O codigo-fonte, layout, estrutura e demais elementos desenvolvidos pela CONTRATADA sao de sua propriedade intelectual. O CONTRATANTE possui direito de uso do site enquanto o contrato estiver ativo e adimplente. Em caso de cancelamento ou inadimplencia, o acesso ao site podera ser suspenso. A entrega de arquivos ou codigo-fonte somente ocorrera mediante acordo escrito especifico entre as partes.",
+  ),
+  createSeedClause(
+    "clause-seed-08-revisoes",
+    "CLAUSULA 08 - APROVACAO DE ETAPAS E REVISOES",
+    "revisao",
+    false,
+    "O CONTRATANTE se compromete a revisar e aprovar cada etapa do desenvolvimento por escrito, por e-mail ou mensagem oficial. Apos a aprovacao de uma etapa, alteracoes nela solicitadas podem gerar cobranca adicional. Esta incluida no contrato a quantidade de revisoes definida no fechamento comercial ({{NUM_REVISOES}}). Revisoes adicionais serao orcadas separadamente.",
+  ),
+  createSeedClause(
+    "clause-seed-09-conteudo",
+    "CLAUSULA 09 - RESPONSABILIDADE PELO CONTEUDO",
+    "geral",
+    false,
+    "O CONTRATANTE e o unico responsavel por textos, imagens, logotipos e demais conteudos fornecidos para o site, declarando possuir os direitos autorais ou as devidas autorizacoes de uso. Qualquer reclamacao judicial ou extrajudicial decorrente do conteudo inserido pelo CONTRATANTE sera de responsabilidade exclusiva deste, isentando a CONTRATADA de qualquer onus.",
+  ),
+  createSeedClause(
+    "clause-seed-10-reajuste",
+    "CLAUSULA 10 - REAJUSTE ANUAL",
+    "pagamento",
+    false,
+    "Os valores contratados podem ser reajustados anualmente com base na variacao acumulada do IPCA nos 12 meses anteriores ao aniversario do contrato. O CONTRATANTE sera notificado com antecedencia minima de 30 dias antes da aplicacao de qualquer reajuste.",
+  ),
+  createSeedClause(
+    "clause-seed-11-cancelamento",
+    "CLAUSULA 11 - TAXA DE ATIVACAO E CANCELAMENTO",
+    "cancelamento",
+    false,
+    "O cancelamento pode ser solicitado por qualquer das partes a qualquer momento, sem multa, mediante comunicacao por escrito. A taxa de ativacao de {{VALOR_ATIVACAO}} nao e reembolsavel, pois cobre configuracao, ferramentas e trabalho ja iniciado. Apos o cancelamento, o site sera desativado em ate 30 dias.",
+  ),
+  createSeedClause(
+    "clause-seed-12-backup",
+    "CLAUSULA 12 - BACKUP E SEGURANCA DOS DADOS",
+    "sigilo",
+    false,
+    "A CONTRATADA realizara backups periodicos dos dados e arquivos do site. Em caso de falha tecnica, a restauracao sera feita a partir do backup mais recente disponivel. A CONTRATADA nao se responsabiliza por perdas de conteudo inserido diretamente pelo CONTRATANTE no painel apos o ultimo backup realizado.",
+  ),
+  createSeedClause(
+    "clause-seed-13-lgpd",
+    "CLAUSULA 13 - PROTECAO DE DADOS (LGPD)",
+    "sigilo",
+    false,
+    "As partes comprometem-se a tratar os dados pessoais compartilhados neste contrato em conformidade com a Lei Geral de Protecao de Dados (Lei 13.709/2018 - LGPD). Os dados do CONTRATANTE serao utilizados exclusivamente para a execucao dos servicos contratados e nao serao compartilhados com terceiros sem autorizacao previa. O CONTRATANTE e responsavel pela coleta e pelo tratamento de dados de seus proprios clientes no site.",
+  ),
+  createSeedClause(
+    "clause-seed-14-materiais",
+    "CLAUSULA 14 - PRAZO DE ENTREGA E DEPENDENCIA DE MATERIAIS",
+    "entrega",
+    false,
+    "O prazo de entrega do site depende diretamente do envio dos materiais pelo CONTRATANTE, incluindo textos, logotipo, imagens, referencias de layout e demais informacoes necessarias. O prazo comercial de {{PRAZO_ENTREGA}} somente comeca a contar apos o recebimento completo de todos os materiais solicitados. Enquanto houver pendencias de informacoes ou aprovacoes por parte do CONTRATANTE, o prazo ficara automaticamente suspenso.",
+  ),
+  createSeedClause(
+    "clause-seed-15-pos-entrega",
+    "CLAUSULA 15 - RESPONSABILIDADE APOS A ENTREGA DO SITE",
+    "geral",
+    false,
+    "Apos a entrega e aprovacao formal do site pelo CONTRATANTE, toda a responsabilidade pelo conteudo, uso e gestao do site passa a ser exclusivamente do CONTRATANTE. A CONTRATADA nao se responsabiliza por alteracoes realizadas diretamente no painel administrativo, por conteudos desatualizados ou incorretos inseridos pelo CONTRATANTE nem por danos causados por terceiros apos a entrega. Qualquer correcao decorrente de acao do proprio CONTRATANTE pode ser cobrada como servico avulso.",
+  ),
+  createSeedClause(
+    "clause-seed-16-manutencao",
+    "CLAUSULA 16 - MANUTENCAO, ATUALIZACOES E PLANO MENSAL",
+    "suporte",
+    false,
+    "Este contrato nao inclui manutencao recorrente, atualizacao de conteudo, inclusao de novas paginas, alteracoes de layout ou monitoramento de seguranca apos a entrega. Caso o CONTRATANTE deseje tais servicos, devera contratar um plano mensal especifico com a CONTRATADA, com valor e escopo definidos em proposta separada. Sem essa contratacao, qualquer atualizacao ou alteracao sera orcada e cobrada de forma avulsa, mediante aprovacao previa.",
+  ),
+  createSeedClause(
+    "clause-seed-17-aditivos",
+    "CLAUSULA 17 - ALTERACOES DE ESCOPO E ADITIVOS",
+    "geral",
+    false,
+    "Qualquer nova funcionalidade, alteracao estrutural ou servico nao previsto neste contrato devera ser formalizado em aditivo contratual, com orcamento aprovado por escrito antes do inicio. Solicitacoes verbais nao geram obrigacao de entrega.",
+  ),
+  createSeedClause(
+    "clause-seed-18-vigencia",
+    "CLAUSULA 18 - VIGENCIA E PROPRIEDADE DO SITE",
+    "propriedade",
+    false,
+    "O site permanecera ativo enquanto o contrato estiver vigente e os pagamentos em dia. Em caso de inadimplencia superior a 15 dias, a CONTRATADA podera suspender o site. Apos 30 dias de inadimplencia, o contrato podera ser rescindido e o site desativado definitivamente.",
+  ),
+  createSeedClause(
+    "clause-seed-19-confidencialidade",
+    "CLAUSULA 19 - CONFIDENCIALIDADE",
+    "sigilo",
+    false,
+    "As partes comprometem-se a manter sigilo sobre informacoes confidenciais trocadas durante a vigencia deste contrato, nao as divulgando a terceiros sem autorizacao expressa da outra parte.",
+  ),
+  createSeedClause(
+    "clause-seed-20-foro",
+    "CLAUSULA 20 - DISPOSICOES GERAIS E FORO",
+    "geral",
+    false,
+    "Este contrato e regido pelas leis da Republica Federativa do Brasil. As partes elegem o foro da Comarca de Canoas/RS para dirimir eventuais litigios. Este instrumento substitui todos os acordos verbais ou escritos anteriores sobre o mesmo objeto.",
   ),
 ];
 
@@ -328,14 +384,10 @@ export function createSelectionItemFromClause(
   };
 }
 
-export function createDefaultContractClauseSelection(library: ClauseLibraryItem[]): ContractClauseSelection {
-  const items = library
-    .filter((item) => item.required)
-    .map((item, index) => createSelectionItemFromClause(item, index));
-
+export function createDefaultContractClauseSelection(_library: ClauseLibraryItem[]): ContractClauseSelection {
   return {
-    items,
-    updatedAt: items.length > 0 ? nowIso() : null,
+    items: [],
+    updatedAt: null,
   };
 }
 
@@ -409,6 +461,14 @@ export function buildClauseVariableMap(payload: ClauseVariablePayloadSource): Cl
   const startDate = formatDate(payload.startDate);
   const endDate = formatDate(payload.dueDate);
   const dueDay = payload.dueDate ? `dia ${new Date(`${payload.dueDate}T12:00:00`).getDate()}` : "Nao definido";
+  const normalizedRevisions = (() => {
+    const raw = payload.numeroRevisoes?.trim() || "";
+    if (!raw) return "Nao definido";
+    if (/^\d+$/.test(raw)) {
+      return `${raw} ${raw === "1" ? "revisao" : "revisoes"}`;
+    }
+    return raw;
+  })();
   const duration = payload.startDate && payload.dueDate
     ? `${startDate} ate ${endDate}`
     : payload.prazoDias?.trim()
@@ -425,7 +485,7 @@ export function buildClauseVariableMap(payload: ClauseVariablePayloadSource): Cl
     "{{DATA_INICIO}}": startDate,
     "{{DATA_TERMINO}}": endDate,
     "{{DURACAO}}": duration,
-    "{{NUM_REVISOES}}": payload.numeroRevisoes?.trim() || "Nao definido",
+    "{{NUM_REVISOES}}": normalizedRevisions,
     "{{CONTRATADA}}": payload.contratada.nome || "NovaesWeb",
     "{{REPRESENTANTE}}": payload.contratada.representante || "Nao informado",
   };
@@ -444,9 +504,9 @@ export function renderContractClauseSelection(
   const items = selection.items
     .slice()
     .sort((left, right) => left.order - right.order)
-    .map((item, index) => {
+    .map((item) => {
       const resolved = replaceClauseVariables(item.text, variables);
-      return `CLAUSULA ADICIONAL ${index + 1} - ${item.title}\n${resolved}`;
+      return `${item.title}\n${resolved}`;
     });
 
   return items.join("\n\n");

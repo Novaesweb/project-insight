@@ -117,9 +117,6 @@ export function ContractClausePickerDialog({
 
   const removeClause = (clauseId: string) => {
     setWorkingSelection((current) => {
-      const target = current.items.find((item) => item.clauseId === clauseId);
-      if (target?.required) return current;
-
       return {
         items: current.items
           .filter((item) => item.clauseId !== clauseId)
@@ -180,7 +177,7 @@ export function ContractClausePickerDialog({
             <DialogHeader className="border-b border-white/10 px-6 py-5">
               <DialogTitle className="text-2xl text-white">Selecionar clausulas salvas</DialogTitle>
               <DialogDescription className="text-white/55">
-                Escolha quais clausulas da biblioteca entram neste contrato. As obrigatorias ficam travadas quando selecionadas.
+                Escolha quais clausulas da biblioteca entram neste contrato. Se nenhuma for selecionada, o documento sera gerado sem clausulas adicionais.
               </DialogDescription>
             </DialogHeader>
 
@@ -237,11 +234,6 @@ export function ContractClausePickerDialog({
                               >
                                 {categoryMeta.label}
                               </Badge>
-                              {item.required ? (
-                                <Badge variant="outline" className="border-emerald-300/20 bg-emerald-300/10 text-emerald-100">
-                                  Obrigatoria
-                                </Badge>
-                              ) : null}
                             </div>
                             <div>
                               <p className="text-base font-semibold text-white">{item.title}</p>
@@ -280,7 +272,7 @@ export function ContractClausePickerDialog({
                 <div>
                   <p className="text-sm font-semibold text-white">Clausulas aplicadas ao contrato</p>
                   <p className="mt-1 text-sm text-white/55">
-                    Ordene por arrastar. Itens obrigatorios nao podem ser removidos depois de selecionados.
+                    Ordene por arrastar e remova livremente o que nao deve aparecer no contrato final.
                   </p>
                 </div>
                 <Badge variant="outline" className="border-fuchsia-300/20 bg-fuchsia-300/10 text-fuchsia-100">
@@ -321,11 +313,6 @@ export function ContractClausePickerDialog({
                               >
                                 {categoryMeta.label}
                               </Badge>
-                              {item.required ? (
-                                <Badge variant="outline" className="border-emerald-300/20 bg-emerald-300/10 text-emerald-100">
-                                  Travada
-                                </Badge>
-                              ) : null}
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-white">

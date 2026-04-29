@@ -216,7 +216,7 @@ export function ContractStepDadosLibrary({
               <div>
                 <p className="text-sm font-semibold text-white">Biblioteca global aplicada ao contrato</p>
                 <p className="mt-1 text-sm leading-relaxed text-white/55">
-                  Escolha clausulas salvas para este contrato. O bloco final sera montado automaticamente com numeracao e ordem definidas na selecao.
+                  Escolha quais clausulas cadastradas entram neste contrato. Se voce nao selecionar nenhuma, o documento sera salvo sem clausulas adicionais.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -235,8 +235,8 @@ export function ContractStepDadosLibrary({
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <SummaryPill label="Selecionadas" value={`${payload.clauseSelection.items.length} clausula(s)`} />
               <SummaryPill
-                label="Obrigatorias"
-                value={`${payload.clauseSelection.items.filter((item) => item.required).length} travada(s)`}
+                label="Modo"
+                value="Selecao manual"
               />
               <SummaryPill
                 label="Bloco final"
@@ -249,7 +249,7 @@ export function ContractStepDadosLibrary({
               readOnly
               value={payload.customClauses}
               className="mt-4 min-h-[150px] border-white/10 bg-black/30 text-white"
-              placeholder="O bloco de clausulas aparecera aqui depois da selecao."
+              placeholder="As clausulas selecionadas aparecerao aqui. Se nada for escolhido, o contrato ficara sem clausulas adicionais."
             />
           </div>
         </FieldShell>

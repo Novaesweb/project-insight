@@ -415,12 +415,13 @@ function buildCidadeEstado(payload: ContractBuilderPayload) {
 
 export function resolveContractCustomClauses(payload: ContractBuilderPayload) {
   const clauseSelection = normalizeContractClauseSelection(payload.clauseSelection);
+  const hasManualClauseSelection = clauseSelection.items.length > 0 || Boolean(clauseSelection.updatedAt);
 
   if (clauseSelection.items.length > 0) {
     return renderContractClauseSelection(clauseSelection, buildClauseVariableMap(payload));
   }
 
-  if (clauseSelection.updatedAt) {
+  if (hasManualClauseSelection) {
     return "";
   }
 

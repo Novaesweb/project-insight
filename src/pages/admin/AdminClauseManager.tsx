@@ -297,8 +297,8 @@ function ClauseEditorModal({
 
             <label className="flex items-center justify-between rounded-[16px] border border-[rgba(124,58,237,.22)] bg-[#150022] px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-[#f0e8ff]">Obrigatoria no contrato</p>
-                <p className="text-xs text-[#9b89b8]">Itens obrigatorios ficam travados quando selecionados em um contrato.</p>
+                <p className="text-sm font-semibold text-[#f0e8ff]">Marcacao da biblioteca</p>
+                <p className="text-xs text-[#9b89b8]">Serve como destaque visual da clausula na biblioteca e nao adiciona nada automaticamente ao contrato.</p>
               </div>
               <button
                 type="button"
@@ -448,11 +448,6 @@ export default function AdminClauseManager() {
 
   const removeFromSelection = (clauseId: string) => {
     setSelection((current) => {
-      const target = current.items.find((item) => item.clauseId === clauseId);
-      if (target?.required) {
-        return current;
-      }
-
       return {
         items: current.items
           .filter((item) => item.clauseId !== clauseId)
@@ -529,7 +524,7 @@ export default function AdminClauseManager() {
     if (clause.origin === "seed" && clause.required) {
       toast({
         title: "Clausula protegida",
-        description: "As clausulas obrigatorias da base nao podem ser excluidas daqui.",
+        description: "As clausulas base protegidas do sistema nao podem ser excluidas daqui.",
         variant: "destructive",
       });
       return;
@@ -697,7 +692,7 @@ export default function AdminClauseManager() {
                                 <CategoryBadge category={item.category} />
                                 {item.required ? (
                                   <span className="rounded-full bg-[rgba(16,185,129,.15)] px-2.5 py-1 text-[11px] font-semibold text-[#6ee7b7]">
-                                    Obrigatoria
+                                    Marcada
                                   </span>
                                 ) : null}
                               </div>
@@ -786,7 +781,7 @@ export default function AdminClauseManager() {
                                 <CategoryBadge category={item.category} />
                                 {item.required ? (
                                   <span className="rounded-full bg-[rgba(16,185,129,.15)] px-2.5 py-1 text-[11px] font-semibold text-[#6ee7b7]">
-                                    Obrigatoria
+                                    Marcada
                                   </span>
                                 ) : null}
                               </div>
@@ -864,7 +859,7 @@ export default function AdminClauseManager() {
                             <CategoryBadge category={item.category} />
                             {item.required ? (
                               <span className="rounded-full bg-[rgba(16,185,129,.15)] px-2.5 py-1 text-[11px] font-semibold text-[#6ee7b7]">
-                                Obrigatoria
+                                Marcada
                               </span>
                             ) : null}
                             <span className="rounded-full bg-[rgba(255,255,255,.05)] px-2.5 py-1 text-[11px] font-semibold text-[#9b89b8]">
