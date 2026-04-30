@@ -56,33 +56,52 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
         </motion.div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <motion.div variants={fade} className="grid gap-3">
+          <motion.div variants={fade} className="grid gap-4">
             {solutions.map((solution, index) => {
               const isActive = activeIndex === index;
               return (
-                <div 
-                  key={solution.title} 
+                <motion.div 
+                  key={solution.title}
+                  initial={{ opacity: 0, x: -12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
                   className={cn(
-                    "site-surface rounded-[1.8rem] overflow-hidden transition-all duration-300 cursor-pointer border",
-                    isActive ? "border-primary/30 shadow-[0_0_30px_rgba(236,72,153,0.1)]" : "border-white/5 hover:border-white/15"
+                    "site-surface rounded-[2rem] overflow-hidden transition-all duration-400 cursor-pointer border group",
+                    isActive 
+                      ? "border-primary/40 shadow-[0_0_40px_rgba(236,72,153,0.15)] scale-[1.01]" 
+                      : "border-white/8 hover:border-white/20 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
                   )}
                   onClick={() => setActiveIndex(index)}
+                  whileHover={{ y: isActive ? 0 : -2 }}
                 >
-                    <div className="p-5 sm:p-6 flex items-center gap-4">
-                    <div
+                    <div className="p-6 sm:p-7 flex items-center gap-5">
+                    <motion.div
                       className={cn(
-                        "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300",
+                        "flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-400 flex-shrink-0",
                         isActive 
-                          ? "border-primary/40 bg-primary/20 scale-110" 
-                          : "border-white/10 bg-white/[0.04]"
+                          ? "border-primary/50 bg-primary/25 shadow-[0_0_24px_rgba(236,72,153,0.2)]" 
+                          : "border-white/15 bg-white/[0.05] group-hover:border-white/25 group-hover:bg-white/[0.08]"
                       )}
-                      style={!isActive ? { background: "linear-gradient(135deg, rgba(220,38,38,0.12), rgba(107,33,168,0.12), rgba(236,72,153,0.08))" } : {}}
+                      animate={isActive ? { scale: [1, 1.1, 1], rotate: [0, 5, 0] } : {}}
+                      transition={{ duration: 0.6, ease: "easeInOut" }}
+                      style={!isActive ? { background: "linear-gradient(135deg, rgba(220,38,38,0.14), rgba(107,33,168,0.14), rgba(236,72,153,0.1))" } : {}}
                     >
-                      <solution.icon className={cn("h-5 w-5 transition-colors duration-300", isActive ? "text-primary-foreground" : "text-white/82")} />
-                    </div>
-                    <h3 className={cn("text-lg font-black tracking-tight transition-colors duration-300", isActive ? "text-white" : "text-white/70")}>
+                      <motion.div
+                        animate={isActive ? { y: [0, -2, 0] } : {}}
+                        transition={{ duration: 0.6, ease: "easeInOut" }}
+                      >
+                        <solution.icon className={cn("h-6 w-6 transition-colors duration-300", isActive ? "text-white" : "text-white/72 group-hover:text-white/88")} />
+                      </motion.div>
+                    </motion.div>
+                    <h3 className={cn("text-lg font-black tracking-tight transition-colors duration-300 flex-1", isActive ? "text-white" : "text-white/72 group-hover:text-white/88")}>
                       {solution.title}
                     </h3>
+                    <motion.div
+                      animate={isActive ? { x: 4 } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ArrowRight className={cn("h-5 w-5 transition-colors duration-300", isActive ? "text-primary" : "text-white/30")} />
+                    </motion.div>
                   </div>
                   
                   <AnimatePresence>
@@ -108,10 +127,61 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
             })}
           </motion.div>
 
-          <motion.div variants={fade} className="site-surface rounded-[1.9rem] p-5 sm:p-8">
-            <div className="site-badge site-badge--primary mb-5">
+          <motion.div 
+            variants={fade}
+            className="site-surface rounded-[2.2rem] p-6 sm:p-8 border border-white/[0.1] sticky top-32"
+            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(236,72,153,0.02))" }}
+          >
+            <motion.div 
+              className="site-badge site-badge--primary mb-6"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
               <Sparkles className="h-3.5 w-3.5" />
-              O que muda na pratica
+              O que muda
+            </motion.div>
+
+            <motion.h3 
+              className="text-2xl font-black tracking-tight text-white/94"
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
+            >
+              Menos "site isolado", mais empresa organizada.
+            </motion.h3>
+            <motion.p 
+              className="mt-4 text-sm leading-relaxed text-white/68"
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              A entrega cresce com painel, contratos, extras e automação conforme seu ritmo.
+            </motion.p>
+
+            <div className="mt-7 space-y-3">
+              {[
+                "Proposta comercial clara desde o primeiro contato",
+                "Menos ruído entre lead, cliente e operação",
+                "Base pronta para crescer por módulos",
+              ].map((item, idx) => (
+                <motion.div 
+                  key={item} 
+                  className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5 backdrop-blur-sm hover:border-white/[0.15] hover:bg-white/[0.06] transition-all"
+                  initial={{ opacity: 0, x: -12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35 + idx * 0.08, duration: 0.3 }}
+                >
+                  <div className="flex items-start gap-3">
+                    <motion.div 
+                      className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-pink-500 flex-shrink-0"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: idx * 0.2 }}
+                    />
+                    <p className="text-sm leading-relaxed text-white/74">{item}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
             <h3 className="text-2xl font-black tracking-tight text-white/92">
@@ -137,23 +207,37 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
               ))}
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="#planos"
-                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/10 px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_16px_38px_rgba(236,72,153,0.14)]"
-                style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+            <motion.div 
+              className="mt-8 flex flex-col gap-3 sm:flex-row"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="relative group w-full sm:w-auto"
               >
-                Ver estruturas
-                <ArrowRight className="h-4 w-4" />
-              </a>
-              <button
+                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 via-purple-600 to-pink-600 rounded-2xl blur-sm opacity-35 group-hover:opacity-55 transition-opacity" />
+                <a
+                  href="#planos"
+                  className="relative inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl border border-white/10 px-7 py-3 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_18px_42px_rgba(236,72,153,0.16)]"
+                  style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.92), rgba(236,72,153,0.9))" }}
+                >
+                  Ver estruturas
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </motion.div>
+              <motion.button
                 onClick={onOpenDemo}
-                className="site-soft-surface inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/78 transition-all hover:text-white"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="site-soft-surface inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl px-7 py-3 text-xs font-black uppercase tracking-[0.18em] text-white/82 transition-all hover:text-white hover:shadow-[0_12px_32px_rgba(255,255,255,0.08)]"
               >
                 <MessageCircle className="h-4 w-4" />
-                Ver demonstracao
-              </button>
-            </div>
+                Demonstração
+              </motion.button>
+            </motion.div>
           </motion.div>
         </div>
       </div>

@@ -200,29 +200,62 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
   };
 
   return (
-    <section id="cadastro" className="relative overflow-hidden px-4 sm:px-6 pb-16 pt-28 lg:pb-20 lg:pt-32">
+    <section id="cadastro" className="relative overflow-hidden px-4 sm:px-6 pb-20 pt-32 lg:pb-24 lg:pt-36">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div
-          className="absolute left-[-8%] top-0 h-[520px] w-[520px] rounded-full blur-[180px] opacity-[0.08]"
-          style={{ background: "radial-gradient(circle, rgba(220,38,38,0.36), transparent 72%)" }}
+        <motion.div
+          className="absolute left-[-12%] top-[-10%] h-[580px] w-[580px] rounded-full blur-[200px] opacity-[0.11]"
+          style={{ background: "radial-gradient(circle, rgba(220,38,38,0.42), transparent 70%)" }}
+          animate={{
+            x: [0, 40, 0],
+            y: [0, -30, 0],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
         />
-        <div
-          className="absolute bottom-[-10%] right-[-8%] h-[540px] w-[540px] rounded-full blur-[180px] opacity-[0.09]"
-          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.24), transparent 72%)" }}
+        <motion.div
+          className="absolute bottom-[-15%] right-[-12%] h-[600px] w-[600px] rounded-full blur-[220px] opacity-[0.1]"
+          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.28), transparent 70%)" }}
+          animate={{
+            x: [0, -50, 0],
+            y: [0, 40, 0],
+          }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.5
+          }}
+        />
+        <motion.div
+          className="absolute top-[30%] right-[10%] h-[400px] w-[400px] rounded-full blur-[160px] opacity-[0.06]"
+          style={{ background: "radial-gradient(circle, rgba(107,33,168,0.32), transparent 70%)" }}
+          animate={{
+            x: [0, -30, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{
+            duration: 16,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
         />
         {/* Animated Background Grid */}
         <motion.div 
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.025]"
           style={{
             backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-            backgroundSize: '64px 64px',
+            backgroundSize: '80px 80px',
           }}
           animate={{
-            backgroundPosition: ['0px 0px', '0px 64px'],
+            backgroundPosition: ['0px 0px', '0px 80px'],
           }}
           transition={{
             repeat: Infinity,
-            duration: 5,
+            duration: 8,
             ease: "linear"
           }}
         />
@@ -290,43 +323,80 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.38 }}
-                className="mt-8 grid gap-4 md:grid-cols-3"
+                className="mt-10 grid gap-3 md:grid-cols-3"
               >
-                {highlightCards.map((card) => (
-                  <div key={card.title} className="public-page-highlight-card min-w-0">
-                    <p className="text-sm font-black tracking-tight text-white/92">{card.title}</p>
-                    <p className="mt-2 text-xs leading-relaxed text-white/58">{card.description}</p>
-                  </div>
+                {highlightCards.map((card, index) => (
+                  <motion.div 
+                    key={card.title}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.38 + index * 0.06, duration: 0.4 }}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    className="group public-page-highlight-card min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.07] hover:shadow-[0_0_32px_rgba(236,72,153,0.1)]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="h-2 w-2 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-pink-500 mt-1.5 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-black tracking-tight text-white/94 group-hover:text-white transition-colors">{card.title}</p>
+                        <p className="mt-2 text-xs leading-relaxed text-white/62 group-hover:text-white/72 transition-colors">{card.description}</p>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.46 }}
-                className="mt-8 flex flex-col gap-3 sm:flex-row"
+                transition={{ duration: 0.55, delay: 0.54 }}
+                className="mt-10 flex flex-col gap-4 sm:flex-row"
               >
-                <Button onClick={onOpenDemo} className="site-soft-surface h-12 w-full rounded-2xl px-7 text-sm font-bold text-white/82 transition-all hover:text-white sm:w-auto">
-                  Ver demonstracao
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                  <Button
-                    className="h-12 w-full rounded-2xl border border-white/10 px-7 text-sm font-bold text-white shadow-[0_14px_36px_rgba(236,72,153,0.14)] sm:w-auto"
-                    style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))" }}
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="w-full sm:w-auto"
+                >
+                  <Button 
+                    onClick={onOpenDemo} 
+                    className="site-soft-surface h-13 w-full rounded-2xl px-8 text-sm font-black uppercase tracking-[0.12em] text-white/88 transition-all hover:text-white hover:shadow-[0_12px_32px_rgba(255,255,255,0.08)] sm:w-auto group"
                   >
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Falar no WhatsApp
+                    <span className="flex items-center gap-2">
+                      Ver demonstração
+                      <motion.div
+                        className="group-hover:translate-x-1 transition-transform"
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </motion.div>
+                    </span>
                   </Button>
-                </a>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="relative group w-full sm:w-auto"
+                >
+                  <div className="absolute -inset-1 bg-gradient-to-r from-red-600 via-purple-600 to-pink-600 rounded-2xl blur-sm opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block w-full sm:w-auto">
+                    <Button
+                      className="relative h-13 w-full rounded-2xl border border-white/10 px-8 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_40px_rgba(236,72,153,0.18)] sm:w-auto transition-all hover:shadow-[0_20px_50px_rgba(236,72,153,0.26)] hover:-translate-y-1"
+                      style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.92), rgba(236,72,153,0.9))" }}
+                    >
+                      <span className="flex items-center gap-2">
+                        <MessageCircle className="h-4 w-4" />
+                        WhatsApp
+                      </span>
+                    </Button>
+                  </a>
+                </motion.div>
               </motion.div>
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.18 }}
-              className="site-surface min-w-0 rounded-[2rem] p-5 sm:p-6"
+              initial={{ opacity: 0, y: 24, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="site-surface min-w-0 rounded-[2.4rem] p-6 sm:p-8 backdrop-blur-xl border border-white/[0.1] shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
+              style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(236,72,153,0.02))" }}
             >
               {!submitted ? (
                 <>

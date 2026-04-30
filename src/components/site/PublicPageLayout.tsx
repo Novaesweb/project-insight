@@ -45,10 +45,10 @@ export default function PublicPageLayout({
       style={{ background: "hsl(var(--background))" }}
     >
       <motion.div
-        className="fixed left-0 right-0 top-0 z-[100] h-1 origin-left"
+        className="fixed left-0 right-0 top-0 z-[100] h-1.5 origin-left shadow-[0_4px_16px_rgba(236,72,153,0.3)]"
         style={{
           scaleX: scrollYProgress,
-          background: "linear-gradient(90deg, rgba(220,38,38,0.92), rgba(107,33,168,0.9), rgba(236,72,153,0.88))",
+          background: "linear-gradient(90deg, rgba(220,38,38,0.94), rgba(107,33,168,0.92), rgba(236,72,153,0.9))",
         }}
       />
       <PublicAmbientBackground />
