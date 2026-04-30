@@ -122,7 +122,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </motion.div>
