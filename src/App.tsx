@@ -63,6 +63,7 @@ const AdminRevenda = React.lazy(() => import("./pages/admin/AdminRevenda"));
 const Cadastro = React.lazy(() => import("./pages/Cadastro"));
 const Funcionalidades = React.lazy(() => import("./pages/Funcionalidades"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+const Modelos = React.lazy(() => import("./pages/Modelos"));
 const ClienteLogin = React.lazy(() => import("./pages/cliente/ClienteLogin"));
 const ClienteDashboard = React.lazy(() => import("./pages/cliente/ClienteDashboard"));
 const ClienteProjetos = React.lazy(() => import("./pages/cliente/ClienteProjetos"));
@@ -206,6 +207,7 @@ const DesktopNavigationHandler = () => {
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/sobre" element={<SobreNos />} />
               <Route path="/criacao-conteudo" element={<CriacaoConteudo />} />
+              <Route path="/modelos" element={<Modelos />} />
           <Route path="/funcionalidades" element={<Funcionalidades />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/cliente" element={<Navigate to="/cliente/login" replace />} />
