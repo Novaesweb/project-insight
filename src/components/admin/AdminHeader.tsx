@@ -137,7 +137,7 @@ export default function AdminHeader({ title, subtitle }: AdminHeaderProps) {
                     onClick={() => navigate(action.href)}
                     className="group cursor-pointer gap-3 rounded-[14px] py-3 text-[var(--admin-muted)] transition-all focus:bg-brand-gradient focus:text-white"
                   >
-                    <action.icon className="h-4 w-4 text-[#C4B5FD] group-focus:text-white" />
+                    <action.icon className="h-4 w-4 text-[var(--admin-tone-primary)] group-focus:text-white" />
                     <span className="text-xs font-bold uppercase tracking-[0.16em]">{action.label}</span>
                   </DropdownMenuItem>
                 ))}

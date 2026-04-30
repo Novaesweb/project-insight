@@ -110,30 +110,45 @@ section {
     --gradient-primary: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
     --gradient-premium: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(236, 72, 153, 0.1));
     --gradient-admin: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899, #FF6B6B);
-    --gradient-admin-gold: linear-gradient(135deg, #FFB800, #FF8C00, #FFD700);
+    --gradient-admin-gold: linear-gradient(135deg, #DC2626, #6B21A8, #EC4899);
     --gradient-admin-subtle: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(107, 33, 168, 0.08), rgba(236, 72, 153, 0.08));
     /* High-End Dark Command Theme Tokens */
     --admin-bg: oklch(0.13 0.04 285);
-    --admin-surface: oklch(0.18 0.05 288 / 0.84);
-    --admin-surface-2: oklch(0.16 0.04 290 / 0.92);
+    --admin-surface: oklch(0.17 0.06 292 / 0.86);
+    --admin-surface-2: oklch(0.15 0.05 294 / 0.94);
     --admin-border: 280 18% 100% / 0.08;
-    --admin-border-color: rgba(255, 255, 255, 0.08);
+    --admin-border-color: rgba(249, 168, 212, 0.14);
     --admin-accent-purple: oklch(0.52 0.27 305);
     --admin-accent-magenta: oklch(0.68 0.25 0);
     --admin-accent-red: oklch(0.62 0.24 25);
-    --admin-accent-green: #10B981;
-    --admin-accent-yellow: #F59E0B;
+    --admin-accent-green: oklch(0.78 0.17 332);
+    --admin-accent-yellow: oklch(0.72 0.2 22);
     --admin-gradient: linear-gradient(135deg, var(--admin-accent-red), var(--admin-accent-purple), var(--admin-accent-magenta));
-    --admin-glow: rgba(124, 58, 237, 0.18);
+    --admin-glow: rgba(236, 72, 153, 0.22);
     --admin-text: oklch(0.98 0.01 280);
-    --admin-muted: rgba(240, 232, 255, 0.68);
-    --admin-muted-soft: rgba(240, 232, 255, 0.48);
+    --admin-muted: rgba(244, 231, 255, 0.72);
+    --admin-muted-soft: rgba(244, 231, 255, 0.46);
     --admin-shell-radius: 14px;
     --admin-shell-radius-lg: 18px;
+    --admin-tone-primary: oklch(0.82 0.16 315);
+    --admin-tone-primary-bg: oklch(0.58 0.22 305 / 0.16);
+    --admin-tone-primary-border: oklch(0.64 0.2 308 / 0.34);
+    --admin-tone-success: oklch(0.84 0.17 338);
+    --admin-tone-success-bg: oklch(0.62 0.18 334 / 0.16);
+    --admin-tone-success-border: oklch(0.68 0.18 336 / 0.34);
+    --admin-tone-attention: oklch(0.78 0.19 18);
+    --admin-tone-attention-bg: oklch(0.6 0.2 18 / 0.16);
+    --admin-tone-attention-border: oklch(0.66 0.19 20 / 0.34);
+    --admin-tone-danger: oklch(0.69 0.23 25);
+    --admin-tone-danger-bg: oklch(0.57 0.2 24 / 0.16);
+    --admin-tone-danger-border: oklch(0.63 0.21 24 / 0.34);
+    --admin-tone-neutral: rgba(244, 231, 255, 0.74);
+    --admin-tone-neutral-bg: rgba(255, 255, 255, 0.05);
+    --admin-tone-neutral-border: rgba(255, 255, 255, 0.12);
     
-    --glow-primary: rgba(124, 58, 237, 0.15);
-    --glow-secondary: rgba(220, 38, 38, 0.15);
-    --glow-accent: rgba(124, 58, 237, 0.10);
+    --glow-primary: rgba(236, 72, 153, 0.16);
+    --glow-secondary: rgba(220, 38, 38, 0.18);
+    --glow-accent: rgba(107, 33, 168, 0.14);
     /* Novaes Gold Tokens */
     --brand-primary: #FF1F1F;
     --brand-secondary: #7C3AED;
@@ -372,6 +387,12 @@ section {
     --popover-foreground: 280 20% 97%;
     --primary: 25 86% 58%;
     --primary-foreground: 0 0% 100%;
+    --destructive: 8 76% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 324 71% 58%;
+    --success-foreground: 0 0% 100%;
+    --warning: 12 80% 57%;
+    --warning-foreground: 0 0% 100%;
     --secondary: 286 20% 14%;
     --secondary-foreground: 280 20% 97%;
     --muted: 286 18% 14%;
@@ -552,6 +573,203 @@ section {
   body.admin-premium-active [class*="hover:text-slate-900"]:hover,
   body.admin-premium-active [class*="hover:text-slate-600"]:hover {
     color: var(--admin-text) !important;
+  }
+
+  body.admin-premium-active .gradient-primary,
+  body.admin-premium-active .bg-brand-gradient,
+  body.admin-premium-active .bg-gold-gradient {
+    background: var(--admin-gradient) !important;
+  }
+
+  body.admin-premium-active .text-brand-gradient,
+  body.admin-premium-active .gradient-text,
+  body.admin-premium-active .text-gold-gradient,
+  body.admin-premium-active .gradient-text-purple-red {
+    background: linear-gradient(
+      90deg,
+      oklch(0.98 0.01 280),
+      var(--admin-tone-success),
+      var(--admin-tone-attention)
+    ) !important;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  body.admin-premium-active .border-l-financial {
+    border-left-color: var(--admin-tone-attention) !important;
+  }
+
+  body.admin-premium-active .border-l-projects {
+    border-left-color: var(--admin-tone-success) !important;
+  }
+
+  body.admin-premium-active .border-l-alerts {
+    border-left-color: var(--admin-tone-danger) !important;
+  }
+
+  body.admin-premium-active .admin-badge-primary {
+    color: var(--admin-tone-primary) !important;
+    background: var(--admin-tone-primary-bg) !important;
+    border-color: var(--admin-tone-primary-border) !important;
+  }
+
+  body.admin-premium-active .admin-badge-success {
+    color: var(--admin-tone-success) !important;
+    background: var(--admin-tone-success-bg) !important;
+    border-color: var(--admin-tone-success-border) !important;
+  }
+
+  body.admin-premium-active .admin-badge-attention {
+    color: var(--admin-tone-attention) !important;
+    background: var(--admin-tone-attention-bg) !important;
+    border-color: var(--admin-tone-attention-border) !important;
+  }
+
+  body.admin-premium-active .admin-badge-danger {
+    color: var(--admin-tone-danger) !important;
+    background: var(--admin-tone-danger-bg) !important;
+    border-color: var(--admin-tone-danger-border) !important;
+  }
+
+  body.admin-premium-active .admin-badge-neutral {
+    color: var(--admin-tone-neutral) !important;
+    background: var(--admin-tone-neutral-bg) !important;
+    border-color: var(--admin-tone-neutral-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-amber-"],
+  body.admin-premium-active [class*="text-yellow-"],
+  body.admin-premium-active [class*="text-orange-"] {
+    color: var(--admin-tone-attention) !important;
+  }
+
+  body.admin-premium-active [class*="bg-amber-"],
+  body.admin-premium-active [class*="bg-yellow-"],
+  body.admin-premium-active [class*="bg-orange-"] {
+    background-color: var(--admin-tone-attention-bg) !important;
+  }
+
+  body.admin-premium-active [class*="border-amber-"],
+  body.admin-premium-active [class*="border-yellow-"],
+  body.admin-premium-active [class*="border-orange-"] {
+    border-color: var(--admin-tone-attention-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-emerald-"],
+  body.admin-premium-active [class*="text-green-"] {
+    color: var(--admin-tone-success) !important;
+  }
+
+  body.admin-premium-active [class*="bg-emerald-"],
+  body.admin-premium-active [class*="bg-green-"] {
+    background-color: var(--admin-tone-success-bg) !important;
+  }
+
+  body.admin-premium-active [class*="border-emerald-"],
+  body.admin-premium-active [class*="border-green-"] {
+    border-color: var(--admin-tone-success-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-blue-"],
+  body.admin-premium-active [class*="text-sky-"],
+  body.admin-premium-active [class*="text-purple-"],
+  body.admin-premium-active [class*="text-violet-"],
+  body.admin-premium-active [class*="text-fuchsia-"] {
+    color: var(--admin-tone-primary) !important;
+  }
+
+  body.admin-premium-active [class*="bg-blue-"],
+  body.admin-premium-active [class*="bg-sky-"],
+  body.admin-premium-active [class*="bg-purple-"],
+  body.admin-premium-active [class*="bg-violet-"],
+  body.admin-premium-active [class*="bg-fuchsia-"] {
+    background-color: var(--admin-tone-primary-bg) !important;
+  }
+
+  body.admin-premium-active [class*="border-blue-"],
+  body.admin-premium-active [class*="border-sky-"],
+  body.admin-premium-active [class*="border-purple-"],
+  body.admin-premium-active [class*="border-violet-"],
+  body.admin-premium-active [class*="border-fuchsia-"] {
+    border-color: var(--admin-tone-primary-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-pink-"] {
+    color: var(--admin-tone-success) !important;
+  }
+
+  body.admin-premium-active [class*="bg-pink-"] {
+    background-color: var(--admin-tone-success-bg) !important;
+  }
+
+  body.admin-premium-active [class*="border-pink-"] {
+    border-color: var(--admin-tone-success-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-red-"],
+  body.admin-premium-active [class*="text-rose-"] {
+    color: var(--admin-tone-danger) !important;
+  }
+
+  body.admin-premium-active [class*="bg-red-"],
+  body.admin-premium-active [class*="bg-rose-"] {
+    background-color: var(--admin-tone-danger-bg) !important;
+  }
+
+  body.admin-premium-active [class*="border-red-"],
+  body.admin-premium-active [class*="border-rose-"] {
+    border-color: var(--admin-tone-danger-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-zinc-"],
+  body.admin-premium-active [class*="text-neutral-"] {
+    color: var(--admin-muted) !important;
+  }
+
+  body.admin-premium-active [class*="bg-zinc-"],
+  body.admin-premium-active [class*="bg-neutral-"] {
+    background-color: var(--admin-tone-neutral-bg) !important;
+  }
+
+  body.admin-premium-active [class*="border-zinc-"],
+  body.admin-premium-active [class*="border-neutral-"] {
+    border-color: var(--admin-tone-neutral-border) !important;
+  }
+
+  body.admin-premium-active [class*="text-[#C4B5FD]"] {
+    color: var(--admin-tone-primary) !important;
+  }
+
+  body.admin-premium-active [class*="text-[#F472B6]"],
+  body.admin-premium-active [class*="text-[#F9A8D4]"],
+  body.admin-premium-active [class*="text-[#EC4899]"] {
+    color: var(--admin-tone-success) !important;
+  }
+
+  body.admin-premium-active [class*="border-[#7C3AED]"],
+  body.admin-premium-active [class*="border-[#C026D3]"] {
+    border-color: var(--admin-tone-primary-border) !important;
+  }
+
+  body.admin-premium-active [class*="border-[#EC4899]"],
+  body.admin-premium-active [class*="border-[#F472B6]"] {
+    border-color: var(--admin-tone-success-border) !important;
+  }
+
+  body.admin-premium-active [class*="border-[#DC2626]"] {
+    border-color: var(--admin-tone-danger-border) !important;
+  }
+
+  body.admin-premium-active [class*="hover:text-[#F9A8D4]"]:hover,
+  body.admin-premium-active [class*="hover:text-[#EC4899]"]:hover,
+  body.admin-premium-active [class*="hover:text-[#C4B5FD]"]:hover {
+    color: var(--admin-tone-success) !important;
+  }
+
+  body.admin-premium-active [class*="hover:bg-[#EC4899]"]:hover,
+  body.admin-premium-active [class*="hover:bg-[#7C3AED]"]:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
   }
 
   body.admin-premium-active .admin-responsive-table th,

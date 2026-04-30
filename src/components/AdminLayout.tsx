@@ -134,13 +134,14 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
                     style={
                       isActive
                         ? {
-                            background: "rgba(124,58,237,0.16)",
-                            boxShadow: "0 0 0 1px rgba(124,58,237,0.18)",
+                            background:
+                              "linear-gradient(135deg, rgba(220,38,38,0.14), rgba(107,33,168,0.18), rgba(236,72,153,0.12))",
+                            boxShadow: "0 0 0 1px rgba(236,72,153,0.22)",
                           }
                         : undefined
                     }
                   >
-                    <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-[#C4B5FD]" : "text-[var(--admin-muted)]")} />
+                    <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--admin-tone-primary)]" : "text-[var(--admin-muted)]")} />
                     <span className="admin-nav-copy text-[0.74rem]">{item.label}</span>
                     {item.showCount && leadCount > 0 && (
                       <span className="ml-auto rounded-full bg-brand-gradient px-1.5 py-0.5 text-[9px] font-bold text-white">
@@ -155,7 +156,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
         ))}
 
         {favoriteRoutes.length > 0 && (
-          <div className="border-t border-[rgba(124,58,237,0.14)] pt-4">
+          <div className="border-t border-[rgba(249,168,212,0.14)] pt-4">
             <p className="admin-kicker mb-2 px-3 text-[var(--admin-muted-soft)]">Atalhos</p>
             <div className="flex flex-wrap gap-2 px-3">
               {favoriteRoutes.map((route) => (
@@ -192,7 +193,7 @@ function MobileSidebar({ branding, onClose }: { branding: { logo: string; nome: 
         )}
       </nav>
 
-      <div className="border-t border-[rgba(124,58,237,0.14)] p-3">
+      <div className="border-t border-[rgba(249,168,212,0.14)] p-3">
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-xs font-medium text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]"
@@ -295,10 +296,10 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       return (
         <div className="flex min-h-[80vh] items-center justify-center p-4">
           <div className="glass-card-admin w-full max-w-lg p-10 text-center">
-            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(124,58,237,0.12)]">
-              <LockKeyhole size={36} className="text-[#7C3AED]" />
+            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[14px] border border-[var(--admin-border-color)] bg-[linear-gradient(135deg,rgba(220,38,38,0.14),rgba(107,33,168,0.16),rgba(236,72,153,0.12))]">
+              <LockKeyhole size={36} className="text-[var(--admin-tone-primary)]" />
             </div>
-            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.4em] text-[#EC4899]">Acesso Reservado</p>
+            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.4em] text-[var(--admin-tone-success)]">Acesso Reservado</p>
             <h2 className="text-3xl font-semibold leading-tight text-[var(--admin-text)]">
               Este modulo pertence a outro <span className="text-brand-gradient italic">nivel de acesso</span>.
             </h2>

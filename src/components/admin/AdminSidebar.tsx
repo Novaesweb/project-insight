@@ -126,10 +126,18 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
           isCollapsed ? "justify-center px-2" : "gap-4 px-4",
           variant === "primary" && !isCollapsed && "py-3.5",
           isActive
-            ? "border-brand-subtle bg-[rgba(124,58,237,0.18)] text-[var(--admin-text)] shadow-[0_10px_30px_rgba(0,0,0,0.16)] scale-[1.02]"
+            ? "border-brand-subtle text-[var(--admin-text)] shadow-[0_10px_30px_rgba(0,0,0,0.18)] scale-[1.02]"
             : "text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]",
-          !isActive && item.accent && "text-[#F9A8D4] hover:bg-[rgba(236,72,153,0.08)]",
+          !isActive && item.accent && "text-[var(--admin-tone-success)] hover:bg-[rgba(236,72,153,0.08)]",
         )}
+        style={
+          isActive
+            ? {
+                background:
+                  "linear-gradient(135deg, rgba(220, 38, 38, 0.14), rgba(107, 33, 168, 0.18), rgba(236, 72, 153, 0.12))",
+              }
+            : undefined
+        }
         aria-current={isActive ? "page" : undefined}
       >
         {isActive && (
@@ -145,9 +153,9 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
           className={cn(
             "h-5 w-5 shrink-0 transition-all duration-300",
             isActive
-              ? "text-[#C4B5FD]"
+              ? "text-[var(--admin-tone-primary)]"
               : item.accent
-                ? "text-[#F472B6]"
+                ? "text-[var(--admin-tone-success)]"
                 : "text-[var(--admin-muted)] group-hover:scale-110 group-hover:text-[var(--admin-text)]",
           )}
         />
@@ -180,7 +188,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
     >
       <div
         className="absolute top-0 right-0 h-full w-[1px] opacity-20"
-        style={{ background: "linear-gradient(180deg, #7C3AED, transparent 70%)" }}
+        style={{ background: "linear-gradient(180deg, rgba(236,72,153,0.9), rgba(107,33,168,0.55), transparent 72%)" }}
       />
 
       <button
@@ -188,7 +196,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         className="absolute -right-3 top-24 z-50 flex h-6 w-6 items-center justify-center rounded-full shadow-lg shadow-black/30 transition-all hover:scale-110 active:scale-95"
         style={{
           background: "rgba(21, 0, 34, 0.96)",
-          border: "1px solid rgba(124, 58, 237, 0.3)",
+          border: "1px solid rgba(236, 72, 153, 0.24)",
           color: "#F0E8FF",
         }}
         aria-label={isCollapsed ? "Expandir" : "Recolher"}
@@ -198,7 +206,7 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
 
       <div
         className={cn("flex items-center border-b py-8", isCollapsed ? "justify-center px-0" : "gap-4 px-6")}
-        style={{ borderColor: "rgba(124, 58, 237, 0.14)" }}
+        style={{ borderColor: "rgba(249, 168, 212, 0.14)" }}
       >
         <Link to="/admin" className="group flex items-center gap-3">
           <div className="relative">
