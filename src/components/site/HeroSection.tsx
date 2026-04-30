@@ -200,7 +200,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
   };
 
   return (
-    <section id="cadastro" className="relative overflow-hidden px-4 sm:px-6 pb-20 pt-32 lg:pb-24 lg:pt-36">
+    <section id="cadastro" className="relative overflow-hidden px-4 sm:px-6 pb-16 pt-28 lg:pb-20 lg:pt-32">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <motion.div
           className="absolute left-[-12%] top-[-10%] h-[580px] w-[580px] rounded-full blur-[200px] opacity-[0.11]"
@@ -323,7 +323,7 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.38 }}
-                className="mt-10 grid gap-3 md:grid-cols-3"
+                className="mt-8 grid gap-2.5 md:grid-cols-3"
               >
                 {highlightCards.map((card, index) => (
                   <motion.div 
@@ -331,14 +331,14 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.38 + index * 0.06, duration: 0.4 }}
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    className="group public-page-highlight-card min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.07] hover:shadow-[0_0_32px_rgba(236,72,153,0.1)]"
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    className="group public-page-highlight-card min-w-0 rounded-xl border border-white/10 bg-white/[0.04] p-3 sm:p-4 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.07] hover:shadow-[0_0_32px_rgba(236,72,153,0.1)]"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="h-2 w-2 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-pink-500 mt-1.5 flex-shrink-0" />
+                    <div className="flex items-start gap-2.5">
+                      <div className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-pink-500 mt-1 flex-shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-sm font-black tracking-tight text-white/94 group-hover:text-white transition-colors">{card.title}</p>
-                        <p className="mt-2 text-xs leading-relaxed text-white/62 group-hover:text-white/72 transition-colors">{card.description}</p>
+                        <p className="text-xs font-black tracking-tight text-white/94 group-hover:text-white transition-colors">{card.title}</p>
+                        <p className="mt-1.5 text-[11px] leading-relaxed text-white/62 group-hover:text-white/72 transition-colors">{card.description}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -378,13 +378,11 @@ function HeroSection({ onOpenDemo }: HeroSectionProps) {
                   <div className="absolute -inset-1 bg-gradient-to-r from-red-600 via-purple-600 to-pink-600 rounded-2xl blur-sm opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block w-full sm:w-auto">
                     <Button
-                      className="relative h-13 w-full rounded-2xl border border-white/10 px-8 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_40px_rgba(236,72,153,0.18)] sm:w-auto transition-all hover:shadow-[0_20px_50px_rgba(236,72,153,0.26)] hover:-translate-y-1"
+                      className="relative h-13 w-full rounded-2xl border border-white/10 px-8 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_40px_rgba(236,72,153,0.18)] sm:w-auto transition-all hover:shadow-[0_20px_50px_rgba(236,72,153,0.26)] hover:-translate-y-1 flex items-center justify-center gap-2"
                       style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.94), rgba(107,33,168,0.92), rgba(236,72,153,0.9))" }}
                     >
-                      <span className="flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        WhatsApp
-                      </span>
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp
                     </Button>
                   </a>
                 </motion.div>

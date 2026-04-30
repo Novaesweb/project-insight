@@ -44,7 +44,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       whileHover={{ y: -10, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className={cn(
-        "site-surface relative flex flex-col rounded-[1.9rem] p-6 transition-all duration-300",
+        "site-surface relative flex flex-col rounded-xl p-5 transition-all duration-300",
         plan.popular 
           ? "border-primary/40 shadow-[0_0_40px_rgba(236,72,153,0.15)] ring-1 ring-primary/20" 
           : "border-white/5 hover:border-white/15"
@@ -74,57 +74,57 @@ function PlanCard({ plan }: { plan: Plan }) {
         </span>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <div className={cn(
-          "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-300 group-hover:scale-110",
+          "flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-300 group-hover:scale-110 flex-shrink-0",
           plan.popular ? "border-primary/40 bg-primary/20 text-primary-foreground" : "border-white/10 bg-white/[0.04] text-white/84"
         )}>
-          <plan.icon className="h-5 w-5" />
+          <plan.icon className="h-4 w-4" />
         </div>
-        <div>
-          <h3 className="text-2xl font-black tracking-tight text-white/92">{plan.title}</h3>
-          <p className="text-xs uppercase tracking-[0.18em] text-white/42 font-black">{plan.tag}</p>
+        <div className="min-w-0">
+          <h3 className="text-lg font-black tracking-tight text-white/92">{plan.title}</h3>
+          <p className="text-[9px] uppercase tracking-[0.16em] text-white/42 font-black">{plan.tag}</p>
         </div>
       </div>
 
-      <p className="mt-5 text-sm leading-relaxed site-copy-muted">{plan.description}</p>
+      <p className="mt-4 text-xs leading-relaxed site-copy-muted">{plan.description}</p>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">Setup</p>
-          <p className="mt-2 text-xl font-black tracking-tight text-white/92">
-            {plan.id === "sob-medida" ? "Sob analise" : `R$ ${plan.setupPrice.toLocaleString("pt-BR")}`}
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-3">
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">Setup</p>
+          <p className="mt-1.5 text-lg font-black tracking-tight text-white/92">
+            {plan.id === "sob-medida" ? "Analise" : `R$ ${plan.setupPrice.toLocaleString("pt-BR")}`}
           </p>
-          <p className="mt-1 text-[11px] text-white/45">{plan.priceSub}</p>
+          <p className="mt-0.5 text-[10px] text-white/45">{plan.priceSub}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">Mensalidade</p>
-          <p className="mt-2 text-xl font-black tracking-tight text-white/92">{monthlyDisplay}</p>
-          <p className="mt-1 text-[11px] text-white/45">Conforme os modulos da estrutura.</p>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-3">
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">Mensalidade</p>
+          <p className="mt-1.5 text-lg font-black tracking-tight text-white/92">{monthlyDisplay}</p>
+          <p className="mt-0.5 text-[10px] text-white/45">Conforme modulos.</p>
         </div>
       </div>
 
       {plan.idealFor ? (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">Ideal para</p>
-          <p className="mt-2 text-sm leading-relaxed text-white/72">{plan.idealFor}</p>
+        <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-3">
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">Ideal para</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-white/72">{plan.idealFor}</p>
         </div>
       ) : null}
 
-      <ul className="mt-5 space-y-3 flex-1">
+      <ul className="mt-4 space-y-2.5 flex-1">
         {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2.5 text-sm leading-relaxed text-white/70">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-white/62" />
+          <li key={feature} className="flex items-start gap-2 text-xs leading-relaxed text-white/70">
+            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/62" />
             <span>{feature}</span>
           </li>
         ))}
       </ul>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <a href={`https://wa.me/5551981964238?text=${encodeURIComponent(plan.whatsapp)}`} target="_blank" rel="noopener noreferrer">
           <Button
             className={cn(
-              "h-12 w-full rounded-2xl border border-white/10 text-xs font-black uppercase tracking-[0.16em] text-white",
+              "h-11 w-full rounded-lg border border-white/10 text-xs font-black uppercase tracking-[0.14em] text-white flex items-center justify-center gap-2",
               plan.popular && "shadow-[0_16px_40px_rgba(236,72,153,0.2)]"
             )}
             style={{
@@ -134,7 +134,7 @@ function PlanCard({ plan }: { plan: Plan }) {
             }}
           >
             {plan.cta}
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         </a>
       </div>
@@ -146,7 +146,7 @@ export default function PlanosSection() {
   return (
     <motion.section
       id="planos"
-      className="site-band px-4 sm:px-6 py-20 lg:py-24"
+      className="site-band px-4 sm:px-6 py-16 lg:py-20"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true }}
@@ -155,38 +155,37 @@ export default function PlanosSection() {
       <div className="max-w-7xl mx-auto">
         <motion.div variants={fade} className="mx-auto max-w-3xl text-center">
           <span className="site-badge site-badge--primary">Planos e estrutura</span>
-          <h2 className="mt-8 text-[clamp(2.1rem,7.5vw,3.75rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
+          <h2 className="mt-6 text-[clamp(1.75rem,6.5vw,3.5rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
             Comece com o formato certo
-            <span className="site-gradient-text"> para o seu momento.</span>
+            <span className="site-gradient-text"> para seu momento.</span>
           </h2>
-          <p className="mt-6 text-lg leading-relaxed site-copy-muted">
-            O ponto não é te colocar em um pacote engessado. É entender qual base faz sentido agora e o que pode ser
-            expandido depois sem virar retrabalho.
+          <p className="mt-4 text-sm leading-relaxed site-copy-muted max-w-2xl mx-auto">
+            Entender qual base faz sentido agora e o que pode ser expandido depois sem retrabalho.
           </p>
         </motion.div>
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} />
           ))}
         </div>
 
-        <motion.div variants={fade} className="mt-10 public-page-section-card">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <motion.div variants={fade} className="mt-8 rounded-xl border border-white/[0.1] bg-white/[0.03] p-5 sm:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/40">O que pode entrar depois</p>
-              <h3 className="mt-3 text-2xl font-black tracking-tight text-white/92">Seu projeto cresce por camadas.</h3>
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-white/40">O que pode entrar</p>
+              <h3 className="mt-2 text-lg font-black tracking-tight text-white/92">Projeto cresce por camadas.</h3>
             </div>
-            <a href="#cadastro" className="text-xs font-black uppercase tracking-[0.16em] text-white/66 hover:text-white">
+            <a href="#cadastro" className="text-[10px] font-black uppercase tracking-[0.14em] text-white/66 hover:text-white">
               Solicitar diagnostico
             </a>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {addOns.map((item) => (
-              <div key={item.title} className="public-page-highlight-card">
-                <p className="text-sm font-black tracking-tight text-white/92">{item.title}</p>
-                <p className="mt-2 text-xs leading-relaxed text-white/56">{item.copy}</p>
+              <div key={item.title} className="rounded border border-white/[0.08] bg-white/[0.02] p-3.5">
+                <p className="text-xs font-black tracking-tight text-white/92">{item.title}</p>
+                <p className="mt-1.5 text-[10px] leading-relaxed text-white/56">{item.copy}</p>
               </div>
             ))}
           </div>

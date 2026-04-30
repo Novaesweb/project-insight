@@ -36,7 +36,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
   return (
     <motion.section
       id="o-que-fazemos"
-      className="site-band px-4 sm:px-6 py-20 lg:py-24"
+      className="site-band px-4 sm:px-6 py-16 lg:py-20"
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
@@ -45,7 +45,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
       <div className="max-w-7xl mx-auto">
         <motion.div variants={fade} className="max-w-3xl">
           <span className="site-badge site-badge--accent">Solucoes NovaesWeb</span>
-          <h2 className="mt-8 text-[clamp(2rem,7vw,3.75rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
+          <h2 className="mt-6 text-[clamp(1.75rem,6vw,3.5rem)] font-black tracking-tighter text-white/90 leading-[0.92]">
             Uma estrutura mais enxuta no layout,
             <span className="site-gradient-text"> mais forte na percepcao.</span>
           </h2>
@@ -55,8 +55,8 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
           </p>
         </motion.div>
 
-        <div className="mt-12 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <motion.div variants={fade} className="grid gap-4">
+        <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+          <motion.div variants={fade} className="grid gap-3">
             {solutions.map((solution, index) => {
               const isActive = activeIndex === index;
               return (
@@ -74,10 +74,10 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
                   onClick={() => setActiveIndex(index)}
                   whileHover={{ y: isActive ? 0 : -2 }}
                 >
-                    <div className="p-6 sm:p-7 flex items-center gap-5">
+                    <div className="p-5 sm:p-6 flex items-center gap-4">
                     <motion.div
                       className={cn(
-                        "flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-400 flex-shrink-0",
+                        "flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-400 flex-shrink-0",
                         isActive 
                           ? "border-primary/50 bg-primary/25 shadow-[0_0_24px_rgba(236,72,153,0.2)]" 
                           : "border-white/15 bg-white/[0.05] group-hover:border-white/25 group-hover:bg-white/[0.08]"
@@ -90,10 +90,10 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
                         animate={isActive ? { y: [0, -2, 0] } : {}}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                       >
-                        <solution.icon className={cn("h-6 w-6 transition-colors duration-300", isActive ? "text-white" : "text-white/72 group-hover:text-white/88")} />
+                        <solution.icon className={cn("h-5 w-5 transition-colors duration-300", isActive ? "text-white" : "text-white/72 group-hover:text-white/88")} />
                       </motion.div>
                     </motion.div>
-                    <h3 className={cn("text-lg font-black tracking-tight transition-colors duration-300 flex-1", isActive ? "text-white" : "text-white/72 group-hover:text-white/88")}>
+                    <h3 className={cn("text-base font-black tracking-tight transition-colors duration-300 flex-1", isActive ? "text-white" : "text-white/72 group-hover:text-white/88")}>
                       {solution.title}
                     </h3>
                     <motion.div
@@ -129,7 +129,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
 
           <motion.div 
             variants={fade}
-            className="site-surface rounded-[2.2rem] p-6 sm:p-8 border border-white/[0.1] sticky top-32"
+            className="site-surface rounded-xl p-5 sm:p-6 border border-white/[0.1] sticky top-32"
             style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(236,72,153,0.02))" }}
           >
             <motion.div 
@@ -143,42 +143,42 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
             </motion.div>
 
             <motion.h3 
-              className="text-2xl font-black tracking-tight text-white/94"
+              className="text-xl font-black tracking-tight text-white/94"
               initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.4 }}
             >
-              Menos "site isolado", mais empresa organizada.
+              Mais organizado.
             </motion.h3>
             <motion.p 
-              className="mt-4 text-sm leading-relaxed text-white/68"
+              className="mt-3 text-xs leading-relaxed text-white/68"
               initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
             >
-              A entrega cresce com painel, contratos, extras e automação conforme seu ritmo.
+              Painel, contratos e automação conforme seu ritmo.
             </motion.p>
 
-            <div className="mt-7 space-y-3">
+            <div className="mt-5 space-y-2">
               {[
-                "Proposta comercial clara desde o primeiro contato",
-                "Menos ruído entre lead, cliente e operação",
-                "Base pronta para crescer por módulos",
+                "Proposta comercial clara",
+                "Menos ruído na operação",
+                "Base para crescer",
               ].map((item, idx) => (
                 <motion.div 
                   key={item} 
-                  className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5 backdrop-blur-sm hover:border-white/[0.15] hover:bg-white/[0.06] transition-all"
+                  className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3 backdrop-blur-sm hover:border-white/[0.15] hover:bg-white/[0.06] transition-all"
                   initial={{ opacity: 0, x: -12 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.35 + idx * 0.08, duration: 0.3 }}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2.5">
                     <motion.div 
-                      className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-pink-500 flex-shrink-0"
+                      className="mt-1 h-1.5 w-1.5 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-pink-500 flex-shrink-0"
                       animate={{ scale: [1, 1.3, 1] }}
                       transition={{ duration: 2, repeat: Infinity, delay: idx * 0.2 }}
                     />
-                    <p className="text-sm leading-relaxed text-white/74">{item}</p>
+                    <p className="text-xs leading-relaxed text-white/74">{item}</p>
                   </div>
                 </motion.div>
               ))}
@@ -208,7 +208,7 @@ export default function OQueFazemosSection({ onOpenDemo }: OQueFazemosProps) {
             </div>
 
             <motion.div 
-              className="mt-8 flex flex-col gap-3 sm:flex-row"
+              className="mt-6 flex flex-col gap-2.5 sm:flex-row"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.4 }}
