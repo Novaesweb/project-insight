@@ -585,15 +585,10 @@ section {
   body.admin-premium-active .gradient-text,
   body.admin-premium-active .text-gold-gradient,
   body.admin-premium-active .gradient-text-purple-red {
-    background: linear-gradient(
-      90deg,
-      oklch(0.98 0.01 280),
-      var(--admin-tone-success),
-      var(--admin-tone-attention)
-    ) !important;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: none !important;
+    color: var(--admin-tone-success) !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: 0 0 18px rgba(236, 72, 153, 0.18);
   }
 
   body.admin-premium-active .border-l-financial {
