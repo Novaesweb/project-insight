@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Eye, Heart, Users, Globe, Shield, Zap, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import aboutPhoto from "@/assets/about-novaesweb.webp";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { PUBLIC_DEMO_SITES } from "@/lib/public-demo-sites";
 import StoryViewer from "./StoryViewer";
 
 interface SiteModalsProps {
@@ -11,27 +10,7 @@ interface SiteModalsProps {
   onClose: () => void;
 }
 
-interface DemoSite {
-  id: string;
-  nome: string;
-  descricao: string | null;
-  link: string;
-  imagem_url: string | null;
-}
-
 export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
-  const [demos, setDemos] = useState<DemoSite[]>([]);
-
-  useEffect(() => {
-    supabase
-      .from("demo_sites")
-      .select("*")
-      .eq("ativo", true)
-      .order("ordem")
-      .then(({ data }) => {
-        if (data) setDemos(data as DemoSite[]);
-      });
-  }, []);
   // Se for um story, renderizamos o StoryViewer separadamente para manter a imersão
   if (modalOpen?.startsWith("story-")) {
     const storyId = modalOpen.replace("story-", "");
@@ -207,7 +186,7 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                   <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">Conheça alguns dos projetos desenvolvidos pela novaesweb.</p>
                 </div>
                 <div className="grid gap-4">
-                  {demos.map((item, index) => (
+                  {PUBLIC_DEMO_SITES.map((item, index) => (
                     <motion.a
                       key={item.id}
                       href={item.link}
@@ -218,11 +197,11 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className="group rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/30 hover:bg-[hsl(var(--muted))]/60 hover:border-[hsl(var(--primary))]/40 transition-all duration-300 overflow-hidden"
                     >
-                      {item.imagem_url && (
+                      {item.image && (
                         <motion.div className="w-full h-28 overflow-hidden" whileHover={{ scale: 1.05 }} transition={{ duration: 0.4 }}>
                           <OptimizedImage 
-                            src={item.imagem_url} 
-                            alt={item.nome} 
+                            src={item.image} 
+                            alt={item.title} 
                             width={500}
                             height={112}
                             className="w-full h-full" 
@@ -231,14 +210,20 @@ export default function SiteModals({ modalOpen, onClose }: SiteModalsProps) {
                       )}
                       <div className="p-5">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">{item.nome}</h3>
+                          <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">{item.title}</h3>
                           <ArrowRight className="w-4 h-4 text-[hsl(var(--primary))] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{item.descricao}</p>
+                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--primary))]">
+                          {item.segment}
+                        </p>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-2">{item.description}</p>
                       </div>
                     </motion.a>
                   ))}
                 </div>
+                <p className="mt-5 text-sm text-[hsl(var(--muted-foreground))]">
+                  Todos os sites podem ser personalizados com o nome, cores e informacoes do seu negocio.
+                </p>
               </div>
             )}
 
