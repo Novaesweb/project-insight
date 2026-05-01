@@ -860,6 +860,246 @@ section {
     100% { background-position: -200% 0; }
   }
 
+  /* ============================================
+     PREMIUM ADMIN REDESIGN v2.0 — Animações
+     ============================================ */
+
+  @keyframes border-glow-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0), 0 0 0 0 rgba(124, 58, 237, 0); }
+    50% { box-shadow: 0 0 18px 2px rgba(236, 72, 153, 0.22), 0 0 28px 4px rgba(124, 58, 237, 0.14); }
+  }
+
+  @keyframes stat-count-in {
+    0% { opacity: 0; transform: translateY(12px) scale(0.92); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes orb-float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-5px) scale(1.04); }
+  }
+
+  @keyframes glow-breathe {
+    0%, 100% { opacity: 0.5; filter: blur(16px); }
+    50% { opacity: 1; filter: blur(22px); }
+  }
+
+  @keyframes nav-badge-pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes live-ping {
+    0% { transform: scale(1); opacity: 1; }
+    75%, 100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  @keyframes slide-in-left {
+    0% { opacity: 0; transform: translateX(-16px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes dot-pattern-fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes gradient-border-spin {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ============================================
+     PREMIUM ADMIN REDESIGN v2.0 — Classes
+     ============================================ */
+
+  /* Fundo dot-pattern para sidebar */
+  .admin-dot-bg {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: dot-pattern-fade-in 0.8s ease forwards;
+  }
+
+  /* Card stat principal com linha colorida no topo */
+  .admin-kpi-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--admin-shell-radius-lg);
+    background: linear-gradient(160deg, oklch(0.19 0.06 292 / 0.88), oklch(0.15 0.04 288 / 0.94));
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s ease, border-color 0.3s ease;
+    animation: stat-count-in 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .admin-kpi-card:hover {
+    transform: translateY(-5px) scale(1.012);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.13);
+  }
+
+  .admin-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--kpi-color, var(--admin-gradient));
+  }
+
+  /* Linha colorida por tipo de KPI */
+  .admin-kpi-card[data-kpi="leads"]::before    { background: linear-gradient(90deg, #EC4899, #F472B6); }
+  .admin-kpi-card[data-kpi="clientes"]::before { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
+  .admin-kpi-card[data-kpi="projetos"]::before { background: linear-gradient(90deg, #06B6D4, #38BDF8); }
+  .admin-kpi-card[data-kpi="receita"]::before  { background: linear-gradient(90deg, #10B981, #34D399); }
+  .admin-kpi-card[data-kpi="danger"]::before   { background: linear-gradient(90deg, #EF4444, #F87171); }
+
+  /* Orb de ícone flutuante */
+  .admin-kpi-icon-orb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    animation: orb-float 4s ease-in-out infinite;
+  }
+
+  /* Número do KPI com animação de entrada */
+  .admin-kpi-number {
+    font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--admin-text);
+    animation: stat-count-in 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+  }
+
+  /* Badge de variação % com seta */
+  .admin-kpi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    animation: nav-badge-pop 0.4s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+  }
+  .admin-kpi-badge.up   { background: rgba(16,185,129,0.15); color: #34D399; }
+  .admin-kpi-badge.down { background: rgba(239,68,68,0.15);  color: #F87171; }
+  .admin-kpi-badge.neu  { background: rgba(255,255,255,0.06); color: var(--admin-muted); }
+
+  /* Botão com glow ao hover */
+  .admin-btn-glow {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .admin-btn-glow:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 30px rgba(236,72,153,0.3), 0 0 0 1px rgba(236,72,153,0.2);
+  }
+  .admin-btn-glow:active { transform: scale(0.98); }
+
+  /* Badge animado (ping vivo) para contagens */
+  .admin-badge-live {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--admin-gradient);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 0 6px;
+    min-width: 18px;
+    height: 18px;
+    animation: nav-badge-pop 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .admin-badge-live::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 999px;
+    background: inherit;
+    animation: live-ping 2s cubic-bezier(0,0,0.2,1) infinite;
+    opacity: 0.4;
+  }
+
+  /* Gradiente de texto NovaesWeb */
+  .admin-gradient-text {
+    background: var(--admin-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Borda animada com gradiente (para pill "Painel Ativo") */
+  .admin-border-animated {
+    position: relative;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+  .admin-border-animated::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(220,38,38,0.6), rgba(107,33,168,0.6), rgba(236,72,153,0.6));
+    background-size: 200% 200%;
+    animation: gradient-border-spin 4s ease infinite;
+    z-index: -1;
+  }
+
+  /* Separador de grupos nav com gradiente */
+  .admin-nav-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+    margin: 0.5rem 1rem;
+  }
+
+  /* Hero metric card (card maior no dashboard) */
+  .admin-hero-metric {
+    grid-column: span 2;
+    background: linear-gradient(145deg, oklch(0.20 0.07 295 / 0.92), oklch(0.15 0.05 288 / 0.96));
+    border: 1px solid rgba(236,72,153,0.18);
+    border-radius: calc(var(--admin-shell-radius-lg) + 2px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    animation: border-glow-pulse 5s ease-in-out infinite;
+  }
+
+  /* Sidebar avatar rodapé */
+  .admin-user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--admin-gradient);
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: 0.05em;
+    box-shadow: 0 6px 16px rgba(124,58,237,0.35);
+    flex-shrink: 0;
+  }
+
+  /* Online indicator */
+  .admin-online-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.25);
+    animation: live-ping 3s cubic-bezier(0,0,0.2,1) infinite;
+  }
+
   @keyframes founder-gradient-shift {
     0% {
       background-position: 0% 50%;

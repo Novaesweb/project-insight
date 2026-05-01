@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { 
   Users, FolderKanban, ShoppingCart, DollarSign, ArrowRight, CheckCircle2, 
-  Plus, Sparkles, AlertTriangle, TrendingUp 
+  Plus, Sparkles, AlertTriangle, TrendingUp, TrendingDown, Headphones
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,87 +12,146 @@ import { cn } from "@/lib/utils";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const kpiGradients = [
-  { bg: "from-[#FF1F1F]/20 to-transparent", icon: "bg-brand-gradient", glow: "shadow-[#FF1F1F]/20", border: "border-[#FF1F1F]/10" },
-  { bg: "from-[#7C3AED]/20 to-transparent", icon: "bg-brand-gradient", glow: "shadow-[#7C3AED]/20", border: "border-[#7C3AED]/10" },
-  { bg: "from-[#EC4899]/20 to-transparent", icon: "bg-brand-gradient", glow: "shadow-[#EC4899]/20", border: "border-[#EC4899]/10" },
-  { bg: "from-[#FF1F1F]/20 to-[#7C3AED]/5", icon: "bg-brand-gradient", glow: "shadow-[#FF1F1F]/20", border: "border-[#7C3AED]/10" },
-];
+// Hook de count-up animado
+function useCountUp(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  const rafRef = useRef<number>();
+  useEffect(() => {
+    const start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+  return count;
+}
 
-export function DashboardKPIs({ stats, revenue }: any) {
-  const kpis = [
-    {
-      label: "Ecossistemas",
-      value: String(stats.clientes),
-      icon: Users,
-      href: "/admin/clientes",
-      hint: "Ativos na Base",
-    },
-    {
-      label: "Engenharia",
-      value: String(stats.projetos),
-      icon: FolderKanban,
-      href: "/admin/projetos",
-      hint: "Projetos Ativos",
-    },
-    { 
-      label: "Oportunidades", 
-      value: String(stats.leads), 
-      icon: ShoppingCart, 
-      alert: stats.leads > 0,
-      change: stats.leads > 0 ? "Novo Lead" : "",
-      href: "/admin/leads?preset=novos",
-      hint: "Leads Pendentes",
-    },
-    { 
-      label: "Liquidez", 
-      value: `R$ ${(stats.receita / 1000).toFixed(1)}k`, 
-      icon: DollarSign,
-      change: revenue?.pending > 0 ? `R$ ${(revenue.pending / 1000).toFixed(1)}k pend.` : "Fluxo Estável",
-      href: "/admin/financeiro",
-      hint: "Receita Mensal",
-    },
-  ];
-
+// Card KPI individual
+function KpiCard({ label, value, numericValue, icon: Icon, href, hint, kpiType, badge, badgeDir, delay = 0 }: any) {
+  const animated = useCountUp(numericValue ?? 0, 1100);
   return (
-    <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" variants={fadeUp}>
-      {kpis.map((kpi, i) => {
-        const g = kpiGradients[i];
-        return (
-          <Link key={kpi.label} to={kpi.href} className="block">
-            <Card className={cn("glass-premium relative overflow-hidden border-white/10 group transition-all duration-500 hover:-translate-y-2")}>
-            <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${g.bg} opacity-0 group-hover:opacity-100 blur-[40px] transition-all duration-700`} />
-            <CardContent className="p-6 relative z-10">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#EC4899]/60 group-hover:text-[#EC4899] transition-colors mb-2">{kpi.label}</p>
-                  <p className="text-4xl font-light text-white tracking-tighter" style={{ fontFamily: "'Playfair Display', serif" }}>{kpi.value}</p>
-                  {kpi.change && (
-                    <div className={cn(
-                      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold mt-3 border transition-colors",
-                      kpi.alert ? "text-red-400 bg-red-400/10 border-red-400/20" : "text-[#7C3AED] bg-[#7C3AED]/10 border-[#7C3AED]/20"
-                    )}>
-                      {kpi.alert ? <AlertTriangle size={10} /> : <TrendingUp size={10} />}
-                      {kpi.change}
-                    </div>
-                  )}
-                </div>
-                <div className={cn("p-3 rounded-2xl shadow-xl transition-all duration-500 group-hover:scale-110", g.icon, g.glow)}>
-                  <kpi.icon className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="mt-6 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 group-hover:text-white/40 transition-colors">
-                <span>{kpi.hint}</span>
-                <ArrowRight size={12} className="text-[#EC4899] transition-transform duration-300 group-hover:translate-x-1" />
-              </div>
-            </CardContent>
-            </Card>
-          </Link>
-        );
-      })}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <Link to={href} className="block">
+        <div className="admin-kpi-card p-5" data-kpi={kpiType}>
+          {/* Glow corner */}
+          <div className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-60"
+            style={{ background: `radial-gradient(circle, var(--kpi-glow, rgba(236,72,153,0.3)), transparent 70%)` }} />
+
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="admin-kicker mb-2 text-[var(--admin-muted)]/70">{label}</p>
+              <p className="admin-kpi-number">
+                {numericValue !== undefined ? (
+                  value.startsWith("R$") ? `R$ ${(animated / 1000).toFixed(1)}k` : animated
+                ) : value}
+              </p>
+              <p className="mt-1.5 text-[10px] text-[var(--admin-muted)]/60 font-medium">{hint}</p>
+              {badge && (
+                <span className={cn("admin-kpi-badge mt-2", badgeDir === "up" ? "up" : badgeDir === "down" ? "down" : "neu")}>
+                  {badgeDir === "up" ? <TrendingUp size={9} /> : badgeDir === "down" ? <TrendingDown size={9} /> : <AlertTriangle size={9} />}
+                  {badge}
+                </span>
+              )}
+            </div>
+
+            {/* Icon orb */}
+            <div className="admin-kpi-icon-orb shrink-0">
+              <Icon className="h-5 w-5 text-white/80" />
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-white/5 to-transparent" />
+            <ArrowRight size={12} className="ml-2 text-[var(--admin-muted)]/40 transition-transform duration-300 group-hover:translate-x-1" />
+          </div>
+        </div>
+      </Link>
     </motion.div>
   );
 }
+
+export function DashboardKPIs({ stats, revenue }: any) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <KpiCard
+        label="Clientes"
+        value={String(stats.clientes)}
+        numericValue={stats.clientes}
+        icon={Users}
+        href="/admin/clientes"
+        hint="Ativos na Base"
+        kpiType="clientes"
+        delay={0}
+      />
+      <KpiCard
+        label="Projetos"
+        value={String(stats.projetos)}
+        numericValue={stats.projetos}
+        icon={FolderKanban}
+        href="/admin/projetos"
+        hint="Em Andamento"
+        kpiType="projetos"
+        delay={0.06}
+      />
+      <KpiCard
+        label="Leads"
+        value={String(stats.leads)}
+        numericValue={stats.leads}
+        icon={Headphones}
+        href="/admin/leads?preset=novos"
+        hint="Aguardando Contato"
+        kpiType="leads"
+        badge={stats.leads > 0 ? `${stats.leads} novo${stats.leads > 1 ? "s" : ""}` : undefined}
+        badgeDir={stats.leads > 0 ? "down" : undefined}
+        delay={0.12}
+      />
+      {/* Hero card — receita */}
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Link to="/admin/financeiro" className="block h-full">
+          <div className="admin-kpi-card h-full p-5" data-kpi="receita">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="admin-kicker mb-2 text-[var(--admin-muted)]/70">Receita Mensal</p>
+                <p className="admin-kpi-number text-[#34D399]">
+                  R$ {((stats.receita ?? 0) / 1000).toFixed(1)}k
+                </p>
+                <p className="mt-1.5 text-[10px] text-[var(--admin-muted)]/60 font-medium">Faturamento do Mês</p>
+                {revenue?.pending > 0 && (
+                  <span className="admin-kpi-badge neu mt-2">
+                    R$ {(revenue.pending / 1000).toFixed(1)}k pend.
+                  </span>
+                )}
+              </div>
+              <div className="admin-kpi-icon-orb shrink-0" style={{ background: "radial-gradient(circle at 30% 30%, rgba(16,185,129,0.2), rgba(255,255,255,0.04))" }}>
+                <DollarSign className="h-5 w-5 text-[#34D399]" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-white/5 to-transparent" />
+              <ArrowRight size={12} className="ml-2 text-[var(--admin-muted)]/40" />
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+    </div>
+  );
+}
+
+
 
 export function InsightAction({ icon: Icon, title, desc, action, link, color }: any) {
   return (

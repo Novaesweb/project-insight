@@ -21,6 +21,7 @@ import {
   ClipboardList,
   BookText,
   FileSignature,
+  Zap,
 } from "lucide-react";
 
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -113,154 +114,198 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
     return 0;
   };
 
-  const renderNavItem = (item: NavItem, variant: "primary" | "secondary" = "secondary") => {
+  const renderNavItem = (item: NavItem, variant: "primary" | "secondary" = "secondary", delay = 0) => {
     const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
     const badgeCount = getItemCount(item.href);
 
     return (
-      <Link
+      <motion.div
         key={item.href}
-        to={item.href}
-        className={cn(
-          "group relative flex items-center rounded-[14px] py-3 text-[13px] font-medium transition-all",
-          isCollapsed ? "justify-center px-2" : "gap-4 px-4",
-          variant === "primary" && !isCollapsed && "py-3.5",
-          isActive
-            ? "border-brand-subtle text-[var(--admin-text)] shadow-[0_10px_30px_rgba(0,0,0,0.18)] scale-[1.02]"
-            : "text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]",
-          !isActive && item.accent && "text-[var(--admin-tone-success)] hover:bg-[rgba(236,72,153,0.08)]",
-        )}
-        style={
-          isActive
-            ? {
-                background:
-                  "linear-gradient(135deg, rgba(220, 38, 38, 0.14), rgba(107, 33, 168, 0.18), rgba(236, 72, 153, 0.12))",
-              }
-            : undefined
-        }
-        aria-current={isActive ? "page" : undefined}
+        initial={{ opacity: 0, x: -12 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       >
-        {isActive && (
-          <motion.div
-            layoutId="adminNavIndicator"
-            className="absolute left-0 h-5 w-1 rounded-r-full"
-            style={{ background: "var(--gradient-primary)" }}
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
-          />
-        )}
-
-        <item.icon
+        <Link
+          to={item.href}
           className={cn(
-            "h-5 w-5 shrink-0 transition-all duration-300",
+            "group relative flex items-center rounded-[14px] py-3 text-[13px] font-medium transition-all duration-300",
+            isCollapsed ? "justify-center px-2" : "gap-3.5 px-4",
+            variant === "primary" && !isCollapsed && "py-3.5",
             isActive
-              ? "text-[var(--admin-tone-primary)]"
-              : item.accent
-                ? "text-[var(--admin-tone-success)]"
-                : "text-[var(--admin-muted)] group-hover:scale-110 group-hover:text-[var(--admin-text)]",
+              ? "text-[var(--admin-text)] shadow-[0_10px_30px_rgba(0,0,0,0.22)] scale-[1.01]"
+              : "text-[var(--admin-muted)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--admin-text)]",
+            !isActive && item.accent && "text-[var(--admin-tone-success)] hover:bg-[rgba(236,72,153,0.06)]",
           )}
-        />
+          style={
+            isActive
+              ? {
+                  background:
+                    "linear-gradient(135deg, rgba(220, 38, 38, 0.16), rgba(107, 33, 168, 0.20), rgba(236, 72, 153, 0.14))",
+                  border: "1px solid rgba(236,72,153,0.15)",
+                }
+              : undefined
+          }
+          aria-current={isActive ? "page" : undefined}
+        >
+          {/* Active indicator bar */}
+          {isActive && (
+            <motion.div
+              layoutId="adminNavIndicator"
+              className="absolute left-0 h-6 w-[3px] rounded-r-full"
+              style={{ background: "var(--gradient-primary)" }}
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+            />
+          )}
 
-        {!isCollapsed && (
-          <span className={cn("truncate", variant === "primary" ? "admin-nav-copy text-[0.76rem]" : "text-[13px] font-medium tracking-tight")}>
-            {item.label}
-          </span>
-        )}
+          {/* Icon */}
+          <div className={cn(
+            "relative shrink-0 transition-all duration-300",
+            isActive && "drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"
+          )}>
+            <item.icon
+              className={cn(
+                "h-[18px] w-[18px] transition-all duration-300",
+                isActive
+                  ? "text-[var(--admin-tone-primary)]"
+                  : item.accent
+                    ? "text-[var(--admin-tone-success)]"
+                    : "text-[var(--admin-muted)] group-hover:scale-110 group-hover:text-[var(--admin-text)]",
+              )}
+            />
+          </div>
 
-        {!isCollapsed && badgeCount > 0 && (
-          <span
-            className={cn(
-              "ml-auto rounded-full px-2 py-0.5 text-[9px] font-black transition-all",
-              isActive ? "bg-[rgba(255,255,255,0.08)] text-[#F0E8FF]" : "bg-brand-gradient text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]",
-            )}
-          >
-            {badgeCount}
-          </span>
-        )}
-      </Link>
+          {/* Label */}
+          {!isCollapsed && (
+            <span className={cn(
+              "truncate font-semibold tracking-tight",
+              variant === "primary" ? "text-[0.8rem]" : "text-[0.78rem]"
+            )}>
+              {item.label}
+            </span>
+          )}
+
+          {/* Badge vivo com ping */}
+          {!isCollapsed && badgeCount > 0 && (
+            <span className="admin-badge-live ml-auto">
+              {badgeCount}
+            </span>
+          )}
+
+          {/* Collapsed badge dot */}
+          {isCollapsed && badgeCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-[#EC4899]">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#EC4899] opacity-60" />
+            </span>
+          )}
+        </Link>
+      </motion.div>
     );
   };
 
   return (
     <motion.aside
-      animate={{ width: isCollapsed ? 80 : 280 }}
+      animate={{ width: isCollapsed ? 72 : 272 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="relative z-50 hidden h-screen shrink-0 md:flex md:flex-col glass-sidebar-admin"
     >
+      {/* Dot-pattern overlay */}
+      <div className="admin-dot-bg pointer-events-none absolute inset-0 opacity-100" />
+
+      {/* Right border gradient line */}
       <div
-        className="absolute top-0 right-0 h-full w-[1px] opacity-20"
-        style={{ background: "linear-gradient(180deg, rgba(236,72,153,0.9), rgba(107,33,168,0.55), transparent 72%)" }}
+        className="absolute top-0 right-0 h-full w-[1px] opacity-30"
+        style={{ background: "linear-gradient(180deg, rgba(236,72,153,0.9) 0%, rgba(107,33,168,0.5) 50%, transparent 100%)" }}
       />
 
+      {/* Ambient glow top */}
+      <div
+        className="pointer-events-none absolute -top-12 -left-12 h-48 w-48 rounded-full opacity-20"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.6), transparent 70%)", animation: "glow-breathe 6s ease-in-out infinite" }}
+      />
+
+      {/* Collapse toggle button */}
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-24 z-50 flex h-6 w-6 items-center justify-center rounded-full shadow-lg shadow-black/30 transition-all hover:scale-110 active:scale-95"
+        className="absolute -right-3.5 top-24 z-50 flex h-7 w-7 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
         style={{
-          background: "rgba(21, 0, 34, 0.96)",
-          border: "1px solid rgba(236, 72, 153, 0.24)",
+          background: "linear-gradient(135deg, rgba(21, 0, 34, 0.98), rgba(13, 0, 24, 0.98))",
+          border: "1px solid rgba(236, 72, 153, 0.30)",
           color: "#F0E8FF",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(236,72,153,0.15)",
         }}
         aria-label={isCollapsed ? "Expandir" : "Recolher"}
       >
-        {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        {isCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
       </button>
 
+      {/* Branding header */}
       <div
-        className={cn("flex items-center border-b py-8", isCollapsed ? "justify-center px-0" : "gap-4 px-6")}
-        style={{ borderColor: "rgba(249, 168, 212, 0.14)" }}
+        className={cn("relative flex items-center border-b py-7", isCollapsed ? "justify-center px-0" : "gap-3.5 px-5")}
+        style={{ borderColor: "rgba(249, 168, 212, 0.12)" }}
       >
         <Link to="/admin" className="group flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute -inset-3 rounded-2xl bg-brand-gradient opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-40" />
-            <div className="relative flex h-11 w-11 items-center justify-center rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
-              <Sparkles className="h-6 w-6 text-white" />
+          <div className="relative shrink-0">
+            <div className="absolute -inset-2 rounded-2xl opacity-0 blur-xl transition-opacity duration-700 group-hover:opacity-60"
+              style={{ background: "var(--admin-gradient)" }} />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-[13px] border border-[rgba(236,72,153,0.25)] bg-[rgba(255,255,255,0.05)] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
           </div>
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <p className="admin-brand-title leading-none text-[var(--admin-text)]">{branding.nome || "NovaesWeb"}</p>
-              <p className="admin-kicker mt-1.5 text-[var(--admin-muted)]">Painel Administrativo</p>
+              <p className="admin-brand-title leading-none text-[var(--admin-text)] font-black">
+                {branding.nome || "NovaesWeb"}
+              </p>
+              <p className="admin-kicker mt-1 text-[var(--admin-muted)]">Painel Administrativo</p>
             </motion.div>
           )}
         </Link>
       </div>
 
-      <nav className="custom-scrollbar flex-1 space-y-6 overflow-y-auto px-4 py-6" role="navigation">
+      {/* Navigation */}
+      <nav className="custom-scrollbar flex-1 space-y-5 overflow-y-auto px-3 py-5" role="navigation">
+        {/* Principal */}
         <div>
           {!isCollapsed && (
-              <p className="admin-kicker mb-3 px-4 text-[#F0E8FF]/55">
-                Principal
-              </p>
+            <p className="admin-kicker mb-2.5 px-3 text-[#F0E8FF]/40">Principal</p>
+          )}
+          <div className="space-y-1">
+            {primaryNavItems.filter((item) => canAccessPath(item.href)).map((item, i) =>
+              renderNavItem(item, "primary", i * 0.04)
             )}
-          <div className="space-y-1.5">
-            {primaryNavItems.filter((item) => canAccessPath(item.href)).map((item) => renderNavItem(item, "primary"))}
           </div>
         </div>
 
-        {navGroups.map((group) => (
+        {navGroups.map((group, gi) => (
           <div key={group.title}>
+            <div className="admin-nav-divider mb-3" />
             {!isCollapsed && (
-              <p className="admin-kicker mb-3 px-4 italic text-[var(--admin-muted)]">
+              <p className="admin-kicker mb-2.5 px-3 italic text-[var(--admin-muted)]/70">
                 {group.title}
               </p>
             )}
-
-            <div className="space-y-1">
-              {group.items.filter((item) => canAccessPath(item.href)).map((item) => renderNavItem(item))}
+            <div className="space-y-0.5">
+              {group.items.filter((item) => canAccessPath(item.href)).map((item, i) =>
+                renderNavItem(item, "secondary", (gi + i) * 0.03)
+              )}
             </div>
           </div>
         ))}
 
+        {/* Atalhos rápidos */}
         {!isCollapsed && favoriteRoutes.length > 0 && (
-          <div className="pt-2">
-            <p className="mb-3 px-4 text-[9px] font-black uppercase tracking-[0.3em] text-[var(--admin-muted)]">
+          <div className="pt-1">
+            <div className="admin-nav-divider mb-3" />
+            <p className="mb-2.5 px-3 text-[9px] font-black uppercase tracking-[0.28em] text-[var(--admin-muted)]/60 flex items-center gap-1.5">
+              <Zap size={9} className="shrink-0" />
               Atalhos
             </p>
-            <div className="flex flex-wrap gap-2 px-4">
+            <div className="flex flex-wrap gap-1.5 px-3">
               {favoriteRoutes.map((route) => (
                 <Link
                   key={route.href}
                   to={route.href}
-                  className="rounded-[14px] border border-[var(--admin-border-color)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-[11px] font-bold text-[var(--admin-muted)] transition-all hover:border-[#7C3AED]/50 hover:text-[var(--admin-text)]"
+                  className="rounded-[10px] border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[10px] font-bold text-[var(--admin-muted)] transition-all hover:border-[#7C3AED]/40 hover:bg-[rgba(124,58,237,0.1)] hover:text-[var(--admin-text)]"
                 >
                   {route.shortLabel || route.label}
                 </Link>
@@ -270,17 +315,44 @@ export default function AdminSidebar({ isCollapsed, onToggle, branding }: AdminS
         )}
       </nav>
 
-      <div className={cn("border-t p-4", isCollapsed && "px-2")} style={{ borderColor: "rgba(124, 58, 237, 0.14)" }}>
-        <button
-          onClick={handleLogout}
-          className={cn(
-            "group flex w-full items-center rounded-[14px] py-3 text-xs font-bold uppercase tracking-widest text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.08)] hover:text-[#FCA5A5]",
-            isCollapsed ? "justify-center px-2" : "gap-4 px-4",
-          )}
-        >
-          <LogOut size={18} className="shrink-0 transition-transform group-hover:translate-x-1" />
-          {!isCollapsed && <span>Terminar Sessao</span>}
-        </button>
+      {/* Footer com avatar */}
+      <div
+        className={cn("border-t p-3", isCollapsed && "px-2")}
+        style={{ borderColor: "rgba(124, 58, 237, 0.12)" }}
+      >
+        {!isCollapsed ? (
+          <div className="flex items-center gap-3 rounded-[14px] border border-white/[0.05] bg-white/[0.03] px-3 py-2.5 transition-all hover:bg-white/[0.05]">
+            <div className="relative">
+              <div className="admin-user-avatar">NW</div>
+              <span className="admin-online-dot absolute -bottom-0.5 -right-0.5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold text-[var(--admin-text)] truncate">NovaesWeb</p>
+              <p className="text-[9px] text-[var(--admin-muted)] tracking-wide">Admin</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="group ml-auto rounded-[8px] p-1.5 text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.12)] hover:text-[#FCA5A5]"
+              title="Sair"
+            >
+              <LogOut size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative">
+              <div className="admin-user-avatar text-[9px]">NW</div>
+              <span className="admin-online-dot absolute -bottom-0.5 -right-0.5" />
+            </div>
+            <button
+              onClick={handleLogout}
+              className="group rounded-[8px] p-1.5 text-[var(--admin-muted)] transition-all hover:bg-[rgba(220,38,38,0.12)] hover:text-[#FCA5A5]"
+              title="Sair"
+            >
+              <LogOut size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+        )}
       </div>
     </motion.aside>
   );
